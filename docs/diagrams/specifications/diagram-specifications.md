@@ -2,7 +2,7 @@
 
 Tài liệu này quy định nội dung cần đưa vào từng diagram. Diagram phải phản ánh đúng requirement ID, business rule, trạng thái và service ownership đã định nghĩa; không tự thêm entity hoặc luồng không có trong SRS.
 
-Diagram tổng hợp đã được hiện thực tại [Online Bus Ticket Platform — Super Diagram](../diagrams/bus-ticket-platform-super-diagram.html).
+Diagram tổng hợp đã được hiện thực tại [Online Bus Ticket Platform — Super Diagram](../bus-ticket-platform-super-diagram.html).
 
 ## 1. Thứ tự vẽ từ đơn giản đến phức tạp
 
@@ -401,7 +401,7 @@ Không gộp tất cả entity vào một hình. Vẽ các hình riêng:
 3. `Ticket + Refund`.
 4. `Trip`.
 
-Nguồn transition chính thức: [Mô hình trạng thái](./08-state-models.md). Mỗi arrow phải có dạng:
+Nguồn chuyển trạng thái chính thức: [Yêu cầu về trạng thái nghiệp vụ](../../srs/requirements/state-requirements.md). Mỗi mũi tên phải có dạng:
 
 ```text
 event [guard] / action
@@ -634,17 +634,17 @@ Vẽ port/network boundary chỉ khi đã chốt công nghệ; không đưa cred
 
 | Diagram | Nguồn chính |
 |---|---|
-| Context | 01, 02, 03 |
-| Use Case | 03, 05, 07 |
-| Activity | 04, 06 |
-| Robustness | 07, 09, 12 |
-| Sequence | 07, 10, 11, 14 |
-| State Machine | 08 |
-| Class Diagram | 06, 09 |
-| ERD | 09 |
-| Microservices Architecture | 10, 11 |
-| Event/Data Flow | 10, 11, 14 |
-| Deployment | 10, 13 |
+| Context | Product Overview, System Scope and Context, Actors and Permissions |
+| Use Case | Actors and Permissions, Functional Requirements, Use Cases |
+| Activity | Business Processes, Business Rules |
+| Robustness | Use Cases, Data Requirements, User Interface Requirements |
+| Sequence | Use Cases, Service Architecture Constraints, Service Interfaces, Exceptions and Recovery |
+| State Machine | State Requirements |
+| Class Diagram | Business Rules, Data Requirements |
+| ERD | Data Requirements |
+| Microservices Architecture | Service Architecture Constraints, Service Interfaces |
+| Event/Data Flow | Service Architecture Constraints, Service Interfaces, Exceptions and Recovery |
+| Deployment | Service Architecture Constraints, Quality Requirements |
 
 ## 18. Checklist trước khi chốt diagram
 

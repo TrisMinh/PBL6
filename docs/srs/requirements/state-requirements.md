@@ -14,7 +14,7 @@ AVAILABLE ↔ DISABLED
 
 | Từ | Đến | Điều kiện |
 |---|---|---|
-| AVAILABLE | HELD | SeatHold được tạo atomic |
+| AVAILABLE | HELD | SeatHold được tạo thành công cho toàn bộ ghế đã chọn trong cùng giao dịch |
 | HELD | AVAILABLE | Hold hết hạn/release và Trip còn bán |
 | HELD | BOOKED | Payment thành công, booking/hold còn hợp lệ |
 | AVAILABLE | DISABLED | Operator vô hiệu ghế trước khi bị giữ/bán |
@@ -49,7 +49,7 @@ PAID → CANCELLED → REFUND_PENDING → REFUNDED
 
 | Từ | Đến | Trigger |
 |---|---|---|
-| PENDING_PAYMENT | PAID | `PaymentSucceeded` hợp lệ và ghế được xác nhận atomic |
+| PENDING_PAYMENT | PAID | `PaymentSucceeded` hợp lệ; booking, ghế và ticket được cập nhật nhất quán trong cùng giao dịch |
 | PENDING_PAYMENT | EXPIRED | Quá `expiresAt` chưa thanh toán |
 | PENDING_PAYMENT | CANCELLED | Customer/system hủy trước payment |
 | PAID | COMPLETED | Trip hoàn thành và nghĩa vụ vé kết thúc |
@@ -124,4 +124,4 @@ SCHEDULED → BOARDING → DEPARTED → IN_TRANSIT → ARRIVED → COMPLETED
 | ARRIVED | COMPLETED | Driver/Operator hoặc job được cấu hình |
 | SCHEDULED/BOARDING | CANCELLED | Operator có quyền/Admin |
 
-Hủy sau `DEPARTED` là case vận hành đặc biệt, cần quyền cao hơn và audit; không dùng transition thông thường.
+Hủy sau `DEPARTED` là trường hợp vận hành đặc biệt, cần quyền cao hơn và audit; không dùng luồng chuyển trạng thái thông thường.

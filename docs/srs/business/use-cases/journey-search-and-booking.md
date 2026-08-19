@@ -56,5 +56,4 @@
 - Số Passenger không khớp số ghế: hệ thống trả lỗi dữ liệu đầu vào.
 - Yêu cầu lặp cùng idempotency key: hệ thống trả lại cùng SeatHold hoặc Booking, không tạo bản ghi mới.
 
-> “Giữ ghế nguyên khối” có nghĩa là giữ được tất cả ghế trong một yêu cầu hoặc không giữ ghế nào; hệ thống không được chỉ giữ một phần mà người dùng không biết.
-
+> Nguyên tắc “tất cả hoặc không ghế nào” có nghĩa là hệ thống phải giữ được toàn bộ ghế trong một yêu cầu; nếu một ghế không còn khả dụng thì không ghế nào trong yêu cầu được giữ.

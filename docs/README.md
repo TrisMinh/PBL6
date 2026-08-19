@@ -1,5 +1,6 @@
 # Tài liệu dự án PBL6
 
-Bộ tài liệu đặc tả mới được tổ chức tại [SRS](./srs/README.md).
+- [Software Requirements Specification](./srs/README.md): đặc tả sản phẩm, nghiệp vụ, yêu cầu hệ thống, ràng buộc kiến trúc và tiêu chí nghiệm thu.
+- [Diagram](./diagrams/README.md): sơ đồ tổng hợp, các sơ đồ chuyên biệt và đặc tả đầu vào để vẽ.
 
-Diagram tổng hợp được tổ chức tại [Diagrams](./diagrams/README.md).
+Văn bản SRS là nguồn quyết định cho yêu cầu và quy tắc nghiệp vụ. Diagram dùng để giải thích trực quan và phải truy vết về tài liệu hoặc requirement ID tương ứng.

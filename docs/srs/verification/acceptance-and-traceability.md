@@ -14,7 +14,7 @@
 
 **Given** TripSeat A1 đang `AVAILABLE`, **when** hai Customer giữ A1 đồng thời, **then** đúng một request thành công và request còn lại nhận `SEAT_UNAVAILABLE`.
 
-### AC-SEAT-002 — Atomic nhiều ghế
+### AC-SEAT-002 — Giữ tất cả hoặc không giữ ghế nào
 
 **Given** A1 available và A2 đã held, **when** Customer yêu cầu giữ A1+A2, **then** request thất bại toàn bộ và A1 vẫn available.
 

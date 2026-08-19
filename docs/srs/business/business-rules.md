@@ -8,7 +8,7 @@
 | BR-SEAT-002 | `SELECTED` là trạng thái cục bộ ở client, không được lưu làm trạng thái TripSeat. |
 | BR-SEAT-003 | TripSeat chỉ có `AVAILABLE`, `HELD`, `BOOKED`, `DISABLED`. |
 | BR-SEAT-004 | Một TripSeat chỉ có tối đa một SeatHold `ACTIVE` hoặc một Ticket còn hiệu lực. |
-| BR-SEAT-005 | Giữ nhiều ghế phải atomic: tất cả thành công hoặc tất cả thất bại. |
+| BR-SEAT-005 | Khi giữ nhiều ghế, hệ thống phải giữ được toàn bộ hoặc không giữ ghế nào; không được giữ thành công một phần. |
 | BR-SEAT-006 | SeatHold mặc định hết hạn sau 10 phút; thời hạn chính xác trả về bằng `expiresAt`. |
 | BR-SEAT-007 | Customer chỉ có một active hold cho cùng TripSeat; request lặp cùng idempotency key trả cùng kết quả. |
 | BR-SEAT-008 | Ghế hết hạn được giải phóng bằng job và cũng phải được kiểm tra lazy trong request kế tiếp. |
@@ -64,7 +64,7 @@
 |---|---|
 | BR-TRIP-001 | Chỉ Trip `SCHEDULED` đã đủ route, bus, driver, schedule, fare và seat snapshot mới được publish để bán. |
 | BR-TRIP-002 | Cùng một bus hoặc driver không được có assignment có thời gian chồng lấn, gồm buffer cấu hình. |
-| BR-TRIP-003 | Driver chỉ cập nhật Trip được phân công và chỉ theo transition được phép. |
+| BR-TRIP-003 | Driver chỉ cập nhật Trip được phân công và chỉ theo chuyển trạng thái được phép. |
 | BR-TRIP-004 | Trip có booking/ticket không được hard delete; chỉ được cancel. |
 | BR-TRIP-005 | Thay đổi giờ/điểm đón/trả sau khi đã bán vé phải phát event và thông báo khách bị ảnh hưởng. |
 | BR-TRIP-006 | Trip cancellation phải idempotent và phát đúng một logical cancellation event. |

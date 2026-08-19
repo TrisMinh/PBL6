@@ -29,7 +29,7 @@ flowchart LR
     Cancel --> Refund[Hoàn tiền]
 ```
 
-Luồng trên là đường đi chuẩn. Các nhánh lỗi và compensation được mô tả ở phần 14.
+Luồng trên là đường đi chuẩn. Các nhánh lỗi và bù trừ được mô tả trong [Ngoại lệ và khả năng phục hồi](../architecture/exceptions-and-recovery.md).
 
 ## 3. BP-01 — Tìm chuyến và đặt vé
 
@@ -126,7 +126,7 @@ Trip chỉ được hiển thị để bán sau khi seat inventory đã được
 ## 8. BP-06 — Hủy chuyến
 
 1. Operator có quyền chọn Trip và nhập lý do hủy.
-2. Transport Service kiểm tra transition và chuyển Trip `CANCELLED` idempotent.
+2. Transport Service kiểm tra quy tắc chuyển trạng thái và chuyển Trip sang `CANCELLED` theo cơ chế idempotent.
 3. `TripCancelled` được phát qua outbox.
 4. Booking Service xác định Booking/Ticket bị ảnh hưởng và hủy quyền sử dụng.
 5. Refund được tạo cho các khoản đã thanh toán theo chính sách hủy bởi nhà xe.
@@ -143,7 +143,7 @@ Trip chỉ được hiển thị để bán sau khi seat inventory đã được
 
 ## 10. Liên kết sang đặc tả chi tiết
 
-| Quy trình | Functional Requirements | Business Rules | Use Case |
+| Quy trình | Yêu cầu chức năng | Quy tắc nghiệp vụ | Use Case |
 |---|---|---|---|
 | BP-01 | FR-SEARCH, FR-BOOK, FR-PAY, FR-TICKET | BR-SEAT, BR-BOOK, BR-PAY | UC-SEARCH-01, UC-BOOK-01, UC-PAY-01 |
 | BP-02 | FR-BOOK-009, FR-PAY-008 | BR-CANCEL, BR-PAY | UC-CANCEL-01 |

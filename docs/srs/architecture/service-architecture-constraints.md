@@ -107,7 +107,7 @@ Notification và Reporting không được nằm trên critical path thanh toán
 3. Gateway ngoài gửi webhook cho Payment Service.
 4. Payment Service xác minh chữ ký, amount, currency và transaction ID.
 5. Payment Service lưu `SUCCEEDED` và phát `PaymentSucceeded` qua outbox.
-6. Booking Service nhận event, kiểm tra booking/hold và atomically chuyển ghế sang `BOOKED`, booking sang `PAID`, sau đó tạo ticket.
+6. Booking Service nhận event, kiểm tra booking/hold, rồi trong cùng một giao dịch chuyển ghế sang `BOOKED`, booking sang `PAID` và tạo ticket.
 7. Booking Service phát `BookingPaid` và `TicketIssued`.
 8. Notification gửi xác nhận; Reporting cập nhật read model.
 

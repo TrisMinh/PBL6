@@ -1,6 +1,6 @@
 # Yêu cầu chức năng
 
-Mỗi yêu cầu dưới đây là một hành vi quan sát được. Quy tắc chi tiết nằm trong [Business Rules](./06-business-rules.md); luồng chính nằm trong [Use Cases](./07-use-cases.md).
+Mỗi yêu cầu dưới đây là một hành vi quan sát được. Quy tắc chi tiết nằm trong [Quy tắc nghiệp vụ](../business/business-rules.md); luồng chính nằm trong [Danh mục Use Case](../business/use-cases/README.md).
 
 ## 1. Identity và tài khoản
 
@@ -33,7 +33,7 @@ Mỗi yêu cầu dưới đây là một hành vi quan sát được. Quy tắc 
 | ID | Mức | Yêu cầu |
 |---|---|---|
 | FR-BOOK-001 | MUST | Customer đã đăng nhập có thể xem `TripSeat` và trạng thái khả dụng của một chuyến. |
-| FR-BOOK-002 | MUST | Customer có thể yêu cầu giữ một hoặc nhiều ghế; hệ thống giữ atomic và trả `holdToken`, `expiresAt`, giá snapshot. |
+| FR-BOOK-002 | MUST | Customer có thể yêu cầu giữ một hoặc nhiều ghế; hệ thống phải giữ được toàn bộ hoặc không giữ ghế nào, sau đó trả `holdToken`, `expiresAt` và giá tại thời điểm giữ. |
 | FR-BOOK-003 | MUST | Hệ thống từ chối toàn bộ yêu cầu nếu bất kỳ ghế nào không còn khả dụng tại thời điểm commit. |
 | FR-BOOK-004 | MUST | Customer nhập một Passenger cho mỗi ghế; các trường bắt buộc được kiểm tra theo policy của chuyến. |
 | FR-BOOK-005 | MUST | Customer có thể tạo đúng một Booking từ SeatHold còn hiệu lực; thao tác hỗ trợ idempotency. |
@@ -52,7 +52,7 @@ Mỗi yêu cầu dưới đây là một hành vi quan sát được. Quy tắc 
 | FR-PAY-002 | MUST | Payment Service gửi request đến provider với mã tham chiếu duy nhất, amount, currency và callback URL. |
 | FR-PAY-003 | MUST | Payment Service xác minh chữ ký, provider, transaction ID, amount và currency trước khi chấp nhận webhook. |
 | FR-PAY-004 | MUST | Webhook lặp không được tạo thêm payment, ticket hoặc thay đổi trạng thái lần thứ hai. |
-| FR-PAY-005 | MUST | Khi payment hợp lệ thành công, Booking Service xác nhận booking và ghế bằng thao tác atomic rồi phát hành ticket. |
+| FR-PAY-005 | MUST | Khi payment hợp lệ thành công, Booking Service phải cập nhật booking, ghế và ticket trong cùng một giao dịch để không tạo trạng thái dở dang. |
 | FR-PAY-006 | MUST | Payment thất bại/hủy không được chuyển Booking sang `PAID`; ghế được giữ đến hết hạn hiện tại hoặc giải phóng theo rule. |
 | FR-PAY-007 | MUST | Payment thành công trễ nhưng booking không thể xác nhận phải tạo compensation refund hoặc case xử lý thủ công. |
 | FR-PAY-008 | MUST | Hệ thống tạo và theo dõi Refund; refund lặp phải idempotent. |
@@ -80,7 +80,7 @@ Mỗi yêu cầu dưới đây là một hành vi quan sát được. Quy tắc 
 | FR-OPS-004 | MUST | Operator có thể quản lý route, stop, thứ tự dừng và thời gian dự kiến. |
 | FR-OPS-005 | MUST | Operator có thể tạo draft trip, phân xe/tài xế, định giá và publish chuyến. |
 | FR-OPS-006 | MUST | Khi publish, hệ thống kiểm tra xung đột lịch xe/tài xế và tạo snapshot ghế cho Booking Service. |
-| FR-OPS-007 | MUST | Operator/Driver được phép có thể chuyển trạng thái Trip theo transition hợp lệ. |
+| FR-OPS-007 | MUST | Operator/Driver được phép có thể chuyển trạng thái Trip theo quy tắc chuyển trạng thái hợp lệ. |
 | FR-OPS-008 | MUST | Hủy Trip có vé đã bán phải phát event để hủy vé, khởi tạo refund và gửi thông báo. |
 | FR-OPS-009 | MUST | Dữ liệu xe/tài xế/tuyến đã được tham chiếu không được hard delete. |
 | FR-OPS-010 | MUST | Driver xem được assignment và manifest tối thiểu của chuyến được phân công. |

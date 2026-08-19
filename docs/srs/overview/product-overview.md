@@ -71,7 +71,7 @@ Hệ thống cung cấp một nền tảng chung để khách hàng tìm chuyế
 
 ## 7. Tiêu chí thành công cấp sản phẩm
 
-- Các acceptance test P0 trong tài liệu 15 đều đạt.
+- Các acceptance test P0 trong [Tiêu chí chấp nhận và truy vết](../verification/acceptance-and-traceability.md) đều đạt.
 - Không phát hiện double-booking trong kiểm thử concurrency.
 - Ba client gọi được cùng API Gateway và tuân thủ phân quyền.
 - Có thể khởi chạy toàn bộ hạ tầng local bằng một quy trình được tài liệu hóa.

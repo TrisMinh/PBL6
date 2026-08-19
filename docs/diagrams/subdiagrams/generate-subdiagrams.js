@@ -484,7 +484,7 @@ function renderSystemContext() {
     width,
     height,
     body,
-    source: 'SRS 01, 02, 03 · DIA System Context',
+    source: 'Product Overview · System Scope · Actors and Permissions',
     legend: 'Ký pháp C4 Context · Người que: Person · Hộp «container»: kênh truy cập · Cam: software system · Nét đứt: hệ thống ngoài',
   });
 }
@@ -648,7 +648,7 @@ function renderActivityBooking() {
   return htmlPage({
     slug: 'activity-booking', title: 'Quy trình đặt vé từ tìm chuyến đến nhận vé',
     subtitle: 'Swimlane thể hiện đúng chủ thể thực hiện từng bước, các decision và sự khác nhau giữa redirect thanh toán với webhook xác nhận server.',
-    width, height, body, source: 'SRS 04, 06 · BP-01 · UC-BOOK-01 · UC-PAY-01',
+    width, height, body, source: 'Business Processes · Business Rules · BP-01 · UC-BOOK-01 · UC-PAY-01',
     legend: 'Ký pháp UML Activity · Chấm đen: bắt đầu · Vòng tròn kép: kết thúc · Hình thoi: decision · Mỗi cột là một swimlane',
   });
 }
@@ -786,32 +786,32 @@ const robustnessSpecs = [
       ['ACTOR','Payment Gateway','BOUNDARY','PaymentWebhookEndpoint'], ['BOUNDARY','PaymentWebhookEndpoint','CONTROL','PaymentController'], ['CONTROL','PaymentController','ENTITY','Payment'],
       ['CONTROL','PaymentController','CONTROL','TicketIssuanceController','edge-accent'], ['CONTROL','TicketIssuanceController','ENTITY','Ticket'],
     ],
-    source: 'UC-BOOK-01 · UC-PAY-01 · SRS 07, 09, 12',
+    source: 'UC-BOOK-01 · UC-PAY-01 · Data Requirements · UI Requirements',
   },
   {
     slug: 'robustness-login', file: 'robustness-login.html', title: 'Robustness — Đăng nhập', subtitle: 'Xác thực credential, cấp token và ghi audit mà không làm lộ trạng thái tài khoản.',
     actors: ['Customer / Staff'], boundaries: ['LoginPage', 'AuthAPI'], controls: ['AuthenticationController', 'TokenController'], entities: ['User', 'RefreshToken', 'SecurityAudit'],
-    edges: [['ACTOR','Customer / Staff','BOUNDARY','LoginPage'],['BOUNDARY','LoginPage','BOUNDARY','AuthAPI'],['BOUNDARY','AuthAPI','CONTROL','AuthenticationController'],['CONTROL','AuthenticationController','ENTITY','User'],['CONTROL','AuthenticationController','CONTROL','TokenController','edge-accent'],['CONTROL','TokenController','ENTITY','RefreshToken'],['CONTROL','AuthenticationController','ENTITY','SecurityAudit']], source: 'UC-AUTH-02 · SRS 07, 09, 12',
+    edges: [['ACTOR','Customer / Staff','BOUNDARY','LoginPage'],['BOUNDARY','LoginPage','BOUNDARY','AuthAPI'],['BOUNDARY','AuthAPI','CONTROL','AuthenticationController'],['CONTROL','AuthenticationController','ENTITY','User'],['CONTROL','AuthenticationController','CONTROL','TokenController','edge-accent'],['CONTROL','TokenController','ENTITY','RefreshToken'],['CONTROL','AuthenticationController','ENTITY','SecurityAudit']], source: 'UC-AUTH-02 · Data Requirements · UI Requirements',
   },
   {
     slug: 'robustness-cancel-ticket', file: 'robustness-cancel-ticket.html', title: 'Robustness — Hủy vé và hoàn tiền', subtitle: 'Kiểm tra điều kiện hủy trước khi thay đổi vé và điều phối refund an toàn.',
     actors: ['Customer'], boundaries: ['TicketDetailPage', 'CancellationAPI'], controls: ['CancellationPolicyController', 'RefundController'], entities: ['Ticket', 'Booking', 'Payment', 'Refund'],
-    edges: [['ACTOR','Customer','BOUNDARY','TicketDetailPage'],['BOUNDARY','TicketDetailPage','BOUNDARY','CancellationAPI'],['BOUNDARY','CancellationAPI','CONTROL','CancellationPolicyController'],['CONTROL','CancellationPolicyController','ENTITY','Ticket'],['CONTROL','CancellationPolicyController','ENTITY','Booking'],['CONTROL','CancellationPolicyController','CONTROL','RefundController','edge-accent'],['CONTROL','RefundController','ENTITY','Payment'],['CONTROL','RefundController','ENTITY','Refund']], source: 'UC-CANCEL-01 · SRS 07, 09, 12',
+    edges: [['ACTOR','Customer','BOUNDARY','TicketDetailPage'],['BOUNDARY','TicketDetailPage','BOUNDARY','CancellationAPI'],['BOUNDARY','CancellationAPI','CONTROL','CancellationPolicyController'],['CONTROL','CancellationPolicyController','ENTITY','Ticket'],['CONTROL','CancellationPolicyController','ENTITY','Booking'],['CONTROL','CancellationPolicyController','CONTROL','RefundController','edge-accent'],['CONTROL','RefundController','ENTITY','Payment'],['CONTROL','RefundController','ENTITY','Refund']], source: 'UC-CANCEL-01 · Data Requirements · UI Requirements',
   },
   {
     slug: 'robustness-create-trip', file: 'robustness-create-trip.html', title: 'Robustness — Tạo và mở bán chuyến', subtitle: 'Kiểm tra route, xe, tài xế và lịch trước khi publish chuyến.',
     actors: ['Operator Staff'], boundaries: ['TripEditorPage', 'OperatorTripAPI'], controls: ['TripValidationController', 'PublishTripController'], entities: ['Trip', 'Route', 'Bus', 'DriverAssignment'],
-    edges: [['ACTOR','Operator Staff','BOUNDARY','TripEditorPage'],['BOUNDARY','TripEditorPage','BOUNDARY','OperatorTripAPI'],['BOUNDARY','OperatorTripAPI','CONTROL','TripValidationController'],['CONTROL','TripValidationController','ENTITY','Route'],['CONTROL','TripValidationController','ENTITY','Bus'],['CONTROL','TripValidationController','ENTITY','DriverAssignment'],['CONTROL','TripValidationController','CONTROL','PublishTripController','edge-accent'],['CONTROL','PublishTripController','ENTITY','Trip']], source: 'UC-OPS-01 · SRS 07, 09, 12',
+    edges: [['ACTOR','Operator Staff','BOUNDARY','TripEditorPage'],['BOUNDARY','TripEditorPage','BOUNDARY','OperatorTripAPI'],['BOUNDARY','OperatorTripAPI','CONTROL','TripValidationController'],['CONTROL','TripValidationController','ENTITY','Route'],['CONTROL','TripValidationController','ENTITY','Bus'],['CONTROL','TripValidationController','ENTITY','DriverAssignment'],['CONTROL','TripValidationController','CONTROL','PublishTripController','edge-accent'],['CONTROL','PublishTripController','ENTITY','Trip']], source: 'UC-OPS-01 · Data Requirements · UI Requirements',
   },
   {
     slug: 'robustness-check-in', file: 'robustness-check-in.html', title: 'Robustness — Check-in hành khách', subtitle: 'Quét QR, kiểm quyền và chuyển trạng thái vé đúng chuyến.',
     actors: ['Driver', 'Operator Staff'], boundaries: ['ManifestPage', 'QRScanner', 'CheckInAPI'], controls: ['TicketValidationController'], entities: ['Ticket', 'TripSnapshot', 'CheckInAudit'],
-    edges: [['ACTOR','Driver','BOUNDARY','ManifestPage'],['ACTOR','Operator Staff','BOUNDARY','ManifestPage'],['BOUNDARY','ManifestPage','BOUNDARY','QRScanner'],['BOUNDARY','QRScanner','BOUNDARY','CheckInAPI'],['BOUNDARY','CheckInAPI','CONTROL','TicketValidationController','edge-accent'],['CONTROL','TicketValidationController','ENTITY','Ticket'],['CONTROL','TicketValidationController','ENTITY','TripSnapshot'],['CONTROL','TicketValidationController','ENTITY','CheckInAudit']], source: 'UC-DRIVER-01 · SRS 07, 09, 12',
+    edges: [['ACTOR','Driver','BOUNDARY','ManifestPage'],['ACTOR','Operator Staff','BOUNDARY','ManifestPage'],['BOUNDARY','ManifestPage','BOUNDARY','QRScanner'],['BOUNDARY','QRScanner','BOUNDARY','CheckInAPI'],['BOUNDARY','CheckInAPI','CONTROL','TicketValidationController','edge-accent'],['CONTROL','TicketValidationController','ENTITY','Ticket'],['CONTROL','TicketValidationController','ENTITY','TripSnapshot'],['CONTROL','TicketValidationController','ENTITY','CheckInAudit']], source: 'UC-DRIVER-01 · Data Requirements · UI Requirements',
   },
   {
     slug: 'robustness-cancel-trip', file: 'robustness-cancel-trip.html', title: 'Robustness — Hủy chuyến', subtitle: 'Hủy Trip và điều phối các booking, refund cùng thông báo bị ảnh hưởng.',
     actors: ['Operator Staff', 'Admin'], boundaries: ['TripOperationPage', 'TripAPI'], controls: ['TripCancellationController'], entities: ['Trip', 'BookingProjection', 'Refund'],
-    edges: [['ACTOR','Operator Staff','BOUNDARY','TripOperationPage'],['ACTOR','Admin','BOUNDARY','TripOperationPage'],['BOUNDARY','TripOperationPage','BOUNDARY','TripAPI'],['BOUNDARY','TripAPI','CONTROL','TripCancellationController','edge-accent'],['CONTROL','TripCancellationController','ENTITY','Trip'],['CONTROL','TripCancellationController','ENTITY','BookingProjection'],['CONTROL','TripCancellationController','ENTITY','Refund']], source: 'UC-TRIP-01 · SRS 07, 09, 12',
+    edges: [['ACTOR','Operator Staff','BOUNDARY','TripOperationPage'],['ACTOR','Admin','BOUNDARY','TripOperationPage'],['BOUNDARY','TripOperationPage','BOUNDARY','TripAPI'],['BOUNDARY','TripAPI','CONTROL','TripCancellationController','edge-accent'],['CONTROL','TripCancellationController','ENTITY','Trip'],['CONTROL','TripCancellationController','ENTITY','BookingProjection'],['CONTROL','TripCancellationController','ENTITY','Refund']], source: 'UC-TRIP-01 · Data Requirements · UI Requirements',
   },
 ];
 
@@ -1066,7 +1066,7 @@ function renderStateDiagram(spec) {
 
 const stateSpecs = [
   {
-    slug: 'state-trip-seat-hold', file: 'state-trip-seat-hold.html', title: 'State — Ghế chuyến và phiên giữ ghế', subtitle: 'Hai state machine liên quan nhưng độc lập: trạng thái bán của từng ghế và vòng đời phiên giữ.', source: 'SRS 08 · BR-BOOK-01/02/05',
+    slug: 'state-trip-seat-hold', file: 'state-trip-seat-hold.html', title: 'State — Ghế chuyến và phiên giữ ghế', subtitle: 'Hai state machine liên quan nhưng độc lập: trạng thái bán của từng ghế và vòng đời phiên giữ.', source: 'State Requirements · BR-BOOK-01/02/05',
     panels: [
       { title: 'TRIPSEAT — TRẠNG THÁI GHẾ TRÊN MỘT CHUYẾN', initial:'AVAILABLE', finals:['BOOKED'], states: [{name:'AVAILABLE',col:0,row:0},{name:'HELD',col:1,row:0},{name:'BOOKED',col:2,row:0},{name:'DISABLED',col:0,row:1}], transitions: [
         ['AVAILABLE','HELD','SeatHoldCreated [sellable] / lock seat'],['HELD','BOOKED','PaymentSucceeded [hold valid] / book seat'],['HELD','AVAILABLE','HoldExpired|Released / release seat','loop-top'],['AVAILABLE','DISABLED','OperatorDisabled / disable'],['DISABLED','AVAILABLE','OperatorEnabled [sellable] / enable','loop-left'],
@@ -1077,7 +1077,7 @@ const stateSpecs = [
     ],
   },
   {
-    slug: 'state-booking-payment', file: 'state-booking-payment.html', title: 'State — Booking và Payment', subtitle: 'Booking phản ánh cam kết nghiệp vụ; Payment phản ánh giao dịch tiền và không được đồng nhất hai trạng thái.', source: 'SRS 08 · BR-PAY · BR-BOOK',
+    slug: 'state-booking-payment', file: 'state-booking-payment.html', title: 'State — Booking và Payment', subtitle: 'Booking phản ánh cam kết nghiệp vụ; Payment phản ánh giao dịch tiền và không được đồng nhất hai trạng thái.', source: 'State Requirements · BR-PAY · BR-BOOK',
     panels: [
       { title: 'BOOKING', initial:'PENDING_PAYMENT', finals:['COMPLETED','EXPIRED','REFUNDED'], states: [{name:'PENDING_PAYMENT',col:0,row:0},{name:'PAID',col:1,row:0},{name:'COMPLETED',col:2,row:0},{name:'CANCELLED',col:1,row:1},{name:'REFUND_PENDING',col:2,row:1},{name:'REFUNDED',col:3,row:1},{name:'EXPIRED',col:0,row:1}], transitions: [
         ['PENDING_PAYMENT','PAID','PaymentSucceeded [hold valid] / confirm seats'],['PENDING_PAYMENT','EXPIRED','expiresAt reached / release seats'],['PENDING_PAYMENT','CANCELLED','CancelRequested / release seats'],['PAID','COMPLETED','TripCompleted / close booking'],['PAID','CANCELLED','CancellationAccepted / revoke tickets'],['CANCELLED','REFUND_PENDING','refundableAmount > 0 / request refund'],['REFUND_PENDING','REFUNDED','RefundSucceeded / close compensation'],
@@ -1088,7 +1088,7 @@ const stateSpecs = [
     ],
   },
   {
-    slug: 'state-ticket-refund', file: 'state-ticket-refund.html', title: 'State — Ticket và Refund', subtitle: 'Vé có vòng đời sử dụng riêng; hoàn tiền có vòng đời xử lý và đối soát riêng.', source: 'SRS 08 · BR-TICKET · BR-REFUND',
+    slug: 'state-ticket-refund', file: 'state-ticket-refund.html', title: 'State — Ticket và Refund', subtitle: 'Vé có vòng đời sử dụng riêng; hoàn tiền có vòng đời xử lý và đối soát riêng.', source: 'State Requirements · BR-TICKET · BR-REFUND',
     panels: [
       { title: 'TICKET', initial:'ISSUED', finals:['USED','REFUNDED'], states: [{name:'ISSUED',col:0,row:0},{name:'CHECKED_IN',col:1,row:0},{name:'USED',col:2,row:0},{name:'CANCELLED',col:0,row:1},{name:'REFUNDED',col:1,row:1}], transitions: [
         ['ISSUED','CHECKED_IN','ValidScan [correct trip] / write audit'],['CHECKED_IN','USED','TripCompleted / close usage'],['ISSUED','CANCELLED','CancellationAccepted / revoke QR'],['CANCELLED','REFUNDED','RefundSucceeded / mark refunded'],
@@ -1099,7 +1099,7 @@ const stateSpecs = [
     ],
   },
   {
-    slug: 'state-trip', file: 'state-trip.html', title: 'State — Vòng đời chuyến xe', subtitle: 'Từ soạn thảo tới mở bán, khóa bán, khởi hành, hoàn thành hoặc hủy.', source: 'SRS 08 · BR-TRIP-01/03/04',
+    slug: 'state-trip', file: 'state-trip.html', title: 'State — Vòng đời chuyến xe', subtitle: 'Từ soạn thảo tới mở bán, khóa bán, khởi hành, hoàn thành hoặc hủy.', source: 'State Requirements · BR-TRIP-01/03/04',
     panels: [
       { title: 'TRIP', initial:'SCHEDULED', finals:['COMPLETED','CANCELLED'], states: [{name:'SCHEDULED',col:0,row:0},{name:'BOARDING',col:1,row:0},{name:'DEPARTED',col:2,row:0},{name:'IN_TRANSIT',col:3,row:0},{name:'ARRIVED',col:4,row:0},{name:'COMPLETED',col:5,row:0},{name:'CANCELLED',col:1,row:1}], transitions: [
         ['SCHEDULED','BOARDING','BoardingOpened [assigned] / open manifest'],['BOARDING','DEPARTED','TripStarted / close sale'],['DEPARTED','IN_TRANSIT','VehicleDeparted / update tracking'],['IN_TRANSIT','ARRIVED','DestinationReached / close boarding'],['ARRIVED','COMPLETED','TripClosed / mark checked-in tickets USED'],['SCHEDULED','CANCELLED','TripCancelled [authorized] / publish event'],['BOARDING','CANCELLED','TripCancelled [before depart] / compensate'],
@@ -1221,7 +1221,7 @@ function renderDataModel(spec, mode) {
 
 const modelSpecs = [
   {
-    slug: 'identity', title: 'Identity và tổ chức', source: 'SRS 09 · Identity Service ownership',
+    slug: 'identity', title: 'Identity và tổ chức', source: 'Data Requirements · Identity Service ownership',
     domainSubtitle: 'Mô hình người dùng, tenant membership và quyền theo vai trò.', erdSubtitle: 'Lược đồ dữ liệu thuộc riêng Identity Service.',
     entities: [
       {name:'User',stereo:'AGGREGATE ROOT',attributes:['id: UserId','email: Email','passwordHash','status: UserStatus'],methods:['activate()','disable()','changePassword()'],fields:['PK id: uuid','UK email: varchar','password_hash: varchar','status: varchar','created_at: timestamptz']},
@@ -1237,7 +1237,7 @@ const modelSpecs = [
     relations:[['User','UserRole','owns','1 — 0..*'],['Role','UserRole','assigned through','1 — 0..*'],['User','OrganizationMembership','joins tenant through','1 — 0..*'],['Organization','OrganizationMembership','contains members','1 — 0..*'],['Role','RolePermission','owns','1 — 0..*'],['Permission','RolePermission','referenced by','1 — 0..*'],['User','RefreshToken','owns','1 — 0..*'],['User','SecurityAudit','acts in','1 — 0..*']],
   },
   {
-    slug: 'transport', title: 'Vận tải và lịch chuyến', source: 'SRS 09 · Transport Service ownership',
+    slug: 'transport', title: 'Vận tải và lịch chuyến', source: 'Data Requirements · Transport Service ownership',
     domainSubtitle: 'Tuyến, điểm dừng, phương tiện, sơ đồ ghế, tài xế và lịch chuyến.', erdSubtitle: 'Lược đồ dữ liệu thuộc riêng Transport Service; mọi bản ghi nghiệp vụ mang organization_id.',
     entities: [
       {name:'Organization',stereo:'TENANT REFERENCE',attributes:['id','code','status'],methods:['assertActive()'],fields:['PK id: uuid','UK code: varchar','status: varchar']},
@@ -1254,7 +1254,7 @@ const modelSpecs = [
     relations:[['Organization','Bus','owns','1 — 0..*'],['Organization','DriverProfile','owns','1 — 0..*'],['Organization','Route','owns','1 — 0..*'],['Organization','Trip','owns','1 — 0..*'],['Bus','SeatMap','uses','0..* — 1'],['SeatMap','Seat','contains','1 — 1..*'],['Route','RouteStop','orders','1 — 2..*'],['Stop','RouteStop','appears in','1 — 0..*'],['Trip','Route','scheduled on','0..* — 1'],['Trip','Bus','uses','0..* — 1'],['Trip','DriverAssignment','contains','1 — 1..*'],['DriverProfile','DriverAssignment','receives','1 — 0..*']],
   },
   {
-    slug: 'booking', title: 'Đặt vé và kho ghế', source: 'SRS 09 · Booking Service ownership',
+    slug: 'booking', title: 'Đặt vé và kho ghế', source: 'Data Requirements · Booking Service ownership',
     domainSubtitle: 'Aggregate Booking cùng snapshot chuyến, kho ghế và vé; đây là nơi bảo vệ quy tắc không đặt trùng ghế.', erdSubtitle: 'Lược đồ dữ liệu thuộc riêng Booking Service; TripSnapshot không phải FK sang Transport DB.',
     entities: [
       {name:'TripSnapshot',attributes:['tripId','organizationId','routeLabel','departureAt','saleState'],methods:['closeInventory()'],fields:['PK trip_id: uuid','organization_id: uuid','route_label: varchar','departure_at: timestamptz','sale_state: varchar']},
@@ -1272,7 +1272,7 @@ const modelSpecs = [
     relations:[['TripSnapshot','TripSeat','contains','1 — 1..*'],['SeatHold','SeatHoldItem','contains','1 — 1..*'],['SeatHoldItem','TripSeat','reserves','0..* — 1'],['Booking','BookingItem','contains','1 — 1..*'],['Booking','Passenger','contains','1 — 1..*'],['BookingItem','Passenger','assigned to','1 — 1'],['BookingItem','TripSeat','books','0..1 — 1'],['BookingItem','Ticket','issues','1 — 0..1'],['Booking','TripSnapshot','references snapshot','0..* — 1'],['Promotion','PromotionRedemption','records','1 — 0..*'],['Booking','PromotionRedemption','applies','1 — 0..*'],['Ticket','Review','receives','1 — 0..1']],
   },
   {
-    slug: 'payment', title: 'Thanh toán và hoàn tiền', source: 'SRS 09 · Payment Service ownership',
+    slug: 'payment', title: 'Thanh toán và hoàn tiền', source: 'Data Requirements · Payment Service ownership',
     domainSubtitle: 'Payment và Refund được thiết kế cho webhook lặp, retry và đối soát.', erdSubtitle: 'Lược đồ dữ liệu thuộc riêng Payment Service; booking_id chỉ là external reference.',
     entities: [
       {name:'Payment',stereo:'AGGREGATE ROOT',attributes:['id','bookingId','amount','status','providerRef'],methods:['markPending()','succeed()','fail()','requestRefund()'],fields:['PK id: uuid','booking_id: uuid','amount: decimal','currency: char(3)','status: varchar','provider_ref: varchar','UK provider + provider_ref']},
@@ -1337,7 +1337,7 @@ function renderMicroservicesArchitecture() {
     ${node(640, 1104, 420, 72, 'Security', 'Secrets · audit · least privilege', 'quality', 'PLATFORM')}
     ${node(1160, 1104, 420, 72, 'Delivery', 'CI/CD · registry · migration', 'quality', 'PLATFORM')}
     <rect class="quality" x="1672" y="1104" width="416" height="72" rx="8"/><text class="body" x="1696" y="1136">Web, Mobile và Back-office dùng chung API.</text><text class="body" x="1696" y="1160">Mỗi service sở hữu dữ liệu của chính mình.</text>`;
-  return htmlPage({ slug: 'microservices-architecture', title: 'Kiến trúc Microservices tổng thể', subtitle: 'C4 Container/Component view: deployable service theo bounded context, public contract qua Gateway, dữ liệu riêng và event contract qua broker.', width, height, body, source: 'SRS 10, 11 · DIA Microservices Architecture', legend: 'Ký pháp C4/Component · Xanh liền: REST · Nét đứt hai chiều: publish/consume event · Hình trụ: store thuộc riêng service' });
+  return htmlPage({ slug: 'microservices-architecture', title: 'Kiến trúc Microservices tổng thể', subtitle: 'C4 Container/Component view: deployable service theo bounded context, public contract qua Gateway, dữ liệu riêng và event contract qua broker.', width, height, body, source: 'Service Architecture Constraints · Service Interfaces', legend: 'Ký pháp C4/Component · Xanh liền: REST · Nét đứt hai chiều: publish/consume event · Hình trụ: store thuộc riêng service' });
 }
 
 function renderEventFlow(spec) {
@@ -1379,19 +1379,19 @@ function renderEventFlow(spec) {
 }
 
 const eventSpecs = [
-  {slug:'event-trip',file:'event-trip.html',title:'Event Flow — Vòng đời chuyến',subtitle:'Sự kiện của Transport Service tạo inventory bán vé, đóng bán hoặc kích hoạt bù trừ khi hủy chuyến.',publisher:'Transport Service',source:'SRS 11 · EVT-TRIP',events:[
+  {slug:'event-trip',file:'event-trip.html',title:'Event Flow — Vòng đời chuyến',subtitle:'Sự kiện của Transport Service tạo inventory bán vé, đóng bán hoặc kích hoạt bù trừ khi hủy chuyến.',publisher:'Transport Service',source:'Service Interfaces · EVT-TRIP',events:[
     {name:'TripPublished',key:'trip.published',consumer:'Booking Service',action:'Tạo TripSnapshot và TripSeat từ seat map snapshot'},
     {name:'TripUpdated',key:'trip.updated',consumer:'Booking + Reporting',action:'Cập nhật snapshot trường cho phép và projection báo cáo'},
     {name:'TripSaleClosed',key:'trip.sale-closed',consumer:'Booking Service',action:'Chặn giữ ghế và tạo booking mới'},
     {name:'TripCancelled',key:'trip.cancelled',consumer:'Booking · Payment · Notification',action:'Đóng inventory, hủy vé, hoàn tiền và thông báo'},
   ]},
-  {slug:'event-payment',file:'event-payment.html',title:'Event Flow — Thanh toán',subtitle:'Payment Service công bố kết quả tiền; Booking Service quyết định trạng thái booking và vé.',publisher:'Payment Service',source:'SRS 11 · EVT-PAYMENT',events:[
+  {slug:'event-payment',file:'event-payment.html',title:'Event Flow — Thanh toán',subtitle:'Payment Service công bố kết quả tiền; Booking Service quyết định trạng thái booking và vé.',publisher:'Payment Service',source:'Service Interfaces · EVT-PAYMENT',events:[
     {name:'PaymentSucceeded',key:'payment.succeeded',consumer:'Booking Service',action:'Xác nhận booking, chốt TripSeat và phát hành Ticket'},
     {name:'PaymentFailed',key:'payment.failed',consumer:'Booking + Notification',action:'Cho phép thử lại hoặc hết hạn booking; báo khách'},
     {name:'RefundSucceeded',key:'refund.succeeded',consumer:'Booking + Notification',action:'Hoàn tất CANCELLED và gửi kết quả hoàn tiền'},
     {name:'RefundFailed',key:'refund.failed',consumer:'Booking + Admin projection',action:'Giữ trạng thái chờ xử lý và đưa vào manual review'},
   ]},
-  {slug:'event-cancellation',file:'event-cancellation.html',title:'Event Flow — Hủy vé và bù trừ',subtitle:'Booking Service khởi phát chuỗi bù trừ, các consumer độc lập phản hồi bằng outcome event.',publisher:'Booking Service',source:'SRS 11, 14 · EVT-CANCEL',events:[
+  {slug:'event-cancellation',file:'event-cancellation.html',title:'Event Flow — Hủy vé và bù trừ',subtitle:'Booking Service khởi phát chuỗi bù trừ, các consumer độc lập phản hồi bằng outcome event.',publisher:'Booking Service',source:'Service Interfaces · Exceptions and Recovery · EVT-CANCEL',events:[
     {name:'TicketCancellationRequested',key:'ticket.cancel.requested',consumer:'Payment Service',action:'Tạo Refund nếu refundableAmount > 0'},
     {name:'RefundRequested',key:'refund.requested',consumer:'Payment Service',action:'Gọi provider theo idempotency key'},
     {name:'TicketCancelled',key:'ticket.cancelled',consumer:'Notification Service',action:'Gửi xác nhận hủy và số tiền hoàn dự kiến/thực tế'},
@@ -1435,7 +1435,7 @@ function renderLocalDeployment() {
     ${labelChip(456, 208, 'HTTPS')}${labelChip(520, 320, 'HTTPS')}${labelChip(960, 356, 'internal HTTP')}${labelChip(820, 738, 'TCP')}${labelChip(1116, 730, 'AMQP')}
     <rect class="quality" x="1560" y="552" width="308" height="128" rx="8"/><text class="tag" x="1584" y="580">NETWORK RULE</text>${textLines(1584, 612, ['Không public service port','Không public DB/broker/cache','Không ghi credential vào hình'], 'body', 24)}
     <rect class="quality" x="88" y="1184" width="1780" height="40" rx="8"/><text class="body" x="112" y="1208">Containment thể hiện vị trí triển khai; quan hệ API/event chi tiết nằm ở Architecture và Event Flow diagram.</text>`;
-  return htmlPage({ slug:'deployment-local-demo', title:'Deployment — Local và demo', subtitle:'UML Deployment view cho môi trường phát triển/demo: device, container, execution environment, store và đường truyền có protocol.', width, height, body, source:'SRS 16 · DIA Deployment Local/Demo', legend:'Ký pháp UML Deployment · Hộp nổi: node/container · Hình trụ: store · Nhãn trên đường: protocol · Mỗi service có DB/schema và credential riêng' });
+  return htmlPage({ slug:'deployment-local-demo', title:'Deployment — Local và demo', subtitle:'UML Deployment view cho môi trường phát triển/demo: device, container, execution environment, store và đường truyền có protocol.', width, height, body, source:'Diagram Specifications · Deployment Local/Demo', legend:'Ký pháp UML Deployment · Hộp nổi: node/container · Hình trụ: store · Nhãn trên đường: protocol · Mỗi service có DB/schema và credential riêng' });
 }
 
 function renderDeployment() {
@@ -1478,7 +1478,7 @@ function renderDeployment() {
     ${labelChip(408, 516, 'HTTPS')}${labelChip(668, 652, 'internal HTTP')}${labelChip(1444, 456, 'TLS')}${labelChip(1460, 576, 'AMQP')}
     <rect class="quality" x="1544" y="952" width="312" height="136" rx="8"/><text class="tag" x="1568" y="980">CONNECTIVITY NOTE</text>${textLines(1568, 1012, ['Private endpoint tới data layer','Controlled egress tới provider','Không public DB/broker/cache'], 'body', 24)}
     <rect class="quality" x="48" y="1220" width="1864" height="40" rx="8"/><text class="body" x="72" y="1244">Deployment chỉ thể hiện vị trí và boundary; luồng API/event chi tiết nằm trong Architecture, Sequence và Event Flow diagram.</text>`;
-  return htmlPage({ slug:'deployment', title:'Deployment — Topology gần production', subtitle:'UML Deployment view: public devices, edge/ingress, private execution environment, workload replicas, managed data và external systems.', width, height, body, source:'SRS 10, 13, 15 · DIA Deployment', legend:'Ký pháp UML Deployment · Hộp nổi: node/environment/pod · Hình trụ: managed store · Nhãn đường: protocol · Topology logic, chưa khóa cloud vendor' });
+  return htmlPage({ slug:'deployment', title:'Deployment — Topology gần production', subtitle:'UML Deployment view: public devices, edge/ingress, private execution environment, workload replicas, managed data và external systems.', width, height, body, source:'Service Architecture · Quality Requirements · Acceptance', legend:'Ký pháp UML Deployment · Hộp nổi: node/environment/pod · Hình trụ: managed store · Nhãn đường: protocol · Topology logic, chưa khóa cloud vendor' });
 }
 
 const artifacts = [
@@ -1487,12 +1487,12 @@ const artifacts = [
     file: 'system-context.html',
     title: 'Tổng quan bối cảnh hệ thống',
     type: 'System Context',
-    source: 'SRS 01–03',
+    source: 'Product Overview · System Scope · Actors',
     render: renderSystemContext,
   },
   {
     group: 'Use Case và quy trình', file: 'use-cases-customer.html', title: 'Use Case — Guest và Customer', type: 'Use Case', source: 'UC-AUTH/SEARCH/BOOK/PAY/CANCEL/CHANGE',
-    render: () => renderUseCaseMap({ slug: 'use-cases-customer', title: 'Use Case — Guest và Customer', subtitle: 'Chức năng công khai, tài khoản và toàn bộ vòng đời đặt vé của khách hàng.', source: 'SRS 03, 05, 07 · DIA Use Case', lanes: [
+    render: () => renderUseCaseMap({ slug: 'use-cases-customer', title: 'Use Case — Guest và Customer', subtitle: 'Chức năng công khai, tài khoản và toàn bộ vòng đời đặt vé của khách hàng.', source: 'Actors · Functional Requirements · Use Cases', lanes: [
       { actor: 'Guest', actorSub: 'Chưa đăng nhập', cases: ['Đăng ký','Đăng nhập','Tìm kiếm chuyến','Xem chi tiết chuyến','Xem ghế khả dụng'] },
       { actor: 'Customer', actorSub: 'Đã xác thực', cases: ['Quản lý hồ sơ','Tìm kiếm/xem chuyến','Giữ ghế','Nhập thông tin hành khách','Tạo Booking','Tính tổng tiền phía server','Thanh toán','Xác minh kết quả payment','Phát hành vé','Xem vé và QR','Hủy vé','Xem trước phí và tiền hoàn','Hoàn tiền',{label:'Đổi vé',priority:'SHOULD'},'Giữ ghế mới',{label:'Thanh toán chênh lệch',priority:'SHOULD'},'Xem lịch sử','Đánh giá chuyến'] },
     ], relationships: [
@@ -1504,7 +1504,7 @@ const artifacts = [
   },
   {
     group: 'Use Case và quy trình', file: 'use-cases-operations.html', title: 'Use Case — Tài xế và Nhà xe', type: 'Use Case', source: 'UC-OPS/DRIVER/TRIP/REPORT',
-    render: () => renderUseCaseMap({ slug: 'use-cases-operations', title: 'Use Case — Tài xế và Nhà xe', subtitle: 'Các chức năng vận hành chuyến, đội xe, check-in và báo cáo tenant.', source: 'SRS 03, 05, 07 · DIA Use Case', lanes: [
+    render: () => renderUseCaseMap({ slug: 'use-cases-operations', title: 'Use Case — Tài xế và Nhà xe', subtitle: 'Các chức năng vận hành chuyến, đội xe, check-in và báo cáo tenant.', source: 'Actors · Functional Requirements · Use Cases', lanes: [
       { actor: 'Driver', actorSub: 'Chuyến được phân công', cases: ['Xem chuyến được giao','Xem manifest','Check-in hành khách','Cập nhật trạng thái chuyến'] },
       { actor: 'Operator Staff', actorSub: 'Permission + tenant scope', cases: ['Cập nhật nhà xe','Quản lý xe và sơ đồ ghế','Quản lý DriverProfile','Quản lý tuyến và điểm dừng','Tạo Trip draft','Publish chuyến','Kiểm tra cấu hình và xung đột lịch','Tạo inventory bán vé','Cập nhật chuyến','Hủy chuyến','Xử lý booking/vé bị ảnh hưởng','Gửi thông báo khách','Xem manifest/booking','Check-in hỗ trợ','Xem báo cáo tenant'] },
     ], relationships: [
@@ -1514,7 +1514,7 @@ const artifacts = [
   },
   {
     group: 'Use Case và quy trình', file: 'use-cases-admin.html', title: 'Use Case — Admin và hệ thống ngoài', type: 'Use Case', source: 'UC-ADMIN/REPORT + secondary actors',
-    render: () => renderUseCaseMap({ slug: 'use-cases-admin', title: 'Use Case — Admin và hệ thống ngoài', subtitle: 'Quản trị nền tảng, tra cứu hỗ trợ và các secondary actor.', source: 'SRS 03, 05, 07 · DIA Use Case', lanes: [
+    render: () => renderUseCaseMap({ slug: 'use-cases-admin', title: 'Use Case — Admin và hệ thống ngoài', subtitle: 'Quản trị nền tảng, tra cứu hỗ trợ và các secondary actor.', source: 'Actors · Functional Requirements · Use Cases', lanes: [
       { actor: 'Admin', actorSub: 'Platform Admin / Support', cases: ['Quản lý Organization','Quản lý User','Quản lý Role và Membership','Khóa/mở khóa tài khoản','Tra cứu Booking/Payment/Refund','Kiểm duyệt Review','Xử lý khiếu nại','Xem Security Audit','Xem báo cáo nền tảng','Export báo cáo'] },
       { actor: 'Payment Gateway', actorSub: 'Secondary actor', cases: ['Tạo giao dịch provider','Xác minh webhook thanh toán','Thực hiện Refund','Đối soát giao dịch'] },
       { actor: 'Notification Provider', actorSub: 'Secondary actor', cases: ['Gửi thông báo giao dịch','Gửi Email / Push','Ghi nhận kết quả delivery'] },
@@ -1529,10 +1529,10 @@ const artifacts = [
   ...stateSpecs.map((spec) => ({ group: 'Vòng đời trạng thái', file: spec.file, title: spec.title, type: 'State Machine', source: spec.source, render: () => renderStateDiagram(spec) })),
   ...modelSpecs.map((spec) => ({ group: 'Domain Model', file: `domain-${spec.slug}.html`, title: `Domain Model — ${spec.title}`, type: 'Domain / Class', source: spec.source, render: () => renderDataModel(spec, 'DOMAIN') })),
   ...modelSpecs.map((spec) => ({ group: 'Mô hình dữ liệu', file: `erd-${spec.slug}.html`, title: `ERD — ${spec.title}`, type: 'ERD', source: spec.source, render: () => renderDataModel(spec, 'ERD') })),
-  { group: 'Kiến trúc và tích hợp', file: 'microservices-architecture.html', title: 'Kiến trúc Microservices tổng thể', type: 'Architecture', source: 'SRS 10, 11', render: renderMicroservicesArchitecture },
+  { group: 'Kiến trúc và tích hợp', file: 'microservices-architecture.html', title: 'Kiến trúc Microservices tổng thể', type: 'Architecture', source: 'Service Architecture · Service Interfaces', render: renderMicroservicesArchitecture },
   ...eventSpecs.map((spec) => ({ group: 'Kiến trúc và tích hợp', file: spec.file, title: spec.title, type: 'Event Flow', source: spec.source, render: () => renderEventFlow(spec) })),
-  { group: 'Triển khai', file: 'deployment-local-demo.html', title: 'Deployment — Local và demo', type: 'Deployment', source: 'SRS 16 · DIA Local/Demo', render: renderLocalDeployment },
-  { group: 'Triển khai', file: 'deployment.html', title: 'Deployment — Topology gần production', type: 'Deployment', source: 'SRS 10, 13, 15', render: renderDeployment },
+  { group: 'Triển khai', file: 'deployment-local-demo.html', title: 'Deployment — Local và demo', type: 'Deployment', source: 'Diagram Specifications · Local/Demo', render: renderLocalDeployment },
+  { group: 'Triển khai', file: 'deployment.html', title: 'Deployment — Topology gần production', type: 'Deployment', source: 'Service Architecture · Quality · Acceptance', render: renderDeployment },
 ];
 
 function folderForArtifact(item) {

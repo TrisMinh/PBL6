@@ -1,6 +1,6 @@
 # Phạm vi và bối cảnh hệ thống
 
-## 1. System context
+## 1. Bối cảnh hệ thống
 
 ```mermaid
 flowchart LR
@@ -102,3 +102,7 @@ Manage Organizations/Users → Moderate Content → Audit Transactions → View 
 | Refund | Yêu cầu hoàn tiền toàn phần hoặc một phần |
 | Idempotency | Gửi lặp cùng request không tạo thêm tác động nghiệp vụ |
 | Tenant | Phạm vi dữ liệu của một Operator Organization |
+| Snapshot | Bản sao dữ liệu tại một thời điểm, được giữ lại để lịch sử không thay đổi theo dữ liệu nguồn |
+| Projection / Read model | Dữ liệu được tổng hợp để đọc nhanh; không phải nguồn sự thật để cập nhật nghiệp vụ |
+| Compensation | Thao tác bù trừ khi một quy trình nhiều service chỉ hoàn thành một phần, ví dụ tự động hoàn tiền |
+| Eventual consistency | Các service có thể cập nhật lệch nhau trong thời gian ngắn nhưng cuối cùng phải hội tụ về trạng thái đúng |
