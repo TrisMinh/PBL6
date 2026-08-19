@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sequence — Thanh toán xác nhận booking</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box}html,body{margin:0}body{padding:32px;color:#2d3142;background:#f5f5f5;font-family:'Geist',system-ui,sans-serif}
+    header{max-width:1120px;margin-bottom:24px}.eyebrow{margin:0 0 8px;color:#4f5d75;font:500 8px 'Geist Mono',monospace;letter-spacing:.16em;text-transform:uppercase}
+    h1{margin:0 0 12px;font:650 40px/1.08 'Segoe UI',Arial,sans-serif;letter-spacing:-.025em}.subtitle{margin:0;color:#4f5d75;font-size:16px;line-height:1.5}
+    .diagram-shell{height:calc(100vh - 180px);min-height:520px;display:flex;flex-direction:column;background:#f5f5f5;border:1px solid rgba(45,49,66,.16);border-radius:8px;overflow:hidden}
+    .diagram-toolbar{flex:0 0 48px;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:8px 12px;background:#ffffff;border-bottom:1px solid rgba(45,49,66,.12)}
+    .interaction-hint{color:#4f5d75;font:500 12px 'Geist Mono',monospace;white-space:nowrap}.toolbar-actions{display:flex;align-items:center;gap:8px}.tool-button{min-width:40px;height:32px;padding:0 12px;color:#2d3142;background:#f5f5f5;border:1px solid rgba(45,49,66,.24);border-radius:6px;font:600 12px 'Geist',sans-serif;cursor:pointer}.tool-button:hover{color:#2e5aa8;border-color:#2e5aa8}.tool-button:focus-visible,.canvas:focus-visible{outline:2px solid #2e5aa8;outline-offset:-2px}.zoom-level{min-width:58px;color:#4f5d75;font:600 12px 'Geist Mono',monospace;text-align:center}.noscript-note{margin:0;padding:8px 12px;color:#4f5d75;background:rgba(169,120,20,.09);border-bottom:1px solid rgba(169,120,20,.32);font:500 12px 'Geist',sans-serif}
+    .canvas{position:relative;flex:1 1 auto;min-height:0;width:100%;overflow:auto;cursor:grab;overscroll-behavior:contain;touch-action:none;scrollbar-color:#7a8399 #ececec}.canvas.is-dragging{cursor:grabbing;user-select:none}svg{display:block;width:1700px;height:auto;background:#f5f5f5}
+    .zone{fill:rgba(45,49,66,.025);stroke:rgba(45,49,66,.16);stroke-width:1}.zone-title{fill:#7a8399;font:500 8px 'Geist Mono',monospace;letter-spacing:.14em}
+    .node{fill:#ffffff;stroke:#2d3142;stroke-width:1}.actor{fill:rgba(46,90,168,.08);stroke:rgba(46,90,168,.62);stroke-width:1}.external{fill:rgba(45,49,66,.03);stroke:rgba(45,49,66,.34);stroke-width:1;stroke-dasharray:4 4}
+    .focal{fill:rgba(235,108,54,.08);stroke:#eb6c36;stroke-width:1.2}.store{fill:rgba(45,49,66,.05);stroke:#4f5d75;stroke-width:1}.state{fill:#ffffff;stroke:#4f5d75;stroke-width:1}
+    .rule{fill:rgba(169,120,20,.08);stroke:rgba(169,120,20,.56);stroke-width:1}.usecase{fill:rgba(116,84,165,.07);stroke:rgba(116,84,165,.52);stroke-width:1}.quality{fill:rgba(79,115,95,.08);stroke:rgba(79,115,95,.52);stroke-width:1}
+    .title{fill:#2d3142;font:600 20px 'Geist',sans-serif}.name{fill:#2d3142;font:600 16px 'Geist',sans-serif}.name-sm{fill:#2d3142;font:600 12px 'Geist',sans-serif}.body{fill:#4f5d75;font:400 12px 'Geist',sans-serif}.mono{fill:#4f5d75;font:400 12px 'Geist Mono',monospace}.mono-xs{fill:#4f5d75;font:400 8px 'Geist Mono',monospace}.tag{fill:#7a8399;font:500 8px 'Geist Mono',monospace;letter-spacing:.12em}
+    .edge{fill:none;stroke:#4f5d75;stroke-width:1.2}.edge-link{fill:none;stroke:#2e5aa8;stroke-width:1.2}.edge-event{fill:none;stroke:#4f5d75;stroke-width:1.1;stroke-dasharray:5 4}.edge-accent{fill:none;stroke:#eb6c36;stroke-width:1.4}.lifeline{stroke:rgba(45,49,66,.22);stroke-width:1;stroke-dasharray:4 4}
+    .uml-association{fill:none;stroke:#4f5d75;stroke-width:1}.uml-dependency{fill:none;stroke:#7454a5;stroke-width:1.1;stroke-dasharray:6 4}.uml-symbol{fill:#ffffff;stroke:#2d3142;stroke-width:1.25}.uml-usecase{fill:rgba(116,84,165,.07);stroke:#7454a5;stroke-width:1.15}.uml-usecase-optional{fill:rgba(169,120,20,.08);stroke:#a97814;stroke-width:1.15}.actor-line{fill:none;stroke:#2e5aa8;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}.activity-action{fill:#ffffff;stroke:#2d3142;stroke-width:1.1}.activity-decision{fill:rgba(169,120,20,.09);stroke:#a97814;stroke-width:1.2}.activity-flow{fill:none;stroke:#4f5d75;stroke-width:1.25}.activation{fill:rgba(46,90,168,.12);stroke:#2e5aa8;stroke-width:1}.bce-boundary{fill:#ffffff;stroke:#2e5aa8;stroke-width:1.4}.bce-control{fill:rgba(235,108,54,.08);stroke:#eb6c36;stroke-width:1.4}.bce-entity{fill:rgba(45,49,66,.05);stroke:#4f5d75;stroke-width:1.4}.model-header{fill:rgba(46,90,168,.06)}.erd-header{fill:rgba(46,90,168,.1)}.erd-row{fill:rgba(45,49,66,.025)}.key-badge{fill:#ececec;stroke:rgba(45,49,66,.2);stroke-width:.8}.db-fill{fill:rgba(45,49,66,.04);stroke:#4f5d75;stroke-width:1.1}.service-component{fill:#ffffff;stroke:#2e5aa8;stroke-width:1.1}.deploy-node{fill:#ffffff;stroke:#4f5d75;stroke-width:1.1}.event-envelope{fill:rgba(116,84,165,.07);stroke:#7454a5;stroke-width:1.1}.protocol-label{fill:#f5f5f5;stroke:rgba(45,49,66,.16);stroke-width:.8}
+    .footer-rule{stroke:rgba(45,49,66,.16);stroke-width:.8}.footer{fill:#7a8399;font:400 8px 'Geist Mono',monospace;letter-spacing:.06em}
+    @media(max-width:760px){body{padding:16px}h1{font-size:32px}.subtitle{font-size:14px}.diagram-shell{height:calc(100vh - 160px);min-height:420px}.interaction-hint{display:none}.tool-button{padding:0 9px}}
+    @media print{body{padding:0}.diagram-shell{height:auto;border:0;overflow:visible}.diagram-toolbar,.noscript-note{display:none}.canvas{overflow:visible}svg{width:100%!important;height:auto!important}}</style>
+</head>
+<body>
+  <header>
+    <p class="eyebrow">Online Bus Ticket Platform · Diagram con</p>
+    <h1>Sequence — Thanh toán xác nhận booking</h1>
+    <p class="subtitle">Payment Service ghi kết quả trước, sau đó phát sự kiện để Booking Service xác nhận ghế và đơn vé.</p>
+  </header>
+  <div class="diagram-shell">
+    <div class="diagram-toolbar" role="group" aria-label="Điều khiển sơ đồ">
+      <span class="interaction-hint">Lăn chuột: zoom · giữ chuột trái và kéo: di chuyển · phím F: vừa chiều rộng</span>
+      <div class="toolbar-actions">
+        <button class="tool-button" id="zoom-out" type="button" aria-label="Thu nhỏ">−</button>
+        <output class="zoom-level" id="zoom-level" aria-live="polite">100%</output>
+        <button class="tool-button" id="zoom-in" type="button" aria-label="Phóng to">+</button>
+        <button class="tool-button" id="fit-width" type="button">Vừa rộng</button>
+        <button class="tool-button" id="reset-view" type="button">100%</button>
+      </div>
+    </div>
+    <noscript><p class="noscript-note">JavaScript đang tắt: sơ đồ vẫn hiển thị nhưng zoom bằng con lăn và kéo canvas sẽ không hoạt động.</p></noscript>
+    <div class="canvas" id="diagram-viewport" tabindex="0" aria-label="Sơ đồ tương tác. Lăn chuột để phóng to hoặc thu nhỏ; giữ chuột trái và kéo để di chuyển.">
+    <svg id="diagram-canvas" viewBox="0 0 1700 1130" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="sequence-payment-confirm-booking-title sequence-payment-confirm-booking-desc">
+      <title id="sequence-payment-confirm-booking-title">Sequence — Thanh toán xác nhận booking</title>
+      <desc id="sequence-payment-confirm-booking-desc">Payment Service ghi kết quả trước, sau đó phát sự kiện để Booking Service xác nhận ghế và đơn vé.</desc>
+      
+    <defs>
+      <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
+      <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#2e5aa8"/></marker>
+      <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#eb6c36"/></marker>
+      <marker id="arrow-open" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polyline points="0 0, 8 3, 0 6" fill="none" stroke="#4f5d75" stroke-width="1.2"/></marker>
+      <marker id="uml-generalization" markerWidth="12" markerHeight="10" refX="11" refY="5" orient="auto"><polygon points="0 0, 12 5, 0 10" fill="#f5f5f5" stroke="#4f5d75" stroke-width="1"/></marker>
+      <marker id="uml-composition" markerWidth="12" markerHeight="10" refX="1" refY="5" orient="auto-start-reverse"><polygon points="1 5, 6 1, 11 5, 6 9" fill="#2d3142" stroke="#2d3142" stroke-width="1"/></marker>
+    </defs>
+      <rect width="1700" height="1130" fill="#f5f5f5"/>
+      <g><rect x="40" y="462" width="1620" height="504" rx="4" fill="none" stroke="rgba(45,49,66,.38)"/>
+      <path d="M40 462 H136 V486 H40" fill="rgba(45,49,66,.06)" stroke="rgba(45,49,66,.38)"/>
+      <text class="tag" x="52" y="478">ALT</text>
+      <text class="tag" x="152" y="479">[booking và hold còn hợp lệ]</text><line class="footer-rule" x1="40" y1="884" x2="1660" y2="884"/>
+        <rect x="52" y="891" width="252" height="20" rx="4" fill="#f5f5f5"/>
+        <text class="tag" x="60" y="905">[booking đã hết hạn: bắt đầu bù trừ]</text></g><line class="lifeline" x1="140" y1="132" x2="140" y2="1014"/>
+<line class="lifeline" x1="495" y1="132" x2="495" y2="1014"/>
+<line class="lifeline" x1="850" y1="132" x2="850" y2="1014"/>
+<line class="lifeline" x1="1205" y1="132" x2="1205" y2="1014"/>
+<line class="lifeline" x1="1560" y1="132" x2="1560" y2="1014"/><rect class="activation" x="134" y="184" width="12" height="230" rx="2"/>
+<rect class="activation" x="489" y="184" width="12" height="170" rx="2"/>
+<rect class="activation" x="844" y="364" width="12" height="590" rx="2"/>
+<rect class="activation" x="1199" y="424" width="12" height="530" rx="2"/>
+<rect class="activation" x="1554" y="484" width="12" height="350" rx="2"/><line class="edge" x1="148" y1="200" x2="487" y2="200" marker-end="url(#arrow)"/>
+    <rect x="228.85000000000002" y="170" width="177.29999999999998" height="18" rx="4" fill="#f5f5f5"/>
+    <text class="mono" x="317.5" y="183" text-anchor="middle">Lưu Payment SUCCEEDED</text>
+<line class="edge" x1="148" y1="260" x2="487" y2="260" marker-end="url(#arrow)"/>
+    <rect x="206.95" y="230" width="221.1" height="18" rx="4" fill="#f5f5f5"/>
+    <text class="mono" x="317.5" y="243" text-anchor="middle">Ghi outbox PaymentSucceeded</text>
+<line class="edge-event" x1="487" y1="320" x2="148" y2="320" marker-end="url(#arrow-open)"/>
+    <rect x="253.5" y="290" width="128" height="18" rx="4" fill="#f5f5f5"/>
+    <text class="mono" x="317.5" y="303" text-anchor="middle">COMMIT</text>
+<line class="edge-event" x1="148" y1="380" x2="842" y2="380" marker-end="url(#arrow-open)"/>
+    <rect x="395.4" y="350" width="199.2" height="18" rx="4" fill="#f5f5f5"/>
+    <text class="mono" x="495" y="363" text-anchor="middle">Publish PaymentSucceeded</text>
+<line class="edge-event" x1="858" y1="440" x2="1197" y2="440" marker-end="url(#arrow-open)"/>
+    <rect x="963.5" y="410" width="128" height="18" rx="4" fill="#f5f5f5"/>
+    <text class="mono" x="1027.5" y="423" text-anchor="middle">Consume event</text>
+<line class="edge" x1="1213" y1="500" x2="1552" y2="500" marker-end="url(#arrow)"/>
+    <rect x="1286.55" y="470" width="191.9" height="18" rx="4" fill="#f5f5f5"/>
+    <text class="mono" x="1382.5" y="483" text-anchor="middle">Khóa Booking + TripSeat</text>
+<line class="edge-event" x1="1552" y1="560" x2="1213" y2="560" marker-end="url(#arrow-open)"/>
+    <rect x="1290.2" y="530" width="184.6" height="18" rx="4" fill="#f5f5f5"/>
+    <text class="mono" x="1382.5" y="543" text-anchor="middle">PENDING_PAYMENT + HELD</text>
+<line class="edge" x1="1213" y1="620" x2="1552" y2="620" marker-end="url(#arrow)"/>
+    <rect x="1318.5" y="590" width="128" height="18" rx="4" fill="#f5f5f5"/>
+    <text class="mono" x="1382.5" y="603" text-anchor="middle">Booking → PAID</text>
+<line class="edge" x1="1213" y1="680" x2="1552" y2="680" marker-end="url(#arrow)"/>
+    <rect x="1308.45" y="650" width="148.1" height="18" rx="4" fill="#f5f5f5"/>
+    <text class="mono" x="1382.5" y="663" text-anchor="middle">TripSeat → BOOKED</text>
+<line class="edge" x1="1213" y1="740" x2="1552" y2="740" marker-end="url(#arrow)"/>
+    <rect x="1301.15" y="710" width="162.7" height="18" rx="4" fill="#f5f5f5"/>
+    <text class="mono" x="1382.5" y="723" text-anchor="middle">SeatHold → CONSUMED</text>
+<line class="edge-event" x1="1552" y1="800" x2="1213" y2="800" marker-end="url(#arrow-open)"/>
+    <rect x="1318.5" y="770" width="128" height="18" rx="4" fill="#f5f5f5"/>
+    <text class="mono" x="1382.5" y="783" text-anchor="middle">COMMIT</text>
+<line class="edge-event" x1="1197" y1="860" x2="858" y2="860" marker-end="url(#arrow-open)"/>
+    <rect x="963.5" y="830" width="128" height="18" rx="4" fill="#f5f5f5"/>
+    <text class="mono" x="1027.5" y="843" text-anchor="middle">ACK event</text>
+<line class="edge-event" x1="1197" y1="920" x2="858" y2="920" marker-end="url(#arrow-open)"/>
+    <rect x="884.1" y="890" width="286.8" height="18" rx="4" fill="#f5f5f5"/>
+    <text class="mono" x="1027.5" y="903" text-anchor="middle">Publish PaymentCompensationRequested</text>
+    <g data-node="true">
+      <rect class="node" x="30" y="56" width="220" height="76" rx="8"/>
+      <text class="tag" x="46" y="76">«service»</text>
+      <text class="name" x="140" y="112" text-anchor="middle">Payment Service</text>
+      
+    </g>
+
+    <g data-node="true">
+      <rect class="node" x="385" y="56" width="220" height="76" rx="8"/>
+      <text class="tag" x="401" y="76">«database»</text>
+      <text class="name" x="495" y="112" text-anchor="middle">Payment DB</text>
+      
+    </g>
+
+    <g data-node="true">
+      <rect class="node" x="740" y="56" width="220" height="76" rx="8"/>
+      <text class="tag" x="756" y="76">«broker»</text>
+      <text class="name" x="850" y="112" text-anchor="middle">RabbitMQ</text>
+      
+    </g>
+
+    <g data-node="true">
+      <rect class="node" x="1095" y="56" width="220" height="76" rx="8"/>
+      <text class="tag" x="1111" y="76">«service»</text>
+      <text class="name" x="1205" y="112" text-anchor="middle">Booking Service</text>
+      
+    </g>
+
+    <g data-node="true">
+      <rect class="node" x="1450" y="56" width="220" height="76" rx="8"/>
+      <text class="tag" x="1466" y="76">«database»</text>
+      <text class="name" x="1560" y="112" text-anchor="middle">Booking DB</text>
+      
+    </g><rect class="quality" x="48" y="990" width="1604" height="48" rx="8"/><text class="body" x="72" y="1020">Outbox bảo đảm thay đổi Payment và sự kiện được ghi cùng một transaction cục bộ; consumer phải xử lý lặp an toàn.</text>
+      <line class="footer-rule" x1="32" y1="1078" x2="1668" y2="1078"/>
+      <text class="footer" x="32" y="1102">Ký pháp UML Sequence · Mũi tên kín: gọi đồng bộ · Mũi tên mở nét đứt: return/event · Thanh xanh: activation · ALT/PAR: combined fragment</text>
+      <text class="footer" x="1668" y="1102" text-anchor="end">Nguồn: BR-PAY-04 · BR-BOOK-05 · DIA Sequence Payment Confirmation</text>
+    </svg>
+    </div>
+  </div>
+  <script>
+    (() => {
+      const viewport = document.getElementById('diagram-viewport');
+      const svg = document.getElementById('diagram-canvas');
+      const zoomLevel = document.getElementById('zoom-level');
+      const title = svg.querySelector(':scope > title');
+      const desc = svg.querySelector(':scope > desc');
+      if (title) {
+        svg.setAttribute('aria-label', title.textContent || 'Diagram');
+        svg.removeAttribute('aria-labelledby');
+        if (desc?.id) svg.setAttribute('aria-describedby', desc.id);
+        title.remove();
+      }
+
+      const baseWidth = 1700;
+      const baseHeight = 1130;
+      const minimumZoom = .18;
+      const maximumZoom = 2.5;
+      let zoom = 1;
+      const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
+
+      function updateCanvasSize() {
+        svg.style.width = Math.round(baseWidth * zoom) + 'px';
+        svg.style.height = Math.round(baseHeight * zoom) + 'px';
+        zoomLevel.value = Math.round(zoom * 100) + '%';
+        zoomLevel.textContent = zoomLevel.value;
+      }
+
+      function setZoom(nextZoom, clientX, clientY) {
+        const previousZoom = zoom;
+        const rect = viewport.getBoundingClientRect();
+        const anchorX = clientX ?? rect.left + viewport.clientWidth / 2;
+        const anchorY = clientY ?? rect.top + viewport.clientHeight / 2;
+        const offsetX = anchorX - rect.left;
+        const offsetY = anchorY - rect.top;
+        const contentX = (viewport.scrollLeft + offsetX) / previousZoom;
+        const contentY = (viewport.scrollTop + offsetY) / previousZoom;
+        zoom = clamp(nextZoom, minimumZoom, maximumZoom);
+        updateCanvasSize();
+        viewport.scrollLeft = contentX * zoom - offsetX;
+        viewport.scrollTop = contentY * zoom - offsetY;
+      }
+
+      function zoomBy(factor, clientX, clientY) { setZoom(zoom * factor, clientX, clientY); }
+      function fitWidth() {
+        const fittedZoom = (viewport.clientWidth - 24) / baseWidth;
+        zoom = clamp(fittedZoom, minimumZoom, maximumZoom);
+        updateCanvasSize();
+        viewport.scrollLeft = 0;
+        viewport.scrollTop = 0;
+      }
+      function resetView() {
+        zoom = 1;
+        updateCanvasSize();
+        viewport.scrollLeft = 0;
+        viewport.scrollTop = 0;
+      }
+
+      viewport.addEventListener('wheel', (event) => {
+        event.preventDefault();
+        zoomBy(clamp(Math.exp(-event.deltaY * .0015), .75, 1.25), event.clientX, event.clientY);
+      }, { passive: false });
+      viewport.addEventListener('dblclick', (event) => {
+        event.preventDefault();
+        zoomBy(1.25, event.clientX, event.clientY);
+      });
+
+      let dragPointerId = null;
+      let dragStartX = 0;
+      let dragStartY = 0;
+      let dragScrollLeft = 0;
+      let dragScrollTop = 0;
+      viewport.addEventListener('pointerdown', (event) => {
+        if (event.button !== 0) return;
+        dragPointerId = event.pointerId;
+        dragStartX = event.clientX;
+        dragStartY = event.clientY;
+        dragScrollLeft = viewport.scrollLeft;
+        dragScrollTop = viewport.scrollTop;
+        viewport.setPointerCapture(event.pointerId);
+        viewport.classList.add('is-dragging');
+        event.preventDefault();
+      });
+      viewport.addEventListener('pointermove', (event) => {
+        if (event.pointerId !== dragPointerId) return;
+        viewport.scrollLeft = dragScrollLeft - (event.clientX - dragStartX);
+        viewport.scrollTop = dragScrollTop - (event.clientY - dragStartY);
+      });
+      function stopDragging(event) {
+        if (event.pointerId !== dragPointerId) return;
+        if (viewport.hasPointerCapture(event.pointerId)) viewport.releasePointerCapture(event.pointerId);
+        dragPointerId = null;
+        viewport.classList.remove('is-dragging');
+      }
+      viewport.addEventListener('pointerup', stopDragging);
+      viewport.addEventListener('pointercancel', stopDragging);
+
+      document.getElementById('zoom-in').addEventListener('click', () => zoomBy(1.2));
+      document.getElementById('zoom-out').addEventListener('click', () => zoomBy(1 / 1.2));
+      document.getElementById('fit-width').addEventListener('click', fitWidth);
+      document.getElementById('reset-view').addEventListener('click', resetView);
+      viewport.addEventListener('keydown', (event) => {
+        const panStep = 96;
+        if (event.key === '+' || event.key === '=') zoomBy(1.2);
+        else if (event.key === '-') zoomBy(1 / 1.2);
+        else if (event.key === '0') resetView();
+        else if (event.key.toLowerCase() === 'f') fitWidth();
+        else if (event.key === 'ArrowLeft') viewport.scrollLeft -= panStep;
+        else if (event.key === 'ArrowRight') viewport.scrollLeft += panStep;
+        else if (event.key === 'ArrowUp') viewport.scrollTop -= panStep;
+        else if (event.key === 'ArrowDown') viewport.scrollTop += panStep;
+        else return;
+        event.preventDefault();
+      });
+      window.addEventListener('resize', () => { if (zoom < .7) fitWidth(); });
+      updateCanvasSize();
+      requestAnimationFrame(fitWidth);
+    })();
+  </script>
+</body>
+</html>

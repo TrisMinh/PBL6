@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ERD — Đặt vé và kho ghế</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box}html,body{margin:0}body{padding:32px;color:#2d3142;background:#f5f5f5;font-family:'Geist',system-ui,sans-serif}
+    header{max-width:1120px;margin-bottom:24px}.eyebrow{margin:0 0 8px;color:#4f5d75;font:500 8px 'Geist Mono',monospace;letter-spacing:.16em;text-transform:uppercase}
+    h1{margin:0 0 12px;font:650 40px/1.08 'Segoe UI',Arial,sans-serif;letter-spacing:-.025em}.subtitle{margin:0;color:#4f5d75;font-size:16px;line-height:1.5}
+    .diagram-shell{height:calc(100vh - 180px);min-height:520px;display:flex;flex-direction:column;background:#f5f5f5;border:1px solid rgba(45,49,66,.16);border-radius:8px;overflow:hidden}
+    .diagram-toolbar{flex:0 0 48px;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:8px 12px;background:#ffffff;border-bottom:1px solid rgba(45,49,66,.12)}
+    .interaction-hint{color:#4f5d75;font:500 12px 'Geist Mono',monospace;white-space:nowrap}.toolbar-actions{display:flex;align-items:center;gap:8px}.tool-button{min-width:40px;height:32px;padding:0 12px;color:#2d3142;background:#f5f5f5;border:1px solid rgba(45,49,66,.24);border-radius:6px;font:600 12px 'Geist',sans-serif;cursor:pointer}.tool-button:hover{color:#2e5aa8;border-color:#2e5aa8}.tool-button:focus-visible,.canvas:focus-visible{outline:2px solid #2e5aa8;outline-offset:-2px}.zoom-level{min-width:58px;color:#4f5d75;font:600 12px 'Geist Mono',monospace;text-align:center}.noscript-note{margin:0;padding:8px 12px;color:#4f5d75;background:rgba(169,120,20,.09);border-bottom:1px solid rgba(169,120,20,.32);font:500 12px 'Geist',sans-serif}
+    .canvas{position:relative;flex:1 1 auto;min-height:0;width:100%;overflow:auto;cursor:grab;overscroll-behavior:contain;touch-action:none;scrollbar-color:#7a8399 #ececec}.canvas.is-dragging{cursor:grabbing;user-select:none}svg{display:block;width:2236px;height:auto;background:#f5f5f5}
+    .zone{fill:rgba(45,49,66,.025);stroke:rgba(45,49,66,.16);stroke-width:1}.zone-title{fill:#7a8399;font:500 8px 'Geist Mono',monospace;letter-spacing:.14em}
+    .node{fill:#ffffff;stroke:#2d3142;stroke-width:1}.actor{fill:rgba(46,90,168,.08);stroke:rgba(46,90,168,.62);stroke-width:1}.external{fill:rgba(45,49,66,.03);stroke:rgba(45,49,66,.34);stroke-width:1;stroke-dasharray:4 4}
+    .focal{fill:rgba(235,108,54,.08);stroke:#eb6c36;stroke-width:1.2}.store{fill:rgba(45,49,66,.05);stroke:#4f5d75;stroke-width:1}.state{fill:#ffffff;stroke:#4f5d75;stroke-width:1}
+    .rule{fill:rgba(169,120,20,.08);stroke:rgba(169,120,20,.56);stroke-width:1}.usecase{fill:rgba(116,84,165,.07);stroke:rgba(116,84,165,.52);stroke-width:1}.quality{fill:rgba(79,115,95,.08);stroke:rgba(79,115,95,.52);stroke-width:1}
+    .title{fill:#2d3142;font:600 20px 'Geist',sans-serif}.name{fill:#2d3142;font:600 16px 'Geist',sans-serif}.name-sm{fill:#2d3142;font:600 12px 'Geist',sans-serif}.body{fill:#4f5d75;font:400 12px 'Geist',sans-serif}.mono{fill:#4f5d75;font:400 12px 'Geist Mono',monospace}.mono-xs{fill:#4f5d75;font:400 8px 'Geist Mono',monospace}.tag{fill:#7a8399;font:500 8px 'Geist Mono',monospace;letter-spacing:.12em}
+    .edge{fill:none;stroke:#4f5d75;stroke-width:1.2}.edge-link{fill:none;stroke:#2e5aa8;stroke-width:1.2}.edge-event{fill:none;stroke:#4f5d75;stroke-width:1.1;stroke-dasharray:5 4}.edge-accent{fill:none;stroke:#eb6c36;stroke-width:1.4}.lifeline{stroke:rgba(45,49,66,.22);stroke-width:1;stroke-dasharray:4 4}
+    .uml-association{fill:none;stroke:#4f5d75;stroke-width:1}.uml-dependency{fill:none;stroke:#7454a5;stroke-width:1.1;stroke-dasharray:6 4}.uml-symbol{fill:#ffffff;stroke:#2d3142;stroke-width:1.25}.uml-usecase{fill:rgba(116,84,165,.07);stroke:#7454a5;stroke-width:1.15}.uml-usecase-optional{fill:rgba(169,120,20,.08);stroke:#a97814;stroke-width:1.15}.actor-line{fill:none;stroke:#2e5aa8;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}.activity-action{fill:#ffffff;stroke:#2d3142;stroke-width:1.1}.activity-decision{fill:rgba(169,120,20,.09);stroke:#a97814;stroke-width:1.2}.activity-flow{fill:none;stroke:#4f5d75;stroke-width:1.25}.activation{fill:rgba(46,90,168,.12);stroke:#2e5aa8;stroke-width:1}.bce-boundary{fill:#ffffff;stroke:#2e5aa8;stroke-width:1.4}.bce-control{fill:rgba(235,108,54,.08);stroke:#eb6c36;stroke-width:1.4}.bce-entity{fill:rgba(45,49,66,.05);stroke:#4f5d75;stroke-width:1.4}.model-header{fill:rgba(46,90,168,.06)}.erd-header{fill:rgba(46,90,168,.1)}.erd-row{fill:rgba(45,49,66,.025)}.key-badge{fill:#ececec;stroke:rgba(45,49,66,.2);stroke-width:.8}.db-fill{fill:rgba(45,49,66,.04);stroke:#4f5d75;stroke-width:1.1}.service-component{fill:#ffffff;stroke:#2e5aa8;stroke-width:1.1}.deploy-node{fill:#ffffff;stroke:#4f5d75;stroke-width:1.1}.event-envelope{fill:rgba(116,84,165,.07);stroke:#7454a5;stroke-width:1.1}.protocol-label{fill:#f5f5f5;stroke:rgba(45,49,66,.16);stroke-width:.8}
+    .footer-rule{stroke:rgba(45,49,66,.16);stroke-width:.8}.footer{fill:#7a8399;font:400 8px 'Geist Mono',monospace;letter-spacing:.06em}
+    @media(max-width:760px){body{padding:16px}h1{font-size:32px}.subtitle{font-size:14px}.diagram-shell{height:calc(100vh - 160px);min-height:420px}.interaction-hint{display:none}.tool-button{padding:0 9px}}
+    @media print{body{padding:0}.diagram-shell{height:auto;border:0;overflow:visible}.diagram-toolbar,.noscript-note{display:none}.canvas{overflow:visible}svg{width:100%!important;height:auto!important}}</style>
+</head>
+<body>
+  <header>
+    <p class="eyebrow">Online Bus Ticket Platform · Diagram con</p>
+    <h1>ERD — Đặt vé và kho ghế</h1>
+    <p class="subtitle">Lược đồ dữ liệu thuộc riêng Booking Service; TripSnapshot không phải FK sang Transport DB.</p>
+  </header>
+  <div class="diagram-shell">
+    <div class="diagram-toolbar" role="group" aria-label="Điều khiển sơ đồ">
+      <span class="interaction-hint">Lăn chuột: zoom · giữ chuột trái và kéo: di chuyển · phím F: vừa chiều rộng</span>
+      <div class="toolbar-actions">
+        <button class="tool-button" id="zoom-out" type="button" aria-label="Thu nhỏ">−</button>
+        <output class="zoom-level" id="zoom-level" aria-live="polite">100%</output>
+        <button class="tool-button" id="zoom-in" type="button" aria-label="Phóng to">+</button>
+        <button class="tool-button" id="fit-width" type="button">Vừa rộng</button>
+        <button class="tool-button" id="reset-view" type="button">100%</button>
+      </div>
+    </div>
+    <noscript><p class="noscript-note">JavaScript đang tắt: sơ đồ vẫn hiển thị nhưng zoom bằng con lăn và kéo canvas sẽ không hoạt động.</p></noscript>
+    <div class="canvas" id="diagram-viewport" tabindex="0" aria-label="Sơ đồ tương tác. Lăn chuột để phóng to hoặc thu nhỏ; giữ chuột trái và kéo để di chuyển.">
+    <svg id="diagram-canvas" viewBox="0 0 2236 1346" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="erd-booking-title erd-booking-desc">
+      <title id="erd-booking-title">ERD — Đặt vé và kho ghế</title>
+      <desc id="erd-booking-desc">Lược đồ dữ liệu thuộc riêng Booking Service; TripSnapshot không phải FK sang Transport DB.</desc>
+      
+    <defs>
+      <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
+      <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#2e5aa8"/></marker>
+      <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#eb6c36"/></marker>
+      <marker id="arrow-open" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polyline points="0 0, 8 3, 0 6" fill="none" stroke="#4f5d75" stroke-width="1.2"/></marker>
+      <marker id="uml-generalization" markerWidth="12" markerHeight="10" refX="11" refY="5" orient="auto"><polygon points="0 0, 12 5, 0 10" fill="#f5f5f5" stroke="#4f5d75" stroke-width="1"/></marker>
+      <marker id="uml-composition" markerWidth="12" markerHeight="10" refX="1" refY="5" orient="auto-start-reverse"><polygon points="1 5, 6 1, 11 5, 6 9" fill="#2d3142" stroke="#2d3142" stroke-width="1"/></marker>
+    </defs>
+      <rect width="2236" height="1346" fill="#f5f5f5"/>
+      <line class="edge-link" x1="548" y1="169" x2="868" y2="169"/><rect x="640" y="142" width="136" height="18" rx="3" fill="#f5f5f5"/><text class="mono" x="708" y="155" text-anchor="middle">contains</text>
+      <text class="tag" x="564" y="159" text-anchor="start">1</text>
+      <text class="tag" x="852" y="159" text-anchor="end">1..*</text>
+<path class="edge-link" d="M1938 330 H1128 Q1120 330 1120 338 V364 Q1120 372 1112 372 H298"/><rect x="1134" y="342" width="136" height="18" rx="3" fill="#f5f5f5"/><text class="mono" x="1202" y="355" text-anchor="middle">contains</text>
+      <text class="tag" x="1922" y="348" text-anchor="end">1</text>
+      <text class="tag" x="314" y="364" text-anchor="start">1..*</text>
+<path class="edge-link" d="M298 372 H700 Q708 372 708 364 V310 Q708 302 716 302 H1118"/><rect x="722" y="328" width="136" height="18" rx="3" fill="#f5f5f5"/><text class="mono" x="790" y="341" text-anchor="middle">reserves</text>
+      <text class="tag" x="314" y="364" text-anchor="start">0..*</text>
+      <text class="tag" x="1102" y="320" text-anchor="end">1</text>
+<line class="edge-link" x1="1368" y1="469" x2="1688" y2="469"/><rect x="1460" y="442" width="136" height="18" rx="3" fill="#f5f5f5"/><text class="mono" x="1528" y="455" text-anchor="middle">contains</text>
+      <text class="tag" x="1384" y="459" text-anchor="start">1</text>
+      <text class="tag" x="1672" y="459" text-anchor="end">1..*</text>
+<path class="edge-link" d="M1118 714 H716 Q708 714 708 706 V680 Q708 672 700 672 H298"/><rect x="722" y="684" width="136" height="18" rx="3" fill="#f5f5f5"/><text class="mono" x="790" y="697" text-anchor="middle">contains</text>
+      <text class="tag" x="1102" y="706" text-anchor="end">1</text>
+      <text class="tag" x="314" y="690" text-anchor="start">1..*</text>
+<path class="edge-link" d="M1938 602 H1128 Q1120 602 1120 610 V664 Q1120 672 1112 672 H298"/><rect x="1134" y="628" width="136" height="18" rx="3" fill="#f5f5f5"/><text class="mono" x="1202" y="641" text-anchor="middle">assigned to</text>
+      <text class="tag" x="1922" y="620" text-anchor="end">1</text>
+      <text class="tag" x="314" y="664" text-anchor="start">1</text>
+<path class="edge-link" d="M1938 372 H1536 Q1528 372 1528 364 V310 Q1528 302 1520 302 H1118"/><rect x="1542" y="328" width="136" height="18" rx="3" fill="#f5f5f5"/><text class="mono" x="1610" y="341" text-anchor="middle">books</text>
+      <text class="tag" x="1922" y="364" text-anchor="end">0..1</text>
+      <text class="tag" x="1134" y="320" text-anchor="start">1</text>
+<path class="edge-link" d="M1938 602 H1536 Q1528 602 1528 610 V664 Q1528 672 1520 672 H1118"/><rect x="1542" y="628" width="136" height="18" rx="3" fill="#f5f5f5"/><text class="mono" x="1610" y="641" text-anchor="middle">issues</text>
+      <text class="tag" x="1922" y="620" text-anchor="end">1</text>
+      <text class="tag" x="1134" y="664" text-anchor="start">0..1</text>
+<path class="edge-link" d="M1118 372 H716 Q708 372 708 364 V310 Q708 302 700 302 H298"/><rect x="722" y="328" width="170.7" height="18" rx="3" fill="#f5f5f5"/><text class="mono" x="807.35" y="341" text-anchor="middle">references snapshot</text>
+      <text class="tag" x="1102" y="364" text-anchor="end">0..*</text>
+      <text class="tag" x="314" y="320" text-anchor="start">1</text>
+<path class="edge-link" d="M1938 930 H1128 Q1120 930 1120 938 V964 Q1120 972 1112 972 H298"/><rect x="1134" y="942" width="136" height="18" rx="3" fill="#f5f5f5"/><text class="mono" x="1202" y="955" text-anchor="middle">records</text>
+      <text class="tag" x="1922" y="948" text-anchor="end">1</text>
+      <text class="tag" x="314" y="964" text-anchor="start">0..*</text>
+<path class="edge-link" d="M1118 714 H716 Q708 714 708 722 V964 Q708 972 700 972 H298"/><rect x="722" y="834" width="136" height="18" rx="3" fill="#f5f5f5"/><text class="mono" x="790" y="847" text-anchor="middle">applies</text>
+      <text class="tag" x="1102" y="732" text-anchor="end">1</text>
+      <text class="tag" x="314" y="964" text-anchor="start">0..*</text>
+<line class="edge-link" x1="1118" y1="902" x2="1118" y2="972"/><rect x="1132" y="928" width="136" height="18" rx="3" fill="#f5f5f5"/><text class="mono" x="1200" y="941" text-anchor="middle">receives</text>
+      <text class="tag" x="1134" y="920" text-anchor="start">1</text>
+      <text class="tag" x="1102" y="964" text-anchor="end">0..1</text><g data-node="true"><rect class="node" x="48" y="72" width="500" height="230" rx="8"/>
+    <path class="erd-header" d="M49 80 Q49 73 56 73 H540 Q547 73 547 80 V142 H49 Z"/>
+    <text class="tag" x="66" y="94">«table»</text>
+    <text class="name" x="66" y="122">trip_snapshots</text>
+    <line class="footer-rule" x1="48" y1="142" x2="548" y2="142"/><rect x="49" y="143" width="498" height="27" fill="#ffffff"/>
+        <rect class="key-badge" x="62" y="148" width="42" height="16" rx="4"/><text class="mono-xs" x="83" y="159" text-anchor="middle">PK</text>
+        <text class="mono" x="120" y="162">trip_id: uuid</text><rect x="49" y="171" width="498" height="27" fill="rgba(45,49,66,.025)"/>
+        <text class="mono-xs" x="83" y="188" text-anchor="middle">·</text>
+        <text class="mono" x="120" y="190">organization_id: uuid</text><rect x="49" y="199" width="498" height="27" fill="#ffffff"/>
+        <text class="mono-xs" x="83" y="216" text-anchor="middle">·</text>
+        <text class="mono" x="120" y="218">route_label: varchar</text><rect x="49" y="227" width="498" height="27" fill="rgba(45,49,66,.025)"/>
+        <text class="mono-xs" x="83" y="244" text-anchor="middle">·</text>
+        <text class="mono" x="120" y="246">departure_at: timestamptz</text><rect x="49" y="255" width="498" height="27" fill="#ffffff"/>
+        <text class="mono-xs" x="83" y="272" text-anchor="middle">·</text>
+        <text class="mono" x="120" y="274">sale_state: varchar</text></g>
+<g data-node="true"><rect class="node" x="868" y="72" width="500" height="230" rx="8"/>
+    <path class="erd-header" d="M869 80 Q869 73 876 73 H1360 Q1367 73 1367 80 V142 H869 Z"/>
+    <text class="tag" x="886" y="94">«table»</text>
+    <text class="name" x="886" y="122">trip_seats</text>
+    <line class="footer-rule" x1="868" y1="142" x2="1368" y2="142"/><rect x="869" y="143" width="498" height="27" fill="#ffffff"/>
+        <rect class="key-badge" x="882" y="148" width="42" height="16" rx="4"/><text class="mono-xs" x="903" y="159" text-anchor="middle">PK</text>
+        <text class="mono" x="940" y="162">trip_id + seat_code</text><rect x="869" y="171" width="498" height="27" fill="rgba(45,49,66,.025)"/>
+        <text class="mono-xs" x="903" y="188" text-anchor="middle">·</text>
+        <text class="mono" x="940" y="190">status: varchar</text><rect x="869" y="199" width="498" height="27" fill="#ffffff"/>
+        <text class="mono-xs" x="903" y="216" text-anchor="middle">·</text>
+        <text class="mono" x="940" y="218">hold_id: uuid nullable</text><rect x="869" y="227" width="498" height="27" fill="rgba(45,49,66,.025)"/>
+        <text class="mono-xs" x="903" y="244" text-anchor="middle">·</text>
+        <text class="mono" x="940" y="246">booking_item_id: uuid nullable</text><rect x="869" y="255" width="498" height="27" fill="#ffffff"/>
+        <text class="mono-xs" x="903" y="272" text-anchor="middle">·</text>
+        <text class="mono" x="940" y="274">row_version: bigint</text></g>
+<g data-node="true"><rect class="node" x="1688" y="72" width="500" height="258" rx="8"/>
+    <path class="erd-header" d="M1689 80 Q1689 73 1696 73 H2180 Q2187 73 2187 80 V142 H1689 Z"/>
+    <text class="tag" x="1706" y="94">«table»</text>
+    <text class="name" x="1706" y="122">seat_holds</text>
+    <line class="footer-rule" x1="1688" y1="142" x2="2188" y2="142"/><rect x="1689" y="143" width="498" height="27" fill="#ffffff"/>
+        <rect class="key-badge" x="1702" y="148" width="42" height="16" rx="4"/><text class="mono-xs" x="1723" y="159" text-anchor="middle">PK</text>
+        <text class="mono" x="1760" y="162">id: uuid</text><rect x="1689" y="171" width="498" height="27" fill="rgba(45,49,66,.025)"/>
+        <text class="mono-xs" x="1723" y="188" text-anchor="middle">·</text>
+        <text class="mono" x="1760" y="190">customer_id_external: uuid</text><rect x="1689" y="199" width="498" height="27" fill="#ffffff"/>
+        <rect class="key-badge" x="1702" y="204" width="42" height="16" rx="4"/><text class="mono-xs" x="1723" y="215" text-anchor="middle">FK</text>
+        <text class="mono" x="1760" y="218">trip_id: uuid</text><rect x="1689" y="227" width="498" height="27" fill="rgba(45,49,66,.025)"/>
+        <text class="mono-xs" x="1723" y="244" text-anchor="middle">·</text>
+        <text class="mono" x="1760" y="246">status: varchar</text><rect x="1689" y="255" width="498" height="27" fill="#ffffff"/>
+        <text class="mono-xs" x="1723" y="272" text-anchor="middle">·</text>
+        <text class="mono" x="1760" y="274">expires_at: timestamptz</text><rect x="1689" y="283" width="498" height="27" fill="rgba(45,49,66,.025)"/>
+        <text class="mono-xs" x="1723" y="300" text-anchor="middle">·</text>
+        <text class="mono" x="1760" y="302">idempotency_key: varchar</text></g>
+<g data-node="true"><rect class="node" x="48" y="372" width="500" height="230" rx="8"/>
+    <path class="erd-header" d="M49 380 Q49 373 56 373 H540 Q547 373 547 380 V442 H49 Z"/>
+    <text class="tag" x="66" y="394">«table»</text>
+    <text class="name" x="66" y="422">seat_hold_items</text>
+    <line class="footer-rule" x1="48" y1="442" x2="548" y2="442"/><rect x="49" y="443" width="498" height="27" fill="#ffffff"/>
+        <rect class="key-badge" x="62" y="448" width="42" height="16" rx="4"/><text class="mono-xs" x="83" y="459" text-anchor="middle">PK</text>
+        <text class="mono" x="120" y="462">id: uuid</text><rect x="49" y="471" width="498" height="27" fill="rgba(45,49,66,.025)"/>
+        <rect class="key-badge" x="62" y="476" width="42" height="16" rx="4"/><text class="mono-xs" x="83" y="487" text-anchor="middle">FK</text>
+        <text class="mono" x="120" y="490">seat_hold_id: uuid</text><rect x="49" y="499" width="498" height="27" fill="#ffffff"/>
+        <rect class="key-badge" x="62" y="504" width="42" height="16" rx="4"/><text class="mono-xs" x="83" y="515" text-anchor="middle">FK</text>
+        <text class="mono" x="120" y="518">trip_id + seat_code</text><rect x="49" y="527" width="498" height="27" fill="rgba(45,49,66,.025)"/>
+        <text class="mono-xs" x="83" y="544" text-anchor="middle">·</text>
+        <text class="mono" x="120" y="546">price_snapshot: decimal</text><rect x="49" y="555" width="498" height="27" fill="#ffffff"/>
+        <rect class="key-badge" x="62" y="560" width="42" height="16" rx="4"/><text class="mono-xs" x="83" y="571" text-anchor="middle">UK</text>
+        <text class="mono" x="120" y="574">seat_hold_id + seat_code</text></g>
+<g data-node="true"><rect class="node" x="868" y="372" width="500" height="342" rx="8"/>
+    <path class="erd-header" d="M869 380 Q869 373 876 373 H1360 Q1367 373 1367 380 V442 H869 Z"/>
+    <text class="tag" x="886" y="394">«table»</text>
+    <text class="name" x="886" y="422">bookings</text>
+    <line class="footer-rule" x1="868" y1="442" x2="1368" y2="442"/><rect x="869" y="443" width="498" height="27" fill="#ffffff"/>
+        <rect class="key-badge" x="882" y="448" width="42" height="16" rx="4"/><text class="mono-xs" x="903" y="459" text-anchor="middle">PK</text>
+        <text class="mono" x="940" y="462">id: uuid</text><rect x="869" y="471" width="498" height="27" fill="rgba(45,49,66,.025)"/>
+        <rect class="key-badge" x="882" y="476" width="42" height="16" rx="4"/><text class="mono-xs" x="903" y="487" text-anchor="middle">UK</text>
+        <text class="mono" x="940" y="490">booking_code: varchar</text><rect x="869" y="499" width="498" height="27" fill="#ffffff"/>
+        <text class="mono-xs" x="903" y="516" text-anchor="middle">·</text>
+        <text class="mono" x="940" y="518">customer_id_external: uuid</text><rect x="869" y="527" width="498" height="27" fill="rgba(45,49,66,.025)"/>
+        <rect class="key-badge" x="882" y="532" width="42" height="16" rx="4"/><text class="mono-xs" x="903" y="543" text-anchor="middle">FK</text>
+        <text class="mono" x="940" y="546">trip_id: uuid</text><rect x="869" y="555" width="498" height="27" fill="#ffffff"/>
+        <text class="mono-xs" x="903" y="572" text-anchor="middle">·</text>
+        <text class="mono" x="940" y="574">status: varchar</text><rect x="869" y="583" width="498" height="27" fill="rgba(45,49,66,.025)"/>
+        <text class="mono-xs" x="903" y="600" text-anchor="middle">·</text>
+        <text class="mono" x="940" y="602">subtotal: decimal</text><rect x="869" y="611" width="498" height="27" fill="#ffffff"/>
+        <text class="mono-xs" x="903" y="628" text-anchor="middle">·</text>
+        <text class="mono" x="940" y="630">discount: decimal</text><rect x="869" y="639" width="498" height="27" fill="rgba(45,49,66,.025)"/>
+        <text class="mono-xs" x="903" y="656" text-anchor="middle">·</text>
+        <text class="mono" x="940" y="658">fee: decimal</text><rect x="869" y="667" width="498" height="27" fill="#ffffff"/>
+        <text class="mono-xs" x="903" y="684" text-anchor="middle">·</text>
+        <text class="mono" x="940" y="686">total_amount: decimal</text></g>
+<g data-node="true"><rect class="node" x="1688" y="372" width="500" height="230" rx="8"/>
+    <path class="erd-header" d="M1689 380 Q1689 373 1696 373 H2180 Q2187 373 2187 380 V442 H1689 Z"/>
+    <text class="tag" x="1706" y="394">«table»</text>
+    <text class="name" x="1706" y="422">booking_items</text>
+    <line class="footer-rule" x1="1688" y1="442" x2="2188" y2="442"/><rect x="1689" y="443" width="498" height="27" fill="#ffffff"/>
+        <rect class="key-badge" x="1702" y="448" width="42" height="16" rx="4"/><text class="mono-xs" x="1723" y="459" text-anchor="middle">PK</text>
+        <text class="mono" x="1760" y="462">id: uuid</text><rect x="1689" y="471" width="498" height="27" fill="rgba(45,49,66,.025)"/>
+        <rect class="key-badge" x="1702" y="476" width="42" height="16" rx="4"/><text class="mono-xs" x="1723" y="487" text-anchor="middle">FK</text>
+        <text class="mono" x="1760" y="490">booking_id: uuid</text><rect x="1689" y="499" width="498" height="27" fill="#ffffff"/>
+        <rect class="key-badge" x="1702" y="504" width="42" height="16" rx="4"/><text class="mono-xs" x="1723" y="515" text-anchor="middle">FK</text>
+        <text class="mono" x="1760" y="518">trip_id + seat_code</text><rect x="1689" y="527" width="498" height="27" fill="rgba(45,49,66,.025)"/>
+        <text class="mono-xs" x="1723" y="544" text-anchor="middle">·</text>
+        <text class="mono" x="1760" y="546">unit_price: decimal</text><rect x="1689" y="555" width="498" height="27" fill="#ffffff"/>
+        <rect class="key-badge" x="1702" y="560" width="42" height="16" rx="4"/><text class="mono-xs" x="1723" y="571" text-anchor="middle">UK</text>
+        <text class="mono" x="1760" y="574">booking_id + seat_code</text></g>
+<g data-node="true"><rect class="node" x="48" y="672" width="500" height="258" rx="8"/>
+    <path class="erd-header" d="M49 680 Q49 673 56 673 H540 Q547 673 547 680 V742 H49 Z"/>
+    <text class="tag" x="66" y="694">«table»</text>
+    <text class="name" x="66" y="722">passengers</text>
+    <line class="footer-rule" x1="48" y1="742" x2="548" y2="742"/><rect x="49" y="743" width="498" height="27" fill="#ffffff"/>
+        <rect class="key-badge" x="62" y="748" width="42" height="16" rx="4"/><text class="mono-xs" x="83" y="759" text-anchor="middle">PK</text>
+        <text class="mono" x="120" y="762">id: uuid</text><rect x="49" y="771" width="498" height="27" fill="rgba(45,49,66,.025)"/>
+        <rect class="key-badge" x="62" y="776" width="42" height="16" rx="4"/><text class="mono-xs" x="83" y="787" text-anchor="middle">FK</text>
+        <text class="mono" x="120" y="790">booking_id: uuid</text><rect x="49" y="799" width="498" height="27" fill="#ffffff"/>
+        <rect class="key-badge" x="62" y="804" width="42" height="16" rx="4"/><text class="mono-xs" x="83" y="815" text-anchor="middle">FK</text>
+        <text class="mono" x="120" y="818">booking_item_id: uuid</text><rect x="49" y="827" width="498" height="27" fill="rgba(45,49,66,.025)"/>
+        <text class="mono-xs" x="83" y="844" text-anchor="middle">·</text>
+        <text class="mono" x="120" y="846">full_name: varchar</text><rect x="49" y="855" width="498" height="27" fill="#ffffff"/>
+        <text class="mono-xs" x="83" y="872" text-anchor="middle">·</text>
+        <text class="mono" x="120" y="874">phone: varchar</text><rect x="49" y="883" width="498" height="27" fill="rgba(45,49,66,.025)"/>
+        <text class="mono-xs" x="83" y="900" text-anchor="middle">·</text>
+        <text class="mono" x="120" y="902">document_encrypted: bytea</text></g>
+<g data-node="true"><rect class="node" x="868" y="672" width="500" height="230" rx="8"/>
+    <path class="erd-header" d="M869 680 Q869 673 876 673 H1360 Q1367 673 1367 680 V742 H869 Z"/>
+    <text class="tag" x="886" y="694">«table»</text>
+    <text class="name" x="886" y="722">tickets</text>
+    <line class="footer-rule" x1="868" y1="742" x2="1368" y2="742"/><rect x="869" y="743" width="498" height="27" fill="#ffffff"/>
+        <rect class="key-badge" x="882" y="748" width="42" height="16" rx="4"/><text class="mono-xs" x="903" y="759" text-anchor="middle">PK</text>
+        <text class="mono" x="940" y="762">id: uuid</text><rect x="869" y="771" width="498" height="27" fill="rgba(45,49,66,.025)"/>
+        <rect class="key-badge" x="882" y="776" width="42" height="16" rx="4"/><text class="mono-xs" x="903" y="787" text-anchor="middle">UK</text>
+        <text class="mono" x="940" y="790">booking_item_id: uuid</text><rect x="869" y="799" width="498" height="27" fill="#ffffff"/>
+        <text class="mono-xs" x="903" y="816" text-anchor="middle">·</text>
+        <text class="mono" x="940" y="818">qr_token_hash: varchar</text><rect x="869" y="827" width="498" height="27" fill="rgba(45,49,66,.025)"/>
+        <text class="mono-xs" x="903" y="844" text-anchor="middle">·</text>
+        <text class="mono" x="940" y="846">status: varchar</text><rect x="869" y="855" width="498" height="27" fill="#ffffff"/>
+        <text class="mono-xs" x="903" y="872" text-anchor="middle">·</text>
+        <text class="mono" x="940" y="874">checked_in_at: timestamptz</text></g>
+<g data-node="true"><rect class="node" x="1688" y="672" width="500" height="258" rx="8"/>
+    <path class="erd-header" d="M1689 680 Q1689 673 1696 673 H2180 Q2187 673 2187 680 V742 H1689 Z"/>
+    <text class="tag" x="1706" y="694">«table»</text>
+    <text class="name" x="1706" y="722">promotions</text>
+    <line class="footer-rule" x1="1688" y1="742" x2="2188" y2="742"/><rect x="1689" y="743" width="498" height="27" fill="#ffffff"/>
+        <rect class="key-badge" x="1702" y="748" width="42" height="16" rx="4"/><text class="mono-xs" x="1723" y="759" text-anchor="middle">PK</text>
+        <text class="mono" x="1760" y="762">id: uuid</text><rect x="1689" y="771" width="498" height="27" fill="rgba(45,49,66,.025)"/>
+        <rect class="key-badge" x="1702" y="776" width="42" height="16" rx="4"/><text class="mono-xs" x="1723" y="787" text-anchor="middle">UK</text>
+        <text class="mono" x="1760" y="790">code: varchar</text><rect x="1689" y="799" width="498" height="27" fill="#ffffff"/>
+        <text class="mono-xs" x="1723" y="816" text-anchor="middle">·</text>
+        <text class="mono" x="1760" y="818">valid_from: timestamptz</text><rect x="1689" y="827" width="498" height="27" fill="rgba(45,49,66,.025)"/>
+        <text class="mono-xs" x="1723" y="844" text-anchor="middle">·</text>
+        <text class="mono" x="1760" y="846">valid_to: timestamptz</text><rect x="1689" y="855" width="498" height="27" fill="#ffffff"/>
+        <text class="mono-xs" x="1723" y="872" text-anchor="middle">·</text>
+        <text class="mono" x="1760" y="874">quota: int</text><rect x="1689" y="883" width="498" height="27" fill="rgba(45,49,66,.025)"/>
+        <text class="mono-xs" x="1723" y="900" text-anchor="middle">·</text>
+        <text class="mono" x="1760" y="902">conditions: jsonb</text></g>
+<g data-node="true"><rect class="node" x="48" y="972" width="500" height="230" rx="8"/>
+    <path class="erd-header" d="M49 980 Q49 973 56 973 H540 Q547 973 547 980 V1042 H49 Z"/>
+    <text class="tag" x="66" y="994">«table»</text>
+    <text class="name" x="66" y="1022">promotion_redemptions</text>
+    <line class="footer-rule" x1="48" y1="1042" x2="548" y2="1042"/><rect x="49" y="1043" width="498" height="27" fill="#ffffff"/>
+        <rect class="key-badge" x="62" y="1048" width="42" height="16" rx="4"/><text class="mono-xs" x="83" y="1059" text-anchor="middle">PK</text>
+        <text class="mono" x="120" y="1062">id: uuid</text><rect x="49" y="1071" width="498" height="27" fill="rgba(45,49,66,.025)"/>
+        <rect class="key-badge" x="62" y="1076" width="42" height="16" rx="4"/><text class="mono-xs" x="83" y="1087" text-anchor="middle">FK</text>
+        <text class="mono" x="120" y="1090">promotion_id: uuid</text><rect x="49" y="1099" width="498" height="27" fill="#ffffff"/>
+        <rect class="key-badge" x="62" y="1104" width="42" height="16" rx="4"/><text class="mono-xs" x="83" y="1115" text-anchor="middle">FK</text>
+        <text class="mono" x="120" y="1118">booking_id: uuid</text><rect x="49" y="1127" width="498" height="27" fill="rgba(45,49,66,.025)"/>
+        <text class="mono-xs" x="83" y="1144" text-anchor="middle">·</text>
+        <text class="mono" x="120" y="1146">discount_amount: decimal</text><rect x="49" y="1155" width="498" height="27" fill="#ffffff"/>
+        <rect class="key-badge" x="62" y="1160" width="42" height="16" rx="4"/><text class="mono-xs" x="83" y="1171" text-anchor="middle">UK</text>
+        <text class="mono" x="120" y="1174">promotion_id + booking_id</text></g>
+<g data-node="true"><rect class="node" x="868" y="972" width="500" height="258" rx="8"/>
+    <path class="erd-header" d="M869 980 Q869 973 876 973 H1360 Q1367 973 1367 980 V1042 H869 Z"/>
+    <text class="tag" x="886" y="994">«table»</text>
+    <text class="name" x="886" y="1022">reviews</text>
+    <line class="footer-rule" x1="868" y1="1042" x2="1368" y2="1042"/><rect x="869" y="1043" width="498" height="27" fill="#ffffff"/>
+        <rect class="key-badge" x="882" y="1048" width="42" height="16" rx="4"/><text class="mono-xs" x="903" y="1059" text-anchor="middle">PK</text>
+        <text class="mono" x="940" y="1062">id: uuid</text><rect x="869" y="1071" width="498" height="27" fill="rgba(45,49,66,.025)"/>
+        <rect class="key-badge" x="882" y="1076" width="42" height="16" rx="4"/><text class="mono-xs" x="903" y="1087" text-anchor="middle">UK</text>
+        <text class="mono" x="940" y="1090">ticket_id: uuid</text><rect x="869" y="1099" width="498" height="27" fill="#ffffff"/>
+        <text class="mono-xs" x="903" y="1116" text-anchor="middle">·</text>
+        <text class="mono" x="940" y="1118">rating: int</text><rect x="869" y="1127" width="498" height="27" fill="rgba(45,49,66,.025)"/>
+        <text class="mono-xs" x="903" y="1144" text-anchor="middle">·</text>
+        <text class="mono" x="940" y="1146">comment: text</text><rect x="869" y="1155" width="498" height="27" fill="#ffffff"/>
+        <text class="mono-xs" x="903" y="1172" text-anchor="middle">·</text>
+        <text class="mono" x="940" y="1174">visibility: varchar</text><rect x="869" y="1183" width="498" height="27" fill="rgba(45,49,66,.025)"/>
+        <text class="mono-xs" x="903" y="1200" text-anchor="middle">·</text>
+        <text class="mono" x="940" y="1202">moderated_at: timestamptz</text></g>
+      <line class="footer-rule" x1="32" y1="1294" x2="2204" y2="1294"/>
+      <text class="footer" x="32" y="1318">Ký pháp ERD · PK: khóa chính · FK: khóa ngoại nội bộ service · UK: unique · Cardinality đặt tại hai đầu quan hệ</text>
+      <text class="footer" x="2204" y="1318" text-anchor="end">Nguồn: SRS 09 · Booking Service ownership</text>
+    </svg>
+    </div>
+  </div>
+  <script>
+    (() => {
+      const viewport = document.getElementById('diagram-viewport');
+      const svg = document.getElementById('diagram-canvas');
+      const zoomLevel = document.getElementById('zoom-level');
+      const title = svg.querySelector(':scope > title');
+      const desc = svg.querySelector(':scope > desc');
+      if (title) {
+        svg.setAttribute('aria-label', title.textContent || 'Diagram');
+        svg.removeAttribute('aria-labelledby');
+        if (desc?.id) svg.setAttribute('aria-describedby', desc.id);
+        title.remove();
+      }
+
+      const baseWidth = 2236;
+      const baseHeight = 1346;
+      const minimumZoom = .18;
+      const maximumZoom = 2.5;
+      let zoom = 1;
+      const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
+
+      function updateCanvasSize() {
+        svg.style.width = Math.round(baseWidth * zoom) + 'px';
+        svg.style.height = Math.round(baseHeight * zoom) + 'px';
+        zoomLevel.value = Math.round(zoom * 100) + '%';
+        zoomLevel.textContent = zoomLevel.value;
+      }
+
+      function setZoom(nextZoom, clientX, clientY) {
+        const previousZoom = zoom;
+        const rect = viewport.getBoundingClientRect();
+        const anchorX = clientX ?? rect.left + viewport.clientWidth / 2;
+        const anchorY = clientY ?? rect.top + viewport.clientHeight / 2;
+        const offsetX = anchorX - rect.left;
+        const offsetY = anchorY - rect.top;
+        const contentX = (viewport.scrollLeft + offsetX) / previousZoom;
+        const contentY = (viewport.scrollTop + offsetY) / previousZoom;
+        zoom = clamp(nextZoom, minimumZoom, maximumZoom);
+        updateCanvasSize();
+        viewport.scrollLeft = contentX * zoom - offsetX;
+        viewport.scrollTop = contentY * zoom - offsetY;
+      }
+
+      function zoomBy(factor, clientX, clientY) { setZoom(zoom * factor, clientX, clientY); }
+      function fitWidth() {
+        const fittedZoom = (viewport.clientWidth - 24) / baseWidth;
+        zoom = clamp(fittedZoom, minimumZoom, maximumZoom);
+        updateCanvasSize();
+        viewport.scrollLeft = 0;
+        viewport.scrollTop = 0;
+      }
+      function resetView() {
+        zoom = 1;
+        updateCanvasSize();
+        viewport.scrollLeft = 0;
+        viewport.scrollTop = 0;
+      }
+
+      viewport.addEventListener('wheel', (event) => {
+        event.preventDefault();
+        zoomBy(clamp(Math.exp(-event.deltaY * .0015), .75, 1.25), event.clientX, event.clientY);
+      }, { passive: false });
+      viewport.addEventListener('dblclick', (event) => {
+        event.preventDefault();
+        zoomBy(1.25, event.clientX, event.clientY);
+      });
+
+      let dragPointerId = null;
+      let dragStartX = 0;
+      let dragStartY = 0;
+      let dragScrollLeft = 0;
+      let dragScrollTop = 0;
+      viewport.addEventListener('pointerdown', (event) => {
+        if (event.button !== 0) return;
+        dragPointerId = event.pointerId;
+        dragStartX = event.clientX;
+        dragStartY = event.clientY;
+        dragScrollLeft = viewport.scrollLeft;
+        dragScrollTop = viewport.scrollTop;
+        viewport.setPointerCapture(event.pointerId);
+        viewport.classList.add('is-dragging');
+        event.preventDefault();
+      });
+      viewport.addEventListener('pointermove', (event) => {
+        if (event.pointerId !== dragPointerId) return;
+        viewport.scrollLeft = dragScrollLeft - (event.clientX - dragStartX);
+        viewport.scrollTop = dragScrollTop - (event.clientY - dragStartY);
+      });
+      function stopDragging(event) {
+        if (event.pointerId !== dragPointerId) return;
+        if (viewport.hasPointerCapture(event.pointerId)) viewport.releasePointerCapture(event.pointerId);
+        dragPointerId = null;
+        viewport.classList.remove('is-dragging');
+      }
+      viewport.addEventListener('pointerup', stopDragging);
+      viewport.addEventListener('pointercancel', stopDragging);
+
+      document.getElementById('zoom-in').addEventListener('click', () => zoomBy(1.2));
+      document.getElementById('zoom-out').addEventListener('click', () => zoomBy(1 / 1.2));
+      document.getElementById('fit-width').addEventListener('click', fitWidth);
+      document.getElementById('reset-view').addEventListener('click', resetView);
+      viewport.addEventListener('keydown', (event) => {
+        const panStep = 96;
+        if (event.key === '+' || event.key === '=') zoomBy(1.2);
+        else if (event.key === '-') zoomBy(1 / 1.2);
+        else if (event.key === '0') resetView();
+        else if (event.key.toLowerCase() === 'f') fitWidth();
+        else if (event.key === 'ArrowLeft') viewport.scrollLeft -= panStep;
+        else if (event.key === 'ArrowRight') viewport.scrollLeft += panStep;
+        else if (event.key === 'ArrowUp') viewport.scrollTop -= panStep;
+        else if (event.key === 'ArrowDown') viewport.scrollTop += panStep;
+        else return;
+        event.preventDefault();
+      });
+      window.addEventListener('resize', () => { if (zoom < .7) fitWidth(); });
+      updateCanvasSize();
+      requestAnimationFrame(fitWidth);
+    })();
+  </script>
+</body>
+</html>

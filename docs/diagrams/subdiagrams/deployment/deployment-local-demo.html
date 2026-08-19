@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deployment — Local và demo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box}html,body{margin:0}body{padding:32px;color:#2d3142;background:#f5f5f5;font-family:'Geist',system-ui,sans-serif}
+    header{max-width:1120px;margin-bottom:24px}.eyebrow{margin:0 0 8px;color:#4f5d75;font:500 8px 'Geist Mono',monospace;letter-spacing:.16em;text-transform:uppercase}
+    h1{margin:0 0 12px;font:650 40px/1.08 'Segoe UI',Arial,sans-serif;letter-spacing:-.025em}.subtitle{margin:0;color:#4f5d75;font-size:16px;line-height:1.5}
+    .diagram-shell{height:calc(100vh - 180px);min-height:520px;display:flex;flex-direction:column;background:#f5f5f5;border:1px solid rgba(45,49,66,.16);border-radius:8px;overflow:hidden}
+    .diagram-toolbar{flex:0 0 48px;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:8px 12px;background:#ffffff;border-bottom:1px solid rgba(45,49,66,.12)}
+    .interaction-hint{color:#4f5d75;font:500 12px 'Geist Mono',monospace;white-space:nowrap}.toolbar-actions{display:flex;align-items:center;gap:8px}.tool-button{min-width:40px;height:32px;padding:0 12px;color:#2d3142;background:#f5f5f5;border:1px solid rgba(45,49,66,.24);border-radius:6px;font:600 12px 'Geist',sans-serif;cursor:pointer}.tool-button:hover{color:#2e5aa8;border-color:#2e5aa8}.tool-button:focus-visible,.canvas:focus-visible{outline:2px solid #2e5aa8;outline-offset:-2px}.zoom-level{min-width:58px;color:#4f5d75;font:600 12px 'Geist Mono',monospace;text-align:center}.noscript-note{margin:0;padding:8px 12px;color:#4f5d75;background:rgba(169,120,20,.09);border-bottom:1px solid rgba(169,120,20,.32);font:500 12px 'Geist',sans-serif}
+    .canvas{position:relative;flex:1 1 auto;min-height:0;width:100%;overflow:auto;cursor:grab;overscroll-behavior:contain;touch-action:none;scrollbar-color:#7a8399 #ececec}.canvas.is-dragging{cursor:grabbing;user-select:none}svg{display:block;width:1960px;height:auto;background:#f5f5f5}
+    .zone{fill:rgba(45,49,66,.025);stroke:rgba(45,49,66,.16);stroke-width:1}.zone-title{fill:#7a8399;font:500 8px 'Geist Mono',monospace;letter-spacing:.14em}
+    .node{fill:#ffffff;stroke:#2d3142;stroke-width:1}.actor{fill:rgba(46,90,168,.08);stroke:rgba(46,90,168,.62);stroke-width:1}.external{fill:rgba(45,49,66,.03);stroke:rgba(45,49,66,.34);stroke-width:1;stroke-dasharray:4 4}
+    .focal{fill:rgba(235,108,54,.08);stroke:#eb6c36;stroke-width:1.2}.store{fill:rgba(45,49,66,.05);stroke:#4f5d75;stroke-width:1}.state{fill:#ffffff;stroke:#4f5d75;stroke-width:1}
+    .rule{fill:rgba(169,120,20,.08);stroke:rgba(169,120,20,.56);stroke-width:1}.usecase{fill:rgba(116,84,165,.07);stroke:rgba(116,84,165,.52);stroke-width:1}.quality{fill:rgba(79,115,95,.08);stroke:rgba(79,115,95,.52);stroke-width:1}
+    .title{fill:#2d3142;font:600 20px 'Geist',sans-serif}.name{fill:#2d3142;font:600 16px 'Geist',sans-serif}.name-sm{fill:#2d3142;font:600 12px 'Geist',sans-serif}.body{fill:#4f5d75;font:400 12px 'Geist',sans-serif}.mono{fill:#4f5d75;font:400 12px 'Geist Mono',monospace}.mono-xs{fill:#4f5d75;font:400 8px 'Geist Mono',monospace}.tag{fill:#7a8399;font:500 8px 'Geist Mono',monospace;letter-spacing:.12em}
+    .edge{fill:none;stroke:#4f5d75;stroke-width:1.2}.edge-link{fill:none;stroke:#2e5aa8;stroke-width:1.2}.edge-event{fill:none;stroke:#4f5d75;stroke-width:1.1;stroke-dasharray:5 4}.edge-accent{fill:none;stroke:#eb6c36;stroke-width:1.4}.lifeline{stroke:rgba(45,49,66,.22);stroke-width:1;stroke-dasharray:4 4}
+    .uml-association{fill:none;stroke:#4f5d75;stroke-width:1}.uml-dependency{fill:none;stroke:#7454a5;stroke-width:1.1;stroke-dasharray:6 4}.uml-symbol{fill:#ffffff;stroke:#2d3142;stroke-width:1.25}.uml-usecase{fill:rgba(116,84,165,.07);stroke:#7454a5;stroke-width:1.15}.uml-usecase-optional{fill:rgba(169,120,20,.08);stroke:#a97814;stroke-width:1.15}.actor-line{fill:none;stroke:#2e5aa8;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}.activity-action{fill:#ffffff;stroke:#2d3142;stroke-width:1.1}.activity-decision{fill:rgba(169,120,20,.09);stroke:#a97814;stroke-width:1.2}.activity-flow{fill:none;stroke:#4f5d75;stroke-width:1.25}.activation{fill:rgba(46,90,168,.12);stroke:#2e5aa8;stroke-width:1}.bce-boundary{fill:#ffffff;stroke:#2e5aa8;stroke-width:1.4}.bce-control{fill:rgba(235,108,54,.08);stroke:#eb6c36;stroke-width:1.4}.bce-entity{fill:rgba(45,49,66,.05);stroke:#4f5d75;stroke-width:1.4}.model-header{fill:rgba(46,90,168,.06)}.erd-header{fill:rgba(46,90,168,.1)}.erd-row{fill:rgba(45,49,66,.025)}.key-badge{fill:#ececec;stroke:rgba(45,49,66,.2);stroke-width:.8}.db-fill{fill:rgba(45,49,66,.04);stroke:#4f5d75;stroke-width:1.1}.service-component{fill:#ffffff;stroke:#2e5aa8;stroke-width:1.1}.deploy-node{fill:#ffffff;stroke:#4f5d75;stroke-width:1.1}.event-envelope{fill:rgba(116,84,165,.07);stroke:#7454a5;stroke-width:1.1}.protocol-label{fill:#f5f5f5;stroke:rgba(45,49,66,.16);stroke-width:.8}
+    .footer-rule{stroke:rgba(45,49,66,.16);stroke-width:.8}.footer{fill:#7a8399;font:400 8px 'Geist Mono',monospace;letter-spacing:.06em}
+    @media(max-width:760px){body{padding:16px}h1{font-size:32px}.subtitle{font-size:14px}.diagram-shell{height:calc(100vh - 160px);min-height:420px}.interaction-hint{display:none}.tool-button{padding:0 9px}}
+    @media print{body{padding:0}.diagram-shell{height:auto;border:0;overflow:visible}.diagram-toolbar,.noscript-note{display:none}.canvas{overflow:visible}svg{width:100%!important;height:auto!important}}</style>
+</head>
+<body>
+  <header>
+    <p class="eyebrow">Online Bus Ticket Platform · Diagram con</p>
+    <h1>Deployment — Local và demo</h1>
+    <p class="subtitle">UML Deployment view cho môi trường phát triển/demo: device, container, execution environment, store và đường truyền có protocol.</p>
+  </header>
+  <div class="diagram-shell">
+    <div class="diagram-toolbar" role="group" aria-label="Điều khiển sơ đồ">
+      <span class="interaction-hint">Lăn chuột: zoom · giữ chuột trái và kéo: di chuyển · phím F: vừa chiều rộng</span>
+      <div class="toolbar-actions">
+        <button class="tool-button" id="zoom-out" type="button" aria-label="Thu nhỏ">−</button>
+        <output class="zoom-level" id="zoom-level" aria-live="polite">100%</output>
+        <button class="tool-button" id="zoom-in" type="button" aria-label="Phóng to">+</button>
+        <button class="tool-button" id="fit-width" type="button">Vừa rộng</button>
+        <button class="tool-button" id="reset-view" type="button">100%</button>
+      </div>
+    </div>
+    <noscript><p class="noscript-note">JavaScript đang tắt: sơ đồ vẫn hiển thị nhưng zoom bằng con lăn và kéo canvas sẽ không hoạt động.</p></noscript>
+    <div class="canvas" id="diagram-viewport" tabindex="0" aria-label="Sơ đồ tương tác. Lăn chuột để phóng to hoặc thu nhỏ; giữ chuột trái và kéo để di chuyển.">
+    <svg id="diagram-canvas" viewBox="0 0 1960 1336" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="deployment-local-demo-title deployment-local-demo-desc">
+      <title id="deployment-local-demo-title">Deployment — Local và demo</title>
+      <desc id="deployment-local-demo-desc">UML Deployment view cho môi trường phát triển/demo: device, container, execution environment, store và đường truyền có protocol.</desc>
+      
+    <defs>
+      <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
+      <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#2e5aa8"/></marker>
+      <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#eb6c36"/></marker>
+      <marker id="arrow-open" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polyline points="0 0, 8 3, 0 6" fill="none" stroke="#4f5d75" stroke-width="1.2"/></marker>
+      <marker id="uml-generalization" markerWidth="12" markerHeight="10" refX="11" refY="5" orient="auto"><polygon points="0 0, 12 5, 0 10" fill="#f5f5f5" stroke="#4f5d75" stroke-width="1"/></marker>
+      <marker id="uml-composition" markerWidth="12" markerHeight="10" refX="1" refY="5" orient="auto-start-reverse"><polygon points="1 5, 6 1, 11 5, 6 9" fill="#2d3142" stroke="#2d3142" stroke-width="1"/></marker>
+    </defs>
+      <rect width="1960" height="1336" fill="#f5f5f5"/>
+      
+    <rect class="zone" x="48" y="72" width="344" height="1080" rx="8"/><rect x="64" y="76" width="144" height="16" rx="4" fill="#f5f5f5"/><text class="zone-title" x="72" y="88">USER DEVICE</text>
+    <rect class="zone" x="424" y="72" width="1060" height="1080" rx="8"/><rect x="440" y="76" width="240" height="16" rx="4" fill="#f5f5f5"/><text class="zone-title" x="448" y="88">DOCKER HOST · INTERNAL NETWORK</text>
+    <rect class="zone" x="1516" y="72" width="396" height="1080" rx="8"/><rect x="1532" y="76" width="144" height="16" rx="4" fill="#f5f5f5"/><text class="zone-title" x="1540" y="88">EXTERNAL</text>
+    <path class="edge-link" d="M360 208 H460 V224 H620" marker-end="url(#arrow-link)"/>
+<path class="edge-link" d="M360 344 H520 V264 H620" marker-end="url(#arrow-link)"/>
+<line class="edge-link" x1="960" y1="320" x2="960" y2="376" marker-end="url(#arrow-link)"/>
+<path class="edge" d="M964 712 V744 H708 V824" marker-end="url(#arrow)"/>
+<path class="edge-event" d="M964 712 V736 H1172 V824" marker-end="url(#arrow-open)"/>
+<path class="edge-link" d="M656 664 V732 H1492 V248 H1560" marker-end="url(#arrow-link)"/>
+<path class="edge-link" d="M968 664 V720 H1476 V408 H1560" marker-end="url(#arrow-link)"/>
+    <g data-uml="deployment-node"><path class="deploy-node" d="M88 172 L100 160 H360 V244 L348 256 H88 Z"/><path fill="none" stroke="#4f5d75" d="M88 172 H348 L360 160 M348 172 V256"/>
+    <text class="tag" x="106" y="188">«device»</text>
+    <text class="name-sm" x="224" y="216" text-anchor="middle">Browser</text>
+    <text class="mono-xs" x="224" y="242" text-anchor="middle">Web end-user · Back-office</text></g>
+    <g data-uml="deployment-node"><path class="deploy-node" d="M88 308 L100 296 H360 V380 L348 392 H88 Z"/><path fill="none" stroke="#4f5d75" d="M88 308 H348 L360 296 M348 308 V392"/>
+    <text class="tag" x="106" y="324">«device»</text>
+    <text class="name-sm" x="224" y="352" text-anchor="middle">Mobile App</text>
+    <text class="mono-xs" x="224" y="378" text-anchor="middle">Customer channel</text></g>
+    <g data-uml="deployment-node"><path class="focal" d="M620 172 L632 160 H1300 V308 L1288 320 H620 Z"/><path fill="none" stroke="#4f5d75" d="M620 172 H1288 L1300 160 M1288 172 V320"/>
+    <text class="tag" x="638" y="188">«container»</text>
+    <text class="name-sm" x="960" y="216" text-anchor="middle">Reverse Proxy / API Gateway</text>
+    <text class="mono-xs" x="960" y="242" text-anchor="middle">HTTPS entry · routing · auth context · public port duy nhất</text></g>
+    <g data-uml="execution-environment"><path class="deploy-node" d="M480 388 L492 376 H1448 V700 L1436 712 H480 Z"/><path fill="none" stroke="#4f5d75" d="M480 388 H1436 L1448 376 M1436 388 V712"/><text class="tag" x="504" y="414">«EXECUTION ENVIRONMENT» · DOCKER NETWORK</text></g>
+    <g data-uml="deployment-node"><path class="deploy-node" d="M520 436 L532 424 H792 V508 L780 520 H520 Z"/><path fill="none" stroke="#4f5d75" d="M520 436 H780 L792 424 M780 436 V520"/>
+    <text class="tag" x="538" y="452">«container»</text>
+    <text class="name-sm" x="656" y="480" text-anchor="middle">identity-service</text>
+    <text class="mono-xs" x="656" y="506" text-anchor="middle">DB ownership: identity_db</text></g>
+<g data-uml="deployment-node"><path class="deploy-node" d="M832 436 L844 424 H1104 V508 L1092 520 H832 Z"/><path fill="none" stroke="#4f5d75" d="M832 436 H1092 L1104 424 M1092 436 V520"/>
+    <text class="tag" x="850" y="452">«container»</text>
+    <text class="name-sm" x="968" y="480" text-anchor="middle">transport-service</text>
+    <text class="mono-xs" x="968" y="506" text-anchor="middle">DB ownership: transport_db</text></g>
+<g data-uml="deployment-node"><path class="focal" d="M1144 436 L1156 424 H1416 V508 L1404 520 H1144 Z"/><path fill="none" stroke="#4f5d75" d="M1144 436 H1404 L1416 424 M1404 436 V520"/>
+    <text class="tag" x="1162" y="452">«container»</text>
+    <text class="name-sm" x="1280" y="480" text-anchor="middle">booking-service</text>
+    <text class="mono-xs" x="1280" y="506" text-anchor="middle">DB ownership: booking_db + Redis</text></g>
+<g data-uml="deployment-node"><path class="focal" d="M520 580 L532 568 H792 V652 L780 664 H520 Z"/><path fill="none" stroke="#4f5d75" d="M520 580 H780 L792 568 M780 580 V664"/>
+    <text class="tag" x="538" y="596">«container»</text>
+    <text class="name-sm" x="656" y="624" text-anchor="middle">payment-service</text>
+    <text class="mono-xs" x="656" y="650" text-anchor="middle">DB ownership: payment_db</text></g>
+<g data-uml="deployment-node"><path class="deploy-node" d="M832 580 L844 568 H1104 V652 L1092 664 H832 Z"/><path fill="none" stroke="#4f5d75" d="M832 580 H1092 L1104 568 M1092 580 V664"/>
+    <text class="tag" x="850" y="596">«container»</text>
+    <text class="name-sm" x="968" y="624" text-anchor="middle">notification-service</text>
+    <text class="mono-xs" x="968" y="650" text-anchor="middle">DB ownership: notification_db</text></g>
+<g data-uml="deployment-node"><path class="deploy-node" d="M1144 580 L1156 568 H1416 V652 L1404 664 H1144 Z"/><path fill="none" stroke="#4f5d75" d="M1144 580 H1404 L1416 568 M1404 580 V664"/>
+    <text class="tag" x="1162" y="596">«container»</text>
+    <text class="name-sm" x="1280" y="624" text-anchor="middle">reporting-service</text>
+    <text class="mono-xs" x="1280" y="650" text-anchor="middle">DB ownership: reporting_db</text></g>
+    <rect class="zone" x="480" y="760" width="920" height="328" rx="8"/><rect x="496" y="764" width="256" height="16" rx="4" fill="#f5f5f5"/><text class="zone-title" x="504" y="776">SHARED INFRASTRUCTURE CONTAINERS</text>
+    <g data-architecture="database"><path class="db-fill" d="M520 837 C520 820,896 820,896 837 V915 C896 932,520 932,520 915 Z"/>
+    <ellipse class="db-fill" cx="708" cy="837" rx="188" ry="13"/>
+    <text class="tag" x="538" y="858">«container»</text><text class="name-sm" x="708" y="882" text-anchor="middle">PostgreSQL Server</text>
+    <text class="mono-xs" x="708" y="902" text-anchor="middle">6 DB/schema · credential tách riêng</text></g>
+    <g data-uml="deployment-node"><path class="rule" d="M984 836 L996 824 H1360 V916 L1348 928 H984 Z"/><path fill="none" stroke="#4f5d75" d="M984 836 H1348 L1360 824 M1348 836 V928"/>
+    <text class="tag" x="1002" y="852">«container»</text>
+    <text class="name-sm" x="1172" y="880" text-anchor="middle">RabbitMQ</text>
+    <text class="mono-xs" x="1172" y="906" text-anchor="middle">Durable queue · retry · DLQ</text></g>
+    <g data-architecture="database"><path class="db-fill" d="M520 989 C520 972,896 972,896 989 V1043 C896 1060,520 1060,520 1043 Z"/>
+    <ellipse class="db-fill" cx="708" cy="989" rx="188" ry="13"/>
+    <text class="tag" x="538" y="1010">«container»</text><text class="name-sm" x="708" y="1034" text-anchor="middle">Redis</text>
+    <text class="mono-xs" x="708" y="1054" text-anchor="middle">TTL helper · cache · short lock</text></g>
+    <g data-uml="deployment-node"><path class="quality" d="M984 988 L996 976 H1360 V1044 L1348 1056 H984 Z"/><path fill="none" stroke="#4f5d75" d="M984 988 H1348 L1360 976 M1348 988 V1056"/>
+    <text class="tag" x="1002" y="996">«container»</text>
+    <text class="name-sm" x="1172" y="1019" text-anchor="middle">Observability Stack</text>
+    <text class="mono-xs" x="1172" y="1038" text-anchor="middle">Logs · metrics · traces</text></g>
+    <g data-uml="deployment-node"><path class="external" d="M1560 212 L1572 200 H1868 V284 L1856 296 H1560 Z"/><path fill="none" stroke="#4f5d75" d="M1560 212 H1856 L1868 200 M1856 212 V296"/>
+    <text class="tag" x="1578" y="228">«external system»</text>
+    <text class="name-sm" x="1714" y="256" text-anchor="middle">Payment Gateway</text>
+    <text class="mono-xs" x="1714" y="282" text-anchor="middle">Owner: payment-service</text></g>
+    <g data-uml="deployment-node"><path class="external" d="M1560 372 L1572 360 H1868 V444 L1856 456 H1560 Z"/><path fill="none" stroke="#4f5d75" d="M1560 372 H1856 L1868 360 M1856 372 V456"/>
+    <text class="tag" x="1578" y="388">«external system»</text>
+    <text class="name-sm" x="1714" y="416" text-anchor="middle">Email / Push Provider</text>
+    <text class="mono-xs" x="1714" y="442" text-anchor="middle">Owner: notification-service</text></g>
+    <g><rect class="protocol-label" x="428" y="194" width="56" height="20" rx="4"/><text class="tag" x="456" y="208" text-anchor="middle">HTTPS</text></g><g><rect class="protocol-label" x="492" y="306" width="56" height="20" rx="4"/><text class="tag" x="520" y="320" text-anchor="middle">HTTPS</text></g><g><rect class="protocol-label" x="904.5" y="342" width="111" height="20" rx="4"/><text class="tag" x="960" y="356" text-anchor="middle">internal HTTP</text></g><g><rect class="protocol-label" x="792" y="724" width="56" height="20" rx="4"/><text class="tag" x="820" y="738" text-anchor="middle">TCP</text></g><g><rect class="protocol-label" x="1088" y="716" width="56" height="20" rx="4"/><text class="tag" x="1116" y="730" text-anchor="middle">AMQP</text></g>
+    <rect class="quality" x="1560" y="552" width="308" height="128" rx="8"/><text class="tag" x="1584" y="580">NETWORK RULE</text><text class="body" x="1584" y="612" text-anchor="start">Không public service port</text>
+<text class="body" x="1584" y="636" text-anchor="start">Không public DB/broker/cache</text>
+<text class="body" x="1584" y="660" text-anchor="start">Không ghi credential vào hình</text>
+    <rect class="quality" x="88" y="1184" width="1780" height="40" rx="8"/><text class="body" x="112" y="1208">Containment thể hiện vị trí triển khai; quan hệ API/event chi tiết nằm ở Architecture và Event Flow diagram.</text>
+      <line class="footer-rule" x1="32" y1="1284" x2="1928" y2="1284"/>
+      <text class="footer" x="32" y="1308">Ký pháp UML Deployment · Hộp nổi: node/container · Hình trụ: store · Nhãn trên đường: protocol · Mỗi service có DB/schema và credential riêng</text>
+      <text class="footer" x="1928" y="1308" text-anchor="end">Nguồn: SRS 16 · DIA Deployment Local/Demo</text>
+    </svg>
+    </div>
+  </div>
+  <script>
+    (() => {
+      const viewport = document.getElementById('diagram-viewport');
+      const svg = document.getElementById('diagram-canvas');
+      const zoomLevel = document.getElementById('zoom-level');
+      const title = svg.querySelector(':scope > title');
+      const desc = svg.querySelector(':scope > desc');
+      if (title) {
+        svg.setAttribute('aria-label', title.textContent || 'Diagram');
+        svg.removeAttribute('aria-labelledby');
+        if (desc?.id) svg.setAttribute('aria-describedby', desc.id);
+        title.remove();
+      }
+
+      const baseWidth = 1960;
+      const baseHeight = 1336;
+      const minimumZoom = .18;
+      const maximumZoom = 2.5;
+      let zoom = 1;
+      const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
+
+      function updateCanvasSize() {
+        svg.style.width = Math.round(baseWidth * zoom) + 'px';
+        svg.style.height = Math.round(baseHeight * zoom) + 'px';
+        zoomLevel.value = Math.round(zoom * 100) + '%';
+        zoomLevel.textContent = zoomLevel.value;
+      }
+
+      function setZoom(nextZoom, clientX, clientY) {
+        const previousZoom = zoom;
+        const rect = viewport.getBoundingClientRect();
+        const anchorX = clientX ?? rect.left + viewport.clientWidth / 2;
+        const anchorY = clientY ?? rect.top + viewport.clientHeight / 2;
+        const offsetX = anchorX - rect.left;
+        const offsetY = anchorY - rect.top;
+        const contentX = (viewport.scrollLeft + offsetX) / previousZoom;
+        const contentY = (viewport.scrollTop + offsetY) / previousZoom;
+        zoom = clamp(nextZoom, minimumZoom, maximumZoom);
+        updateCanvasSize();
+        viewport.scrollLeft = contentX * zoom - offsetX;
+        viewport.scrollTop = contentY * zoom - offsetY;
+      }
+
+      function zoomBy(factor, clientX, clientY) { setZoom(zoom * factor, clientX, clientY); }
+      function fitWidth() {
+        const fittedZoom = (viewport.clientWidth - 24) / baseWidth;
+        zoom = clamp(fittedZoom, minimumZoom, maximumZoom);
+        updateCanvasSize();
+        viewport.scrollLeft = 0;
+        viewport.scrollTop = 0;
+      }
+      function resetView() {
+        zoom = 1;
+        updateCanvasSize();
+        viewport.scrollLeft = 0;
+        viewport.scrollTop = 0;
+      }
+
+      viewport.addEventListener('wheel', (event) => {
+        event.preventDefault();
+        zoomBy(clamp(Math.exp(-event.deltaY * .0015), .75, 1.25), event.clientX, event.clientY);
+      }, { passive: false });
+      viewport.addEventListener('dblclick', (event) => {
+        event.preventDefault();
+        zoomBy(1.25, event.clientX, event.clientY);
+      });
+
+      let dragPointerId = null;
+      let dragStartX = 0;
+      let dragStartY = 0;
+      let dragScrollLeft = 0;
+      let dragScrollTop = 0;
+      viewport.addEventListener('pointerdown', (event) => {
+        if (event.button !== 0) return;
+        dragPointerId = event.pointerId;
+        dragStartX = event.clientX;
+        dragStartY = event.clientY;
+        dragScrollLeft = viewport.scrollLeft;
+        dragScrollTop = viewport.scrollTop;
+        viewport.setPointerCapture(event.pointerId);
+        viewport.classList.add('is-dragging');
+        event.preventDefault();
+      });
+      viewport.addEventListener('pointermove', (event) => {
+        if (event.pointerId !== dragPointerId) return;
+        viewport.scrollLeft = dragScrollLeft - (event.clientX - dragStartX);
+        viewport.scrollTop = dragScrollTop - (event.clientY - dragStartY);
+      });
+      function stopDragging(event) {
+        if (event.pointerId !== dragPointerId) return;
+        if (viewport.hasPointerCapture(event.pointerId)) viewport.releasePointerCapture(event.pointerId);
+        dragPointerId = null;
+        viewport.classList.remove('is-dragging');
+      }
+      viewport.addEventListener('pointerup', stopDragging);
+      viewport.addEventListener('pointercancel', stopDragging);
+
+      document.getElementById('zoom-in').addEventListener('click', () => zoomBy(1.2));
+      document.getElementById('zoom-out').addEventListener('click', () => zoomBy(1 / 1.2));
+      document.getElementById('fit-width').addEventListener('click', fitWidth);
+      document.getElementById('reset-view').addEventListener('click', resetView);
+      viewport.addEventListener('keydown', (event) => {
+        const panStep = 96;
+        if (event.key === '+' || event.key === '=') zoomBy(1.2);
+        else if (event.key === '-') zoomBy(1 / 1.2);
+        else if (event.key === '0') resetView();
+        else if (event.key.toLowerCase() === 'f') fitWidth();
+        else if (event.key === 'ArrowLeft') viewport.scrollLeft -= panStep;
+        else if (event.key === 'ArrowRight') viewport.scrollLeft += panStep;
+        else if (event.key === 'ArrowUp') viewport.scrollTop -= panStep;
+        else if (event.key === 'ArrowDown') viewport.scrollTop += panStep;
+        else return;
+        event.preventDefault();
+      });
+      window.addEventListener('resize', () => { if (zoom < .7) fitWidth(); });
+      updateCanvasSize();
+      requestAnimationFrame(fitWidth);
+    })();
+  </script>
+</body>
+</html>

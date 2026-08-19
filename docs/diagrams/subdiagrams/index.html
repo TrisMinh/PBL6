@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bộ diagram con — Online Bus Ticket Platform</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@500&amp;display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box}body{margin:0;padding:40px;color:#2d3142;background:#f5f5f5;font-family:'Geist',sans-serif}header{max-width:960px;margin-bottom:40px}.eyebrow{color:#4f5d75;font:500 10px 'Geist Mono',monospace;letter-spacing:.14em;text-transform:uppercase}h1{margin:8px 0 16px;font:650 48px/1.08 'Segoe UI',Arial,sans-serif;letter-spacing:-.025em}p{color:#4f5d75;font-size:16px;line-height:1.6}section{margin:36px 0}h2{margin:0 0 16px;font-size:20px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}.card{display:flex;flex-direction:column;gap:10px;min-height:144px;padding:20px;color:inherit;text-decoration:none;background:#fff;border:1px solid rgba(45,49,66,.16);border-radius:8px}.card:hover{border-color:#2e5aa8}.card-type{color:#2e5aa8;font:500 10px 'Geist Mono',monospace;letter-spacing:.12em;text-transform:uppercase}.card strong{font-size:18px}.card small{margin-top:auto;color:#7a8399;font:12px 'Geist Mono',monospace}.super{display:inline-block;margin-top:8px;color:#2e5aa8}
+  </style>
+</head>
+<body>
+  <header>
+    <p class="eyebrow">Online Bus Ticket Platform · Diagram Library</p>
+    <h1>Bộ diagram con</h1>
+    <p>Mở theo thứ tự từ tổng quan đến chi tiết. Mỗi file là một diagram độc lập, bám đúng actor, use case, trạng thái, service ownership và requirement trong SRS.</p>
+    <a class="super" href="../bus-ticket-platform-super-diagram.html">Mở Super Diagram tổng hợp →</a>
+  </header>
+  <section><h2>Tổng quan và phạm vi</h2><div class="grid">
+      <a class="card" href="./overview/system-context.html">
+        <span class="card-type">System Context</span>
+        <strong>Tổng quan bối cảnh hệ thống</strong>
+        <small>SRS 01–03</small>
+      </a></div></section><section><h2>Use Case và quy trình</h2><div class="grid">
+      <a class="card" href="./use-cases/use-cases-customer.html">
+        <span class="card-type">Use Case</span>
+        <strong>Use Case — Guest và Customer</strong>
+        <small>UC-AUTH/SEARCH/BOOK/PAY/CANCEL/CHANGE</small>
+      </a>
+      <a class="card" href="./use-cases/use-cases-operations.html">
+        <span class="card-type">Use Case</span>
+        <strong>Use Case — Tài xế và Nhà xe</strong>
+        <small>UC-OPS/DRIVER/TRIP/REPORT</small>
+      </a>
+      <a class="card" href="./use-cases/use-cases-admin.html">
+        <span class="card-type">Use Case</span>
+        <strong>Use Case — Admin và hệ thống ngoài</strong>
+        <small>UC-ADMIN/REPORT + secondary actors</small>
+      </a>
+      <a class="card" href="./processes/activity-booking.html">
+        <span class="card-type">Activity / Swimlane</span>
+        <strong>Quy trình đặt vé từ tìm chuyến đến nhận vé</strong>
+        <small>BP-01 · UC-BOOK · UC-PAY</small>
+      </a></div></section><section><h2>Robustness BCE</h2><div class="grid">
+      <a class="card" href="./robustness/robustness-booking.html">
+        <span class="card-type">Robustness</span>
+        <strong>Robustness — Đặt vé</strong>
+        <small>UC-BOOK-01 · UC-PAY-01 · SRS 07, 09, 12</small>
+      </a>
+      <a class="card" href="./robustness/robustness-login.html">
+        <span class="card-type">Robustness</span>
+        <strong>Robustness — Đăng nhập</strong>
+        <small>UC-AUTH-02 · SRS 07, 09, 12</small>
+      </a>
+      <a class="card" href="./robustness/robustness-cancel-ticket.html">
+        <span class="card-type">Robustness</span>
+        <strong>Robustness — Hủy vé và hoàn tiền</strong>
+        <small>UC-CANCEL-01 · SRS 07, 09, 12</small>
+      </a>
+      <a class="card" href="./robustness/robustness-create-trip.html">
+        <span class="card-type">Robustness</span>
+        <strong>Robustness — Tạo và mở bán chuyến</strong>
+        <small>UC-OPS-01 · SRS 07, 09, 12</small>
+      </a>
+      <a class="card" href="./robustness/robustness-check-in.html">
+        <span class="card-type">Robustness</span>
+        <strong>Robustness — Check-in hành khách</strong>
+        <small>UC-DRIVER-01 · SRS 07, 09, 12</small>
+      </a>
+      <a class="card" href="./robustness/robustness-cancel-trip.html">
+        <span class="card-type">Robustness</span>
+        <strong>Robustness — Hủy chuyến</strong>
+        <small>UC-TRIP-01 · SRS 07, 09, 12</small>
+      </a></div></section><section><h2>Sequence nghiệp vụ</h2><div class="grid">
+      <a class="card" href="./sequences/sequence-seat-hold.html">
+        <span class="card-type">Sequence</span>
+        <strong>Sequence — Giữ ghế an toàn</strong>
+        <small>UC-BOOK-01 · BR-BOOK-01/02 · DIA Sequence Seat Hold</small>
+      </a>
+      <a class="card" href="./sequences/sequence-create-booking.html">
+        <span class="card-type">Sequence</span>
+        <strong>Sequence — Tạo đơn đặt vé</strong>
+        <small>UC-BOOK-01 · BR-BOOK-03/04 · DIA Sequence Create Booking</small>
+      </a>
+      <a class="card" href="./sequences/sequence-payment-provider.html">
+        <span class="card-type">Sequence</span>
+        <strong>Sequence — Khởi tạo và xác nhận thanh toán</strong>
+        <small>UC-PAY-01 · BR-PAY-01/02/03 · DIA Sequence Payment</small>
+      </a>
+      <a class="card" href="./sequences/sequence-payment-confirm-booking.html">
+        <span class="card-type">Sequence</span>
+        <strong>Sequence — Thanh toán xác nhận booking</strong>
+        <small>BR-PAY-04 · BR-BOOK-05 · DIA Sequence Payment Confirmation</small>
+      </a>
+      <a class="card" href="./sequences/sequence-ticket-delivery.html">
+        <span class="card-type">Sequence</span>
+        <strong>Sequence — Phát hành và gửi vé</strong>
+        <small>UC-BOOK-01 · BR-TICKET-01 · DIA Sequence Ticket Delivery</small>
+      </a>
+      <a class="card" href="./sequences/sequence-cancel-preview.html">
+        <span class="card-type">Sequence</span>
+        <strong>Sequence — Xem trước và xác nhận hủy vé</strong>
+        <small>UC-CANCEL-01 · BR-CANCEL-01/02 · DIA Sequence Cancellation Preview</small>
+      </a>
+      <a class="card" href="./sequences/sequence-refund-saga.html">
+        <span class="card-type">Sequence</span>
+        <strong>Sequence — Điều phối hoàn tiền</strong>
+        <small>UC-CANCEL-01 · BR-REFUND-01/02 · DIA Sequence Refund Saga</small>
+      </a>
+      <a class="card" href="./sequences/sequence-publish-trip.html">
+        <span class="card-type">Sequence</span>
+        <strong>Sequence — Mở bán chuyến</strong>
+        <small>UC-OPS-01 · BR-TRIP-01/02 · DIA Sequence Publish Trip</small>
+      </a>
+      <a class="card" href="./sequences/sequence-cancel-trip.html">
+        <span class="card-type">Sequence</span>
+        <strong>Sequence — Hủy chuyến và xử lý ảnh hưởng</strong>
+        <small>UC-TRIP-01 · BR-TRIP-04 · DIA Sequence Cancel Trip</small>
+      </a></div></section><section><h2>Vòng đời trạng thái</h2><div class="grid">
+      <a class="card" href="./states/state-trip-seat-hold.html">
+        <span class="card-type">State Machine</span>
+        <strong>State — Ghế chuyến và phiên giữ ghế</strong>
+        <small>SRS 08 · BR-BOOK-01/02/05</small>
+      </a>
+      <a class="card" href="./states/state-booking-payment.html">
+        <span class="card-type">State Machine</span>
+        <strong>State — Booking và Payment</strong>
+        <small>SRS 08 · BR-PAY · BR-BOOK</small>
+      </a>
+      <a class="card" href="./states/state-ticket-refund.html">
+        <span class="card-type">State Machine</span>
+        <strong>State — Ticket và Refund</strong>
+        <small>SRS 08 · BR-TICKET · BR-REFUND</small>
+      </a>
+      <a class="card" href="./states/state-trip.html">
+        <span class="card-type">State Machine</span>
+        <strong>State — Vòng đời chuyến xe</strong>
+        <small>SRS 08 · BR-TRIP-01/03/04</small>
+      </a></div></section><section><h2>Domain Model</h2><div class="grid">
+      <a class="card" href="./domain-models/domain-identity.html">
+        <span class="card-type">Domain / Class</span>
+        <strong>Domain Model — Identity và tổ chức</strong>
+        <small>SRS 09 · Identity Service ownership</small>
+      </a>
+      <a class="card" href="./domain-models/domain-transport.html">
+        <span class="card-type">Domain / Class</span>
+        <strong>Domain Model — Vận tải và lịch chuyến</strong>
+        <small>SRS 09 · Transport Service ownership</small>
+      </a>
+      <a class="card" href="./domain-models/domain-booking.html">
+        <span class="card-type">Domain / Class</span>
+        <strong>Domain Model — Đặt vé và kho ghế</strong>
+        <small>SRS 09 · Booking Service ownership</small>
+      </a>
+      <a class="card" href="./domain-models/domain-payment.html">
+        <span class="card-type">Domain / Class</span>
+        <strong>Domain Model — Thanh toán và hoàn tiền</strong>
+        <small>SRS 09 · Payment Service ownership</small>
+      </a></div></section><section><h2>Mô hình dữ liệu</h2><div class="grid">
+      <a class="card" href="./data-models/erd-identity.html">
+        <span class="card-type">ERD</span>
+        <strong>ERD — Identity và tổ chức</strong>
+        <small>SRS 09 · Identity Service ownership</small>
+      </a>
+      <a class="card" href="./data-models/erd-transport.html">
+        <span class="card-type">ERD</span>
+        <strong>ERD — Vận tải và lịch chuyến</strong>
+        <small>SRS 09 · Transport Service ownership</small>
+      </a>
+      <a class="card" href="./data-models/erd-booking.html">
+        <span class="card-type">ERD</span>
+        <strong>ERD — Đặt vé và kho ghế</strong>
+        <small>SRS 09 · Booking Service ownership</small>
+      </a>
+      <a class="card" href="./data-models/erd-payment.html">
+        <span class="card-type">ERD</span>
+        <strong>ERD — Thanh toán và hoàn tiền</strong>
+        <small>SRS 09 · Payment Service ownership</small>
+      </a></div></section><section><h2>Kiến trúc và tích hợp</h2><div class="grid">
+      <a class="card" href="./architecture/microservices-architecture.html">
+        <span class="card-type">Architecture</span>
+        <strong>Kiến trúc Microservices tổng thể</strong>
+        <small>SRS 10, 11</small>
+      </a>
+      <a class="card" href="./events/event-trip.html">
+        <span class="card-type">Event Flow</span>
+        <strong>Event Flow — Vòng đời chuyến</strong>
+        <small>SRS 11 · EVT-TRIP</small>
+      </a>
+      <a class="card" href="./events/event-payment.html">
+        <span class="card-type">Event Flow</span>
+        <strong>Event Flow — Thanh toán</strong>
+        <small>SRS 11 · EVT-PAYMENT</small>
+      </a>
+      <a class="card" href="./events/event-cancellation.html">
+        <span class="card-type">Event Flow</span>
+        <strong>Event Flow — Hủy vé và bù trừ</strong>
+        <small>SRS 11, 14 · EVT-CANCEL</small>
+      </a></div></section><section><h2>Triển khai</h2><div class="grid">
+      <a class="card" href="./deployment/deployment-local-demo.html">
+        <span class="card-type">Deployment</span>
+        <strong>Deployment — Local và demo</strong>
+        <small>SRS 16 · DIA Local/Demo</small>
+      </a>
+      <a class="card" href="./deployment/deployment.html">
+        <span class="card-type">Deployment</span>
+        <strong>Deployment — Topology gần production</strong>
+        <small>SRS 10, 13, 15</small>
+      </a></div></section>
+</body>
+</html>

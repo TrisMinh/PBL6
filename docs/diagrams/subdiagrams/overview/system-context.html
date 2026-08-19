@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tổng quan bối cảnh hệ thống</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box}html,body{margin:0}body{padding:32px;color:#2d3142;background:#f5f5f5;font-family:'Geist',system-ui,sans-serif}
+    header{max-width:1120px;margin-bottom:24px}.eyebrow{margin:0 0 8px;color:#4f5d75;font:500 8px 'Geist Mono',monospace;letter-spacing:.16em;text-transform:uppercase}
+    h1{margin:0 0 12px;font:650 40px/1.08 'Segoe UI',Arial,sans-serif;letter-spacing:-.025em}.subtitle{margin:0;color:#4f5d75;font-size:16px;line-height:1.5}
+    .diagram-shell{height:calc(100vh - 180px);min-height:520px;display:flex;flex-direction:column;background:#f5f5f5;border:1px solid rgba(45,49,66,.16);border-radius:8px;overflow:hidden}
+    .diagram-toolbar{flex:0 0 48px;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:8px 12px;background:#ffffff;border-bottom:1px solid rgba(45,49,66,.12)}
+    .interaction-hint{color:#4f5d75;font:500 12px 'Geist Mono',monospace;white-space:nowrap}.toolbar-actions{display:flex;align-items:center;gap:8px}.tool-button{min-width:40px;height:32px;padding:0 12px;color:#2d3142;background:#f5f5f5;border:1px solid rgba(45,49,66,.24);border-radius:6px;font:600 12px 'Geist',sans-serif;cursor:pointer}.tool-button:hover{color:#2e5aa8;border-color:#2e5aa8}.tool-button:focus-visible,.canvas:focus-visible{outline:2px solid #2e5aa8;outline-offset:-2px}.zoom-level{min-width:58px;color:#4f5d75;font:600 12px 'Geist Mono',monospace;text-align:center}.noscript-note{margin:0;padding:8px 12px;color:#4f5d75;background:rgba(169,120,20,.09);border-bottom:1px solid rgba(169,120,20,.32);font:500 12px 'Geist',sans-serif}
+    .canvas{position:relative;flex:1 1 auto;min-height:0;width:100%;overflow:auto;cursor:grab;overscroll-behavior:contain;touch-action:none;scrollbar-color:#7a8399 #ececec}.canvas.is-dragging{cursor:grabbing;user-select:none}svg{display:block;width:1760px;height:auto;background:#f5f5f5}
+    .zone{fill:rgba(45,49,66,.025);stroke:rgba(45,49,66,.16);stroke-width:1}.zone-title{fill:#7a8399;font:500 8px 'Geist Mono',monospace;letter-spacing:.14em}
+    .node{fill:#ffffff;stroke:#2d3142;stroke-width:1}.actor{fill:rgba(46,90,168,.08);stroke:rgba(46,90,168,.62);stroke-width:1}.external{fill:rgba(45,49,66,.03);stroke:rgba(45,49,66,.34);stroke-width:1;stroke-dasharray:4 4}
+    .focal{fill:rgba(235,108,54,.08);stroke:#eb6c36;stroke-width:1.2}.store{fill:rgba(45,49,66,.05);stroke:#4f5d75;stroke-width:1}.state{fill:#ffffff;stroke:#4f5d75;stroke-width:1}
+    .rule{fill:rgba(169,120,20,.08);stroke:rgba(169,120,20,.56);stroke-width:1}.usecase{fill:rgba(116,84,165,.07);stroke:rgba(116,84,165,.52);stroke-width:1}.quality{fill:rgba(79,115,95,.08);stroke:rgba(79,115,95,.52);stroke-width:1}
+    .title{fill:#2d3142;font:600 20px 'Geist',sans-serif}.name{fill:#2d3142;font:600 16px 'Geist',sans-serif}.name-sm{fill:#2d3142;font:600 12px 'Geist',sans-serif}.body{fill:#4f5d75;font:400 12px 'Geist',sans-serif}.mono{fill:#4f5d75;font:400 12px 'Geist Mono',monospace}.mono-xs{fill:#4f5d75;font:400 8px 'Geist Mono',monospace}.tag{fill:#7a8399;font:500 8px 'Geist Mono',monospace;letter-spacing:.12em}
+    .edge{fill:none;stroke:#4f5d75;stroke-width:1.2}.edge-link{fill:none;stroke:#2e5aa8;stroke-width:1.2}.edge-event{fill:none;stroke:#4f5d75;stroke-width:1.1;stroke-dasharray:5 4}.edge-accent{fill:none;stroke:#eb6c36;stroke-width:1.4}.lifeline{stroke:rgba(45,49,66,.22);stroke-width:1;stroke-dasharray:4 4}
+    .uml-association{fill:none;stroke:#4f5d75;stroke-width:1}.uml-dependency{fill:none;stroke:#7454a5;stroke-width:1.1;stroke-dasharray:6 4}.uml-symbol{fill:#ffffff;stroke:#2d3142;stroke-width:1.25}.uml-usecase{fill:rgba(116,84,165,.07);stroke:#7454a5;stroke-width:1.15}.uml-usecase-optional{fill:rgba(169,120,20,.08);stroke:#a97814;stroke-width:1.15}.actor-line{fill:none;stroke:#2e5aa8;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}.activity-action{fill:#ffffff;stroke:#2d3142;stroke-width:1.1}.activity-decision{fill:rgba(169,120,20,.09);stroke:#a97814;stroke-width:1.2}.activity-flow{fill:none;stroke:#4f5d75;stroke-width:1.25}.activation{fill:rgba(46,90,168,.12);stroke:#2e5aa8;stroke-width:1}.bce-boundary{fill:#ffffff;stroke:#2e5aa8;stroke-width:1.4}.bce-control{fill:rgba(235,108,54,.08);stroke:#eb6c36;stroke-width:1.4}.bce-entity{fill:rgba(45,49,66,.05);stroke:#4f5d75;stroke-width:1.4}.model-header{fill:rgba(46,90,168,.06)}.erd-header{fill:rgba(46,90,168,.1)}.erd-row{fill:rgba(45,49,66,.025)}.key-badge{fill:#ececec;stroke:rgba(45,49,66,.2);stroke-width:.8}.db-fill{fill:rgba(45,49,66,.04);stroke:#4f5d75;stroke-width:1.1}.service-component{fill:#ffffff;stroke:#2e5aa8;stroke-width:1.1}.deploy-node{fill:#ffffff;stroke:#4f5d75;stroke-width:1.1}.event-envelope{fill:rgba(116,84,165,.07);stroke:#7454a5;stroke-width:1.1}.protocol-label{fill:#f5f5f5;stroke:rgba(45,49,66,.16);stroke-width:.8}
+    .footer-rule{stroke:rgba(45,49,66,.16);stroke-width:.8}.footer{fill:#7a8399;font:400 8px 'Geist Mono',monospace;letter-spacing:.06em}
+    @media(max-width:760px){body{padding:16px}h1{font-size:32px}.subtitle{font-size:14px}.diagram-shell{height:calc(100vh - 160px);min-height:420px}.interaction-hint{display:none}.tool-button{padding:0 9px}}
+    @media print{body{padding:0}.diagram-shell{height:auto;border:0;overflow:visible}.diagram-toolbar,.noscript-note{display:none}.canvas{overflow:visible}svg{width:100%!important;height:auto!important}}</style>
+</head>
+<body>
+  <header>
+    <p class="eyebrow">Online Bus Ticket Platform · Diagram con</p>
+    <h1>Tổng quan bối cảnh hệ thống</h1>
+    <p class="subtitle">Ai sử dụng sản phẩm, đi qua kênh nào và nền tảng tích hợp với hệ thống bên ngoài nào.</p>
+  </header>
+  <div class="diagram-shell">
+    <div class="diagram-toolbar" role="group" aria-label="Điều khiển sơ đồ">
+      <span class="interaction-hint">Lăn chuột: zoom · giữ chuột trái và kéo: di chuyển · phím F: vừa chiều rộng</span>
+      <div class="toolbar-actions">
+        <button class="tool-button" id="zoom-out" type="button" aria-label="Thu nhỏ">−</button>
+        <output class="zoom-level" id="zoom-level" aria-live="polite">100%</output>
+        <button class="tool-button" id="zoom-in" type="button" aria-label="Phóng to">+</button>
+        <button class="tool-button" id="fit-width" type="button">Vừa rộng</button>
+        <button class="tool-button" id="reset-view" type="button">100%</button>
+      </div>
+    </div>
+    <noscript><p class="noscript-note">JavaScript đang tắt: sơ đồ vẫn hiển thị nhưng zoom bằng con lăn và kéo canvas sẽ không hoạt động.</p></noscript>
+    <div class="canvas" id="diagram-viewport" tabindex="0" aria-label="Sơ đồ tương tác. Lăn chuột để phóng to hoặc thu nhỏ; giữ chuột trái và kéo để di chuyển.">
+    <svg id="diagram-canvas" viewBox="0 0 1760 1080" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="system-context-title system-context-desc">
+      <title id="system-context-title">Tổng quan bối cảnh hệ thống</title>
+      <desc id="system-context-desc">Ai sử dụng sản phẩm, đi qua kênh nào và nền tảng tích hợp với hệ thống bên ngoài nào.</desc>
+      
+    <defs>
+      <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
+      <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#2e5aa8"/></marker>
+      <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#eb6c36"/></marker>
+      <marker id="arrow-open" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polyline points="0 0, 8 3, 0 6" fill="none" stroke="#4f5d75" stroke-width="1.2"/></marker>
+      <marker id="uml-generalization" markerWidth="12" markerHeight="10" refX="11" refY="5" orient="auto"><polygon points="0 0, 12 5, 0 10" fill="#f5f5f5" stroke="#4f5d75" stroke-width="1"/></marker>
+      <marker id="uml-composition" markerWidth="12" markerHeight="10" refX="1" refY="5" orient="auto-start-reverse"><polygon points="1 5, 6 1, 11 5, 6 9" fill="#2d3142" stroke="#2d3142" stroke-width="1"/></marker>
+    </defs>
+      <rect width="1760" height="1080" fill="#f5f5f5"/>
+      
+    <rect class="zone" x="40" y="64" width="248" height="864" rx="8"/><rect x="56" y="68" width="144" height="16" rx="4" fill="#f5f5f5"/><text class="zone-title" x="64" y="80">PEOPLE · C4 PERSON</text>
+    <rect class="zone" x="336" y="64" width="424" height="864" rx="8"/><rect x="352" y="68" width="144" height="16" rx="4" fill="#f5f5f5"/><text class="zone-title" x="360" y="80">CLIENT CONTAINERS</text>
+    <rect class="zone" x="804" y="64" width="504" height="864" rx="8"/><rect x="820" y="68" width="144" height="16" rx="4" fill="#f5f5f5"/><text class="zone-title" x="828" y="80">SOFTWARE SYSTEM</text>
+    <rect class="zone" x="1416" y="64" width="304" height="864" rx="8"/><rect x="1432" y="68" width="144" height="16" rx="4" fill="#f5f5f5"/><text class="zone-title" x="1440" y="80">EXTERNAL SYSTEMS</text>
+    <path class="uml-association" d="M216 166 H296 Q304 166 304 174 V210 Q304 218 312 218 H392" marker-end="url(#arrow)"/>
+<path class="uml-association" d="M216 336 H296 Q304 336 304 328 V226 Q304 218 312 218 H392" marker-end="url(#arrow)"/>
+<path class="uml-association" d="M216 336 H296 Q304 336 304 344 V370 Q304 378 312 378 H392" marker-end="url(#arrow)"/>
+<path class="uml-association" d="M216 506 H296 Q304 506 304 514 V588 Q304 596 312 596 H392" marker-end="url(#arrow)"/>
+<path class="uml-association" d="M216 676 H296 Q304 676 304 668 V604 Q304 596 312 596 H392" marker-end="url(#arrow)"/>
+<path class="uml-association" d="M216 846 H296 Q304 846 304 838 V604 Q304 596 312 596 H392" marker-end="url(#arrow)"/>
+<line class="edge-link" x1="712" y1="218" x2="820" y2="218" marker-end="url(#arrow-link)"/>
+<line class="edge-link" x1="712" y1="378" x2="820" y2="378" marker-end="url(#arrow-link)"/>
+<line class="edge-link" x1="712" y1="596" x2="820" y2="596" marker-end="url(#arrow-link)"/>
+<path class="edge-link" d="M1276 332 H1360 Q1368 332 1368 324 V268 Q1368 260 1376 260 H1460" marker-end="url(#arrow-link)"/>
+<path class="edge-link" d="M1276 572 H1360 Q1368 572 1368 580 V642 Q1368 650 1376 650 H1460" marker-end="url(#arrow-link)"/>
+    <g data-uml="actor">
+    <circle class="actor-line" cx="164" cy="126" r="12"/>
+    <path class="actor-line" d="M164 138 V176 M139 151 H189 M164 176 L142 200 M164 176 L186 200"/>
+    <text class="name-sm" x="164" y="222" text-anchor="middle">Guest</text>
+    <text class="mono-xs" x="164" y="260" text-anchor="middle">Tìm và xem chuyến công khai</text>
+  </g>
+<g data-uml="actor">
+    <circle class="actor-line" cx="164" cy="296" r="12"/>
+    <path class="actor-line" d="M164 308 V346 M139 321 H189 M164 346 L142 370 M164 346 L186 370"/>
+    <text class="name-sm" x="164" y="392" text-anchor="middle">Customer</text>
+    <text class="mono-xs" x="164" y="430" text-anchor="middle" textLength="210" lengthAdjust="spacingAndGlyphs">Đặt vé · thanh toán · quản lý vé</text>
+  </g>
+<g data-uml="actor">
+    <circle class="actor-line" cx="164" cy="466" r="12"/>
+    <path class="actor-line" d="M164 478 V516 M139 491 H189 M164 516 L142 540 M164 516 L186 540"/>
+    <text class="name-sm" x="164" y="562" text-anchor="middle">Driver</text>
+    <text class="mono-xs" x="164" y="600" text-anchor="middle">Vận hành chuyến được phân công</text>
+  </g>
+<g data-uml="actor">
+    <circle class="actor-line" cx="164" cy="636" r="12"/>
+    <path class="actor-line" d="M164 648 V686 M139 661 H189 M164 686 L142 710 M164 686 L186 710"/>
+    <text class="name-sm" x="164" y="732" text-anchor="middle">Operator Staff</text>
+    <text class="mono-xs" x="164" y="770" text-anchor="middle">Quản lý nghiệp vụ trong tenant</text>
+  </g>
+<g data-uml="actor">
+    <circle class="actor-line" cx="164" cy="806" r="12"/>
+    <path class="actor-line" d="M164 818 V856 M139 831 H189 M164 856 L142 880 M164 856 L186 880"/>
+    <text class="name-sm" x="164" y="902" text-anchor="middle">Admin</text>
+    <text class="mono-xs" x="164" y="940" text-anchor="middle">Quản trị toàn nền tảng</text>
+  </g>
+    
+    <g data-node="true">
+      <rect class="node" x="392" y="170" width="320" height="96" rx="8"/>
+      <text class="tag" x="408" y="190">«CONTAINER»</text>
+      <text class="name" x="552" y="227" text-anchor="middle">Web End-user</text>
+      <text class="mono" x="552" y="245" text-anchor="middle">Guest · Customer · HTTPS</text>
+    </g>
+    
+    <g data-node="true">
+      <rect class="node" x="392" y="330" width="320" height="96" rx="8"/>
+      <text class="tag" x="408" y="350">«CONTAINER»</text>
+      <text class="name" x="552" y="387" text-anchor="middle">Mobile App</text>
+      <text class="mono" x="552" y="405" text-anchor="middle">Customer · HTTPS · push token</text>
+    </g>
+    
+    <g data-node="true">
+      <rect class="node" x="392" y="548" width="320" height="96" rx="8"/>
+      <text class="tag" x="408" y="568">«CONTAINER»</text>
+      <text class="name" x="552" y="605" text-anchor="middle">Back-office Web</text>
+      <text class="mono" x="552" y="623" text-anchor="middle">Driver · Operator Staff · Admin</text>
+    </g>
+    <g data-c4="software-system">
+      <rect class="focal" x="820" y="152" width="456" height="568" rx="8"/>
+      <text class="tag" x="848" y="184">«SOFTWARE SYSTEM»</text>
+      <text class="title" x="1048" y="230" text-anchor="middle">Online Bus Ticket</text>
+      <text class="title" x="1048" y="258" text-anchor="middle">Booking Platform</text>
+      <text class="body" x="860" y="318" text-anchor="start">Identity và tenant authorization</text>
+<text class="body" x="860" y="364" text-anchor="start">Tìm chuyến, giá và availability snapshot</text>
+<text class="body" x="860" y="410" text-anchor="start">Giữ toàn bộ ghế an toàn hoặc từ chối toàn bộ</text>
+<text class="body" x="860" y="456" text-anchor="start">Booking · payment · cancellation · refund</text>
+<text class="body" x="860" y="502" text-anchor="start">Ticket QR · manifest · check-in · trip operation</text>
+<text class="body" x="860" y="548" text-anchor="start">Notification · reporting · security audit</text>
+      <line class="footer-rule" x1="860" y1="624" x2="1236" y2="624"/>
+      <text class="mono" x="1048" y="654" text-anchor="middle">Public API dùng chung cho Web · Mobile · Back-office</text>
+      <text class="mono-xs" x="1048" y="682" text-anchor="middle">Ranh giới service nội bộ được mô tả ở Architecture Diagram</text>
+    </g>
+    
+    <g data-node="true">
+      <rect class="external" x="1460" y="212" width="216" height="112" rx="8"/>
+      <text class="tag" x="1476" y="232">«EXTERNAL SYSTEM»</text>
+      <text class="name" x="1568" y="268" text-anchor="middle">Payment Gateway</text>
+      <text class="mono" x="1568" y="286" text-anchor="middle">Payment intent</text>
+<text class="mono" x="1568" y="304" text-anchor="middle">signed webhook · refund</text>
+    </g>
+    
+    <g data-node="true">
+      <rect class="external" x="1460" y="594" width="216" height="112" rx="8"/>
+      <text class="tag" x="1476" y="614">«EXTERNAL SYSTEM»</text>
+      <text class="name" x="1568" y="650" text-anchor="middle" textLength="176" lengthAdjust="spacingAndGlyphs">Email / Push Provider</text>
+      <text class="mono" x="1568" y="668" text-anchor="middle">Delivery only</text>
+<text class="mono" x="1568" y="686" text-anchor="middle" textLength="176" lengthAdjust="spacingAndGlyphs">không quyết định nghiệp vụ</text>
+    </g>
+    <g><rect class="protocol-label" x="714" y="192" width="104" height="20" rx="4"/><text class="tag" x="766" y="206" text-anchor="middle">HTTPS / JSON</text></g><g><rect class="protocol-label" x="714" y="352" width="104" height="20" rx="4"/><text class="tag" x="766" y="366" text-anchor="middle">HTTPS / JSON</text></g><g><rect class="protocol-label" x="714" y="570" width="104" height="20" rx="4"/><text class="tag" x="766" y="584" text-anchor="middle">HTTPS / JSON</text></g>
+    <g><rect class="protocol-label" x="1300.5" y="266" width="139" height="20" rx="4"/><text class="tag" x="1370" y="280" text-anchor="middle">payment · webhook</text></g><g><rect class="protocol-label" x="1308" y="610" width="132" height="20" rx="4"/><text class="tag" x="1374" y="624" text-anchor="middle">delivery request</text></g>
+    <rect class="quality" x="336" y="960" width="1384" height="52" rx="8"/>
+    <text class="body" x="360" y="992">Phạm vi context: người dùng, kênh truy cập, một software system và các hệ thống ngoài; không đưa database, broker hoặc microservice nội bộ vào hình này.</text>
+      <line class="footer-rule" x1="32" y1="1028" x2="1728" y2="1028"/>
+      <text class="footer" x="32" y="1052">Ký pháp C4 Context · Người que: Person · Hộp «container»: kênh truy cập · Cam: software system · Nét đứt: hệ thống ngoài</text>
+      <text class="footer" x="1728" y="1052" text-anchor="end">Nguồn: SRS 01, 02, 03 · DIA System Context</text>
+    </svg>
+    </div>
+  </div>
+  <script>
+    (() => {
+      const viewport = document.getElementById('diagram-viewport');
+      const svg = document.getElementById('diagram-canvas');
+      const zoomLevel = document.getElementById('zoom-level');
+      const title = svg.querySelector(':scope > title');
+      const desc = svg.querySelector(':scope > desc');
+      if (title) {
+        svg.setAttribute('aria-label', title.textContent || 'Diagram');
+        svg.removeAttribute('aria-labelledby');
+        if (desc?.id) svg.setAttribute('aria-describedby', desc.id);
+        title.remove();
+      }
+
+      const baseWidth = 1760;
+      const baseHeight = 1080;
+      const minimumZoom = .18;
+      const maximumZoom = 2.5;
+      let zoom = 1;
+      const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
+
+      function updateCanvasSize() {
+        svg.style.width = Math.round(baseWidth * zoom) + 'px';
+        svg.style.height = Math.round(baseHeight * zoom) + 'px';
+        zoomLevel.value = Math.round(zoom * 100) + '%';
+        zoomLevel.textContent = zoomLevel.value;
+      }
+
+      function setZoom(nextZoom, clientX, clientY) {
+        const previousZoom = zoom;
+        const rect = viewport.getBoundingClientRect();
+        const anchorX = clientX ?? rect.left + viewport.clientWidth / 2;
+        const anchorY = clientY ?? rect.top + viewport.clientHeight / 2;
+        const offsetX = anchorX - rect.left;
+        const offsetY = anchorY - rect.top;
+        const contentX = (viewport.scrollLeft + offsetX) / previousZoom;
+        const contentY = (viewport.scrollTop + offsetY) / previousZoom;
+        zoom = clamp(nextZoom, minimumZoom, maximumZoom);
+        updateCanvasSize();
+        viewport.scrollLeft = contentX * zoom - offsetX;
+        viewport.scrollTop = contentY * zoom - offsetY;
+      }
+
+      function zoomBy(factor, clientX, clientY) { setZoom(zoom * factor, clientX, clientY); }
+      function fitWidth() {
+        const fittedZoom = (viewport.clientWidth - 24) / baseWidth;
+        zoom = clamp(fittedZoom, minimumZoom, maximumZoom);
+        updateCanvasSize();
+        viewport.scrollLeft = 0;
+        viewport.scrollTop = 0;
+      }
+      function resetView() {
+        zoom = 1;
+        updateCanvasSize();
+        viewport.scrollLeft = 0;
+        viewport.scrollTop = 0;
+      }
+
+      viewport.addEventListener('wheel', (event) => {
+        event.preventDefault();
+        zoomBy(clamp(Math.exp(-event.deltaY * .0015), .75, 1.25), event.clientX, event.clientY);
+      }, { passive: false });
+      viewport.addEventListener('dblclick', (event) => {
+        event.preventDefault();
+        zoomBy(1.25, event.clientX, event.clientY);
+      });
+
+      let dragPointerId = null;
+      let dragStartX = 0;
+      let dragStartY = 0;
+      let dragScrollLeft = 0;
+      let dragScrollTop = 0;
+      viewport.addEventListener('pointerdown', (event) => {
+        if (event.button !== 0) return;
+        dragPointerId = event.pointerId;
+        dragStartX = event.clientX;
+        dragStartY = event.clientY;
+        dragScrollLeft = viewport.scrollLeft;
+        dragScrollTop = viewport.scrollTop;
+        viewport.setPointerCapture(event.pointerId);
+        viewport.classList.add('is-dragging');
+        event.preventDefault();
+      });
+      viewport.addEventListener('pointermove', (event) => {
+        if (event.pointerId !== dragPointerId) return;
+        viewport.scrollLeft = dragScrollLeft - (event.clientX - dragStartX);
+        viewport.scrollTop = dragScrollTop - (event.clientY - dragStartY);
+      });
+      function stopDragging(event) {
+        if (event.pointerId !== dragPointerId) return;
+        if (viewport.hasPointerCapture(event.pointerId)) viewport.releasePointerCapture(event.pointerId);
+        dragPointerId = null;
+        viewport.classList.remove('is-dragging');
+      }
+      viewport.addEventListener('pointerup', stopDragging);
+      viewport.addEventListener('pointercancel', stopDragging);
+
+      document.getElementById('zoom-in').addEventListener('click', () => zoomBy(1.2));
+      document.getElementById('zoom-out').addEventListener('click', () => zoomBy(1 / 1.2));
+      document.getElementById('fit-width').addEventListener('click', fitWidth);
+      document.getElementById('reset-view').addEventListener('click', resetView);
+      viewport.addEventListener('keydown', (event) => {
+        const panStep = 96;
+        if (event.key === '+' || event.key === '=') zoomBy(1.2);
+        else if (event.key === '-') zoomBy(1 / 1.2);
+        else if (event.key === '0') resetView();
+        else if (event.key.toLowerCase() === 'f') fitWidth();
+        else if (event.key === 'ArrowLeft') viewport.scrollLeft -= panStep;
+        else if (event.key === 'ArrowRight') viewport.scrollLeft += panStep;
+        else if (event.key === 'ArrowUp') viewport.scrollTop -= panStep;
+        else if (event.key === 'ArrowDown') viewport.scrollTop += panStep;
+        else return;
+        event.preventDefault();
+      });
+      window.addEventListener('resize', () => { if (zoom < .7) fitWidth(); });
+      updateCanvasSize();
+      requestAnimationFrame(fitWidth);
+    })();
+  </script>
+</body>
+</html>

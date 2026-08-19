@@ -1,0 +1,1414 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Online Bus Ticket Platform — Super Diagram</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; }
+    :root {
+      --paper: #f5f5f5;
+      --paper-2: #ececec;
+      --ink: #2d3142;
+      --muted: #4f5d75;
+      --soft: #7a8399;
+      --accent: #eb6c36;
+      --accent-tint: rgba(235, 108, 54, 0.08);
+      --link: #2e5aa8;
+      --sage: #4f735f;
+      --mustard: #a97814;
+      --purple: #7454a5;
+      --rule: rgba(45, 49, 66, 0.12);
+      --sans: 'Geist', system-ui, sans-serif;
+      --serif: 'Instrument Serif', Georgia, serif;
+      --mono: 'Geist Mono', ui-monospace, monospace;
+    }
+    body {
+      height: 100vh;
+      min-height: 0;
+      padding: 24px 32px;
+      overflow: hidden;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: var(--sans);
+      display: flex;
+      flex-direction: column;
+    }
+    header { flex: 0 0 auto; max-width: 1280px; margin-bottom: 16px; }
+    .eyebrow {
+      margin: 0 0 8px;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 8px;
+      font-weight: 500;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+    h1 {
+      margin: 0 0 12px;
+      font-family: var(--serif);
+      font-size: 40px;
+      font-weight: 400;
+      line-height: 1;
+    }
+    .subtitle {
+      margin: 0;
+      max-width: 1040px;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.5;
+    }
+    .diagram-shell {
+      flex: 1 1 auto;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      background: var(--paper);
+      border: 1px solid rgba(45,49,66,0.16);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .diagram-toolbar {
+      flex: 0 0 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 8px 12px;
+      background: #ffffff;
+      border-bottom: 1px solid rgba(45,49,66,0.12);
+    }
+    .interaction-hint {
+      color: var(--muted);
+      font: 500 12px var(--mono);
+      white-space: nowrap;
+    }
+    .toolbar-actions { display: flex; align-items: center; gap: 8px; }
+    .tool-button {
+      min-width: 40px;
+      height: 32px;
+      padding: 0 12px;
+      color: var(--ink);
+      background: var(--paper);
+      border: 1px solid rgba(45,49,66,0.24);
+      border-radius: 6px;
+      font: 600 12px var(--sans);
+      cursor: pointer;
+    }
+    .tool-button:hover { border-color: var(--link); color: var(--link); }
+    .tool-button:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+    .zoom-level {
+      min-width: 64px;
+      color: var(--muted);
+      font: 600 12px var(--mono);
+      text-align: center;
+    }
+    .noscript-note {
+      margin: 0;
+      padding: 8px 12px;
+      color: var(--muted);
+      background: rgba(169,120,20,0.09);
+      border-bottom: 1px solid rgba(169,120,20,0.32);
+      font: 500 12px var(--sans);
+    }
+    .diagram-scroll {
+      position: relative;
+      flex: 1 1 auto;
+      min-height: 0;
+      width: 100%;
+      overflow: auto;
+      cursor: grab;
+      overscroll-behavior: contain;
+      touch-action: none;
+      scrollbar-color: var(--soft) var(--paper-2);
+    }
+    .diagram-scroll.is-dragging { cursor: grabbing; user-select: none; }
+    svg { display: block; width: 6264px; height: 5424px; }
+    .zone { fill: rgba(45,49,66,0.02); stroke: rgba(45,49,66,0.12); stroke-width: 0.8; }
+    .zone-label-bg { fill: var(--paper); }
+    .zone-label { fill: rgba(45,49,66,0.52); font: 500 8px var(--mono); letter-spacing: 0.16em; }
+    .section-title { fill: var(--ink); font: 600 20px var(--sans); }
+    .node-name { fill: var(--ink); font: 600 12px var(--sans); }
+    .node-name-lg { fill: var(--ink); font: 600 16px var(--sans); }
+    .sub { fill: var(--muted); font: 400 8px var(--mono); }
+    .sub-12 { fill: var(--muted); font: 400 12px var(--mono); }
+    .body-copy { fill: var(--muted); font: 400 12px var(--sans); }
+    .tag { fill: var(--soft); font: 500 8px var(--mono); letter-spacing: 0.12em; }
+    .panel { fill: #ffffff; stroke: var(--ink); stroke-width: 1; }
+    .panel-soft { fill: rgba(45,49,66,0.03); stroke: rgba(45,49,66,0.30); stroke-width: 1; }
+    .panel-focal { fill: var(--accent-tint); stroke: var(--accent); stroke-width: 1.2; }
+    .panel-external { fill: rgba(45,49,66,0.03); stroke: rgba(45,49,66,0.30); stroke-width: 1; stroke-dasharray: 4 4; }
+    .store { fill: rgba(45,49,66,0.05); stroke: var(--muted); stroke-width: 1; }
+    .mini { fill: #ffffff; stroke: rgba(45,49,66,0.22); stroke-width: 0.8; }
+    .state { fill: #ffffff; stroke: var(--muted); stroke-width: 1; }
+    .connector { fill: none; stroke: var(--muted); stroke-width: 1.2; }
+    .connector-link { fill: none; stroke: var(--link); stroke-width: 1.2; }
+    .connector-event { fill: none; stroke: var(--muted); stroke-width: 1; stroke-dasharray: 5 4; }
+    .connector-accent { fill: none; stroke: var(--accent); stroke-width: 1.2; }
+    .rail { fill: #ffffff; stroke: rgba(45,49,66,0.20); stroke-width: 1; }
+    .rail-section { stroke-width: 1; }
+    .rail-overview { fill: rgba(79,93,117,0.07); stroke: rgba(79,93,117,0.34); }
+    .rail-actor { fill: rgba(46,90,168,0.07); stroke: rgba(46,90,168,0.38); }
+    .rail-functional { fill: rgba(235,108,54,0.07); stroke: rgba(235,108,54,0.42); }
+    .rail-nfr { fill: rgba(79,115,95,0.08); stroke: rgba(79,115,95,0.40); }
+    .rail-rule { fill: rgba(169,120,20,0.09); stroke: rgba(169,120,20,0.42); }
+    .rail-usecase { fill: rgba(116,84,165,0.07); stroke: rgba(116,84,165,0.40); }
+    .rail-title { fill: var(--ink); font: 600 20px var(--sans); }
+    .rail-body { fill: var(--muted); font: 400 16px var(--sans); }
+    .rail-note { fill: var(--soft); font: 400 12px var(--mono); }
+    .rail-kicker { fill: var(--soft); font: 500 12px var(--mono); letter-spacing: 0.12em; }
+    .actor-customer { fill: rgba(46,90,168,0.08); stroke: rgba(46,90,168,0.65); stroke-width: 1; }
+    .actor-operations { fill: rgba(79,115,95,0.09); stroke: rgba(79,115,95,0.65); stroke-width: 1; }
+    .actor-admin { fill: rgba(116,84,165,0.08); stroke: rgba(116,84,165,0.65); stroke-width: 1; }
+    .journey-discovery { fill: rgba(46,90,168,0.07); stroke: rgba(46,90,168,0.55); stroke-width: 1; }
+    .journey-core { fill: rgba(235,108,54,0.07); stroke: rgba(235,108,54,0.62); stroke-width: 1; }
+    .journey-operation { fill: rgba(79,115,95,0.08); stroke: rgba(79,115,95,0.58); stroke-width: 1; }
+    .journey-alternative { fill: rgba(169,120,20,0.09); stroke: rgba(169,120,20,0.60); stroke-width: 1; }
+    @media (max-width: 760px) {
+      body { padding: 12px; }
+      header { margin-bottom: 12px; }
+      h1 { font-size: 32px; }
+      .subtitle { display: none; }
+      .interaction-hint { display: none; }
+      .tool-button { padding: 0 8px; }
+    }
+    @media print {
+      body { height: auto; overflow: visible; padding: 0; display: block; }
+      .diagram-shell { display: block; border: 0; overflow: visible; }
+      .diagram-toolbar { display: none; }
+      .diagram-scroll { overflow: visible; }
+      svg { width: 5220px !important; height: 4520px !important; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <p class="eyebrow">Architecture system map · fit · engineer detail</p>
+    <h1>Online Bus Ticket Platform — Super Diagram</h1>
+    <p class="subtitle">Một bản đồ duy nhất đi từ mục tiêu, phạm vi, actor và yêu cầu đến quy trình nghiệp vụ, Microservices, API, trạng thái, dữ liệu, ngoại lệ, bảo mật, kiểm thử và vận hành.</p>
+  </header>
+
+  <div class="diagram-shell">
+    <div class="diagram-toolbar" role="group" aria-label="Điều khiển sơ đồ">
+      <span class="interaction-hint">Lăn chuột: zoom · giữ chuột trái và kéo: di chuyển · phím F: vừa chiều rộng</span>
+      <div class="toolbar-actions">
+        <button class="tool-button" id="zoom-out" type="button" aria-label="Thu nhỏ">−</button>
+        <output class="zoom-level" id="zoom-level" aria-live="polite">100%</output>
+        <button class="tool-button" id="zoom-in" type="button" aria-label="Phóng to">+</button>
+        <button class="tool-button" id="fit-width" type="button">Vừa rộng</button>
+        <button class="tool-button" id="reset-view" type="button">100%</button>
+      </div>
+    </div>
+    <noscript><p class="noscript-note">JavaScript đang tắt: sơ đồ vẫn hiển thị và có thanh cuộn, nhưng zoom bằng con lăn và kéo canvas sẽ không hoạt động.</p></noscript>
+    <div class="diagram-scroll" id="diagram-viewport" tabindex="0" aria-label="Sơ đồ tương tác. Lăn chuột để phóng to hoặc thu nhỏ; giữ chuột trái và kéo để di chuyển.">
+    <svg id="diagram-canvas" viewBox="0 0 5220 4520" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="bus-super-title bus-super-desc">
+      <title id="bus-super-title">Online Bus Ticket Platform super diagram</title>
+      <desc id="bus-super-desc">Bản đồ SRS đầy đủ và kiến trúc hệ thống đặt vé xe khách, gồm 16 nhóm đặc tả từ tổng quan sản phẩm đến diagram, hành trình người dùng, actor, API dùng chung, sáu microservice, dữ liệu, sự kiện, trạng thái, ngoại lệ, bảo mật, nghiệm thu và vận hành.</desc>
+      <defs>
+        <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/>
+        </marker>
+        <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#eb6c36"/>
+        </marker>
+        <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#2e5aa8"/>
+        </marker>
+      </defs>
+
+      <rect width="5220" height="4520" fill="#f5f5f5"/>
+
+      <!-- SRS reading rail: persistent table of contents and semantic legend -->
+      <g aria-hidden="true" display="none">
+      <rect class="rail" x="40" y="40" width="400" height="2640" rx="8"/>
+      <text class="tag" x="64" y="72">SRS · ĐỌC TỪ TRÊN XUỐNG</text>
+      <text class="section-title" x="64" y="108">Bản đồ yêu cầu hệ thống</text>
+      <text class="rail-note" x="64" y="128">Từ bối cảnh → hành vi → ràng buộc → thiết kế</text>
+
+      <g>
+        <rect class="rail-section rail-overview" x="64" y="152" width="352" height="160" rx="8"/>
+        <text class="rail-title" x="80" y="180">1 · Giới thiệu hệ thống</text>
+        <text class="rail-body" x="80" y="208">Nền tảng đặt vé xe khách đa kênh</text>
+        <text class="rail-body" x="80" y="232">kết nối khách hàng với nhiều nhà xe.</text>
+        <text class="rail-note" x="80" y="260">Mục tiêu: tìm → giữ ghế → trả tiền → đi xe</text>
+        <text class="rail-note" x="80" y="280">Một API dùng chung cho Web, Mobile, Back-office</text>
+      </g>
+
+      <g>
+        <rect class="rail-section rail-overview" x="64" y="328" width="352" height="184" rx="8"/>
+        <text class="rail-title" x="80" y="356">2 · Phạm vi hệ thống</text>
+        <text class="rail-body" x="80" y="384">Trong phạm vi</text>
+        <text class="rail-note" x="80" y="404">Tài khoản · chuyến/ghế · booking · payment</text>
+        <text class="rail-note" x="80" y="424">vé QR · check-in · vận hành · báo cáo</text>
+        <text class="rail-body" x="80" y="452">Ngoài phạm vi / tích hợp ngoài</text>
+        <text class="rail-note" x="80" y="472">Cổng thanh toán · Email/Push · GPS nâng cao</text>
+        <text class="rail-note" x="80" y="492">Hệ thống không tự quyết định kết quả ngân hàng</text>
+      </g>
+
+      <g>
+        <rect class="rail-section rail-actor" x="64" y="528" width="352" height="328" rx="8"/>
+        <text class="rail-title" x="80" y="556">3 · Actor và quyền</text>
+        <rect class="actor-customer" x="80" y="576" width="320" height="48" rx="6"/>
+        <text class="node-name" x="96" y="596">Khách vãng lai</text>
+        <text class="rail-note" x="96" y="612">Tìm/xem chuyến; chưa đặt vé</text>
+        <rect class="actor-customer" x="80" y="636" width="320" height="48" rx="6"/>
+        <text class="node-name" x="96" y="656">Khách hàng</text>
+        <text class="rail-note" x="96" y="672">Đặt, trả tiền, xem vé, hủy/đổi, đánh giá</text>
+        <rect class="actor-operations" x="80" y="696" width="320" height="48" rx="6"/>
+        <text class="node-name" x="96" y="716">Nhà xe / nhân viên vận hành</text>
+        <text class="rail-note" x="96" y="732">Xe, tuyến, lịch, giá, ghế, manifest, báo cáo</text>
+        <rect class="actor-operations" x="80" y="756" width="320" height="48" rx="6"/>
+        <text class="node-name" x="96" y="776">Tài xế</text>
+        <text class="rail-note" x="96" y="792">Chuyến được phân công, check-in, trạng thái chuyến</text>
+        <rect class="actor-admin" x="80" y="816" width="320" height="24" rx="6"/>
+        <text class="node-name" x="96" y="832">Admin · tenant, quyền, audit, khiếu nại</text>
+      </g>
+
+      <g>
+        <rect class="rail-section rail-functional" x="64" y="872" width="352" height="508" rx="8"/>
+        <text class="rail-title" x="80" y="900">4 · Yêu cầu chức năng</text>
+        <text class="tag" x="80" y="928">KHÁCH HÀNG</text>
+        <text class="rail-body" x="80" y="952">Đăng ký · Đăng nhập · Quên mật khẩu</text>
+        <text class="rail-body" x="80" y="976">Tìm/lọc chuyến · Xem chi tiết</text>
+        <text class="rail-body" x="80" y="1000">Chọn &amp; giữ ghế · Nhập hành khách</text>
+        <text class="rail-body" x="80" y="1024">Đặt vé · Thanh toán · Nhận vé QR</text>
+        <text class="rail-body" x="80" y="1048">Xem lịch sử · Hủy/đổi · Hoàn tiền</text>
+        <text class="rail-body" x="80" y="1072">Thông báo · Khuyến mãi · Đánh giá</text>
+        <line x1="80" y1="1092" x2="400" y2="1092" stroke="rgba(235,108,54,0.24)" stroke-width="0.8"/>
+        <text class="tag" x="80" y="1116">NHÀ XE + TÀI XẾ</text>
+        <text class="rail-body" x="80" y="1140">Quản lý xe · sơ đồ ghế · tuyến · điểm dừng</text>
+        <text class="rail-body" x="80" y="1164">Lập/publish chuyến · giá vé · chính sách</text>
+        <text class="rail-body" x="80" y="1188">Phân công tài xế · manifest · check-in</text>
+        <text class="rail-body" x="80" y="1212">Khởi hành · hoàn thành · hủy chuyến</text>
+        <text class="rail-body" x="80" y="1236">Doanh thu · công suất · xuất báo cáo</text>
+        <line x1="80" y1="1256" x2="400" y2="1256" stroke="rgba(235,108,54,0.24)" stroke-width="0.8"/>
+        <text class="tag" x="80" y="1280">ADMIN</text>
+        <text class="rail-body" x="80" y="1304">Tổ chức · người dùng · vai trò · phân quyền</text>
+        <text class="rail-body" x="80" y="1328">Audit · đối soát · review · khiếu nại</text>
+        <text class="rail-note" x="80" y="1356">Chi tiết được ánh xạ vào journey và services bên phải</text>
+      </g>
+
+      <g>
+        <rect class="rail-section rail-nfr" x="64" y="1396" width="352" height="280" rx="8"/>
+        <text class="rail-title" x="80" y="1424">5 · Yêu cầu phi chức năng</text>
+        <text class="rail-body" x="80" y="1452">Bảo mật</text>
+        <text class="rail-note" x="184" y="1452">TLS · RBAC · tenant scope · PII</text>
+        <text class="rail-body" x="80" y="1480">Hiệu năng</text>
+        <text class="rail-note" x="184" y="1480">Search ≤ 2s · Hold ≤ 1s (p95)</text>
+        <text class="rail-body" x="80" y="1508">Tin cậy</text>
+        <text class="rail-note" x="184" y="1508">99.5% · idempotency · retry · outbox</text>
+        <text class="rail-body" x="80" y="1536">Mở rộng</text>
+        <text class="rail-note" x="184" y="1536">scale độc lập theo microservice</text>
+        <text class="rail-body" x="80" y="1564">Khả dụng</text>
+        <text class="rail-note" x="184" y="1564">Web/Mobile responsive · WCAG AA</text>
+        <text class="rail-body" x="80" y="1592">Vận hành</text>
+        <text class="rail-note" x="184" y="1592">log · metric · trace · backup</text>
+        <text class="rail-note" x="80" y="1636">Các chỉ tiêu kiểm thử được thể hiện ở dải dưới cùng</text>
+      </g>
+
+      <g>
+        <rect class="rail-section rail-rule" x="64" y="1692" width="352" height="332" rx="8"/>
+        <text class="rail-title" x="80" y="1720">6 · Business Rules</text>
+        <text class="rail-body" x="80" y="1748">BR-01 · Không đặt trùng một ghế/chuyến</text>
+        <text class="rail-body" x="80" y="1776">BR-02 · Giữ ghế có TTL, hết hạn tự nhả</text>
+        <text class="rail-body" x="80" y="1804">BR-03 · Không đặt chuyến đã khởi hành</text>
+        <text class="rail-body" x="80" y="1832">BR-04 · Giá do server tính từ snapshot</text>
+        <text class="rail-body" x="80" y="1860">BR-05 · Chỉ webhook hợp lệ xác nhận tiền</text>
+        <text class="rail-body" x="80" y="1888">BR-06 · Tổng hoàn ≤ tiền đã thanh toán</text>
+        <text class="rail-body" x="80" y="1916">BR-07 · Vé đã check-in không được hủy</text>
+        <text class="rail-body" x="80" y="1944">BR-08 · Nhà xe chỉ truy cập tenant của mình</text>
+        <text class="rail-body" x="80" y="1972">BR-09 · Xe/tài xế không trùng lịch</text>
+        <text class="rail-note" x="80" y="2000">Invariant nằm tại service sở hữu dữ liệu</text>
+      </g>
+
+      <g>
+        <rect class="rail-section rail-usecase" x="64" y="2040" width="352" height="400" rx="8"/>
+        <text class="rail-title" x="80" y="2068">7 · Use Case trọng tâm</text>
+        <text class="tag" x="80" y="2096">UC-BOOK · ĐẶT VÉ</text>
+        <text class="rail-body" x="80" y="2120">Tìm → chọn → giữ ghế → tạo booking</text>
+        <text class="rail-note" x="80" y="2140">Ngoại lệ: ghế vừa bị giữ · hold hết hạn</text>
+        <text class="tag" x="80" y="2172">UC-PAY · THANH TOÁN</text>
+        <text class="rail-body" x="80" y="2196">Tạo payment → gateway → webhook → vé</text>
+        <text class="rail-note" x="80" y="2216">Ngoại lệ: thất bại · trễ callback · callback lặp</text>
+        <text class="tag" x="80" y="2248">UC-CANCEL · HỦY / HOÀN</text>
+        <text class="rail-body" x="80" y="2272">Kiểm tra chính sách → hủy → refund → nhả ghế</text>
+        <text class="rail-note" x="80" y="2292">Ngoại lệ: quá hạn · đã check-in · refund lỗi</text>
+        <text class="tag" x="80" y="2324">UC-OPS · QUẢN LÝ CHUYẾN</text>
+        <text class="rail-body" x="80" y="2348">Draft → publish → boarding → depart → complete</text>
+        <text class="rail-note" x="80" y="2368">Ngoại lệ: xung đột xe/tài xế · hủy chuyến</text>
+        <text class="rail-note" x="80" y="2412">Mỗi UC cần: actor · tiền/hậu điều kiện · main flow</text>
+        <text class="rail-note" x="80" y="2428">alternative flow · exception · business rule</text>
+      </g>
+
+      <g>
+        <text class="tag" x="64" y="2472">CHÚ THÍCH MÀU</text>
+        <rect class="actor-customer" x="64" y="2492" width="16" height="16" rx="4"/>
+        <text class="rail-note" x="92" y="2504">Actor / truy cập người dùng</text>
+        <rect class="journey-core" x="64" y="2524" width="16" height="16" rx="4"/>
+        <text class="rail-note" x="92" y="2536">Chức năng / booking core</text>
+        <rect class="rail-nfr" x="64" y="2556" width="16" height="16" rx="4"/>
+        <text class="rail-note" x="92" y="2568">Phi chức năng / vận hành</text>
+        <rect class="rail-rule" x="64" y="2588" width="16" height="16" rx="4"/>
+        <text class="rail-note" x="92" y="2600">Business rule / ngoại lệ</text>
+        <rect class="rail-usecase" x="64" y="2620" width="16" height="16" rx="4"/>
+        <text class="rail-note" x="92" y="2632">Use case / state machine</text>
+        <text class="rail-note" x="64" y="2664">→ Đọc sơ đồ chi tiết từ trái sang phải</text>
+      </g>
+
+      </g>
+
+      <!-- Complete SRS map: 16 specifications, simplified language, readable type -->
+      <rect class="rail" x="40" y="40" width="640" height="4400" rx="8"/>
+      <text class="rail-kicker" x="64" y="76">BẢN ĐỒ SRS · ĐỌC TỪ TRÊN XUỐNG</text>
+      <text class="section-title" x="64" y="112">Từ yêu cầu sản phẩm đến thiết kế và kiểm thử</text>
+      <text class="rail-note" x="64" y="140">16 phần dưới đây tương ứng trực tiếp với bộ tài liệu trong docs/srs</text>
+
+      <g>
+        <rect class="rail-section rail-overview" x="64" y="160" width="592" height="128" rx="8"/>
+        <text class="rail-title" x="80" y="188">1 · Tổng quan sản phẩm</text>
+        <text class="rail-body" x="80" y="216">Bài toán · mục tiêu · kênh Web/Mobile/Back-office</text>
+        <text class="rail-note" x="80" y="240">MVP theo MUST / SHOULD / COULD · tiêu chí thành công</text>
+        <text class="rail-note" x="80" y="264">Kết quả mong muốn: tìm → giữ ghế → trả tiền → nhận vé → đi xe</text>
+      </g>
+
+      <g>
+        <rect class="rail-section rail-overview" x="64" y="304" width="592" height="148" rx="8"/>
+        <text class="rail-title" x="80" y="332">2 · Phạm vi và bối cảnh</text>
+        <text class="rail-body" x="80" y="360">Trong hệ thống: tài khoản, chuyến, ghế, đặt vé, vé, vận hành</text>
+        <text class="rail-body" x="80" y="384">Tích hợp ngoài: cổng thanh toán, Email/Push</text>
+        <text class="rail-note" x="80" y="408">Có ranh giới hệ thống · giả định · phụ thuộc · ràng buộc · thuật ngữ</text>
+        <text class="rail-note" x="80" y="432">Web, Mobile và Back-office gọi cùng một hệ API</text>
+      </g>
+
+      <g>
+        <rect class="rail-section rail-actor" x="64" y="468" width="592" height="248" rx="8"/>
+        <text class="rail-title" x="80" y="496">3 · Actor và phân quyền</text>
+        <rect class="actor-customer" x="80" y="516" width="272" height="52" rx="6"/>
+        <text class="node-name" x="96" y="536">Khách vãng lai</text><text class="rail-note" x="96" y="556">Tìm và xem chuyến</text>
+        <rect class="actor-customer" x="368" y="516" width="272" height="52" rx="6"/>
+        <text class="node-name" x="384" y="536">Khách hàng</text><text class="rail-note" x="384" y="556">Đặt vé, trả tiền, hủy/đổi</text>
+        <rect class="actor-operations" x="80" y="580" width="272" height="52" rx="6"/>
+        <text class="node-name" x="96" y="600">Nhà xe / Nhân viên</text><text class="rail-note" x="96" y="620">Xe, tuyến, lịch, giá, báo cáo</text>
+        <rect class="actor-operations" x="368" y="580" width="272" height="52" rx="6"/>
+        <text class="node-name" x="384" y="600">Tài xế</text><text class="rail-note" x="384" y="620">Chuyến được giao, check-in</text>
+        <rect class="actor-admin" x="80" y="644" width="272" height="52" rx="6"/>
+        <text class="node-name" x="96" y="664">Admin</text><text class="rail-note" x="96" y="684">Nhà xe, quyền, audit, khiếu nại</text>
+        <rect class="panel-external" x="368" y="644" width="272" height="52" rx="6"/>
+        <text class="node-name" x="384" y="664">Hệ thống ngoài</text><text class="rail-note" x="384" y="684">Thanh toán · Email/Push</text>
+      </g>
+
+      <g>
+        <rect class="rail-section rail-overview" x="64" y="732" width="592" height="148" rx="8"/>
+        <text class="rail-title" x="80" y="760">4 · Quy trình nghiệp vụ</text>
+        <text class="rail-body" x="80" y="788">Đặt vé · Hủy/hoàn · Đổi vé · Tạo và mở bán chuyến</text>
+        <text class="rail-body" x="80" y="812">Check-in/vận hành · Hủy chuyến · Quản lý tài khoản/nhà xe</text>
+        <text class="rail-note" x="80" y="840">Mỗi quy trình có mục tiêu, tiền điều kiện, luồng chuẩn, quyết định</text>
+        <text class="rail-note" x="80" y="864">và hậu điều kiện; hành trình tổng quát nằm ở hàng đầu bên phải</text>
+      </g>
+
+      <g>
+        <rect class="rail-section rail-functional" x="64" y="896" width="592" height="204" rx="8"/>
+        <text class="rail-title" x="80" y="924">5 · Yêu cầu chức năng</text>
+        <text class="rail-body" x="80" y="952">Tài khoản và quyền</text><text class="rail-body" x="360" y="952">Tìm kiếm và xem chuyến</text>
+        <text class="rail-body" x="80" y="980">Chọn/giữ ghế và đặt vé</text><text class="rail-body" x="360" y="980">Thanh toán và hoàn tiền</text>
+        <text class="rail-body" x="80" y="1008">Vé QR và check-in</text><text class="rail-body" x="360" y="1008">Vận hành nhà xe</text>
+        <text class="rail-body" x="80" y="1036">Khuyến mãi, đánh giá</text><text class="rail-body" x="360" y="1036">Thông báo và báo cáo</text>
+        <text class="rail-body" x="80" y="1064">Admin, tenant, audit</text><text class="rail-body" x="360" y="1064">Khiếu nại và đối soát</text>
+        <text class="rail-note" x="80" y="1084">Mỗi yêu cầu có mã, mức ưu tiên, actor, điều kiện và kết quả</text>
+      </g>
+
+      <g>
+        <rect class="rail-section rail-rule" x="64" y="1116" width="592" height="172" rx="8"/>
+        <text class="rail-title" x="80" y="1144">6 · Quy tắc nghiệp vụ</text>
+        <text class="rail-body" x="80" y="1172">Không bán trùng ghế · giữ ghế có thời hạn · cấm đặt chuyến đã đi</text>
+        <text class="rail-body" x="80" y="1200">Server tính giá · chỉ xác nhận tiền từ thông báo hợp lệ của ngân hàng</text>
+        <text class="rail-body" x="80" y="1228">Vé đã check-in không hủy · xe/tài xế không được trùng lịch</text>
+        <text class="rail-note" x="80" y="1256">Quy tắc được kiểm tra tại service sở hữu dữ liệu, không chỉ ở giao diện</text>
+        <text class="rail-note" x="80" y="1276">Tổng tiền hoàn không vượt quá số tiền đã thu thành công</text>
+      </g>
+
+      <g>
+        <rect class="rail-section rail-usecase" x="64" y="1304" width="592" height="220" rx="8"/>
+        <text class="rail-title" x="80" y="1332">7 · Use Case chi tiết</text>
+        <text class="rail-body" x="80" y="1360">Đăng ký · Đăng nhập · Tìm chuyến · Giữ ghế và đặt vé</text>
+        <text class="rail-body" x="80" y="1388">Thanh toán · Hủy/hoàn · Đổi vé · Tạo/mở bán chuyến</text>
+        <text class="rail-body" x="80" y="1416">Check-in · Hủy chuyến · Quản lý user/nhà xe · Xem báo cáo</text>
+        <text class="rail-note" x="80" y="1448">Mỗi Use Case phải có: actor · tiền điều kiện · kích hoạt · luồng chính</text>
+        <text class="rail-note" x="80" y="1472">luồng thay thế · lỗi · hậu điều kiện · quy tắc liên quan</text>
+        <text class="rail-note" x="80" y="1496">Các trạng thái và nhánh lỗi được trình bày ở nửa dưới bên phải</text>
+      </g>
+
+      <g>
+        <rect class="rail-section rail-usecase" x="64" y="1540" width="592" height="132" rx="8"/>
+        <text class="rail-title" x="80" y="1568">8 · Mô hình trạng thái</text>
+        <text class="rail-body" x="80" y="1596">Ghế chuyến · phiên giữ ghế · đơn đặt vé · thanh toán</text>
+        <text class="rail-body" x="80" y="1624">Vé · hoàn tiền · chuyến xe</text>
+        <text class="rail-note" x="80" y="1652">Chỉ chuyển trạng thái khi đủ điều kiện; lịch sử phải truy vết được</text>
+      </g>
+
+      <g>
+        <rect class="rail-section rail-overview" x="64" y="1688" width="592" height="132" rx="8"/>
+        <text class="rail-title" x="80" y="1716">9 · Mô hình miền và dữ liệu</text>
+        <text class="rail-body" x="80" y="1744">Tài khoản · Nhà xe/chuyến · Ghế/đặt vé · Thanh toán</text>
+        <text class="rail-body" x="80" y="1772">Thông báo · báo cáo · dữ liệu nhạy cảm · thời gian lưu trữ</text>
+        <text class="rail-note" x="80" y="1800">Mỗi Microservice sở hữu database riêng; service khác không đọc trực tiếp</text>
+      </g>
+
+      <g>
+        <rect class="rail-section rail-actor" x="64" y="1836" width="592" height="152" rx="8"/>
+        <text class="rail-title" x="80" y="1864">10 · Kiến trúc Microservices</text>
+        <text class="rail-body" x="80" y="1892">Cổng API chung → 6 service độc lập → database riêng</text>
+        <text class="rail-body" x="80" y="1920">Gọi trực tiếp khi cần trả lời ngay; sự kiện cho xử lý nền</text>
+        <text class="rail-note" x="80" y="1948">Tài khoản · Nhà xe/chuyến · Đặt vé · Thanh toán · Thông báo · Báo cáo</text>
+        <text class="rail-note" x="80" y="1972">Triển khai baseline: container, reverse proxy, broker, cache, monitoring</text>
+      </g>
+
+      <g>
+        <rect class="rail-section rail-actor" x="64" y="2004" width="592" height="152" rx="8"/>
+        <text class="rail-title" x="80" y="2032">11 · API và sự kiện</text>
+        <text class="rail-body" x="80" y="2060">Quy ước request/response/lỗi · route qua Cổng API · phân trang</text>
+        <text class="rail-body" x="80" y="2088">API theo service · webhook thanh toán · danh mục sự kiện</text>
+        <text class="rail-note" x="80" y="2116">Có mã chống gọi lặp, correlationId, tương thích contract và bảo mật</text>
+        <text class="rail-note" x="80" y="2140">Web và Mobile dùng cùng nghiệp vụ, chỉ khác giao diện và trải nghiệm</text>
+      </g>
+
+      <g>
+        <rect class="rail-section rail-functional" x="64" y="2172" width="592" height="132" rx="8"/>
+        <text class="rail-title" x="80" y="2200">12 · Yêu cầu giao diện</text>
+        <text class="rail-body" x="80" y="2228">Web khách hàng · Mobile · Back-office Admin/Nhà xe/Tài xế</text>
+        <text class="rail-body" x="80" y="2256">Màn hình sơ đồ ghế · responsive · accessibility · đa ngôn ngữ</text>
+        <text class="rail-note" x="80" y="2284">Giao diện phải thể hiện rõ ghế trống, đang giữ, đã bán và hết hạn</text>
+      </g>
+
+      <g>
+        <rect class="rail-section rail-nfr" x="64" y="2320" width="592" height="152" rx="8"/>
+        <text class="rail-title" x="80" y="2348">13 · Chất lượng, bảo mật và vận hành</text>
+        <text class="rail-body" x="80" y="2376">Hiệu năng · tải đồng thời · sẵn sàng · backup/khôi phục · mở rộng</text>
+        <text class="rail-body" x="80" y="2404">TLS · RBAC · bảo vệ dữ liệu · log/metric/trace · maintainability</text>
+        <text class="rail-note" x="80" y="2432">Mục tiêu: Search p95 ≤ 2s · Hold p95 ≤ 1s · availability 99.5%</text>
+        <text class="rail-note" x="80" y="2456">Mỗi chỉ tiêu phải đo được bằng test hoặc monitoring</text>
+      </g>
+
+      <g>
+        <rect class="rail-section rail-rule" x="64" y="2488" width="592" height="132" rx="8"/>
+        <text class="rail-title" x="80" y="2516">14 · Ngoại lệ và phục hồi</text>
+        <text class="rail-body" x="80" y="2544">Timeout ngân hàng · thông báo lặp/trễ · hết thời gian giữ ghế</text>
+        <text class="rail-body" x="80" y="2572">Broker/service/provider lỗi · hủy chuyến hàng loạt · hàng đợi lỗi</text>
+        <text class="rail-note" x="80" y="2600">Không làm mất tiền, bán trùng ghế hoặc tạo kết quả trùng khi thử lại</text>
+      </g>
+
+      <g>
+        <rect class="rail-section rail-usecase" x="64" y="2636" width="592" height="152" rx="8"/>
+        <text class="rail-title" x="80" y="2664">15 · Nghiệm thu và truy vết</text>
+        <text class="rail-body" x="80" y="2692">Acceptance Criteria cho đăng nhập, tenant, ghế, booking, payment</text>
+        <text class="rail-body" x="80" y="2720">hủy/hoàn, check-in, xung đột lịch, tải và observability</text>
+        <text class="rail-note" x="80" y="2748">Traceability: mục tiêu → FR/BR → Use Case → API/Event → Test</text>
+        <text class="rail-note" x="80" y="2772">Requirement MUST chỉ hoàn tất khi có test và bằng chứng nghiệm thu</text>
+      </g>
+
+      <g>
+        <rect class="rail-section rail-overview" x="64" y="2804" width="592" height="132" rx="8"/>
+        <text class="rail-title" x="80" y="2832">16 · Đặc tả đầu vào cho Diagram</text>
+        <text class="rail-body" x="80" y="2860">Context · Use Case · Activity · Robustness · Sequence · State</text>
+        <text class="rail-body" x="80" y="2888">Domain/Class · ERD · Architecture · Event/Data flow · Deployment</text>
+        <text class="rail-note" x="80" y="2916">Super Diagram này là bản đồ tổng; từng diagram con lấy nguồn từ SRS</text>
+      </g>
+
+      <g>
+        <rect class="rail-section rail-overview" x="64" y="2952" width="592" height="320" rx="8"/>
+        <text class="rail-title" x="80" y="2980">Giải nghĩa từ kỹ thuật</text>
+        <text class="rail-body" x="80" y="3008">Atomic</text><text class="rail-note" x="216" y="3008">Giữ đủ tất cả ghế yêu cầu, hoặc không giữ ghế nào.</text>
+        <text class="rail-body" x="80" y="3036">Booking</text><text class="rail-note" x="216" y="3036">Đơn đặt vé của khách hàng.</text>
+        <text class="rail-body" x="80" y="3064">Tenant</text><text class="rail-note" x="216" y="3064">Phạm vi dữ liệu riêng của từng nhà xe.</text>
+        <text class="rail-body" x="80" y="3092">Snapshot</text><text class="rail-note" x="216" y="3092">Bản chụp giá/ghế/chính sách tại thời điểm đặt.</text>
+        <text class="rail-body" x="80" y="3120">Idempotent</text><text class="rail-note" x="216" y="3120">Gọi lại nhiều lần vẫn chỉ tạo một kết quả.</text>
+        <text class="rail-body" x="80" y="3148">Webhook</text><text class="rail-note" x="216" y="3148">Thông báo server-to-server từ cổng thanh toán.</text>
+        <text class="rail-body" x="80" y="3176">Event</text><text class="rail-note" x="216" y="3176">Thông điệp báo một việc đã xảy ra để service khác xử lý.</text>
+        <text class="rail-body" x="80" y="3204">API Gateway</text><text class="rail-note" x="216" y="3204">Cổng API chung cho Web, Mobile và Back-office.</text>
+        <text class="rail-kicker" x="80" y="3240">MÀU: XANH ACTOR/API · CAM CHỨC NĂNG · VÀNG QUY TẮC · TÍM USE CASE · LỤC NFR</text>
+        <text class="rail-note" x="80" y="3260">Tên tiếng Anh chỉ giữ lại khi đó là thuật ngữ chuẩn hoặc tên kỹ thuật.</text>
+      </g>
+      <text class="rail-note" x="64" y="3312">Bên phải: luồng tổng quát → service → trạng thái → dữ liệu → chất lượng</text>
+      <text class="rail-note" x="64" y="3340">Cỡ hiển thị toàn sơ đồ tăng 120%; riêng nội dung chính đạt 150%.</text>
+
+      <g>
+        <rect class="rail-section rail-overview" x="64" y="3364" width="592" height="960" rx="8"/>
+        <text class="rail-title" x="80" y="3396">Thuật ngữ mở rộng</text>
+        <text class="rail-body" x="80" y="3428">Saga</text><text class="rail-note" x="216" y="3428">Chuỗi bước nhiều service; lỗi thì chạy bước bù trừ.</text>
+        <text class="rail-body" x="80" y="3460">Outbox/Inbox</text><text class="rail-note" x="216" y="3460">Cách lưu/gửi/nhận sự kiện an toàn, chống mất và lặp.</text>
+        <text class="rail-body" x="80" y="3492">Projection</text><text class="rail-note" x="216" y="3492">Bảng tổng hợp phục vụ đọc nhanh và báo cáo.</text>
+        <text class="rail-body" x="80" y="3524">CorrelationId</text><text class="rail-note" x="216" y="3524">Mã theo dõi một request qua nhiều service.</text>
+        <text class="rail-body" x="80" y="3556">RBAC</text><text class="rail-note" x="216" y="3556">Phân quyền dựa trên vai trò người dùng.</text>
+        <text class="rail-body" x="80" y="3588">TTL</text><text class="rail-note" x="216" y="3588">Thời gian tồn tại; hết thời gian thì tự hết hiệu lực.</text>
+        <text class="rail-body" x="80" y="3620">PII</text><text class="rail-note" x="216" y="3620">Dữ liệu nhận diện cá nhân cần được bảo vệ.</text>
+        <text class="rail-body" x="80" y="3652">DLQ</text><text class="rail-note" x="216" y="3652">Hàng đợi giữ thông điệp lỗi để xử lý lại.</text>
+        <line x1="80" y1="3680" x2="640" y2="3680" stroke="rgba(45,49,66,0.16)" stroke-width="0.8"/>
+        <text class="rail-title" x="80" y="3716">Kiểm tra độ bao phủ của Super Diagram</text>
+        <text class="rail-kicker" x="80" y="3752">VÙNG 01 · NGƯỜI DÙNG &amp; NGHIỆP VỤ</text>
+        <text class="rail-body" x="80" y="3780">Actor · kênh · quyền · hành trình chính · hủy/đổi/hoàn</text>
+        <text class="rail-kicker" x="80" y="3824">VÙNG 02 · DỊCH VỤ &amp; TÍCH HỢP</text>
+        <text class="rail-body" x="80" y="3852">Cổng API · 6 Microservice · database · REST · sự kiện</text>
+        <text class="rail-kicker" x="80" y="3896">VÙNG 03 · TRẠNG THÁI &amp; DỮ LIỆU</text>
+        <text class="rail-body" x="80" y="3924">Ghế · đơn vé · thanh toán · vé · chuyến · quan hệ dữ liệu</text>
+        <text class="rail-kicker" x="80" y="3968">VÙNG 04 · THỰC THI &amp; NGHIỆM THU</text>
+        <text class="rail-body" x="80" y="3996">Màn hình · contract API · phục hồi lỗi · deployment · CI/CD</text>
+        <line x1="80" y1="4024" x2="640" y2="4024" stroke="rgba(45,49,66,0.16)" stroke-width="0.8"/>
+        <text class="rail-title" x="80" y="4060">Chuỗi truy vết bắt buộc</text>
+        <text class="rail-body" x="80" y="4092">Mục tiêu → FR/BR → Use Case → API/Event → AC → Test</text>
+        <text class="rail-note" x="80" y="4120">Nếu một yêu cầu không nối được đến tiêu chí nghiệm thu và test,</text>
+        <text class="rail-note" x="80" y="4144">yêu cầu đó vẫn chưa đủ rõ để triển khai.</text>
+        <text class="rail-kicker" x="80" y="4192">KẾT LUẬN KIỂM TRA</text>
+        <text class="rail-body" x="80" y="4220">Đã bao phủ đầy đủ 16 phần docs/srs trên một canvas.</text>
+        <text class="rail-note" x="80" y="4252">Chi tiết vùng 04 được bổ sung dưới cùng của sơ đồ bên phải.</text>
+        <text class="rail-note" x="80" y="4284">Các diagram con vẫn cần vẽ riêng khi trình bày hoặc bảo vệ.</text>
+      </g>
+
+      <g transform="translate(720 0) scale(1.25)">
+
+      <!-- Three primary zones -->
+      <rect class="zone" x="40" y="40" width="3520" height="724" rx="8"/>
+      <rect class="zone-label-bg" x="64" y="44" width="288" height="16" rx="4"/>
+      <text class="zone-label" x="72" y="56">01 · EXPERIENCE &amp; BUSINESS FLOW</text>
+
+      <rect class="zone" x="40" y="800" width="3520" height="864" rx="8"/>
+      <rect class="zone-label-bg" x="64" y="804" width="296" height="16" rx="4"/>
+      <text class="zone-label" x="72" y="816">02 · MICROSERVICES PLATFORM</text>
+
+      <rect class="zone" x="40" y="1700" width="3520" height="800" rx="8"/>
+      <rect class="zone-label-bg" x="64" y="1704" width="320" height="16" rx="4"/>
+      <text class="zone-label" x="72" y="1716">03 · BEHAVIOR, STATE &amp; DATA</text>
+
+      <rect class="zone" x="40" y="2800" width="3520" height="700" rx="8"/>
+      <rect class="zone-label-bg" x="64" y="2804" width="360" height="16" rx="4"/>
+      <text class="zone-label" x="72" y="2816">04 · DELIVERY, RECOVERY &amp; VERIFICATION</text>
+
+      <!-- Connectors: business journey -->
+      <line class="connector" x1="360" y1="148" x2="432" y2="148" marker-end="url(#arrow)"/>
+      <line class="connector" x1="712" y1="148" x2="784" y2="148" marker-end="url(#arrow)"/>
+      <line class="connector" x1="1064" y1="148" x2="1136" y2="148" marker-end="url(#arrow)"/>
+      <line class="connector" x1="1416" y1="148" x2="1488" y2="148" marker-end="url(#arrow)"/>
+      <line class="connector" x1="1768" y1="148" x2="1840" y2="148" marker-end="url(#arrow)"/>
+      <line class="connector" x1="2120" y1="148" x2="2192" y2="148" marker-end="url(#arrow)"/>
+      <line class="connector" x1="2472" y1="148" x2="2544" y2="148" marker-end="url(#arrow)"/>
+      <line class="connector" x1="2824" y1="148" x2="2896" y2="148" marker-end="url(#arrow)"/>
+      <line class="connector" x1="1980" y1="180" x2="1980" y2="260" marker-end="url(#arrow)"/>
+      <path class="connector" d="M2020 180 V220 Q2020 228 2028 228 H2324 Q2332 228 2332 236 V260" marker-end="url(#arrow)"/>
+      <path class="connector" d="M1980 324 V340 Q1980 348 1988 348 H2676 Q2684 348 2684 340 V324" marker-end="url(#arrow)"/>
+
+      <!-- Connectors: actors to channels -->
+      <line class="connector" x1="220" y1="500" x2="220" y2="552" marker-end="url(#arrow)"/>
+      <path class="connector" d="M428 500 V516 Q428 524 436 524 H560 Q568 524 568 532 V552" marker-end="url(#arrow)"/>
+      <path class="connector" d="M492 500 V532 Q492 540 484 540 H348 Q340 540 340 548 V552" marker-end="url(#arrow)"/>
+      <path class="connector" d="M1252 500 V524 Q1252 532 1260 532 H1392 Q1400 532 1400 540 V552" marker-end="url(#arrow)"/>
+      <path class="connector" d="M1516 500 V532 Q1516 540 1508 540 H1448 Q1440 540 1440 548 V552" marker-end="url(#arrow)"/>
+      <line class="connector" x1="2300" y1="500" x2="2300" y2="552" marker-end="url(#arrow)"/>
+
+      <!-- Connectors: channels/external systems to gateway -->
+      <line class="connector-link" x1="340" y1="616" x2="340" y2="688" marker-end="url(#arrow-link)"/>
+      <line class="connector-link" x1="660" y1="616" x2="660" y2="688" marker-end="url(#arrow-link)"/>
+      <line class="connector-link" x1="1440" y1="616" x2="1440" y2="688" marker-end="url(#arrow-link)"/>
+      <line class="connector-link" x1="2300" y1="616" x2="2300" y2="688" marker-end="url(#arrow-link)"/>
+      <line class="connector-link" x1="2920" y1="504" x2="2920" y2="688" marker-end="url(#arrow-link)"/>
+      <line class="connector-link" x1="3280" y1="504" x2="3280" y2="688" marker-end="url(#arrow-link)"/>
+
+      <!-- Connectors: gateway to service boundaries -->
+      <line class="connector-link" x1="320" y1="752" x2="320" y2="852" marker-end="url(#arrow-link)"/>
+      <line class="connector-link" x1="880" y1="752" x2="880" y2="852" marker-end="url(#arrow-link)"/>
+      <line class="connector-accent" x1="1440" y1="752" x2="1440" y2="852" marker-end="url(#arrow-accent)"/>
+      <line class="connector-link" x1="2000" y1="752" x2="2000" y2="852" marker-end="url(#arrow-link)"/>
+      <line class="connector-link" x1="2560" y1="752" x2="2560" y2="852" marker-end="url(#arrow-link)"/>
+      <line class="connector-link" x1="3120" y1="752" x2="3120" y2="852" marker-end="url(#arrow-link)"/>
+
+      <!-- Connectors: service event ports to broker -->
+      <line class="connector-event" x1="320" y1="1492" x2="320" y2="1552" marker-end="url(#arrow)"/>
+      <line class="connector-event" x1="880" y1="1492" x2="880" y2="1552" marker-end="url(#arrow)"/>
+      <line class="connector-event" x1="1440" y1="1492" x2="1440" y2="1552" marker-end="url(#arrow)"/>
+      <line class="connector-event" x1="2000" y1="1492" x2="2000" y2="1552" marker-end="url(#arrow)"/>
+      <line class="connector-event" x1="2560" y1="1492" x2="2560" y2="1552" marker-end="url(#arrow)"/>
+      <line class="connector-event" x1="3120" y1="1492" x2="3120" y2="1552" marker-end="url(#arrow)"/>
+
+      <!-- Connectors: broker to state aggregates -->
+      <line class="connector-event" x1="480" y1="1616" x2="480" y2="1752" marker-end="url(#arrow)"/>
+      <line class="connector-event" x1="1360" y1="1616" x2="1360" y2="1752" marker-end="url(#arrow)"/>
+      <line class="connector-event" x1="2240" y1="1616" x2="2240" y2="1752" marker-end="url(#arrow)"/>
+      <line class="connector-event" x1="3120" y1="1616" x2="3120" y2="1752" marker-end="url(#arrow)"/>
+
+      <!-- Connectors: state panels to domain/data panels -->
+      <line class="connector" x1="480" y1="2016" x2="480" y2="2056" marker-end="url(#arrow)"/>
+      <line class="connector" x1="1360" y1="2016" x2="1360" y2="2056" marker-end="url(#arrow)"/>
+      <line class="connector" x1="2240" y1="2016" x2="2240" y2="2056" marker-end="url(#arrow)"/>
+      <line class="connector" x1="3120" y1="2016" x2="3120" y2="2056" marker-end="url(#arrow)"/>
+
+      <!-- State-machine internal connectors -->
+      <line class="connector" x1="304" y1="1852" x2="368" y2="1852" marker-end="url(#arrow)"/>
+      <line class="connector" x1="528" y1="1852" x2="592" y2="1852" marker-end="url(#arrow)"/>
+      <path class="connector-event" d="M448 1880 V1912 Q448 1920 440 1920 H304" marker-end="url(#arrow)"/>
+
+      <line class="connector" x1="1152" y1="1852" x2="1216" y2="1852" marker-end="url(#arrow)"/>
+      <line class="connector" x1="1376" y1="1852" x2="1440" y2="1852" marker-end="url(#arrow)"/>
+      <line class="connector" x1="1152" y1="1932" x2="1216" y2="1932" marker-end="url(#arrow)"/>
+      <line class="connector" x1="1376" y1="1932" x2="1440" y2="1932" marker-end="url(#arrow)"/>
+
+      <line class="connector" x1="2032" y1="1852" x2="2096" y2="1852" marker-end="url(#arrow)"/>
+      <line class="connector" x1="2256" y1="1852" x2="2320" y2="1852" marker-end="url(#arrow)"/>
+      <line class="connector" x1="2032" y1="1932" x2="2096" y2="1932" marker-end="url(#arrow)"/>
+      <line class="connector" x1="2256" y1="1932" x2="2320" y2="1932" marker-end="url(#arrow)"/>
+
+      <line class="connector" x1="2856" y1="1852" x2="2896" y2="1852" marker-end="url(#arrow)"/>
+      <line class="connector" x1="3056" y1="1852" x2="3096" y2="1852" marker-end="url(#arrow)"/>
+      <line class="connector" x1="3256" y1="1852" x2="3296" y2="1852" marker-end="url(#arrow)"/>
+
+      <!-- EXPERIENCE ZONE NODES -->
+      <text class="section-title" x="80" y="92">Hành trình đặt vé · luồng chính và cách xử lý ngoại lệ</text>
+
+      <g>
+        <rect class="journey-discovery" x="80" y="116" width="280" height="64" rx="8"/>
+        <text class="tag" x="96" y="136">01 · DISCOVER</text>
+        <text class="node-name-lg" x="220" y="160" text-anchor="middle">Tìm chuyến</text>
+      </g>
+      <g>
+        <rect class="journey-discovery" x="432" y="116" width="280" height="64" rx="8"/>
+        <text class="tag" x="448" y="136">02 · SELECT</text>
+        <text class="node-name-lg" x="572" y="160" text-anchor="middle">Xem chi tiết</text>
+      </g>
+      <g>
+        <rect class="journey-core" x="784" y="116" width="280" height="64" rx="8"/>
+        <text class="tag" x="800" y="136">03 · RESERVE</text>
+        <text class="node-name-lg" x="924" y="156" text-anchor="middle">Giữ đủ tất cả ghế cùng lúc</text>
+        <text class="sub" x="924" y="172" text-anchor="middle">Không đủ ghế → không giữ ghế nào</text>
+      </g>
+      <g>
+        <rect class="journey-core" x="1136" y="116" width="280" height="64" rx="8"/>
+        <text class="tag" x="1152" y="136">04 · ORDER</text>
+        <text class="node-name-lg" x="1276" y="160" text-anchor="middle">Tạo đơn đặt vé</text>
+      </g>
+      <g>
+        <rect class="journey-core" x="1488" y="116" width="280" height="64" rx="8"/>
+        <text class="tag" x="1504" y="136">05 · PAY</text>
+        <text class="node-name-lg" x="1628" y="160" text-anchor="middle">Thanh toán</text>
+      </g>
+      <g>
+        <rect class="journey-core" x="1840" y="116" width="280" height="64" rx="8"/>
+        <text class="tag" x="1856" y="136">06 · ISSUE</text>
+        <text class="node-name-lg" x="1980" y="160" text-anchor="middle">Phát hành vé QR</text>
+      </g>
+      <g>
+        <rect class="journey-operation" x="2192" y="116" width="280" height="64" rx="8"/>
+        <text class="tag" x="2208" y="136">07 · BOARD</text>
+        <text class="node-name-lg" x="2332" y="160" text-anchor="middle">Check-in</text>
+      </g>
+      <g>
+        <rect class="journey-operation" x="2544" y="116" width="280" height="64" rx="8"/>
+        <text class="tag" x="2560" y="136">08 · TRAVEL</text>
+        <text class="node-name-lg" x="2684" y="160" text-anchor="middle">Vận hành chuyến</text>
+      </g>
+      <g>
+        <rect class="journey-operation" x="2896" y="116" width="280" height="64" rx="8"/>
+        <text class="tag" x="2912" y="136">09 · CLOSE</text>
+        <text class="node-name-lg" x="3036" y="160" text-anchor="middle">Hoàn thành</text>
+      </g>
+      <g>
+        <rect class="journey-alternative" x="1840" y="260" width="280" height="64" rx="8"/>
+        <text class="tag" x="1856" y="280">ALTERNATIVE</text>
+        <text class="node-name-lg" x="1980" y="304" text-anchor="middle">Hủy vé</text>
+      </g>
+      <g>
+        <rect class="journey-alternative" x="2192" y="260" width="280" height="64" rx="8"/>
+        <text class="tag" x="2208" y="280">SHOULD · CHANGE</text>
+        <text class="node-name-lg" x="2332" y="304" text-anchor="middle">Đổi vé an toàn</text>
+      </g>
+      <g>
+        <rect class="journey-alternative" x="2544" y="260" width="280" height="64" rx="8"/>
+        <text class="tag" x="2560" y="280">COMPENSATION</text>
+        <text class="node-name-lg" x="2684" y="304" text-anchor="middle">Hoàn tiền</text>
+      </g>
+
+      <!-- Actor and channel groups -->
+      <rect x="80" y="388" width="960" height="260" rx="8" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.12)" stroke-width="0.8"/>
+      <text class="tag" x="104" y="416">CUSTOMER EXPERIENCE</text>
+      <rect class="actor-customer" x="120" y="444" width="200" height="56" rx="8"/>
+      <text class="node-name" x="220" y="476" text-anchor="middle">Khách vãng lai</text>
+      <rect class="actor-customer" x="360" y="444" width="200" height="56" rx="8"/>
+      <text class="node-name" x="460" y="476" text-anchor="middle">Khách hàng</text>
+      <rect class="panel" x="200" y="552" width="280" height="64" rx="8"/>
+      <text class="tag" x="216" y="572">CLIENT</text>
+      <text class="node-name-lg" x="340" y="596" text-anchor="middle">Web End-user</text>
+      <rect class="panel" x="520" y="552" width="280" height="64" rx="8"/>
+      <text class="tag" x="536" y="572">CLIENT</text>
+      <text class="node-name-lg" x="660" y="596" text-anchor="middle">Mobile App</text>
+      <text class="body-copy" x="840" y="464">Tìm chuyến · Giữ ghế · Đặt vé · Thanh toán</text>
+      <text class="body-copy" x="840" y="488">Vé · Hủy/đổi · Đánh giá</text>
+      <text class="sub" x="840" y="516">Khách vãng lai: chỉ xem · Khách hàng: đã đăng nhập</text>
+
+      <rect x="1080" y="388" width="960" height="260" rx="8" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.12)" stroke-width="0.8"/>
+      <text class="tag" x="1104" y="416">OPERATIONS</text>
+      <rect class="actor-operations" x="1152" y="444" width="200" height="56" rx="8"/>
+      <text class="node-name" x="1252" y="476" text-anchor="middle">Tài xế</text>
+      <rect class="actor-operations" x="1416" y="444" width="200" height="56" rx="8"/>
+      <text class="node-name" x="1516" y="476" text-anchor="middle">Nhà xe / Nhân viên</text>
+      <rect class="panel" x="1240" y="552" width="400" height="64" rx="8"/>
+      <text class="tag" x="1256" y="572">CLIENT</text>
+      <text class="node-name-lg" x="1440" y="596" text-anchor="middle">Back-office Web</text>
+      <text class="body-copy" x="1680" y="464">Xe · Tuyến · Chuyến · Danh sách hành khách</text>
+      <text class="body-copy" x="1680" y="488">Check-in · Báo cáo riêng của nhà xe</text>
+      <text class="sub" x="1680" y="516">Tài xế chỉ xem chuyến được phân công</text>
+
+      <rect x="2080" y="388" width="560" height="260" rx="8" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.12)" stroke-width="0.8"/>
+      <text class="tag" x="2104" y="416">PLATFORM ADMINISTRATION</text>
+      <rect class="actor-admin" x="2200" y="444" width="200" height="56" rx="8"/>
+      <text class="node-name" x="2300" y="476" text-anchor="middle">Admin</text>
+      <rect class="panel" x="2160" y="552" width="280" height="64" rx="8"/>
+      <text class="tag" x="2176" y="572">CLIENT</text>
+      <text class="node-name-lg" x="2300" y="596" text-anchor="middle">Back-office Web</text>
+      <text class="body-copy" x="2472" y="464">Users · Roles</text>
+      <text class="body-copy" x="2472" y="488">Organizations</text>
+      <text class="body-copy" x="2472" y="512">Audit · Reports</text>
+      <text class="body-copy" x="2472" y="536">Reviews · Complaints</text>
+
+      <rect x="2680" y="388" width="840" height="260" rx="8" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.12)" stroke-width="0.8"/>
+      <text class="tag" x="2704" y="416">EXTERNAL SYSTEMS</text>
+      <rect class="panel-external" x="2760" y="444" width="320" height="60" rx="8"/>
+      <text class="node-name" x="2920" y="472" text-anchor="middle">Cổng thanh toán</text>
+      <text class="sub" x="2920" y="492" text-anchor="middle">thu tiền · thông báo có chữ ký · hoàn tiền</text>
+      <rect class="panel-external" x="3120" y="444" width="320" height="60" rx="8"/>
+      <text class="node-name" x="3280" y="472" text-anchor="middle">Email / Push Provider</text>
+      <text class="sub" x="3280" y="492" text-anchor="middle">delivery API · retryable</text>
+      <text class="body-copy" x="2760" y="560">Không quyết định trạng thái nghiệp vụ.</text>
+      <text class="sub" x="2760" y="588">Payment redirect ≠ payment confirmation</text>
+
+      <!-- Gateway focal -->
+      <rect x="80" y="688" width="3360" height="64" rx="8" fill="#f5f5f5"/>
+      <rect class="panel-focal" x="80" y="688" width="3360" height="64" rx="8"/>
+      <text class="tag" x="104" y="712">EDGE · PUBLIC TRUST BOUNDARY</text>
+      <text class="node-name-lg" x="1760" y="728" text-anchor="middle">Cổng API dùng chung (API Gateway)</text>
+      <text class="sub" x="1760" y="744" text-anchor="middle">Một địa chỉ cho Web/Mobile · xác thực sơ bộ · định tuyến · giới hạn gọi · không chứa nghiệp vụ</text>
+
+      <!-- MICROSERVICES SERVICE PANELS -->
+      <text class="section-title" x="80" y="844">Microservices · mỗi service phụ trách một nghiệp vụ và dữ liệu riêng</text>
+
+      <!-- Identity -->
+      <g>
+        <rect class="panel" x="80" y="852" width="480" height="640" rx="8"/>
+        <rect x="96" y="868" width="72" height="20" rx="4" fill="rgba(45,49,66,0.08)"/>
+        <text class="tag" x="132" y="882" text-anchor="middle">IDENTITY</text>
+        <text class="node-name-lg" x="320" y="916" text-anchor="middle">Tài khoản &amp; phân quyền</text>
+        <text class="sub" x="320" y="936" text-anchor="middle">Identity Service · đăng nhập · quyền truy cập</text>
+        <rect class="mini" x="104" y="968" width="208" height="64" rx="8"/>
+        <text class="node-name" x="208" y="996" text-anchor="middle">Đăng nhập &amp; Token</text>
+        <text class="sub" x="208" y="1016" text-anchor="middle">login · refresh · revoke</text>
+        <rect class="mini" x="328" y="968" width="208" height="64" rx="8"/>
+        <text class="node-name" x="432" y="996" text-anchor="middle">Người dùng &amp; Hồ sơ</text>
+        <text class="sub" x="432" y="1016" text-anchor="middle">register · verify · reset</text>
+        <rect class="mini" x="104" y="1048" width="208" height="64" rx="8"/>
+        <text class="node-name" x="208" y="1076" text-anchor="middle">Vai trò &amp; Quyền</text>
+        <text class="sub" x="208" y="1096" text-anchor="middle">theo vai trò · phạm vi nhà xe</text>
+        <rect class="mini" x="328" y="1048" width="208" height="64" rx="8"/>
+        <text class="node-name" x="432" y="1076" text-anchor="middle">Thành viên nhà xe</text>
+        <text class="sub" x="432" y="1096" text-anchor="middle">user ↔ organization</text>
+        <rect class="store" x="104" y="1140" width="432" height="88" rx="8"/>
+        <text class="tag" x="120" y="1160">OWNS · IDENTITY_DB</text>
+        <text class="body-copy" x="120" y="1188">User · Role · UserRole · Membership</text>
+        <text class="body-copy" x="120" y="1212">RefreshToken · SecurityAudit</text>
+        <text class="sub" x="104" y="1264">API</text>
+        <text class="body-copy" x="144" y="1264">/auth/** · /users/** · /admin/organizations/**</text>
+        <text class="sub" x="104" y="1300">GUARDS</text>
+        <text class="body-copy" x="168" y="1300">password hash · rotation · lockout · OTP rate limit</text>
+        <text class="sub" x="104" y="1344">EMITS</text>
+        <text class="body-copy" x="160" y="1344">UserRegistered · RoleChanged</text>
+        <text class="sub" x="104" y="1380">CONTRACT</text>
+        <text class="body-copy" x="176" y="1380">subject · roles · organization scope</text>
+        <text class="sub" x="104" y="1432">RULE</text>
+        <text class="body-copy" x="152" y="1432">Service vẫn tự kiểm tra quyền; Gateway không đủ.</text>
+      </g>
+
+      <!-- Transport -->
+      <g>
+        <rect class="panel" x="640" y="852" width="480" height="640" rx="8"/>
+        <rect x="656" y="868" width="88" height="20" rx="4" fill="rgba(45,49,66,0.08)"/>
+        <text class="tag" x="700" y="882" text-anchor="middle">TRANSPORT</text>
+        <text class="node-name-lg" x="880" y="916" text-anchor="middle">Nhà xe &amp; chuyến xe</text>
+        <text class="sub" x="880" y="936" text-anchor="middle">Transport Service · xe · tuyến · lịch chạy</text>
+        <rect class="mini" x="664" y="968" width="208" height="64" rx="8"/>
+        <text class="node-name" x="768" y="996" text-anchor="middle">Xe &amp; sơ đồ ghế</text>
+        <text class="sub" x="768" y="1016" text-anchor="middle">Bus · Seat template</text>
+        <rect class="mini" x="888" y="968" width="208" height="64" rx="8"/>
+        <text class="node-name" x="992" y="996" text-anchor="middle">Tài xế</text>
+        <text class="sub" x="992" y="1016" text-anchor="middle">profile · license</text>
+        <rect class="mini" x="664" y="1048" width="208" height="64" rx="8"/>
+        <text class="node-name" x="768" y="1076" text-anchor="middle">Tuyến &amp; điểm dừng</text>
+        <text class="sub" x="768" y="1096" text-anchor="middle">origin · destination · order</text>
+        <rect class="mini" x="888" y="1048" width="208" height="64" rx="8"/>
+        <text class="node-name" x="992" y="1076" text-anchor="middle">Chuyến &amp; phân công</text>
+        <text class="sub" x="992" y="1096" text-anchor="middle">publish · operate · cancel</text>
+        <rect class="store" x="664" y="1140" width="432" height="88" rx="8"/>
+        <text class="tag" x="680" y="1160">OWNS · TRANSPORT_DB</text>
+        <text class="body-copy" x="680" y="1188">Organization · Bus · Seat · DriverProfile</text>
+        <text class="body-copy" x="680" y="1212">Route · RouteStop · Trip · Assignment</text>
+        <text class="sub" x="664" y="1264">API</text>
+        <text class="body-copy" x="704" y="1264">/trips/** · /operator/** · /driver/assignments/**</text>
+        <text class="sub" x="664" y="1300">GUARDS</text>
+        <text class="body-copy" x="728" y="1300">đúng nhà xe · không trùng xe/tài xế · GPLX còn hạn</text>
+        <text class="sub" x="664" y="1344">EMITS</text>
+        <text class="body-copy" x="720" y="1344">TripPublished · TripUpdated · TripCancelled</text>
+        <text class="sub" x="664" y="1380">BẢN CHỤP CHUYẾN</text>
+        <text class="body-copy" x="736" y="1380">Trip chỉ sellable sau TripInventoryReady.</text>
+        <text class="sub" x="664" y="1432">RULE</text>
+        <text class="body-copy" x="712" y="1432">Trip có vé: cancel/soft delete, không hard delete.</text>
+      </g>
+
+      <!-- Booking focal -->
+      <g>
+        <rect x="1200" y="852" width="480" height="640" rx="8" fill="#f5f5f5"/>
+        <rect class="panel-focal" x="1200" y="852" width="480" height="640" rx="8"/>
+        <rect x="1216" y="868" width="80" height="20" rx="4" fill="rgba(235,108,54,0.14)"/>
+        <text x="1256" y="882" fill="#eb6c36" font-size="8" font-family="'Geist Mono', monospace" font-weight="500" text-anchor="middle" letter-spacing="0.12em">BOOKING</text>
+        <text class="node-name-lg" x="1440" y="916" text-anchor="middle">Ghế &amp; đặt vé</text>
+        <text class="sub" x="1440" y="936" text-anchor="middle">Booking Service · giữ ghế · đơn vé · vé QR</text>
+        <rect class="mini" x="1224" y="968" width="208" height="64" rx="8"/>
+        <text class="node-name" x="1328" y="996" text-anchor="middle">Kho ghế theo chuyến</text>
+        <text class="sub" x="1328" y="1016" text-anchor="middle">TRỐNG · ĐANG GIỮ · ĐÃ BÁN</text>
+        <rect class="mini" x="1448" y="968" width="208" height="64" rx="8"/>
+        <text class="node-name" x="1552" y="996" text-anchor="middle">Phiên giữ ghế</text>
+        <text class="sub" x="1552" y="1016" text-anchor="middle">giữ đủ hoặc không · hết hạn 10 phút</text>
+        <rect class="mini" x="1224" y="1048" width="208" height="64" rx="8"/>
+        <text class="node-name" x="1328" y="1076" text-anchor="middle">Đơn vé &amp; Tính giá</text>
+        <text class="sub" x="1328" y="1096" text-anchor="middle">server tính tổng · lưu chính sách lúc đặt</text>
+        <rect class="mini" x="1448" y="1048" width="208" height="64" rx="8"/>
+        <text class="node-name" x="1552" y="1076" text-anchor="middle">Vé &amp; Check-in</text>
+        <text class="sub" x="1552" y="1096" text-anchor="middle">QR · review · promotion</text>
+        <rect class="store" x="1224" y="1140" width="432" height="88" rx="8"/>
+        <text class="tag" x="1240" y="1160">OWNS · BOOKING_DB + REDIS</text>
+        <text class="body-copy" x="1240" y="1188">TripSnapshot · TripSeat · SeatHold · Booking</text>
+        <text class="body-copy" x="1240" y="1212">Passenger · BookingItem · Ticket · Promotion · Review</text>
+        <text class="sub" x="1224" y="1264">API</text>
+        <text class="body-copy" x="1264" y="1264">/seat-holds/** · /bookings/** · /tickets/**</text>
+        <text class="sub" x="1224" y="1300">CORE</text>
+        <text class="body-copy" x="1272" y="1300">DB transaction + unique (tripId, seatId)</text>
+        <text class="sub" x="1224" y="1344">CONSUMES</text>
+        <text class="body-copy" x="1296" y="1344">TripPublished · PaymentSucceeded · RefundSucceeded</text>
+        <text class="sub" x="1224" y="1380">EMITS</text>
+        <text class="body-copy" x="1280" y="1380">BookingCreated · BookingPaid · TicketIssued</text>
+        <text class="sub" x="1224" y="1432">INVARIANT</text>
+        <text class="body-copy" x="1296" y="1432">Không có 2 vé hiệu lực cho cùng TripSeat.</text>
+      </g>
+
+      <!-- Payment -->
+      <g>
+        <rect class="panel" x="1760" y="852" width="480" height="640" rx="8"/>
+        <rect x="1776" y="868" width="80" height="20" rx="4" fill="rgba(45,49,66,0.08)"/>
+        <text class="tag" x="1816" y="882" text-anchor="middle">PAYMENT</text>
+        <text class="node-name-lg" x="2000" y="916" text-anchor="middle">Thanh toán &amp; hoàn tiền</text>
+        <text class="sub" x="2000" y="936" text-anchor="middle">Payment Service · xác nhận tiền · đối soát</text>
+        <rect class="mini" x="1784" y="968" width="208" height="64" rx="8"/>
+        <text class="node-name" x="1888" y="996" text-anchor="middle">Yêu cầu thanh toán</text>
+        <text class="sub" x="1888" y="1016" text-anchor="middle">lưu số tiền của đơn tại thời điểm trả</text>
+        <rect class="mini" x="2008" y="968" width="208" height="64" rx="8"/>
+        <text class="node-name" x="2112" y="996" text-anchor="middle">Xác minh thông báo</text>
+        <text class="sub" x="2112" y="1016" text-anchor="middle">chữ ký · số tiền · chống gửi lặp</text>
+        <rect class="mini" x="1784" y="1048" width="208" height="64" rx="8"/>
+        <text class="node-name" x="1888" y="1076" text-anchor="middle">Hoàn tiền</text>
+        <text class="sub" x="1888" y="1096" text-anchor="middle">một phần/toàn phần · gọi lặp an toàn</text>
+        <rect class="panel-external" x="2008" y="1048" width="208" height="64" rx="8"/>
+        <text class="node-name" x="2112" y="1076" text-anchor="middle">Kết nối cổng ngoài</text>
+        <text class="sub" x="2112" y="1096" text-anchor="middle">chuyển đổi API nhà cung cấp</text>
+        <rect class="store" x="1784" y="1140" width="432" height="88" rx="8"/>
+        <text class="tag" x="1800" y="1160">OWNS · PAYMENT_DB</text>
+        <text class="body-copy" x="1800" y="1188">Payment · PaymentAttempt · WebhookReceipt</text>
+        <text class="body-copy" x="1800" y="1212">Refund · ReconciliationCase</text>
+        <text class="sub" x="1784" y="1264">API</text>
+        <text class="body-copy" x="1824" y="1264">/payments/** · /refunds/** · /webhooks/**</text>
+        <text class="sub" x="1784" y="1300">SOURCE</text>
+        <text class="body-copy" x="1848" y="1300">Signed webhook/reconciliation; redirect không đủ.</text>
+        <text class="sub" x="1784" y="1344">EMITS</text>
+        <text class="body-copy" x="1840" y="1344">PaymentSucceeded/Failed · RefundSucceeded/Failed</text>
+        <text class="sub" x="1784" y="1380">LATE PAY</text>
+        <text class="body-copy" x="1856" y="1380">Compensation refund nếu ghế không còn.</text>
+        <text class="sub" x="1784" y="1432">SAFETY</text>
+        <text class="body-copy" x="1840" y="1432">Không lưu PAN/CVV · providerTransactionId unique.</text>
+      </g>
+
+      <!-- Notification -->
+      <g>
+        <rect class="panel" x="2320" y="852" width="480" height="640" rx="8"/>
+        <rect x="2336" y="868" width="112" height="20" rx="4" fill="rgba(45,49,66,0.08)"/>
+        <text class="tag" x="2392" y="882" text-anchor="middle">NOTIFICATION</text>
+        <text class="node-name-lg" x="2560" y="916" text-anchor="middle">Thông báo</text>
+        <text class="sub" x="2560" y="936" text-anchor="middle">Notification Service · email · in-app · push</text>
+        <rect class="mini" x="2344" y="968" width="208" height="64" rx="8"/>
+        <text class="node-name" x="2448" y="996" text-anchor="middle">Mẫu thông báo</text>
+        <text class="sub" x="2448" y="1016" text-anchor="middle">booking · trip · refund</text>
+        <rect class="mini" x="2568" y="968" width="208" height="64" rx="8"/>
+        <text class="node-name" x="2672" y="996" text-anchor="middle">Bộ gửi thông báo</text>
+        <text class="sub" x="2672" y="1016" text-anchor="middle">retry · backoff · DLQ</text>
+        <rect class="mini" x="2344" y="1048" width="208" height="64" rx="8"/>
+        <text class="node-name" x="2448" y="1076" text-anchor="middle">Tùy chọn nhận tin</text>
+        <text class="sub" x="2448" y="1096" text-anchor="middle">email · in-app · push</text>
+        <rect class="panel-external" x="2568" y="1048" width="208" height="64" rx="8"/>
+        <text class="node-name" x="2672" y="1076" text-anchor="middle">Kết nối nhà cung cấp</text>
+        <text class="sub" x="2672" y="1096" text-anchor="middle">email / push</text>
+        <rect class="store" x="2344" y="1140" width="432" height="88" rx="8"/>
+        <text class="tag" x="2360" y="1160">OWNS · NOTIFICATION_DB</text>
+        <text class="body-copy" x="2360" y="1188">Template · Notification · DeliveryAttempt</text>
+        <text class="body-copy" x="2360" y="1212">UserPreference</text>
+        <text class="sub" x="2344" y="1264">API</text>
+        <text class="body-copy" x="2384" y="1264">/notifications/** · /notification-preferences</text>
+        <text class="sub" x="2344" y="1300">CONSUMES</text>
+        <text class="body-copy" x="2416" y="1300">TicketIssued · TripCancelled · RefundSucceeded</text>
+        <text class="sub" x="2344" y="1344">RULE</text>
+        <text class="body-copy" x="2392" y="1344">Lỗi gửi không rollback Booking/Payment.</text>
+        <text class="sub" x="2344" y="1380">CHANNEL</text>
+        <text class="body-copy" x="2408" y="1380">MUST: email + in-app · COULD: SMS/push</text>
+        <text class="sub" x="2344" y="1432">OPS</text>
+        <text class="body-copy" x="2384" y="1432">DeliveryAttempt traceable bằng correlationId.</text>
+      </g>
+
+      <!-- Reporting -->
+      <g>
+        <rect class="panel" x="2880" y="852" width="480" height="640" rx="8"/>
+        <rect x="2896" y="868" width="88" height="20" rx="4" fill="rgba(45,49,66,0.08)"/>
+        <text class="tag" x="2940" y="882" text-anchor="middle">REPORTING</text>
+        <text class="node-name-lg" x="3120" y="916" text-anchor="middle">Báo cáo &amp; số liệu</text>
+        <text class="sub" x="3120" y="936" text-anchor="middle">Reporting Service · dữ liệu tổng hợp theo nhà xe</text>
+        <rect class="mini" x="2904" y="968" width="208" height="64" rx="8"/>
+        <text class="node-name" x="3008" y="996" text-anchor="middle">Doanh thu</text>
+        <text class="sub" x="3008" y="1016" text-anchor="middle">gross · net · refund</text>
+        <rect class="mini" x="3128" y="968" width="208" height="64" rx="8"/>
+        <text class="node-name" x="3232" y="996" text-anchor="middle">Đơn đặt vé</text>
+        <text class="sub" x="3232" y="1016" text-anchor="middle">paid · cancelled · expired</text>
+        <rect class="mini" x="2904" y="1048" width="208" height="64" rx="8"/>
+        <text class="node-name" x="3008" y="1076" text-anchor="middle">Công suất ghế</text>
+        <text class="sub" x="3008" y="1096" text-anchor="middle">seat sold · fill rate</text>
+        <rect class="mini" x="3128" y="1048" width="208" height="64" rx="8"/>
+        <text class="node-name" x="3232" y="1076" text-anchor="middle">Xuất báo cáo</text>
+        <text class="sub" x="3232" y="1096" text-anchor="middle">CSV · async</text>
+        <rect class="store" x="2904" y="1140" width="432" height="88" rx="8"/>
+        <text class="tag" x="2920" y="1160">OWNS · REPORTING_DB</text>
+        <text class="body-copy" x="2920" y="1188">RevenueProjection · BookingProjection</text>
+        <text class="body-copy" x="2920" y="1212">OccupancyProjection · ExportJob</text>
+        <text class="sub" x="2904" y="1264">API</text>
+        <text class="body-copy" x="2944" y="1264">/reports/** · /exports/**</text>
+        <text class="sub" x="2904" y="1300">CONSUMES</text>
+        <text class="body-copy" x="2976" y="1300">Trip · Hold · Booking · Payment · Refund events</text>
+        <text class="sub" x="2904" y="1344">SCOPE</text>
+        <text class="body-copy" x="2960" y="1344">Nhà xe: dữ liệu riêng · Admin: toàn nền tảng</text>
+        <text class="sub" x="2904" y="1380">CONSISTENCY</text>
+        <text class="body-copy" x="2992" y="1380">Projection có thể rebuild; không phải source of truth.</text>
+        <text class="sub" x="2904" y="1432">METRIC</text>
+        <text class="body-copy" x="2960" y="1432">Hiển thị timezone + định nghĩa gross/net.</text>
+      </g>
+
+      <!-- Event backbone -->
+      <rect class="panel-soft" x="80" y="1552" width="3280" height="64" rx="8"/>
+      <text class="tag" x="104" y="1576">HÀNG ĐỢI SỰ KIỆN BẤT ĐỒNG BỘ</text>
+      <text class="node-name-lg" x="320" y="1596">Hàng đợi sự kiện (RabbitMQ)</text>
+      <text class="sub" x="640" y="1596">lưu sự kiện cùng giao dịch · chống xử lý lặp · tự thử lại · hàng đợi lỗi · mã truy vết</text>
+      <text class="sub" x="1880" y="1596">TripPublished · PaymentSucceeded · BookingPaid · TicketIssued · TripCancelled · RefundSucceeded</text>
+
+      <!-- STATE PANELS -->
+      <text class="section-title" x="80" y="1744">Vòng đời trạng thái · chỉ chuyển bước khi đủ điều kiện nghiệp vụ</text>
+
+      <g>
+        <rect class="rail-section rail-usecase" x="80" y="1752" width="800" height="264" rx="8"/>
+        <text class="tag" x="104" y="1776">AGGREGATE 01</text>
+        <text class="node-name-lg" x="480" y="1800" text-anchor="middle">Ghế chuyến + Phiên giữ ghế</text>
+        <rect class="state" x="144" y="1824" width="160" height="56" rx="8"/>
+        <text class="node-name" x="224" y="1856" text-anchor="middle">TRỐNG</text>
+        <rect class="state" x="368" y="1824" width="160" height="56" rx="8"/>
+        <text class="node-name" x="448" y="1856" text-anchor="middle">ĐANG GIỮ</text>
+        <rect class="state" x="592" y="1824" width="160" height="56" rx="8"/>
+        <text class="node-name" x="672" y="1856" text-anchor="middle">ĐÃ BÁN</text>
+        <rect class="panel-soft" x="144" y="1904" width="160" height="48" rx="8"/>
+        <text class="node-name" x="224" y="1932" text-anchor="middle">KHÔNG BÁN</text>
+        <text class="sub" x="368" y="1924">Phiên giữ: ĐANG GIỮ → ĐÃ DÙNG / HẾT HẠN / ĐÃ NHẢ</text>
+        <text class="sub" x="104" y="1984">Nhiều ghế: giữ đủ tất cả hoặc không giữ ghế nào · hết hạn 10 phút</text>
+      </g>
+
+      <g>
+        <rect class="rail-section rail-usecase" x="960" y="1752" width="800" height="264" rx="8"/>
+        <text class="tag" x="984" y="1776">AGGREGATE 02</text>
+        <text class="node-name-lg" x="1360" y="1800" text-anchor="middle">Đơn đặt vé + Thanh toán</text>
+        <rect class="state" x="992" y="1824" width="160" height="56" rx="8"/>
+        <text class="node-name" x="1072" y="1856" text-anchor="middle">CHỜ TRẢ</text>
+        <rect class="state" x="1216" y="1824" width="160" height="56" rx="8"/>
+        <text class="node-name" x="1296" y="1856" text-anchor="middle">ĐÃ TRẢ</text>
+        <rect class="state" x="1440" y="1824" width="160" height="56" rx="8"/>
+        <text class="node-name" x="1520" y="1856" text-anchor="middle">HOÀN TẤT</text>
+        <rect class="panel-soft" x="992" y="1904" width="160" height="56" rx="8"/>
+        <text class="node-name" x="1072" y="1936" text-anchor="middle">ĐANG XỬ LÝ</text>
+        <rect class="panel-soft" x="1216" y="1904" width="160" height="56" rx="8"/>
+        <text class="node-name" x="1296" y="1936" text-anchor="middle">THÀNH CÔNG</text>
+        <rect class="panel-soft" x="1440" y="1904" width="160" height="56" rx="8"/>
+        <text class="node-name" x="1520" y="1936" text-anchor="middle">ĐÃ HOÀN TIỀN</text>
+        <text class="sub" x="984" y="1984">Tiền thành công + phiên giữ còn hạn → bán ghế và phát hành vé</text>
+      </g>
+
+      <g>
+        <rect class="rail-section rail-usecase" x="1840" y="1752" width="800" height="264" rx="8"/>
+        <text class="tag" x="1864" y="1776">AGGREGATE 03</text>
+        <text class="node-name-lg" x="2240" y="1800" text-anchor="middle">Vé + Hoàn tiền</text>
+        <rect class="state" x="1872" y="1824" width="160" height="56" rx="8"/>
+        <text class="node-name" x="1952" y="1856" text-anchor="middle">ĐÃ PHÁT HÀNH</text>
+        <rect class="state" x="2096" y="1824" width="160" height="56" rx="8"/>
+        <text class="node-name" x="2176" y="1856" text-anchor="middle">ĐÃ CHECK-IN</text>
+        <rect class="state" x="2320" y="1824" width="160" height="56" rx="8"/>
+        <text class="node-name" x="2400" y="1856" text-anchor="middle">ĐÃ SỬ DỤNG</text>
+        <rect class="panel-soft" x="1872" y="1904" width="160" height="56" rx="8"/>
+        <text class="node-name" x="1952" y="1936" text-anchor="middle">ĐÃ YÊU CẦU</text>
+        <rect class="panel-soft" x="2096" y="1904" width="160" height="56" rx="8"/>
+        <text class="node-name" x="2176" y="1936" text-anchor="middle">ĐANG XỬ LÝ</text>
+        <rect class="panel-soft" x="2320" y="1904" width="160" height="56" rx="8"/>
+        <text class="node-name" x="2400" y="1936" text-anchor="middle">HOÀN THÀNH</text>
+        <text class="sub" x="1864" y="1984">Hủy vé → yêu cầu hoàn tiền; quét QR lặp không tạo check-in thứ hai</text>
+      </g>
+
+      <g>
+        <rect class="rail-section rail-usecase" x="2720" y="1752" width="800" height="264" rx="8"/>
+        <text class="tag" x="2744" y="1776">AGGREGATE 04</text>
+        <text class="node-name-lg" x="3120" y="1800" text-anchor="middle">Vòng đời chuyến xe</text>
+        <rect class="state" x="2736" y="1824" width="120" height="56" rx="8"/>
+        <text class="node-name" x="2796" y="1856" text-anchor="middle">ĐÃ LÊN LỊCH</text>
+        <rect class="state" x="2896" y="1824" width="160" height="56" rx="8"/>
+        <text class="node-name" x="2976" y="1856" text-anchor="middle">ĐÓN KHÁCH</text>
+        <rect class="state" x="3096" y="1824" width="160" height="56" rx="8"/>
+        <text class="node-name" x="3176" y="1856" text-anchor="middle">ĐÃ KHỞI HÀNH</text>
+        <rect class="state" x="3296" y="1824" width="160" height="56" rx="8"/>
+        <text class="node-name" x="3376" y="1856" text-anchor="middle">ĐANG CHẠY</text>
+        <text class="body-copy" x="2760" y="1924">→ ĐẾN NƠI → HOÀN TẤT</text>
+        <text class="body-copy" x="3120" y="1924">ĐÃ LÊN LỊCH / ĐÓN KHÁCH → HỦY</text>
+        <text class="sub" x="2744" y="1984">Tài xế chỉ thao tác chuyến được giao · hủy muộn phải ghi audit đặc biệt</text>
+      </g>
+
+      <!-- DOMAIN + DATA PANELS -->
+      <g>
+        <rect class="panel" x="80" y="2056" width="800" height="408" rx="8"/>
+        <text class="tag" x="104" y="2080">DOMAIN + DATA · IDENTITY_DB</text>
+        <text class="node-name-lg" x="104" y="2112">Quan hệ tài khoản và nhà xe</text>
+        <text class="sub-12" x="104" y="2152">User 1 ── N UserRole N ── 1 Role</text>
+        <text class="sub-12" x="104" y="2184">User 1 ── N Membership N ── 1 Organization</text>
+        <text class="sub-12" x="104" y="2216">User 1 ── N RefreshToken</text>
+        <text class="sub-12" x="104" y="2248">User 1 ── N SecurityAudit</text>
+        <line x1="104" y1="2272" x2="856" y2="2272" stroke="rgba(45,49,66,0.12)" stroke-width="0.8"/>
+        <text class="tag" x="104" y="2300">ROLE MODEL</text>
+        <text class="body-copy" x="104" y="2332">CUSTOMER · DRIVER · OPERATOR_* · PLATFORM_ADMIN</text>
+        <text class="body-copy" x="104" y="2360">Operator role luôn gắn organizationId.</text>
+        <text class="sub" x="104" y="2400">No cross-service FK · UUID/ULID · timestamps UTC</text>
+        <text class="sub" x="104" y="2428">Secrets/token được hash; PII được mask/encrypt.</text>
+      </g>
+
+      <g>
+        <rect class="panel" x="960" y="2056" width="800" height="408" rx="8"/>
+        <text class="tag" x="984" y="2080">DOMAIN + DATA · TRANSPORT_DB</text>
+        <text class="node-name-lg" x="984" y="2112">Quan hệ xe, tuyến và chuyến</text>
+        <text class="sub-12" x="984" y="2152">Organization 1 ── N Bus 1 ── N Seat</text>
+        <text class="sub-12" x="984" y="2184">Organization 1 ── N DriverProfile</text>
+        <text class="sub-12" x="984" y="2216">Route 1 ── N RouteStop · Route 1 ── N Trip</text>
+        <text class="sub-12" x="984" y="2248">Trip N ── 1 Bus · Trip 1 ── N DriverAssignment</text>
+        <line x1="984" y1="2272" x2="1736" y2="2272" stroke="rgba(45,49,66,0.12)" stroke-width="0.8"/>
+        <text class="tag" x="984" y="2300">CONSTRAINTS</text>
+        <text class="body-copy" x="984" y="2332">unique (busId, seatCode) · arrivalAt &gt; departureAt</text>
+        <text class="body-copy" x="984" y="2360">No overlap: bus / driver assignment + schedule buffer.</text>
+        <text class="sub" x="984" y="2400">Khi mở bán, lưu bản chụp ghế/giá/chính sách không đổi.</text>
+        <text class="sub" x="984" y="2428">Organization là phạm vi dữ liệu nhà xe, không phải người đăng nhập.</text>
+      </g>
+
+      <g>
+        <rect class="panel-focal" x="1840" y="2056" width="800" height="408" rx="8"/>
+        <text x="1864" y="2080" fill="#eb6c36" font-size="8" font-family="'Geist Mono', monospace" font-weight="500" letter-spacing="0.12em">DOMAIN + DATA · BOOKING_DB</text>
+        <text class="node-name-lg" x="1864" y="2112">Quan hệ ghế và đơn đặt vé</text>
+        <text class="sub-12" x="1864" y="2152">TripSnapshot 1 ── N TripSeat</text>
+        <text class="sub-12" x="1864" y="2184">SeatHold 1 ── N HoldItem N ── 1 TripSeat</text>
+        <text class="sub-12" x="1864" y="2216">Booking 1 ── N BookingItem ── 1 Passenger</text>
+        <text class="sub-12" x="1864" y="2248">BookingItem N ── 1 TripSeat · 1 ── 0..1 Ticket</text>
+        <line x1="1864" y1="2272" x2="2616" y2="2272" stroke="rgba(235,108,54,0.24)" stroke-width="0.8"/>
+        <text class="tag" x="1864" y="2300">INVARIANTS</text>
+        <text class="body-copy" x="1864" y="2332">unique (tripId, sourceSeatId) · one passenger per item</text>
+        <text class="body-copy" x="1864" y="2360">Server computes subtotal − discount + fee = total.</text>
+        <text class="sub" x="1864" y="2400">SELECTED là client-only · money exact integer/decimal.</text>
+        <text class="sub" x="1864" y="2428">PAID items immutable; đổi vé đi qua saga/compensation.</text>
+      </g>
+
+      <g>
+        <rect class="panel" x="2720" y="2056" width="800" height="408" rx="8"/>
+        <text class="tag" x="2744" y="2080">DOMAIN + DATA · PAYMENT / READ MODELS</text>
+        <text class="node-name-lg" x="2744" y="2112">Quan hệ thanh toán và dữ liệu báo cáo</text>
+        <text class="sub-12" x="2744" y="2152">Payment 1 ── N PaymentAttempt</text>
+        <text class="sub-12" x="2744" y="2184">Payment 1 ── N Refund</text>
+        <text class="sub-12" x="2744" y="2216">Payment 1 ── N ReconciliationCase</text>
+        <text class="sub-12" x="2744" y="2248">WebhookReceipt: unique externalEventId</text>
+        <line x1="2744" y1="2272" x2="3496" y2="2272" stroke="rgba(45,49,66,0.12)" stroke-width="0.8"/>
+        <text class="tag" x="2744" y="2300">EVENTUAL READ MODELS</text>
+        <text class="body-copy" x="2744" y="2332">RevenueProjection · BookingProjection</text>
+        <text class="body-copy" x="2744" y="2360">OccupancyProjection · ExportJob</text>
+        <text class="sub" x="2744" y="2400">Total refund ≤ succeeded amount.</text>
+        <text class="sub" x="2744" y="2428">Provider transaction unique; callback lặp là no-op.</text>
+      </g>
+
+      <!-- Cross-cutting quality cards -->
+      <g>
+        <rect class="rail-section rail-nfr" x="80" y="2532" width="800" height="144" rx="8"/>
+        <text class="tag" x="104" y="2556">SECURITY &amp; TENANCY</text>
+        <text class="node-name-lg" x="104" y="2588">Mỗi service tự kiểm tra quyền</text>
+        <text class="body-copy" x="104" y="2620">HTTPS · token ngắn hạn · vai trò · quyền sở hữu · phạm vi nhà xe</text>
+        <text class="sub" x="104" y="2652">giới hạn gọi · bảo vệ phiên · tách secret · che dữ liệu cá nhân</text>
+      </g>
+      <g>
+        <rect class="rail-section rail-nfr" x="960" y="2532" width="800" height="144" rx="8"/>
+        <text class="tag" x="984" y="2556">CONSISTENCY &amp; RELIABILITY</text>
+        <text class="node-name-lg" x="984" y="2588">Không dùng một giao dịch DB xuyên nhiều service</text>
+        <text class="body-copy" x="984" y="2620">Giao dịch cục bộ · lưu sự kiện an toàn · chống lặp · bù trừ khi lỗi</text>
+        <text class="sub" x="984" y="2652">RPO ≤ 15m · RTO ≤ 4h · availability target 99.5%</text>
+      </g>
+      <g>
+        <rect class="rail-section rail-nfr" x="1840" y="2532" width="800" height="144" rx="8"/>
+        <text class="tag" x="1864" y="2556">PERFORMANCE &amp; SCALE</text>
+        <text class="node-name-lg" x="1864" y="2588">Mỗi nhóm nghiệp vụ mở rộng độc lập</text>
+        <text class="body-copy" x="1864" y="2620">Tìm chuyến p95 ≤ 2s · Giữ ghế p95 ≤ 1s · 300 người đồng thời</text>
+        <text class="sub" x="1864" y="2652">instance không giữ phiên · cache/báo cáo không thay dữ liệu gốc</text>
+        <text class="sub" x="1864" y="2672">responsive Web/Mobile · customer core targets WCAG 2.1 AA</text>
+      </g>
+      <g>
+        <rect class="rail-section rail-nfr" x="2720" y="2532" width="800" height="144" rx="8"/>
+        <text class="tag" x="2744" y="2556">OBSERVABILITY &amp; DELIVERY</text>
+        <text class="node-name-lg" x="2744" y="2588">Theo dõi một đơn vé xuyên toàn hệ thống</text>
+        <text class="body-copy" x="2744" y="2620">mã truy vết · log · metric · trace · độ trễ hàng đợi · cảnh báo</text>
+        <text class="sub" x="2744" y="2652">CI: unit · integration · contract · concurrency · load · scan</text>
+      </g>
+
+      <!-- Delivery, recovery and verification panels -->
+      <g>
+        <rect class="panel" x="80" y="2840" width="800" height="440" rx="8"/>
+        <text class="tag" x="104" y="2864">UI REQUIREMENTS · WEB / MOBILE / BACK-OFFICE</text>
+        <text class="node-name-lg" x="104" y="2896">Màn hình và trải nghiệm bắt buộc</text>
+        <text class="rail-kicker" x="104" y="2932">KHÁCH HÀNG</text>
+        <text class="body-copy" x="104" y="2960">Trang chủ · Tìm kiếm · Chi tiết chuyến · Sơ đồ ghế</text>
+        <text class="body-copy" x="104" y="2988">Nhập hành khách · Thanh toán · Kết quả · Vé QR</text>
+        <text class="body-copy" x="104" y="3016">Vé của tôi · Lịch sử · Hủy/đổi · Đánh giá</text>
+        <text class="rail-kicker" x="104" y="3052">NHÀ XE / TÀI XẾ / ADMIN</text>
+        <text class="body-copy" x="104" y="3080">Dashboard · Xe/sơ đồ ghế · Tuyến/điểm dừng · Chuyến</text>
+        <text class="body-copy" x="104" y="3108">Phân công · Manifest · Check-in · Báo cáo · User/Role</text>
+        <line x1="104" y1="3132" x2="856" y2="3132" stroke="rgba(45,49,66,0.12)" stroke-width="0.8"/>
+        <text class="tag" x="104" y="3160">UX ACCEPTANCE</text>
+        <text class="body-copy" x="104" y="3188">Ghế phải phân biệt: trống / đang chọn / đang giữ / đã bán</text>
+        <text class="body-copy" x="104" y="3216">Responsive · thao tác bàn phím · lỗi có hướng xử lý · WCAG AA</text>
+        <text class="sub" x="104" y="3252">Web và Mobile dùng cùng API; không sao chép nghiệp vụ sang client.</text>
+      </g>
+
+      <g>
+        <rect class="panel" x="960" y="2840" width="800" height="440" rx="8"/>
+        <text class="tag" x="984" y="2864">API CONTRACT · SYNCHRONOUS + EVENT</text>
+        <text class="node-name-lg" x="984" y="2896">Quy ước để Web và Mobile gọi thống nhất</text>
+        <text class="rail-kicker" x="984" y="2932">REQUEST</text>
+        <text class="body-copy" x="984" y="2960">Authorization · requestId · Idempotency-Key · timezone UTC</text>
+        <text class="body-copy" x="984" y="2988">Validate schema · phân trang/filter/sort · chống gửi dữ liệu thừa</text>
+        <text class="rail-kicker" x="984" y="3024">RESPONSE / ERROR</text>
+        <text class="body-copy" x="984" y="3052">HTTP status + code nghiệp vụ + message dễ hiểu + fieldErrors</text>
+        <text class="body-copy" x="984" y="3080">Không lộ stack trace; mọi lỗi có requestId để tra log</text>
+        <text class="rail-kicker" x="984" y="3116">CONTRACT &amp; EVENT</text>
+        <text class="body-copy" x="984" y="3144">/api/v1 · OpenAPI · contract test · tương thích ngược</text>
+        <text class="body-copy" x="984" y="3172">Event có eventId, type, occurredAt, correlationId, payload version</text>
+        <line x1="984" y1="3196" x2="1736" y2="3196" stroke="rgba(45,49,66,0.12)" stroke-width="0.8"/>
+        <text class="sub" x="984" y="3228">Command cần kết quả ngay → REST · thông báo việc đã xảy ra → Event.</text>
+        <text class="sub" x="984" y="3252">API Gateway định tuyến; service vẫn tự kiểm tra quyền và dữ liệu.</text>
+      </g>
+
+      <g>
+        <rect class="rail-section rail-rule" x="1840" y="2840" width="800" height="440" rx="8"/>
+        <text class="tag" x="1864" y="2864">EXCEPTIONS · SAFE RECOVERY</text>
+        <text class="node-name-lg" x="1864" y="2896">Lỗi phải phục hồi mà không mất tiền hoặc bán trùng ghế</text>
+        <text class="body-copy" x="1864" y="2936">Cổng thanh toán timeout → giữ PENDING, đối soát; không báo thất bại vội</text>
+        <text class="body-copy" x="1864" y="2968">Webhook lặp/trễ → kiểm chữ ký, số tiền, eventId; bản lặp là no-op</text>
+        <text class="body-copy" x="1864" y="3000">Tiền về sau khi hết giữ ghế → thử xác nhận ghế; không còn thì hoàn tiền</text>
+        <text class="body-copy" x="1864" y="3032">RabbitMQ tạm ngừng → sự kiện vẫn nằm trong outbox, gửi lại khi hồi phục</text>
+        <text class="body-copy" x="1864" y="3064">Email/Push lỗi → retry/backoff/DLQ; không rollback vé hay thanh toán</text>
+        <text class="body-copy" x="1864" y="3096">Service phụ thuộc lỗi → timeout ngắn, circuit breaker, trả lỗi có thể thử lại</text>
+        <text class="body-copy" x="1864" y="3128">Hủy chuyến có vé → khóa thao tác, hủy vé, hoàn tiền, báo khách hàng</text>
+        <line x1="1864" y1="3152" x2="2616" y2="3152" stroke="rgba(169,120,20,0.24)" stroke-width="0.8"/>
+        <text class="tag" x="1864" y="3180">RECOVERY EVIDENCE</text>
+        <text class="body-copy" x="1864" y="3208">Audit log · lịch sử trạng thái · reconciliation case · DLQ dashboard</text>
+        <text class="sub" x="1864" y="3244">Mọi retry phải an toàn khi gọi lặp; thao tác bù trừ cũng phải truy vết.</text>
+      </g>
+
+      <g>
+        <rect class="rail-section rail-nfr" x="2720" y="2840" width="800" height="440" rx="8"/>
+        <text class="tag" x="2744" y="2864">DEPLOYMENT · DELIVERY · OPERATIONS</text>
+        <text class="node-name-lg" x="2744" y="2896">Triển khai và vận hành baseline</text>
+        <text class="rail-kicker" x="2744" y="2932">RUNTIME</text>
+        <text class="body-copy" x="2744" y="2960">Web/Mobile → HTTPS → Reverse Proxy / API Gateway</text>
+        <text class="body-copy" x="2744" y="2988">6 service chạy container; scale độc lập; health/readiness check</text>
+        <text class="body-copy" x="2744" y="3016">PostgreSQL riêng/service · Redis giữ ghế · RabbitMQ chuyển sự kiện</text>
+        <text class="rail-kicker" x="2744" y="3052">OBSERVABILITY &amp; DATA SAFETY</text>
+        <text class="body-copy" x="2744" y="3080">Central logs · metrics · traces · alert · queue lag · audit dashboard</text>
+        <text class="body-copy" x="2744" y="3108">Backup tự động · restore drill · RPO ≤ 15m · RTO ≤ 4h</text>
+        <text class="rail-kicker" x="2744" y="3144">CI/CD QUALITY GATES</text>
+        <text class="body-copy" x="2744" y="3172">Unit · integration · contract · concurrency · load · security scan</text>
+        <text class="body-copy" x="2744" y="3200">Migrate DB tương thích ngược · rollout từng bước · rollback artifact</text>
+        <text class="sub" x="2744" y="3244">Local/demo có thể Docker Compose; production tách secret và môi trường.</text>
+      </g>
+
+      <g>
+        <rect class="rail-section rail-usecase" x="80" y="3320" width="3440" height="160" rx="8"/>
+        <text class="tag" x="104" y="3344">TRACEABILITY · DEFINITION OF DONE</text>
+        <text class="node-name-lg" x="104" y="3376">Mục tiêu → FR/BR → Use Case → API/Event → Acceptance Criteria → Test evidence</text>
+        <text class="body-copy" x="104" y="3412">Ví dụ: Không bán trùng ghế → BR-SEAT → UC-BOOK → POST /seat-holds → AC-SEAT-001/002 → concurrency test</text>
+        <text class="body-copy" x="104" y="3444">Hoàn tất khi: code + review + unit/integration/contract test + logging/metric + tài liệu deploy + bằng chứng nghiệm thu.</text>
+      </g>
+
+      <!-- Bottom legend strip -->
+      <line x1="40" y1="3544" x2="3560" y2="3544" stroke="rgba(45,49,66,0.12)" stroke-width="0.8"/>
+      <text class="tag" x="40" y="3572">LEGEND</text>
+      <line class="connector-link" x1="160" y1="3568" x2="224" y2="3568" marker-end="url(#arrow-link)"/>
+      <text class="body-copy" x="240" y="3572">HTTPS / REST</text>
+      <line class="connector-event" x1="440" y1="3568" x2="504" y2="3568" marker-end="url(#arrow)"/>
+      <text class="body-copy" x="520" y="3572">Sự kiện xử lý nền</text>
+      <rect class="panel-focal" x="720" y="3556" width="48" height="24" rx="4"/>
+      <text class="body-copy" x="784" y="3572">Trọng tâm: Cổng API + Đặt vé</text>
+      <rect class="store" x="1120" y="3556" width="48" height="24" rx="4"/>
+      <text class="body-copy" x="1184" y="3572">Kho dữ liệu service sở hữu</text>
+      <rect class="panel-external" x="1440" y="3556" width="48" height="24" rx="4"/>
+      <text class="body-copy" x="1504" y="3572">Hệ thống phụ thuộc bên ngoài</text>
+      <text class="sub" x="1920" y="3572">Source: docs/srs · one canvas · no cross-service DB access · timestamps UTC</text>
+      </g>
+    </svg>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      const viewport = document.getElementById('diagram-viewport');
+      const canvas = document.getElementById('diagram-canvas');
+      const zoomLevel = document.getElementById('zoom-level');
+      const zoomInButton = document.getElementById('zoom-in');
+      const zoomOutButton = document.getElementById('zoom-out');
+      const fitWidthButton = document.getElementById('fit-width');
+      const resetButton = document.getElementById('reset-view');
+
+      const baseWidth = 6264;
+      const baseHeight = 5424;
+      const minimumZoom = 0.12;
+      const maximumZoom = 2.5;
+      let zoom = 1;
+
+      const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
+
+      function updateCanvasSize() {
+        canvas.style.width = `${Math.round(baseWidth * zoom)}px`;
+        canvas.style.height = `${Math.round(baseHeight * zoom)}px`;
+        zoomLevel.value = `${Math.round(zoom * 100)}%`;
+        zoomLevel.textContent = zoomLevel.value;
+      }
+
+      function setZoom(nextZoom, clientX, clientY) {
+        const previousZoom = zoom;
+        const rect = viewport.getBoundingClientRect();
+        const anchorX = clientX ?? rect.left + viewport.clientWidth / 2;
+        const anchorY = clientY ?? rect.top + viewport.clientHeight / 2;
+        const offsetX = anchorX - rect.left;
+        const offsetY = anchorY - rect.top;
+        const contentX = (viewport.scrollLeft + offsetX) / previousZoom;
+        const contentY = (viewport.scrollTop + offsetY) / previousZoom;
+
+        zoom = clamp(nextZoom, minimumZoom, maximumZoom);
+        updateCanvasSize();
+
+        viewport.scrollLeft = contentX * zoom - offsetX;
+        viewport.scrollTop = contentY * zoom - offsetY;
+      }
+
+      function zoomBy(factor, clientX, clientY) {
+        setZoom(zoom * factor, clientX, clientY);
+      }
+
+      function fitWidth() {
+        const padding = 24;
+        const fittedZoom = (viewport.clientWidth - padding) / baseWidth;
+        zoom = clamp(fittedZoom, minimumZoom, maximumZoom);
+        updateCanvasSize();
+        viewport.scrollLeft = 0;
+        viewport.scrollTop = 0;
+      }
+
+      function resetView() {
+        zoom = 1;
+        updateCanvasSize();
+        viewport.scrollLeft = 0;
+        viewport.scrollTop = 0;
+      }
+
+      viewport.addEventListener('wheel', (event) => {
+        event.preventDefault();
+        const factor = clamp(Math.exp(-event.deltaY * 0.0015), 0.75, 1.25);
+        zoomBy(factor, event.clientX, event.clientY);
+      }, { passive: false });
+
+      viewport.addEventListener('dblclick', (event) => {
+        event.preventDefault();
+        zoomBy(1.25, event.clientX, event.clientY);
+      });
+
+      let dragPointerId = null;
+      let dragStartX = 0;
+      let dragStartY = 0;
+      let dragScrollLeft = 0;
+      let dragScrollTop = 0;
+
+      viewport.addEventListener('pointerdown', (event) => {
+        if (event.button !== 0) return;
+        dragPointerId = event.pointerId;
+        dragStartX = event.clientX;
+        dragStartY = event.clientY;
+        dragScrollLeft = viewport.scrollLeft;
+        dragScrollTop = viewport.scrollTop;
+        viewport.setPointerCapture(event.pointerId);
+        viewport.classList.add('is-dragging');
+        event.preventDefault();
+      });
+
+      viewport.addEventListener('pointermove', (event) => {
+        if (event.pointerId !== dragPointerId) return;
+        viewport.scrollLeft = dragScrollLeft - (event.clientX - dragStartX);
+        viewport.scrollTop = dragScrollTop - (event.clientY - dragStartY);
+      });
+
+      function stopDragging(event) {
+        if (event.pointerId !== dragPointerId) return;
+        if (viewport.hasPointerCapture(event.pointerId)) {
+          viewport.releasePointerCapture(event.pointerId);
+        }
+        dragPointerId = null;
+        viewport.classList.remove('is-dragging');
+      }
+
+      viewport.addEventListener('pointerup', stopDragging);
+      viewport.addEventListener('pointercancel', stopDragging);
+
+      zoomInButton.addEventListener('click', () => zoomBy(1.2));
+      zoomOutButton.addEventListener('click', () => zoomBy(1 / 1.2));
+      fitWidthButton.addEventListener('click', fitWidth);
+      resetButton.addEventListener('click', resetView);
+
+      viewport.addEventListener('keydown', (event) => {
+        const panStep = 96;
+        if (event.key === '+' || event.key === '=') zoomBy(1.2);
+        else if (event.key === '-') zoomBy(1 / 1.2);
+        else if (event.key === '0') resetView();
+        else if (event.key.toLowerCase() === 'f') fitWidth();
+        else if (event.key === 'ArrowLeft') viewport.scrollLeft -= panStep;
+        else if (event.key === 'ArrowRight') viewport.scrollLeft += panStep;
+        else if (event.key === 'ArrowUp') viewport.scrollTop -= panStep;
+        else if (event.key === 'ArrowDown') viewport.scrollTop += panStep;
+        else return;
+        event.preventDefault();
+      });
+
+      window.addEventListener('resize', () => {
+        if (zoom < 0.5) fitWidth();
+      });
+
+      updateCanvasSize();
+      requestAnimationFrame(fitWidth);
+    })();
+  </script>
+</body>
+</html>

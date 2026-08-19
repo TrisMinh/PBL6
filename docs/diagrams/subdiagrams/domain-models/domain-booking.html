@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Domain Model — Đặt vé và kho ghế</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box}html,body{margin:0}body{padding:32px;color:#2d3142;background:#f5f5f5;font-family:'Geist',system-ui,sans-serif}
+    header{max-width:1120px;margin-bottom:24px}.eyebrow{margin:0 0 8px;color:#4f5d75;font:500 8px 'Geist Mono',monospace;letter-spacing:.16em;text-transform:uppercase}
+    h1{margin:0 0 12px;font:650 40px/1.08 'Segoe UI',Arial,sans-serif;letter-spacing:-.025em}.subtitle{margin:0;color:#4f5d75;font-size:16px;line-height:1.5}
+    .diagram-shell{height:calc(100vh - 180px);min-height:520px;display:flex;flex-direction:column;background:#f5f5f5;border:1px solid rgba(45,49,66,.16);border-radius:8px;overflow:hidden}
+    .diagram-toolbar{flex:0 0 48px;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:8px 12px;background:#ffffff;border-bottom:1px solid rgba(45,49,66,.12)}
+    .interaction-hint{color:#4f5d75;font:500 12px 'Geist Mono',monospace;white-space:nowrap}.toolbar-actions{display:flex;align-items:center;gap:8px}.tool-button{min-width:40px;height:32px;padding:0 12px;color:#2d3142;background:#f5f5f5;border:1px solid rgba(45,49,66,.24);border-radius:6px;font:600 12px 'Geist',sans-serif;cursor:pointer}.tool-button:hover{color:#2e5aa8;border-color:#2e5aa8}.tool-button:focus-visible,.canvas:focus-visible{outline:2px solid #2e5aa8;outline-offset:-2px}.zoom-level{min-width:58px;color:#4f5d75;font:600 12px 'Geist Mono',monospace;text-align:center}.noscript-note{margin:0;padding:8px 12px;color:#4f5d75;background:rgba(169,120,20,.09);border-bottom:1px solid rgba(169,120,20,.32);font:500 12px 'Geist',sans-serif}
+    .canvas{position:relative;flex:1 1 auto;min-height:0;width:100%;overflow:auto;cursor:grab;overscroll-behavior:contain;touch-action:none;scrollbar-color:#7a8399 #ececec}.canvas.is-dragging{cursor:grabbing;user-select:none}svg{display:block;width:2236px;height:auto;background:#f5f5f5}
+    .zone{fill:rgba(45,49,66,.025);stroke:rgba(45,49,66,.16);stroke-width:1}.zone-title{fill:#7a8399;font:500 8px 'Geist Mono',monospace;letter-spacing:.14em}
+    .node{fill:#ffffff;stroke:#2d3142;stroke-width:1}.actor{fill:rgba(46,90,168,.08);stroke:rgba(46,90,168,.62);stroke-width:1}.external{fill:rgba(45,49,66,.03);stroke:rgba(45,49,66,.34);stroke-width:1;stroke-dasharray:4 4}
+    .focal{fill:rgba(235,108,54,.08);stroke:#eb6c36;stroke-width:1.2}.store{fill:rgba(45,49,66,.05);stroke:#4f5d75;stroke-width:1}.state{fill:#ffffff;stroke:#4f5d75;stroke-width:1}
+    .rule{fill:rgba(169,120,20,.08);stroke:rgba(169,120,20,.56);stroke-width:1}.usecase{fill:rgba(116,84,165,.07);stroke:rgba(116,84,165,.52);stroke-width:1}.quality{fill:rgba(79,115,95,.08);stroke:rgba(79,115,95,.52);stroke-width:1}
+    .title{fill:#2d3142;font:600 20px 'Geist',sans-serif}.name{fill:#2d3142;font:600 16px 'Geist',sans-serif}.name-sm{fill:#2d3142;font:600 12px 'Geist',sans-serif}.body{fill:#4f5d75;font:400 12px 'Geist',sans-serif}.mono{fill:#4f5d75;font:400 12px 'Geist Mono',monospace}.mono-xs{fill:#4f5d75;font:400 8px 'Geist Mono',monospace}.tag{fill:#7a8399;font:500 8px 'Geist Mono',monospace;letter-spacing:.12em}
+    .edge{fill:none;stroke:#4f5d75;stroke-width:1.2}.edge-link{fill:none;stroke:#2e5aa8;stroke-width:1.2}.edge-event{fill:none;stroke:#4f5d75;stroke-width:1.1;stroke-dasharray:5 4}.edge-accent{fill:none;stroke:#eb6c36;stroke-width:1.4}.lifeline{stroke:rgba(45,49,66,.22);stroke-width:1;stroke-dasharray:4 4}
+    .uml-association{fill:none;stroke:#4f5d75;stroke-width:1}.uml-dependency{fill:none;stroke:#7454a5;stroke-width:1.1;stroke-dasharray:6 4}.uml-symbol{fill:#ffffff;stroke:#2d3142;stroke-width:1.25}.uml-usecase{fill:rgba(116,84,165,.07);stroke:#7454a5;stroke-width:1.15}.uml-usecase-optional{fill:rgba(169,120,20,.08);stroke:#a97814;stroke-width:1.15}.actor-line{fill:none;stroke:#2e5aa8;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}.activity-action{fill:#ffffff;stroke:#2d3142;stroke-width:1.1}.activity-decision{fill:rgba(169,120,20,.09);stroke:#a97814;stroke-width:1.2}.activity-flow{fill:none;stroke:#4f5d75;stroke-width:1.25}.activation{fill:rgba(46,90,168,.12);stroke:#2e5aa8;stroke-width:1}.bce-boundary{fill:#ffffff;stroke:#2e5aa8;stroke-width:1.4}.bce-control{fill:rgba(235,108,54,.08);stroke:#eb6c36;stroke-width:1.4}.bce-entity{fill:rgba(45,49,66,.05);stroke:#4f5d75;stroke-width:1.4}.model-header{fill:rgba(46,90,168,.06)}.erd-header{fill:rgba(46,90,168,.1)}.erd-row{fill:rgba(45,49,66,.025)}.key-badge{fill:#ececec;stroke:rgba(45,49,66,.2);stroke-width:.8}.db-fill{fill:rgba(45,49,66,.04);stroke:#4f5d75;stroke-width:1.1}.service-component{fill:#ffffff;stroke:#2e5aa8;stroke-width:1.1}.deploy-node{fill:#ffffff;stroke:#4f5d75;stroke-width:1.1}.event-envelope{fill:rgba(116,84,165,.07);stroke:#7454a5;stroke-width:1.1}.protocol-label{fill:#f5f5f5;stroke:rgba(45,49,66,.16);stroke-width:.8}
+    .footer-rule{stroke:rgba(45,49,66,.16);stroke-width:.8}.footer{fill:#7a8399;font:400 8px 'Geist Mono',monospace;letter-spacing:.06em}
+    @media(max-width:760px){body{padding:16px}h1{font-size:32px}.subtitle{font-size:14px}.diagram-shell{height:calc(100vh - 160px);min-height:420px}.interaction-hint{display:none}.tool-button{padding:0 9px}}
+    @media print{body{padding:0}.diagram-shell{height:auto;border:0;overflow:visible}.diagram-toolbar,.noscript-note{display:none}.canvas{overflow:visible}svg{width:100%!important;height:auto!important}}</style>
+</head>
+<body>
+  <header>
+    <p class="eyebrow">Online Bus Ticket Platform · Diagram con</p>
+    <h1>Domain Model — Đặt vé và kho ghế</h1>
+    <p class="subtitle">Aggregate Booking cùng snapshot chuyến, kho ghế và vé; đây là nơi bảo vệ quy tắc không đặt trùng ghế.</p>
+  </header>
+  <div class="diagram-shell">
+    <div class="diagram-toolbar" role="group" aria-label="Điều khiển sơ đồ">
+      <span class="interaction-hint">Lăn chuột: zoom · giữ chuột trái và kéo: di chuyển · phím F: vừa chiều rộng</span>
+      <div class="toolbar-actions">
+        <button class="tool-button" id="zoom-out" type="button" aria-label="Thu nhỏ">−</button>
+        <output class="zoom-level" id="zoom-level" aria-live="polite">100%</output>
+        <button class="tool-button" id="zoom-in" type="button" aria-label="Phóng to">+</button>
+        <button class="tool-button" id="fit-width" type="button">Vừa rộng</button>
+        <button class="tool-button" id="reset-view" type="button">100%</button>
+      </div>
+    </div>
+    <noscript><p class="noscript-note">JavaScript đang tắt: sơ đồ vẫn hiển thị nhưng zoom bằng con lăn và kéo canvas sẽ không hoạt động.</p></noscript>
+    <div class="canvas" id="diagram-viewport" tabindex="0" aria-label="Sơ đồ tương tác. Lăn chuột để phóng to hoặc thu nhỏ; giữ chuột trái và kéo để di chuyển.">
+    <svg id="diagram-canvas" viewBox="0 0 2236 1504" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="domain-booking-title domain-booking-desc">
+      <title id="domain-booking-title">Domain Model — Đặt vé và kho ghế</title>
+      <desc id="domain-booking-desc">Aggregate Booking cùng snapshot chuyến, kho ghế và vé; đây là nơi bảo vệ quy tắc không đặt trùng ghế.</desc>
+      
+    <defs>
+      <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
+      <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#2e5aa8"/></marker>
+      <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#eb6c36"/></marker>
+      <marker id="arrow-open" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polyline points="0 0, 8 3, 0 6" fill="none" stroke="#4f5d75" stroke-width="1.2"/></marker>
+      <marker id="uml-generalization" markerWidth="12" markerHeight="10" refX="11" refY="5" orient="auto"><polygon points="0 0, 12 5, 0 10" fill="#f5f5f5" stroke="#4f5d75" stroke-width="1"/></marker>
+      <marker id="uml-composition" markerWidth="12" markerHeight="10" refX="1" refY="5" orient="auto-start-reverse"><polygon points="1 5, 6 1, 11 5, 6 9" fill="#2d3142" stroke="#2d3142" stroke-width="1"/></marker>
+    </defs>
+      <rect width="2236" height="1504" fill="#f5f5f5"/>
+      <line class="edge" x1="548" y1="187" x2="868" y2="187"/><rect x="640" y="160" width="136" height="18" rx="3" fill="#f5f5f5"/><text class="mono" x="708" y="173" text-anchor="middle">contains</text>
+      <text class="tag" x="564" y="177" text-anchor="start">1</text>
+      <text class="tag" x="852" y="177" text-anchor="end">1..*</text>
+<path class="edge" d="M1938 362 H1128 Q1120 362 1120 370 V414 Q1120 422 1112 422 H298" marker-start="url(#uml-composition)"/><rect x="1134" y="383" width="136" height="18" rx="3" fill="#f5f5f5"/><text class="mono" x="1202" y="396" text-anchor="middle">contains</text>
+      <text class="tag" x="1922" y="380" text-anchor="end">1</text>
+      <text class="tag" x="314" y="414" text-anchor="start">1..*</text>
+<path class="edge" d="M298 422 H700 Q708 422 708 414 V418 Q708 410 716 410 H1118"/><rect x="722" y="407" width="136" height="18" rx="3" fill="#f5f5f5"/><text class="mono" x="790" y="420" text-anchor="middle">reserves</text>
+      <text class="tag" x="314" y="414" text-anchor="start">0..*</text>
+      <text class="tag" x="1102" y="428" text-anchor="end">1</text>
+<line class="edge" x1="1368" y1="497" x2="1688" y2="497" marker-start="url(#uml-composition)"/><rect x="1460" y="470" width="136" height="18" rx="3" fill="#f5f5f5"/><text class="mono" x="1528" y="483" text-anchor="middle">contains</text>
+      <text class="tag" x="1384" y="487" text-anchor="start">1</text>
+      <text class="tag" x="1672" y="487" text-anchor="end">1..*</text>
+<path class="edge" d="M1118 760 H716 Q708 760 708 768 V764 Q708 772 700 772 H298" marker-start="url(#uml-composition)"/><rect x="722" y="757" width="136" height="18" rx="3" fill="#f5f5f5"/><text class="mono" x="790" y="770" text-anchor="middle">contains</text>
+      <text class="tag" x="1102" y="778" text-anchor="end">1</text>
+      <text class="tag" x="314" y="764" text-anchor="start">1..*</text>
+<path class="edge" d="M1938 608 H1128 Q1120 608 1120 616 V764 Q1120 772 1112 772 H298"/><rect x="1134" y="681" width="136" height="18" rx="3" fill="#f5f5f5"/><text class="mono" x="1202" y="694" text-anchor="middle">assigned to</text>
+      <text class="tag" x="1922" y="626" text-anchor="end">1</text>
+      <text class="tag" x="314" y="764" text-anchor="start">1</text>
+<path class="edge" d="M1938 422 H1536 Q1528 422 1528 414 V418 Q1528 410 1520 410 H1118"/><rect x="1542" y="407" width="136" height="18" rx="3" fill="#f5f5f5"/><text class="mono" x="1610" y="420" text-anchor="middle">books</text>
+      <text class="tag" x="1922" y="414" text-anchor="end">0..1</text>
+      <text class="tag" x="1134" y="428" text-anchor="start">1</text>
+<path class="edge" d="M1938 608 H1536 Q1528 608 1528 616 V764 Q1528 772 1520 772 H1118"/><rect x="1542" y="681" width="136" height="18" rx="3" fill="#f5f5f5"/><text class="mono" x="1610" y="694" text-anchor="middle">issues</text>
+      <text class="tag" x="1922" y="626" text-anchor="end">1</text>
+      <text class="tag" x="1134" y="764" text-anchor="start">0..1</text>
+<path class="edge" d="M1118 422 H716 Q708 422 708 414 V346 Q708 338 700 338 H298"/><rect x="722" y="371" width="170.7" height="18" rx="3" fill="#f5f5f5"/><text class="mono" x="807.35" y="384" text-anchor="middle">references snapshot</text>
+      <text class="tag" x="1102" y="414" text-anchor="end">0..*</text>
+      <text class="tag" x="314" y="356" text-anchor="start">1</text>
+<path class="edge" d="M1938 1062 H1128 Q1120 1062 1120 1070 V1114 Q1120 1122 1112 1122 H298" marker-start="url(#uml-composition)"/><rect x="1134" y="1083" width="136" height="18" rx="3" fill="#f5f5f5"/><text class="mono" x="1202" y="1096" text-anchor="middle">records</text>
+      <text class="tag" x="1922" y="1080" text-anchor="end">1</text>
+      <text class="tag" x="314" y="1114" text-anchor="start">0..*</text>
+<path class="edge" d="M1118 760 H716 Q708 760 708 768 V1114 Q708 1122 700 1122 H298"/><rect x="722" y="932" width="136" height="18" rx="3" fill="#f5f5f5"/><text class="mono" x="790" y="945" text-anchor="middle">applies</text>
+      <text class="tag" x="1102" y="778" text-anchor="end">1</text>
+      <text class="tag" x="314" y="1114" text-anchor="start">0..*</text>
+<line class="edge" x1="1118" y1="1062" x2="1118" y2="1122"/><rect x="1132" y="1083" width="136" height="18" rx="3" fill="#f5f5f5"/><text class="mono" x="1200" y="1096" text-anchor="middle">receives</text>
+      <text class="tag" x="1134" y="1080" text-anchor="start">1</text>
+      <text class="tag" x="1102" y="1114" text-anchor="end">0..1</text><g data-node="true"><rect class="node" x="48" y="72" width="500" height="266" rx="8"/>
+    <path class="model-header" d="M49 80 Q49 73 56 73 H540 Q547 73 547 80 V142 H49 Z"/>
+    <text class="tag" x="66" y="94">«domain entity»</text>
+    <text class="name" x="66" y="122">TripSnapshot</text>
+    <line class="footer-rule" x1="48" y1="142" x2="548" y2="142"/><text class="mono" x="66" y="162">− tripId</text><text class="mono" x="66" y="186">− organizationId</text><text class="mono" x="66" y="210">− routeLabel</text><text class="mono" x="66" y="234">− departureAt</text><text class="mono" x="66" y="258">− saleState</text><line class="footer-rule" x1="48" y1="272" x2="548" y2="272"/><text class="tag" x="66" y="290">OPERATIONS</text><text class="body" x="66" y="310">+ closeInventory()</text></g>
+<g data-node="true"><rect class="node" x="868" y="72" width="500" height="338" rx="8"/>
+    <path class="model-header" d="M869 80 Q869 73 876 73 H1360 Q1367 73 1367 80 V142 H869 Z"/>
+    <text class="tag" x="886" y="94">«inventory root»</text>
+    <text class="name" x="886" y="122">TripSeat</text>
+    <line class="footer-rule" x1="868" y1="142" x2="1368" y2="142"/><text class="mono" x="886" y="162">− tripId</text><text class="mono" x="886" y="186">− seatCode</text><text class="mono" x="886" y="210">− status</text><text class="mono" x="886" y="234">− holdId</text><text class="mono" x="886" y="258">− bookingItemId</text><line class="footer-rule" x1="868" y1="272" x2="1368" y2="272"/><text class="tag" x="886" y="290">OPERATIONS</text><text class="body" x="886" y="310">+ hold()</text><text class="body" x="886" y="334">+ book()</text><text class="body" x="886" y="358">+ release()</text><text class="body" x="886" y="382">+ disable()</text></g>
+<g data-node="true"><rect class="node" x="1688" y="72" width="500" height="290" rx="8"/>
+    <path class="model-header" d="M1689 80 Q1689 73 1696 73 H2180 Q2187 73 2187 80 V142 H1689 Z"/>
+    <text class="tag" x="1706" y="94">«aggregate root»</text>
+    <text class="name" x="1706" y="122">SeatHold</text>
+    <line class="footer-rule" x1="1688" y1="142" x2="2188" y2="142"/><text class="mono" x="1706" y="162">− id</text><text class="mono" x="1706" y="186">− customerId</text><text class="mono" x="1706" y="210">− expiresAt</text><text class="mono" x="1706" y="234">− status</text><line class="footer-rule" x1="1688" y1="248" x2="2188" y2="248"/><text class="tag" x="1706" y="266">OPERATIONS</text><text class="body" x="1706" y="286">+ isExpired(now)</text><text class="body" x="1706" y="310">+ consume()</text><text class="body" x="1706" y="334">+ release()</text></g>
+<g data-node="true"><rect class="node" x="48" y="422" width="500" height="186" rx="8"/>
+    <path class="model-header" d="M49 430 Q49 423 56 423 H540 Q547 423 547 430 V492 H49 Z"/>
+    <text class="tag" x="66" y="444">«domain entity»</text>
+    <text class="name" x="66" y="472">SeatHoldItem</text>
+    <line class="footer-rule" x1="48" y1="492" x2="548" y2="492"/><text class="mono" x="66" y="512">− seatHoldId</text><text class="mono" x="66" y="536">− tripId</text><text class="mono" x="66" y="560">− seatCode</text><text class="mono" x="66" y="584">− priceSnapshot</text></g>
+<g data-node="true"><rect class="node" x="868" y="422" width="500" height="338" rx="8"/>
+    <path class="model-header" d="M869 430 Q869 423 876 423 H1360 Q1367 423 1367 430 V492 H869 Z"/>
+    <text class="tag" x="886" y="444">«aggregate root»</text>
+    <text class="name" x="886" y="472">Booking</text>
+    <line class="footer-rule" x1="868" y1="492" x2="1368" y2="492"/><text class="mono" x="886" y="512">− id</text><text class="mono" x="886" y="536">− bookingCode</text><text class="mono" x="886" y="560">− customerId</text><text class="mono" x="886" y="584">− status</text><text class="mono" x="886" y="608">− totalAmount</text><line class="footer-rule" x1="868" y1="622" x2="1368" y2="622"/><text class="tag" x="886" y="640">OPERATIONS</text><text class="body" x="886" y="660">+ calculateTotal()</text><text class="body" x="886" y="684">+ confirmPayment(ref)</text><text class="body" x="886" y="708">+ requestCancel()</text><text class="body" x="886" y="732">+ expire()</text></g>
+<g data-node="true"><rect class="node" x="1688" y="422" width="500" height="186" rx="8"/>
+    <path class="model-header" d="M1689 430 Q1689 423 1696 423 H2180 Q2187 423 2187 430 V492 H1689 Z"/>
+    <text class="tag" x="1706" y="444">«domain entity»</text>
+    <text class="name" x="1706" y="472">BookingItem</text>
+    <line class="footer-rule" x1="1688" y1="492" x2="2188" y2="492"/><text class="mono" x="1706" y="512">− bookingId</text><text class="mono" x="1706" y="536">− tripId</text><text class="mono" x="1706" y="560">− seatCode</text><text class="mono" x="1706" y="584">− unitPrice</text></g>
+<g data-node="true"><rect class="node" x="48" y="772" width="500" height="266" rx="8"/>
+    <path class="model-header" d="M49 780 Q49 773 56 773 H540 Q547 773 547 780 V842 H49 Z"/>
+    <text class="tag" x="66" y="794">«domain entity»</text>
+    <text class="name" x="66" y="822">Passenger</text>
+    <line class="footer-rule" x1="48" y1="842" x2="548" y2="842"/><text class="mono" x="66" y="862">− bookingId</text><text class="mono" x="66" y="886">− bookingItemId</text><text class="mono" x="66" y="910">− fullName</text><text class="mono" x="66" y="934">− phone</text><text class="mono" x="66" y="958">− documentMasked</text><line class="footer-rule" x1="48" y1="972" x2="548" y2="972"/><text class="tag" x="66" y="990">OPERATIONS</text><text class="body" x="66" y="1010">+ maskSensitiveData()</text></g>
+<g data-node="true"><rect class="node" x="868" y="772" width="500" height="290" rx="8"/>
+    <path class="model-header" d="M869 780 Q869 773 876 773 H1360 Q1367 773 1367 780 V842 H869 Z"/>
+    <text class="tag" x="886" y="794">«domain entity»</text>
+    <text class="name" x="886" y="822">Ticket</text>
+    <line class="footer-rule" x1="868" y1="842" x2="1368" y2="842"/><text class="mono" x="886" y="862">− id</text><text class="mono" x="886" y="886">− bookingItemId</text><text class="mono" x="886" y="910">− qrTokenHash</text><text class="mono" x="886" y="934">− status</text><line class="footer-rule" x1="868" y1="948" x2="1368" y2="948"/><text class="tag" x="886" y="966">OPERATIONS</text><text class="body" x="886" y="986">+ checkIn(actor, tripId)</text><text class="body" x="886" y="1010">+ cancel()</text><text class="body" x="886" y="1034">+ markRefunded()</text></g>
+<g data-node="true"><rect class="node" x="1688" y="772" width="500" height="290" rx="8"/>
+    <path class="model-header" d="M1689 780 Q1689 773 1696 773 H2180 Q2187 773 2187 780 V842 H1689 Z"/>
+    <text class="tag" x="1706" y="794">«aggregate root»</text>
+    <text class="name" x="1706" y="822">Promotion</text>
+    <line class="footer-rule" x1="1688" y1="842" x2="2188" y2="842"/><text class="mono" x="1706" y="862">− code</text><text class="mono" x="1706" y="886">− validFrom</text><text class="mono" x="1706" y="910">− validTo</text><text class="mono" x="1706" y="934">− quota</text><text class="mono" x="1706" y="958">− conditions</text><line class="footer-rule" x1="1688" y1="972" x2="2188" y2="972"/><text class="tag" x="1706" y="990">OPERATIONS</text><text class="body" x="1706" y="1010">+ validate(context)</text><text class="body" x="1706" y="1034">+ consumeQuota()</text></g>
+<g data-node="true"><rect class="node" x="48" y="1122" width="500" height="162" rx="8"/>
+    <path class="model-header" d="M49 1130 Q49 1123 56 1123 H540 Q547 1123 547 1130 V1192 H49 Z"/>
+    <text class="tag" x="66" y="1144">«domain entity»</text>
+    <text class="name" x="66" y="1172">PromotionRedemption</text>
+    <line class="footer-rule" x1="48" y1="1192" x2="548" y2="1192"/><text class="mono" x="66" y="1212">− promotionId</text><text class="mono" x="66" y="1236">− bookingId</text><text class="mono" x="66" y="1260">− discountAmount</text></g>
+<g data-node="true"><rect class="node" x="868" y="1122" width="500" height="266" rx="8"/>
+    <path class="model-header" d="M869 1130 Q869 1123 876 1123 H1360 Q1367 1123 1367 1130 V1192 H869 Z"/>
+    <text class="tag" x="886" y="1144">«domain entity»</text>
+    <text class="name" x="886" y="1172">Review</text>
+    <line class="footer-rule" x1="868" y1="1192" x2="1368" y2="1192"/><text class="mono" x="886" y="1212">− ticketId</text><text class="mono" x="886" y="1236">− rating</text><text class="mono" x="886" y="1260">− comment</text><text class="mono" x="886" y="1284">− visibility</text><line class="footer-rule" x1="868" y1="1298" x2="1368" y2="1298"/><text class="tag" x="886" y="1316">OPERATIONS</text><text class="body" x="886" y="1336">+ publish()</text><text class="body" x="886" y="1360">+ hide(reason)</text></g>
+      <line class="footer-rule" x1="32" y1="1452" x2="2204" y2="1452"/>
+      <text class="footer" x="32" y="1476">Ký pháp UML Class/Domain · − thuộc tính · + hành vi · Hình thoi đen: composition trong aggregate</text>
+      <text class="footer" x="2204" y="1476" text-anchor="end">Nguồn: SRS 09 · Booking Service ownership</text>
+    </svg>
+    </div>
+  </div>
+  <script>
+    (() => {
+      const viewport = document.getElementById('diagram-viewport');
+      const svg = document.getElementById('diagram-canvas');
+      const zoomLevel = document.getElementById('zoom-level');
+      const title = svg.querySelector(':scope > title');
+      const desc = svg.querySelector(':scope > desc');
+      if (title) {
+        svg.setAttribute('aria-label', title.textContent || 'Diagram');
+        svg.removeAttribute('aria-labelledby');
+        if (desc?.id) svg.setAttribute('aria-describedby', desc.id);
+        title.remove();
+      }
+
+      const baseWidth = 2236;
+      const baseHeight = 1504;
+      const minimumZoom = .18;
+      const maximumZoom = 2.5;
+      let zoom = 1;
+      const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
+
+      function updateCanvasSize() {
+        svg.style.width = Math.round(baseWidth * zoom) + 'px';
+        svg.style.height = Math.round(baseHeight * zoom) + 'px';
+        zoomLevel.value = Math.round(zoom * 100) + '%';
+        zoomLevel.textContent = zoomLevel.value;
+      }
+
+      function setZoom(nextZoom, clientX, clientY) {
+        const previousZoom = zoom;
+        const rect = viewport.getBoundingClientRect();
+        const anchorX = clientX ?? rect.left + viewport.clientWidth / 2;
+        const anchorY = clientY ?? rect.top + viewport.clientHeight / 2;
+        const offsetX = anchorX - rect.left;
+        const offsetY = anchorY - rect.top;
+        const contentX = (viewport.scrollLeft + offsetX) / previousZoom;
+        const contentY = (viewport.scrollTop + offsetY) / previousZoom;
+        zoom = clamp(nextZoom, minimumZoom, maximumZoom);
+        updateCanvasSize();
+        viewport.scrollLeft = contentX * zoom - offsetX;
+        viewport.scrollTop = contentY * zoom - offsetY;
+      }
+
+      function zoomBy(factor, clientX, clientY) { setZoom(zoom * factor, clientX, clientY); }
+      function fitWidth() {
+        const fittedZoom = (viewport.clientWidth - 24) / baseWidth;
+        zoom = clamp(fittedZoom, minimumZoom, maximumZoom);
+        updateCanvasSize();
+        viewport.scrollLeft = 0;
+        viewport.scrollTop = 0;
+      }
+      function resetView() {
+        zoom = 1;
+        updateCanvasSize();
+        viewport.scrollLeft = 0;
+        viewport.scrollTop = 0;
+      }
+
+      viewport.addEventListener('wheel', (event) => {
+        event.preventDefault();
+        zoomBy(clamp(Math.exp(-event.deltaY * .0015), .75, 1.25), event.clientX, event.clientY);
+      }, { passive: false });
+      viewport.addEventListener('dblclick', (event) => {
+        event.preventDefault();
+        zoomBy(1.25, event.clientX, event.clientY);
+      });
+
+      let dragPointerId = null;
+      let dragStartX = 0;
+      let dragStartY = 0;
+      let dragScrollLeft = 0;
+      let dragScrollTop = 0;
+      viewport.addEventListener('pointerdown', (event) => {
+        if (event.button !== 0) return;
+        dragPointerId = event.pointerId;
+        dragStartX = event.clientX;
+        dragStartY = event.clientY;
+        dragScrollLeft = viewport.scrollLeft;
+        dragScrollTop = viewport.scrollTop;
+        viewport.setPointerCapture(event.pointerId);
+        viewport.classList.add('is-dragging');
+        event.preventDefault();
+      });
+      viewport.addEventListener('pointermove', (event) => {
+        if (event.pointerId !== dragPointerId) return;
+        viewport.scrollLeft = dragScrollLeft - (event.clientX - dragStartX);
+        viewport.scrollTop = dragScrollTop - (event.clientY - dragStartY);
+      });
+      function stopDragging(event) {
+        if (event.pointerId !== dragPointerId) return;
+        if (viewport.hasPointerCapture(event.pointerId)) viewport.releasePointerCapture(event.pointerId);
+        dragPointerId = null;
+        viewport.classList.remove('is-dragging');
+      }
+      viewport.addEventListener('pointerup', stopDragging);
+      viewport.addEventListener('pointercancel', stopDragging);
+
+      document.getElementById('zoom-in').addEventListener('click', () => zoomBy(1.2));
+      document.getElementById('zoom-out').addEventListener('click', () => zoomBy(1 / 1.2));
+      document.getElementById('fit-width').addEventListener('click', fitWidth);
+      document.getElementById('reset-view').addEventListener('click', resetView);
+      viewport.addEventListener('keydown', (event) => {
+        const panStep = 96;
+        if (event.key === '+' || event.key === '=') zoomBy(1.2);
+        else if (event.key === '-') zoomBy(1 / 1.2);
+        else if (event.key === '0') resetView();
+        else if (event.key.toLowerCase() === 'f') fitWidth();
+        else if (event.key === 'ArrowLeft') viewport.scrollLeft -= panStep;
+        else if (event.key === 'ArrowRight') viewport.scrollLeft += panStep;
+        else if (event.key === 'ArrowUp') viewport.scrollTop -= panStep;
+        else if (event.key === 'ArrowDown') viewport.scrollTop += panStep;
+        else return;
+        event.preventDefault();
+      });
+      window.addEventListener('resize', () => { if (zoom < .7) fitWidth(); });
+      updateCanvasSize();
+      requestAnimationFrame(fitWidth);
+    })();
+  </script>
+</body>
+</html>

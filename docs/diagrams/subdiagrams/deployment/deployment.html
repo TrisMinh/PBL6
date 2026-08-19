@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deployment — Topology gần production</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box}html,body{margin:0}body{padding:32px;color:#2d3142;background:#f5f5f5;font-family:'Geist',system-ui,sans-serif}
+    header{max-width:1120px;margin-bottom:24px}.eyebrow{margin:0 0 8px;color:#4f5d75;font:500 8px 'Geist Mono',monospace;letter-spacing:.16em;text-transform:uppercase}
+    h1{margin:0 0 12px;font:650 40px/1.08 'Segoe UI',Arial,sans-serif;letter-spacing:-.025em}.subtitle{margin:0;color:#4f5d75;font-size:16px;line-height:1.5}
+    .diagram-shell{height:calc(100vh - 180px);min-height:520px;display:flex;flex-direction:column;background:#f5f5f5;border:1px solid rgba(45,49,66,.16);border-radius:8px;overflow:hidden}
+    .diagram-toolbar{flex:0 0 48px;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:8px 12px;background:#ffffff;border-bottom:1px solid rgba(45,49,66,.12)}
+    .interaction-hint{color:#4f5d75;font:500 12px 'Geist Mono',monospace;white-space:nowrap}.toolbar-actions{display:flex;align-items:center;gap:8px}.tool-button{min-width:40px;height:32px;padding:0 12px;color:#2d3142;background:#f5f5f5;border:1px solid rgba(45,49,66,.24);border-radius:6px;font:600 12px 'Geist',sans-serif;cursor:pointer}.tool-button:hover{color:#2e5aa8;border-color:#2e5aa8}.tool-button:focus-visible,.canvas:focus-visible{outline:2px solid #2e5aa8;outline-offset:-2px}.zoom-level{min-width:58px;color:#4f5d75;font:600 12px 'Geist Mono',monospace;text-align:center}.noscript-note{margin:0;padding:8px 12px;color:#4f5d75;background:rgba(169,120,20,.09);border-bottom:1px solid rgba(169,120,20,.32);font:500 12px 'Geist',sans-serif}
+    .canvas{position:relative;flex:1 1 auto;min-height:0;width:100%;overflow:auto;cursor:grab;overscroll-behavior:contain;touch-action:none;scrollbar-color:#7a8399 #ececec}.canvas.is-dragging{cursor:grabbing;user-select:none}svg{display:block;width:1960px;height:auto;background:#f5f5f5}
+    .zone{fill:rgba(45,49,66,.025);stroke:rgba(45,49,66,.16);stroke-width:1}.zone-title{fill:#7a8399;font:500 8px 'Geist Mono',monospace;letter-spacing:.14em}
+    .node{fill:#ffffff;stroke:#2d3142;stroke-width:1}.actor{fill:rgba(46,90,168,.08);stroke:rgba(46,90,168,.62);stroke-width:1}.external{fill:rgba(45,49,66,.03);stroke:rgba(45,49,66,.34);stroke-width:1;stroke-dasharray:4 4}
+    .focal{fill:rgba(235,108,54,.08);stroke:#eb6c36;stroke-width:1.2}.store{fill:rgba(45,49,66,.05);stroke:#4f5d75;stroke-width:1}.state{fill:#ffffff;stroke:#4f5d75;stroke-width:1}
+    .rule{fill:rgba(169,120,20,.08);stroke:rgba(169,120,20,.56);stroke-width:1}.usecase{fill:rgba(116,84,165,.07);stroke:rgba(116,84,165,.52);stroke-width:1}.quality{fill:rgba(79,115,95,.08);stroke:rgba(79,115,95,.52);stroke-width:1}
+    .title{fill:#2d3142;font:600 20px 'Geist',sans-serif}.name{fill:#2d3142;font:600 16px 'Geist',sans-serif}.name-sm{fill:#2d3142;font:600 12px 'Geist',sans-serif}.body{fill:#4f5d75;font:400 12px 'Geist',sans-serif}.mono{fill:#4f5d75;font:400 12px 'Geist Mono',monospace}.mono-xs{fill:#4f5d75;font:400 8px 'Geist Mono',monospace}.tag{fill:#7a8399;font:500 8px 'Geist Mono',monospace;letter-spacing:.12em}
+    .edge{fill:none;stroke:#4f5d75;stroke-width:1.2}.edge-link{fill:none;stroke:#2e5aa8;stroke-width:1.2}.edge-event{fill:none;stroke:#4f5d75;stroke-width:1.1;stroke-dasharray:5 4}.edge-accent{fill:none;stroke:#eb6c36;stroke-width:1.4}.lifeline{stroke:rgba(45,49,66,.22);stroke-width:1;stroke-dasharray:4 4}
+    .uml-association{fill:none;stroke:#4f5d75;stroke-width:1}.uml-dependency{fill:none;stroke:#7454a5;stroke-width:1.1;stroke-dasharray:6 4}.uml-symbol{fill:#ffffff;stroke:#2d3142;stroke-width:1.25}.uml-usecase{fill:rgba(116,84,165,.07);stroke:#7454a5;stroke-width:1.15}.uml-usecase-optional{fill:rgba(169,120,20,.08);stroke:#a97814;stroke-width:1.15}.actor-line{fill:none;stroke:#2e5aa8;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}.activity-action{fill:#ffffff;stroke:#2d3142;stroke-width:1.1}.activity-decision{fill:rgba(169,120,20,.09);stroke:#a97814;stroke-width:1.2}.activity-flow{fill:none;stroke:#4f5d75;stroke-width:1.25}.activation{fill:rgba(46,90,168,.12);stroke:#2e5aa8;stroke-width:1}.bce-boundary{fill:#ffffff;stroke:#2e5aa8;stroke-width:1.4}.bce-control{fill:rgba(235,108,54,.08);stroke:#eb6c36;stroke-width:1.4}.bce-entity{fill:rgba(45,49,66,.05);stroke:#4f5d75;stroke-width:1.4}.model-header{fill:rgba(46,90,168,.06)}.erd-header{fill:rgba(46,90,168,.1)}.erd-row{fill:rgba(45,49,66,.025)}.key-badge{fill:#ececec;stroke:rgba(45,49,66,.2);stroke-width:.8}.db-fill{fill:rgba(45,49,66,.04);stroke:#4f5d75;stroke-width:1.1}.service-component{fill:#ffffff;stroke:#2e5aa8;stroke-width:1.1}.deploy-node{fill:#ffffff;stroke:#4f5d75;stroke-width:1.1}.event-envelope{fill:rgba(116,84,165,.07);stroke:#7454a5;stroke-width:1.1}.protocol-label{fill:#f5f5f5;stroke:rgba(45,49,66,.16);stroke-width:.8}
+    .footer-rule{stroke:rgba(45,49,66,.16);stroke-width:.8}.footer{fill:#7a8399;font:400 8px 'Geist Mono',monospace;letter-spacing:.06em}
+    @media(max-width:760px){body{padding:16px}h1{font-size:32px}.subtitle{font-size:14px}.diagram-shell{height:calc(100vh - 160px);min-height:420px}.interaction-hint{display:none}.tool-button{padding:0 9px}}
+    @media print{body{padding:0}.diagram-shell{height:auto;border:0;overflow:visible}.diagram-toolbar,.noscript-note{display:none}.canvas{overflow:visible}svg{width:100%!important;height:auto!important}}</style>
+</head>
+<body>
+  <header>
+    <p class="eyebrow">Online Bus Ticket Platform · Diagram con</p>
+    <h1>Deployment — Topology gần production</h1>
+    <p class="subtitle">UML Deployment view: public devices, edge/ingress, private execution environment, workload replicas, managed data và external systems.</p>
+  </header>
+  <div class="diagram-shell">
+    <div class="diagram-toolbar" role="group" aria-label="Điều khiển sơ đồ">
+      <span class="interaction-hint">Lăn chuột: zoom · giữ chuột trái và kéo: di chuyển · phím F: vừa chiều rộng</span>
+      <div class="toolbar-actions">
+        <button class="tool-button" id="zoom-out" type="button" aria-label="Thu nhỏ">−</button>
+        <output class="zoom-level" id="zoom-level" aria-live="polite">100%</output>
+        <button class="tool-button" id="zoom-in" type="button" aria-label="Phóng to">+</button>
+        <button class="tool-button" id="fit-width" type="button">Vừa rộng</button>
+        <button class="tool-button" id="reset-view" type="button">100%</button>
+      </div>
+    </div>
+    <noscript><p class="noscript-note">JavaScript đang tắt: sơ đồ vẫn hiển thị nhưng zoom bằng con lăn và kéo canvas sẽ không hoạt động.</p></noscript>
+    <div class="canvas" id="diagram-viewport" tabindex="0" aria-label="Sơ đồ tương tác. Lăn chuột để phóng to hoặc thu nhỏ; giữ chuột trái và kéo để di chuyển.">
+    <svg id="diagram-canvas" viewBox="0 0 1960 1360" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="deployment-title deployment-desc">
+      <title id="deployment-title">Deployment — Topology gần production</title>
+      <desc id="deployment-desc">UML Deployment view: public devices, edge/ingress, private execution environment, workload replicas, managed data và external systems.</desc>
+      
+    <defs>
+      <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
+      <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#2e5aa8"/></marker>
+      <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#eb6c36"/></marker>
+      <marker id="arrow-open" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polyline points="0 0, 8 3, 0 6" fill="none" stroke="#4f5d75" stroke-width="1.2"/></marker>
+      <marker id="uml-generalization" markerWidth="12" markerHeight="10" refX="11" refY="5" orient="auto"><polygon points="0 0, 12 5, 0 10" fill="#f5f5f5" stroke="#4f5d75" stroke-width="1"/></marker>
+      <marker id="uml-composition" markerWidth="12" markerHeight="10" refX="1" refY="5" orient="auto-start-reverse"><polygon points="1 5, 6 1, 11 5, 6 9" fill="#2d3142" stroke="#2d3142" stroke-width="1"/></marker>
+    </defs>
+      <rect width="1960" height="1360" fill="#f5f5f5"/>
+      
+    <rect class="zone" x="48" y="64" width="320" height="1120" rx="8"/><rect x="64" y="68" width="144" height="16" rx="4" fill="#f5f5f5"/><text class="zone-title" x="72" y="80">PUBLIC CLIENTS</text>
+    <rect class="zone" x="408" y="64" width="1040" height="1120" rx="8"/><rect x="424" y="68" width="144" height="16" rx="4" fill="#f5f5f5"/><text class="zone-title" x="432" y="80">CONTAINER PLATFORM</text>
+    <rect class="zone" x="1488" y="64" width="424" height="1120" rx="8"/><rect x="1504" y="68" width="144" height="16" rx="4" fill="#f5f5f5"/><text class="zone-title" x="1512" y="80">MANAGED &amp; EXTERNAL</text>
+    <path class="edge-link" d="M328 200 H360 V424 H168 V480" marker-end="url(#arrow-link)"/>
+    <path class="edge-link" d="M328 336 H376 V452 H248 V480" marker-end="url(#arrow-link)"/>
+    <line class="edge-link" x1="328" y1="528" x2="488" y2="528" marker-end="url(#arrow-link)"/>
+    <line class="edge-link" x1="668" y1="624" x2="668" y2="680" marker-end="url(#arrow-link)"/>
+    <path class="edge-link" d="M928 784 V760 H1416 V164 H1544" marker-end="url(#arrow-link)"/>
+    <path class="edge-link" d="M1208 784 V748 H1432 V284 H1544" marker-end="url(#arrow-link)"/>
+    <path class="edge" d="M1368 720 H1460 V468 H1544" marker-end="url(#arrow)"/>
+    <path class="edge-event" d="M1368 760 H1472 V588 H1544" marker-end="url(#arrow-open)"/>
+    <path class="edge" d="M1368 800 H1484 V708 H1544" marker-end="url(#arrow)"/>
+    <path class="edge" d="M1368 840 H1496 V828 H1544" marker-end="url(#arrow)"/>
+    <g data-uml="deployment-node"><path class="deploy-node" d="M88 172 L100 160 H328 V228 L316 240 H88 Z"/><path fill="none" stroke="#4f5d75" d="M88 172 H316 L328 160 M316 172 V240"/>
+    <text class="tag" x="106" y="180">«device»</text>
+    <text class="name-sm" x="208" y="203" text-anchor="middle">Web Browser</text>
+    <text class="mono-xs" x="208" y="222" text-anchor="middle">HTTPS · responsive</text></g>
+    <g data-uml="deployment-node"><path class="deploy-node" d="M88 308 L100 296 H328 V364 L316 376 H88 Z"/><path fill="none" stroke="#4f5d75" d="M88 308 H316 L328 296 M316 308 V376"/>
+    <text class="tag" x="106" y="316">«device»</text>
+    <text class="name-sm" x="208" y="339" text-anchor="middle">Mobile App</text>
+    <text class="mono-xs" x="208" y="358" text-anchor="middle">HTTPS · push token</text></g>
+    <g data-uml="deployment-node"><path class="focal" d="M88 492 L100 480 H328 V564 L316 576 H88 Z"/><path fill="none" stroke="#4f5d75" d="M88 492 H316 L328 480 M316 492 V576"/>
+    <text class="tag" x="106" y="508">«edge node»</text>
+    <text class="name-sm" x="208" y="536" text-anchor="middle">DNS + CDN + WAF</text>
+    <text class="mono-xs" x="208" y="562" text-anchor="middle">TLS · cache · protection</text></g>
+    <g data-uml="deployment-node"><path class="focal" d="M488 492 L500 480 H848 V612 L836 624 H488 Z"/><path fill="none" stroke="#4f5d75" d="M488 492 H836 L848 480 M836 492 V624"/>
+    <text class="tag" x="506" y="508">«ingress»</text>
+    <text class="name-sm" x="668" y="536" text-anchor="middle">Load Balancer / Ingress</text>
+    <text class="mono-xs" x="668" y="562" text-anchor="middle">Health checks · routing · certificate</text><text class="mono-xs" x="668" y="577" text-anchor="middle">request limits</text></g>
+    <g data-uml="execution-environment"><path class="deploy-node" d="M488 692 L500 680 H1368 V972 L1356 984 H488 Z"/><path fill="none" stroke="#4f5d75" d="M488 692 H1356 L1368 680 M1356 692 V984"/><text class="tag" x="512" y="716">«EXECUTION ENVIRONMENT» · APPLICATION CLUSTER · PRIVATE NETWORK</text><text class="name" x="928" y="752" text-anchor="middle">Stateless service workloads</text></g>
+    <g data-uml="deployment-node"><path class="deploy-node" d="M528 796 L540 784 H768 V844 L756 856 H528 Z"/><path fill="none" stroke="#4f5d75" d="M528 796 H756 L768 784 M756 796 V856"/>
+    <text class="tag" x="546" y="804">«pod»</text>
+    <text class="name-sm" x="648" y="827" text-anchor="middle">Identity · Transport</text>
+    <text class="mono-xs" x="648" y="846" text-anchor="middle">2+ replicas each</text></g>
+    <g data-uml="deployment-node"><path class="focal" d="M808 796 L820 784 H1048 V844 L1036 856 H808 Z"/><path fill="none" stroke="#4f5d75" d="M808 796 H1036 L1048 784 M1036 796 V856"/>
+    <text class="tag" x="826" y="804">«pod»</text>
+    <text class="name-sm" x="928" y="827" text-anchor="middle">Booking · Payment</text>
+    <text class="mono-xs" x="928" y="846" text-anchor="middle">2+ replicas each</text></g>
+    <g data-uml="deployment-node"><path class="deploy-node" d="M1088 796 L1100 784 H1328 V844 L1316 856 H1088 Z"/><path fill="none" stroke="#4f5d75" d="M1088 796 H1316 L1328 784 M1316 796 V856"/>
+    <text class="tag" x="1106" y="804">«pod»</text>
+    <text class="name-sm" x="1208" y="827" text-anchor="middle">Notification · Reporting</text>
+    <text class="mono-xs" x="1208" y="846" text-anchor="middle">workers · read projection</text></g>
+    <g data-uml="deployment-node"><path class="deploy-node" d="M528 900 L540 888 H768 V948 L756 960 H528 Z"/><path fill="none" stroke="#4f5d75" d="M528 900 H756 L768 888 M756 900 V960"/>
+    <text class="tag" x="546" y="908">«pod»</text>
+    <text class="name-sm" x="648" y="931" text-anchor="middle">API Gateway</text>
+    <text class="mono-xs" x="648" y="950" text-anchor="middle">autoscaled</text></g>
+    
+    <g data-node="true">
+      <rect class="quality" x="808" y="888" width="240" height="72" rx="8"/>
+      <text class="tag" x="824" y="908">OPERATIONS</text>
+      <text class="name" x="928" y="933" text-anchor="middle">Readiness / Liveness</text>
+      <text class="mono" x="928" y="951" text-anchor="middle">health probes</text>
+    </g>
+    
+    <g data-node="true">
+      <rect class="quality" x="1088" y="888" width="240" height="72" rx="8"/>
+      <text class="tag" x="1104" y="908">OPERATIONS</text>
+      <text class="name" x="1208" y="933" text-anchor="middle">Resource Limits</text>
+      <text class="mono" x="1208" y="951" text-anchor="middle">CPU · memory</text>
+    </g>
+    <g data-uml="deployment-node"><path class="quality" d="M488 1052 L500 1040 H752 V1108 L740 1120 H488 Z"/><path fill="none" stroke="#4f5d75" d="M488 1052 H740 L752 1040 M740 1052 V1120"/>
+    <text class="tag" x="506" y="1060">«pipeline»</text>
+    <text class="name-sm" x="620" y="1083" text-anchor="middle">CI/CD</text>
+    <text class="mono-xs" x="620" y="1102" text-anchor="middle">build · scan · rollout</text></g>
+    <g data-uml="deployment-node"><path class="quality" d="M792 1052 L804 1040 H1056 V1108 L1044 1120 H792 Z"/><path fill="none" stroke="#4f5d75" d="M792 1052 H1044 L1056 1040 M1044 1052 V1120"/>
+    <text class="tag" x="810" y="1060">«managed service»</text>
+    <text class="name-sm" x="924" y="1083" text-anchor="middle">Secrets Manager</text>
+    <text class="mono-xs" x="924" y="1102" text-anchor="middle">rotate · inject · audit</text></g>
+    <g data-uml="deployment-node"><path class="quality" d="M1096 1052 L1108 1040 H1368 V1108 L1356 1120 H1096 Z"/><path fill="none" stroke="#4f5d75" d="M1096 1052 H1356 L1368 1040 M1356 1052 V1120"/>
+    <text class="tag" x="1114" y="1060">«managed service»</text>
+    <text class="name-sm" x="1232" y="1083" text-anchor="middle">Observability</text>
+    <text class="mono-xs" x="1232" y="1102" text-anchor="middle">logs · metrics · traces</text></g>
+    <g data-uml="deployment-node"><path class="external" d="M1544 132 L1556 120 H1856 V196 L1844 208 H1544 Z"/><path fill="none" stroke="#4f5d75" d="M1544 132 H1844 L1856 120 M1844 132 V208"/>
+    <text class="tag" x="1562" y="140">«external system»</text>
+    <text class="name-sm" x="1700" y="163" text-anchor="middle">Payment Gateway</text>
+    <text class="mono-xs" x="1700" y="182" text-anchor="middle">Owner: Payment workload</text></g>
+    <g data-uml="deployment-node"><path class="external" d="M1544 252 L1556 240 H1856 V316 L1844 328 H1544 Z"/><path fill="none" stroke="#4f5d75" d="M1544 252 H1844 L1856 240 M1844 252 V328"/>
+    <text class="tag" x="1562" y="260">«external system»</text>
+    <text class="name-sm" x="1700" y="283" text-anchor="middle">Email / Push Provider</text>
+    <text class="mono-xs" x="1700" y="302" text-anchor="middle">Owner: Notification workload</text></g>
+    <g data-architecture="database"><path class="db-fill" d="M1544 437 C1544 420,1856 420,1856 437 V499 C1856 516,1544 516,1544 499 Z"/>
+    <ellipse class="db-fill" cx="1700" cy="437" rx="156" ry="13"/>
+    <text class="tag" x="1562" y="458">MANAGED DATA</text><text class="name-sm" x="1700" y="482" text-anchor="middle">PostgreSQL cluster</text>
+    <text class="mono-xs" x="1700" y="502" text-anchor="middle">DB/schema per service · PITR</text></g>
+    <g data-uml="deployment-node"><path class="rule" d="M1544 556 L1556 544 H1856 V620 L1844 632 H1544 Z"/><path fill="none" stroke="#4f5d75" d="M1544 556 H1844 L1856 544 M1844 556 V632"/>
+    <text class="tag" x="1562" y="564">«managed broker»</text>
+    <text class="name-sm" x="1700" y="587" text-anchor="middle">RabbitMQ cluster</text>
+    <text class="mono-xs" x="1700" y="606" text-anchor="middle">Durable queue · retry · DLQ</text></g>
+    <g data-architecture="database"><path class="db-fill" d="M1544 677 C1544 660,1856 660,1856 677 V739 C1856 756,1544 756,1544 739 Z"/>
+    <ellipse class="db-fill" cx="1700" cy="677" rx="156" ry="13"/>
+    <text class="tag" x="1562" y="698">MANAGED CACHE</text><text class="name-sm" x="1700" y="722" text-anchor="middle">Redis cluster</text>
+    <text class="mono-xs" x="1700" y="742" text-anchor="middle">Cache · TTL helper</text></g>
+    <g data-architecture="database"><path class="db-fill" d="M1544 797 C1544 780,1856 780,1856 797 V859 C1856 876,1544 876,1544 859 Z"/>
+    <ellipse class="db-fill" cx="1700" cy="797" rx="156" ry="13"/>
+    <text class="tag" x="1562" y="818">MANAGED STORAGE</text><text class="name-sm" x="1700" y="842" text-anchor="middle">Object Storage</text>
+    <text class="mono-xs" x="1700" y="862" text-anchor="middle">Export · backup artifact</text></g>
+    <g><rect class="protocol-label" x="380" y="502" width="56" height="20" rx="4"/><text class="tag" x="408" y="516" text-anchor="middle">HTTPS</text></g><g><rect class="protocol-label" x="612.5" y="638" width="111" height="20" rx="4"/><text class="tag" x="668" y="652" text-anchor="middle">internal HTTP</text></g><g><rect class="protocol-label" x="1416" y="442" width="56" height="20" rx="4"/><text class="tag" x="1444" y="456" text-anchor="middle">TLS</text></g><g><rect class="protocol-label" x="1432" y="562" width="56" height="20" rx="4"/><text class="tag" x="1460" y="576" text-anchor="middle">AMQP</text></g>
+    <rect class="quality" x="1544" y="952" width="312" height="136" rx="8"/><text class="tag" x="1568" y="980">CONNECTIVITY NOTE</text><text class="body" x="1568" y="1012" text-anchor="start">Private endpoint tới data layer</text>
+<text class="body" x="1568" y="1036" text-anchor="start">Controlled egress tới provider</text>
+<text class="body" x="1568" y="1060" text-anchor="start">Không public DB/broker/cache</text>
+    <rect class="quality" x="48" y="1220" width="1864" height="40" rx="8"/><text class="body" x="72" y="1244">Deployment chỉ thể hiện vị trí và boundary; luồng API/event chi tiết nằm trong Architecture, Sequence và Event Flow diagram.</text>
+      <line class="footer-rule" x1="32" y1="1308" x2="1928" y2="1308"/>
+      <text class="footer" x="32" y="1332">Ký pháp UML Deployment · Hộp nổi: node/environment/pod · Hình trụ: managed store · Nhãn đường: protocol · Topology logic, chưa khóa cloud vendor</text>
+      <text class="footer" x="1928" y="1332" text-anchor="end">Nguồn: SRS 10, 13, 15 · DIA Deployment</text>
+    </svg>
+    </div>
+  </div>
+  <script>
+    (() => {
+      const viewport = document.getElementById('diagram-viewport');
+      const svg = document.getElementById('diagram-canvas');
+      const zoomLevel = document.getElementById('zoom-level');
+      const title = svg.querySelector(':scope > title');
+      const desc = svg.querySelector(':scope > desc');
+      if (title) {
+        svg.setAttribute('aria-label', title.textContent || 'Diagram');
+        svg.removeAttribute('aria-labelledby');
+        if (desc?.id) svg.setAttribute('aria-describedby', desc.id);
+        title.remove();
+      }
+
+      const baseWidth = 1960;
+      const baseHeight = 1360;
+      const minimumZoom = .18;
+      const maximumZoom = 2.5;
+      let zoom = 1;
+      const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
+
+      function updateCanvasSize() {
+        svg.style.width = Math.round(baseWidth * zoom) + 'px';
+        svg.style.height = Math.round(baseHeight * zoom) + 'px';
+        zoomLevel.value = Math.round(zoom * 100) + '%';
+        zoomLevel.textContent = zoomLevel.value;
+      }
+
+      function setZoom(nextZoom, clientX, clientY) {
+        const previousZoom = zoom;
+        const rect = viewport.getBoundingClientRect();
+        const anchorX = clientX ?? rect.left + viewport.clientWidth / 2;
+        const anchorY = clientY ?? rect.top + viewport.clientHeight / 2;
+        const offsetX = anchorX - rect.left;
+        const offsetY = anchorY - rect.top;
+        const contentX = (viewport.scrollLeft + offsetX) / previousZoom;
+        const contentY = (viewport.scrollTop + offsetY) / previousZoom;
+        zoom = clamp(nextZoom, minimumZoom, maximumZoom);
+        updateCanvasSize();
+        viewport.scrollLeft = contentX * zoom - offsetX;
+        viewport.scrollTop = contentY * zoom - offsetY;
+      }
+
+      function zoomBy(factor, clientX, clientY) { setZoom(zoom * factor, clientX, clientY); }
+      function fitWidth() {
+        const fittedZoom = (viewport.clientWidth - 24) / baseWidth;
+        zoom = clamp(fittedZoom, minimumZoom, maximumZoom);
+        updateCanvasSize();
+        viewport.scrollLeft = 0;
+        viewport.scrollTop = 0;
+      }
+      function resetView() {
+        zoom = 1;
+        updateCanvasSize();
+        viewport.scrollLeft = 0;
+        viewport.scrollTop = 0;
+      }
+
+      viewport.addEventListener('wheel', (event) => {
+        event.preventDefault();
+        zoomBy(clamp(Math.exp(-event.deltaY * .0015), .75, 1.25), event.clientX, event.clientY);
+      }, { passive: false });
+      viewport.addEventListener('dblclick', (event) => {
+        event.preventDefault();
+        zoomBy(1.25, event.clientX, event.clientY);
+      });
+
+      let dragPointerId = null;
+      let dragStartX = 0;
+      let dragStartY = 0;
+      let dragScrollLeft = 0;
+      let dragScrollTop = 0;
+      viewport.addEventListener('pointerdown', (event) => {
+        if (event.button !== 0) return;
+        dragPointerId = event.pointerId;
+        dragStartX = event.clientX;
+        dragStartY = event.clientY;
+        dragScrollLeft = viewport.scrollLeft;
+        dragScrollTop = viewport.scrollTop;
+        viewport.setPointerCapture(event.pointerId);
+        viewport.classList.add('is-dragging');
+        event.preventDefault();
+      });
+      viewport.addEventListener('pointermove', (event) => {
+        if (event.pointerId !== dragPointerId) return;
+        viewport.scrollLeft = dragScrollLeft - (event.clientX - dragStartX);
+        viewport.scrollTop = dragScrollTop - (event.clientY - dragStartY);
+      });
+      function stopDragging(event) {
+        if (event.pointerId !== dragPointerId) return;
+        if (viewport.hasPointerCapture(event.pointerId)) viewport.releasePointerCapture(event.pointerId);
+        dragPointerId = null;
+        viewport.classList.remove('is-dragging');
+      }
+      viewport.addEventListener('pointerup', stopDragging);
+      viewport.addEventListener('pointercancel', stopDragging);
+
+      document.getElementById('zoom-in').addEventListener('click', () => zoomBy(1.2));
+      document.getElementById('zoom-out').addEventListener('click', () => zoomBy(1 / 1.2));
+      document.getElementById('fit-width').addEventListener('click', fitWidth);
+      document.getElementById('reset-view').addEventListener('click', resetView);
+      viewport.addEventListener('keydown', (event) => {
+        const panStep = 96;
+        if (event.key === '+' || event.key === '=') zoomBy(1.2);
+        else if (event.key === '-') zoomBy(1 / 1.2);
+        else if (event.key === '0') resetView();
+        else if (event.key.toLowerCase() === 'f') fitWidth();
+        else if (event.key === 'ArrowLeft') viewport.scrollLeft -= panStep;
+        else if (event.key === 'ArrowRight') viewport.scrollLeft += panStep;
+        else if (event.key === 'ArrowUp') viewport.scrollTop -= panStep;
+        else if (event.key === 'ArrowDown') viewport.scrollTop += panStep;
+        else return;
+        event.preventDefault();
+      });
+      window.addEventListener('resize', () => { if (zoom < .7) fitWidth(); });
+      updateCanvasSize();
+      requestAnimationFrame(fitWidth);
+    })();
+  </script>
+</body>
+</html>
