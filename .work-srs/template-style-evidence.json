@@ -1,0 +1,170 @@
+{
+  "input": "C:\\Users\\minht\\OneDrive\\Desktop\\PBL6\\579126340-Tai-li\u1ec7u-SRS-Mau-1.docx",
+  "fonts_by_char_count": {
+    "Times New Roman": 1988
+  },
+  "direct_run_formatting_runs": 122,
+  "direct_paragraph_formatting_paragraphs": 83,
+  "heading_like_paragraphs_not_heading_style": [
+    {
+      "para_index": 6,
+      "text": "M\u00e3 d\u1ef1 \u00e1n: <M\u00e3 d\u1ef1 \u00e1n>",
+      "style": "NormalT"
+    },
+    {
+      "para_index": 13,
+      "text": "H\u00e0 n\u1ed9i,  dd/mm/yyyy",
+      "style": "NormalTB"
+    },
+    {
+      "para_index": 37,
+      "text": "\tY\u00eau c\u1ea7u ch\u1ee9c n\u0103ng: \u0110\u1eb7c t\u1ea3 c\u00e1c y\u00eau c\u1ea7u ch\u1ee9c n\u0103ng c\u1ee7a h\u1ec7 th\u1ed1ng c\u1ea7n x\u00e2y d\u1ef1ng",
+      "style": "Indent1 Char1"
+    },
+    {
+      "para_index": 156,
+      "text": "STT",
+      "style": "HuongdanFSC"
+    },
+    {
+      "para_index": 157,
+      "text": "T\u00ean t\u00e0i li\u1ec7u",
+      "style": "HuongdanFSC"
+    },
+    {
+      "para_index": 158,
+      "text": "M\u00e3 t\u00e0i li\u1ec7u / ngu\u1ed3n",
+      "style": "HuongdanFSC"
+    },
+    {
+      "para_index": 165,
+      "text": "STT",
+      "style": "HuongdanFSC"
+    },
+    {
+      "para_index": 166,
+      "text": "Ch\u1ee9c n\u0103ng",
+      "style": "HuongdanFSC"
+    },
+    {
+      "para_index": 167,
+      "text": "M\u00f4 t\u1ea3",
+      "style": "HuongdanFSC"
+    },
+    {
+      "para_index": 168,
+      "text": "Ghi ch\u00fa",
+      "style": "HuongdanFSC"
+    },
+    {
+      "para_index": 185,
+      "text": "STT",
+      "style": "AxureTableHeaderText"
+    },
+    {
+      "para_index": 186,
+      "text": "T\u00ean h\u1ea1ng m\u1ee5c",
+      "style": "AxureTableHeaderText"
+    },
+    {
+      "para_index": 187,
+      "text": "Ki\u1ec3u hi\u1ec3n th\u1ecb",
+      "style": "AxureTableHeaderText"
+    },
+    {
+      "para_index": 188,
+      "text": "\u0110\u1ecbnh d\u1ea1ng",
+      "style": "AxureTableHeaderText"
+    },
+    {
+      "para_index": 189,
+      "text": "B\u1eaft bu\u1ed9c",
+      "style": "AxureTableHeaderText"
+    },
+    {
+      "para_index": 190,
+      "text": "\u0110\u1ed9 d\u00e0i max",
+      "style": "AxureTableHeaderText"
+    },
+    {
+      "para_index": 191,
+      "text": "M\u00f4 t\u1ea3 chi ti\u1ebft",
+      "style": "AxureTableHeaderText"
+    },
+    {
+      "para_index": 220,
+      "text": "B\u01b0\u1edbc",
+      "style": "List Paragraph"
+    },
+    {
+      "para_index": 221,
+      "text": "Thao t\u00e1c ",
+      "style": "List Paragraph"
+    },
+    {
+      "para_index": 222,
+      "text": "T\u00e1c nh\u00e2n",
+      "style": "List Paragraph"
+    }
+  ],
+  "examples": {
+    "direct_paragraph_formatting": [
+      {
+        "para_index": 4,
+        "text": "T\u00caN D\u1ef0 \u00c1N",
+        "style": "Heading 1"
+      },
+      {
+        "para_index": 5,
+        "text": "PH\u00c2N T\u00cdCH CH\u1ee8C N\u0102NG",
+        "style": "Heading 1"
+      },
+      {
+        "para_index": 6,
+        "text": "M\u00e3 d\u1ef1 \u00e1n: <M\u00e3 d\u1ef1 \u00e1n>",
+        "style": "NormalT"
+      },
+      {
+        "para_index": 10,
+        "text": "",
+        "style": "NormalTB"
+      },
+      {
+        "para_index": 11,
+        "text": "",
+        "style": "NormalTB"
+      }
+    ],
+    "direct_run_formatting": [
+      {
+        "para_index": 4,
+        "run_text": "T\u00caN D\u1ef0 \u00c1N",
+        "style": "Heading 1"
+      },
+      {
+        "para_index": 5,
+        "run_text": "PH\u00c2N T\u00cdCH ",
+        "style": "Heading 1"
+      },
+      {
+        "para_index": 5,
+        "run_text": "CH\u1ee8C N\u0102NG",
+        "style": "Heading 1"
+      },
+      {
+        "para_index": 6,
+        "run_text": "M\u00e3 d\u1ef1 \u00e1n: ",
+        "style": "NormalT"
+      },
+      {
+        "para_index": 6,
+        "run_text": "<",
+        "style": "NormalT"
+      }
+    ]
+  },
+  "notes": [
+    "Direct formatting is not always wrong, but it often causes inconsistent output when templates change.",
+    "Heading-like paragraphs not using Heading styles can break TOC and accessibility."
+  ]
+}

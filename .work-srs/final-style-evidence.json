@@ -1,0 +1,171 @@
+{
+  "input": "C:\\Users\\minht\\OneDrive\\Desktop\\PBL6\\SRS-He-thong-dat-ve-xe-khach-truc-tuyen.docx",
+  "fonts_by_char_count": {
+    "Times New Roman": 85731,
+    "Consolas": 8280
+  },
+  "direct_run_formatting_runs": 3370,
+  "direct_paragraph_formatting_paragraphs": 2092,
+  "heading_like_paragraphs_not_heading_style": [
+    {
+      "para_index": 1,
+      "text": "PBL6 \u2014 T\u00c0I LI\u1ec6U PH\u00c2N T\u00cdCH H\u1ec6 TH\u1ed0NG",
+      "style": "Normal"
+    },
+    {
+      "para_index": 52,
+      "text": "B\u1ea3ng 1. C\u00e1ch d\u00f9ng theo c\u00f4ng vi\u1ec7c",
+      "style": "Caption"
+    },
+    {
+      "para_index": 71,
+      "text": "B\u1ea3ng 2. M\u1ee5c ti\u00eau s\u1ea3n ph\u1ea9m",
+      "style": "Caption"
+    },
+    {
+      "para_index": 74,
+      "text": "B\u1ea3ng 3. K\u00eanh s\u1eed d\u1ee5ng",
+      "style": "Caption"
+    },
+    {
+      "para_index": 156,
+      "text": "B\u1ea3ng 4. Thu\u1eadt ng\u1eef",
+      "style": "Caption"
+    },
+    {
+      "para_index": 177,
+      "text": "B\u1ea3ng 5. Ma tr\u1eadn quy\u1ec1n c\u1ea5p cao",
+      "style": "Caption"
+    },
+    {
+      "para_index": 180,
+      "text": "B\u1ea3ng 6. Y\u00eau c\u1ea7u authorization",
+      "style": "Caption"
+    },
+    {
+      "para_index": 189,
+      "text": "H\u00ecnh 1. B\u1ed1i c\u1ea3nh h\u1ec7 th\u1ed1ng",
+      "style": "Caption"
+    },
+    {
+      "para_index": 192,
+      "text": "H\u00ecnh 2. Use Case c\u1ee7a Guest v\u00e0 Customer",
+      "style": "Caption"
+    },
+    {
+      "para_index": 195,
+      "text": "H\u00ecnh 3. Use Case v\u1eadn h\u00e0nh nh\u00e0 xe",
+      "style": "Caption"
+    },
+    {
+      "para_index": 198,
+      "text": "H\u00ecnh 4. Use Case qu\u1ea3n tr\u1ecb n\u1ec1n t\u1ea3ng",
+      "style": "Caption"
+    },
+    {
+      "para_index": 203,
+      "text": "B\u1ea3ng 7. B\u1ea3n \u0111\u1ed3 quy tr\u00ecnh",
+      "style": "Caption"
+    },
+    {
+      "para_index": 216,
+      "text": "B\u1ea3ng 8. Lu\u1ed3ng chu\u1ea9n",
+      "style": "Caption"
+    },
+    {
+      "para_index": 228,
+      "text": "B\u1ea3ng 9. BP-02 \u2014 H\u1ee7y v\u00e9 v\u00e0 ho\u00e0n ti\u1ec1n",
+      "style": "Caption"
+    },
+    {
+      "para_index": 241,
+      "text": "B\u1ea3ng 10. BP-04 \u2014 T\u1ea1o v\u00e0 ph\u00e1t h\u00e0nh chuy\u1ebfn",
+      "style": "Caption"
+    },
+    {
+      "para_index": 267,
+      "text": "B\u1ea3ng 11. Li\u00ean k\u1ebft sang \u0111\u1eb7c t\u1ea3 chi ti\u1ebft",
+      "style": "Caption"
+    },
+    {
+      "para_index": 271,
+      "text": "B\u1ea3ng 12. Gh\u1ebf v\u00e0 SeatHold",
+      "style": "Caption"
+    },
+    {
+      "para_index": 274,
+      "text": "B\u1ea3ng 13. Booking v\u00e0 gi\u00e1",
+      "style": "Caption"
+    },
+    {
+      "para_index": 277,
+      "text": "B\u1ea3ng 14. Payment v\u00e0 Refund",
+      "style": "Caption"
+    },
+    {
+      "para_index": 280,
+      "text": "B\u1ea3ng 15. H\u1ee7y v\u00e0 \u0111\u1ed5i v\u00e9",
+      "style": "Caption"
+    }
+  ],
+  "examples": {
+    "direct_paragraph_formatting": [
+      {
+        "para_index": 1,
+        "text": "PBL6 \u2014 T\u00c0I LI\u1ec6U PH\u00c2N T\u00cdCH H\u1ec6 TH\u1ed0NG",
+        "style": "Normal"
+      },
+      {
+        "para_index": 2,
+        "text": "",
+        "style": "Normal"
+      },
+      {
+        "para_index": 6,
+        "text": "T\u1eeb t\u1ed5ng quan s\u1ea3n ph\u1ea9m \u0111\u1ebfn y\u00eau c\u1ea7u nghi\u1ec7p v\u1ee5, k\u1ef9 thu\u1eadt v\u00e0 nghi\u1ec7m thu",
+        "style": "Normal"
+      },
+      {
+        "para_index": 7,
+        "text": "\u0110\u00e0 N\u1eb5ng, 20/08/2026",
+        "style": "Normal"
+      },
+      {
+        "para_index": 30,
+        "text": "T\u1ed5ng quan s\u1ea3n ph\u1ea9m: b\u00e0i to\u00e1n, m\u1ee5c ti\u00eau, k\u00eanh s\u1eed d\u1ee5ng v\u00e0 ph\u1ea1m vi \u01b0u ti\u00ean.",
+        "style": "List Paragraph"
+      }
+    ],
+    "direct_run_formatting": [
+      {
+        "para_index": 1,
+        "run_text": "PBL6 \u2014 T\u00c0I LI\u1ec6U PH\u00c2N T\u00cdCH H\u1ec6 TH\u1ed0NG",
+        "style": "Normal"
+      },
+      {
+        "para_index": 6,
+        "run_text": "T\u1eeb t\u1ed5ng quan s\u1ea3n ph\u1ea9m \u0111\u1ebfn y\u00eau c\u1ea7u nghi\u1ec7p v\u1ee5, k\u1ef9 thu\u1eadt v\u00e0 nghi\u1ec7m thu",
+        "style": "Normal"
+      },
+      {
+        "para_index": 7,
+        "run_text": "\u0110\u00e0 N\u1eb5ng, 20/08/2026",
+        "style": "Normal"
+      },
+      {
+        "para_index": 15,
+        "run_text": "M\u1ee5c l\u1ee5c \u0111\u01b0\u1ee3c c\u1eadp nh\u1eadt t\u1ef1 \u0111\u1ed9ng khi m\u1edf t\u00e0i li\u1ec7u trong Microsoft Word.",
+        "style": "Normal"
+      },
+      {
+        "para_index": 18,
+        "run_text": "Danh m\u1ee5c h\u00ecnh \u0111\u01b0\u1ee3c c\u1eadp nh\u1eadt t\u1ef1 \u0111\u1ed9ng khi m\u1edf t\u00e0i li\u1ec7u trong Microsoft Word.",
+        "style": "Normal"
+      }
+    ]
+  },
+  "notes": [
+    "Direct formatting is not always wrong, but it often causes inconsistent output when templates change.",
+    "Heading-like paragraphs not using Heading styles can break TOC and accessibility."
+  ]
+}
