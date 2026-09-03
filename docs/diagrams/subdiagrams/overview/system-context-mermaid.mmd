@@ -1,0 +1,118 @@
+%%{init: {
+  "theme": "base",
+  "securityLevel": "loose",
+  "fontFamily": "Arial, sans-serif",
+  "flowchart": {
+    "htmlLabels": true,
+    "curve": "stepAfter",
+    "nodeSpacing": 34,
+    "rankSpacing": 58,
+    "diagramPadding": 20
+  },
+  "themeVariables": {
+    "background": "#f5f5f5",
+    "primaryColor": "#ffffff",
+    "primaryTextColor": "#2d3142",
+    "primaryBorderColor": "#2e5aa8",
+    "lineColor": "#2e5aa8",
+    "secondaryColor": "#f7f9fc",
+    "tertiaryColor": "#ececec",
+    "clusterBkg": "#f7f9fc",
+    "clusterBorder": "#bfc9d8",
+    "edgeLabelBackground": "#f5f5f5",
+    "fontFamily": "Arial, sans-serif",
+    "fontSize": "18px"
+  }
+}}%%
+
+flowchart LR
+  subgraph USERS["NGƯỜI DÙNG&nbsp;&nbsp;"]
+    direction TB
+    G(["<b>Guest</b><br/>Tìm kiếm và xem chuyến"])
+    C(["<b>Customer</b><br/>Đặt vé và quản lý vé"])
+    A(["<b>Admin</b><br/>Quản trị nền tảng"])
+    O(["<b>Operator Staff</b><br/>Quản lý nghiệp vụ nhà xe"])
+    D(["<b>Driver</b><br/>Vận hành chuyến được giao"])
+  end
+
+  subgraph APPS["ỨNG DỤNG&nbsp;&nbsp;"]
+    direction TB
+    WEB["<b>Web End-user</b><br/>Guest · Customer"]
+    MOBILE["<b>Mobile App</b><br/>Customer"]
+    BACKOFFICE["<b>Back-office Web</b><br/>Admin · Operator Staff · Driver"]
+  end
+
+  subgraph ENTRY["CỔNG API&nbsp;&nbsp;"]
+    direction TB
+    API{{"<b>API Gateway</b><br/>Xác thực · phân quyền · định tuyến"}}
+  end
+
+  subgraph BACKEND["MICROSERVICES&nbsp;&nbsp;"]
+    direction TB
+    ID["<b>Identity Service</b><br/>Tài khoản · vai trò · tenant"]
+    TRANSPORT["<b>Transport Service</b><br/>Nhà xe · phương tiện · tuyến · chuyến"]
+    BOOKING["<b>Booking Service</b><br/>SeatHold · booking · ticket"]
+    REPORTING["<b>Reporting Service</b><br/>Read model · thống kê · export"]
+    PAYMENT["<b>Payment Service</b><br/>Thanh toán · webhook · hoàn tiền"]
+    NOTIFICATION["<b>Notification Service</b><br/>Email · SMS · push"]
+  end
+
+  subgraph RESOURCES["DỮ LIỆU & TÍCH HỢP&nbsp;&nbsp;"]
+    direction TB
+    DBS[("<b>CSDL riêng từng service</b><br/>DB/schema và migration độc lập")]
+    REDIS[("<b>Redis</b><br/>SeatHold TTL · cache · rate limit")]
+    MQ["<b>RabbitMQ</b><br/>Event backbone · retry · dead-letter queue"]
+    PG["<b>Payment Gateway</b><br/>Payment intent · refund · signed webhook"]
+    NP["<b>Email / SMS / Push Provider</b><br/>Chỉ thực hiện gửi thông báo"]
+  end
+
+  G --> WEB
+  C --> WEB
+  C --> MOBILE
+  A --> BACKOFFICE
+  O --> BACKOFFICE
+  D --> BACKOFFICE
+
+  WEB -->|HTTPS| API
+  MOBILE -->|HTTPS| API
+  BACKOFFICE -->|HTTPS| API
+
+  API --> ID
+  API --> TRANSPORT
+  API --> BOOKING
+  API --> REPORTING
+  API --> PAYMENT
+  API --> NOTIFICATION
+
+  ID -. "DB riêng / service" .-> DBS
+  BOOKING -. "SeatHold · cache" .-> REDIS
+  REPORTING <-.->|Sự kiện liên service| MQ
+  PAYMENT -->|Yêu cầu thanh toán / hoàn tiền| PG
+  PG -.->|Signed webhook| PAYMENT
+  NOTIFICATION -->|Gửi Email / SMS / Push| NP
+
+  classDef actor fill:#f7f9fc,stroke:#2e5aa8,stroke-width:2px,color:#2d3142,font-size:18px;
+  classDef app fill:#ffffff,stroke:#4f5d75,stroke-width:2px,color:#2d3142,font-size:18px;
+  classDef gateway fill:#fff0e9,stroke:#eb6c36,stroke-width:3px,color:#2d3142,font-size:20px;
+  classDef service fill:#ffffff,stroke:#2e5aa8,stroke-width:2px,color:#2d3142,font-size:18px;
+  classDef focal fill:#fff0e9,stroke:#eb6c36,stroke-width:3px,color:#2d3142,font-size:18px;
+  classDef store fill:#eceff3,stroke:#4f5d75,stroke-width:2px,color:#2d3142,font-size:18px;
+  classDef broker fill:#f4efe7,stroke:#a97814,stroke-width:2px,color:#2d3142,font-size:18px;
+  classDef external fill:#f2f2f4,stroke:#7a8399,stroke-width:2px,stroke-dasharray:6 4,color:#2d3142,font-size:18px;
+
+  class G,C,A,O,D actor;
+  class WEB,MOBILE,BACKOFFICE app;
+  class API gateway;
+  class ID,TRANSPORT,REPORTING,PAYMENT,NOTIFICATION service;
+  class BOOKING focal;
+  class DBS,REDIS store;
+  class MQ broker;
+  class PG,NP external;
+
+  style USERS fill:#f7f9fc,stroke:#c5ceda,stroke-width:1px,color:#1d4f91;
+  style APPS fill:#f7f9fc,stroke:#c5ceda,stroke-width:1px,color:#1d4f91;
+  style ENTRY fill:#f7f9fc,stroke:#c5ceda,stroke-width:1px,color:#1d4f91;
+  style BACKEND fill:#f7f9fc,stroke:#c5ceda,stroke-width:1px,color:#1d4f91;
+  style RESOURCES fill:#f7f9fc,stroke:#c5ceda,stroke-width:1px,color:#1d4f91;
+
+  linkStyle default stroke:#2e5aa8,stroke-width:2px;

@@ -78,7 +78,21 @@
 
 **Given** một booking thanh toán thành công, **when** tra cứu correlation ID, **then** có thể liên kết log/trace qua Gateway, Booking, Payment và Notification mà không lộ token/PII nhạy cảm.
 
-## 2. Traceability matrix cấp feature
+## 2. Traceability matrix
+
+### 2.1. Cấp mục tiêu
+
+| Goal | Phạm vi yêu cầu chính | Bằng chứng nghiệm thu |
+|---|---|---|
+| GOAL-001 | FR-IAM, FR-SEARCH, FR-BOOK, FR-PAY, FR-TICKET, FR-OPS, FR-NOTIF, FR-ADMIN và FR-REPORT; toàn bộ Use Case MUST | Acceptance P0, integration test và end-to-end test cho các actor |
+| GOAL-002 | FR-BOOK-002..010, FR-PAY-003..010, FR-TICKET-001..006; BR-SEAT, BR-BOOK, BR-PAY, BR-CANCEL, BR-TICKET và yêu cầu trạng thái | AC-SEAT, AC-BOOK, AC-PAY, AC-CANCEL, AC-TICKET, AC-TRIP và concurrency test |
+| GOAL-003 | FR-IAM-005..009, FR-BOOK-011, FR-PAY-009, FR-OPS-001..010, FR-ADMIN-001..003; BR-TENANT, BR-DATA, NFR-SEC và yêu cầu privacy | AC-AUTH-001..002, authorization/negative test, security test và privacy review |
+| GOAL-004 | UI-001..008; Web End-user, Mobile App, Back-office Web; API/event contract và contract compatibility | Contract test, integration test và end-to-end test trên cả ba client |
+| GOAL-005 | UI-002, UI-004..007; accessibility, responsive, localization và NFR-UX | Accessibility test, responsive/browser test và usability acceptance cho luồng Customer cốt lõi |
+| GOAL-006 | NFR-PERF, NFR-REL, NFR-SCALE và các kịch bản ngoại lệ/phục hồi | AC-NFR-001, load/concurrency test, retry/DLQ test và recovery test |
+| GOAL-007 | FR-PAY-009..010, FR-ADMIN-002..003, FR-REPORT-001..003, BR-AUDIT và NFR-OBS | AC-OBS-001, report test, audit test và reconciliation test |
+
+### 2.2. Cấp feature
 
 | Feature | FR | Business rule | Use Case | API/Event | Acceptance |
 |---|---|---|---|---|---|
