@@ -45,7 +45,16 @@ Tổng cộng có 28 Use Case, gồm 23 Use Case mức `MUST` và 5 Use Case m�
 
 ## 4.3. Sơ đồ Use Case tổng quát
 
-- [Use Case Customer](../../diagrams/subdiagrams/use-cases/use-cases-customer.html)
+[Bộ Use Case Diagram Mermaid trong Markdown](../../system-design/02-02-use-case-diagrams/README.md) bao phủ đủ 28 mã `UC-*`, actor, system boundary và quan hệ `«include»/«extend»` chính.
+
+### 4.3.1. Tìm chuyến và đặt vé
+
+![Sơ đồ Use Case tìm chuyến và đặt vé](../../diagrams/subdiagrams/use-cases/use-cases-booking.png)
+
+*Hình 4.1 — Sơ đồ Use Case tìm chuyến và đặt vé.*
+
+Sơ đồ được dựng từ [mã nguồn PlantUML](../../diagrams/subdiagrams/use-cases/use-cases-booking.puml). `Payment Gateway` là actor hỗ trợ nằm ngoài biên hệ thống. Quan hệ `«extend»` đi từ **Áp dụng khuyến mãi** đến **Giữ ghế và tạo Booking** vì đây là hành vi tùy chọn, chỉ xảy ra khi Customer cung cấp mã hợp lệ.
+
 - [Use Case Operator Staff và Driver](../../diagrams/subdiagrams/use-cases/use-cases-operations.html)
 - [Use Case Admin](../../diagrams/subdiagrams/use-cases/use-cases-admin.html)
 
@@ -66,17 +75,21 @@ Mỗi Use Case chi tiết phải có mục tiêu, actor, kích hoạt khi phù h
 
 ## 4.5. Danh mục Activity Diagram
 
+Bộ Activity Diagram Mermaid đầy đủ cho `BP-01..07` nằm tại [System Design — Activity Diagrams](../../system-design/02-04-activity-diagrams/README.md).
+
 | Quy trình | Sơ đồ | Trạng thái |
 |---|---|---|
-| BP-01 — Tìm chuyến và đặt vé | [Activity Booking](../../diagrams/subdiagrams/processes/activity-booking.html) | Hiện có |
-| BP-02 — Hủy vé và hoàn tiền | Luồng tại UC-CANCEL-01 và hai Sequence Diagram liên quan | Nội dung đã đặc tả; có thể sinh hình riêng |
-| BP-03 — Đổi vé | Luồng tại UC-CHANGE-01 | Nội dung đã đặc tả; có thể sinh hình riêng |
-| BP-04 — Tạo và mở bán chuyến xe | Luồng tại UC-OPS-05 và Sequence publish Trip | Nội dung đã đặc tả; có thể sinh hình riêng |
-| BP-05 — Thực hiện chuyến và check-in | Luồng tại UC-OPS-06/UC-DRIVER-01 | Nội dung đã đặc tả; có thể sinh hình riêng |
-| BP-06 — Hủy chuyến xe | Luồng tại UC-TRIP-01 và Sequence cancel Trip | Nội dung đã đặc tả; có thể sinh hình riêng |
-| BP-07 — Quản lý tài khoản, nhà xe và nền tảng | Các UC-AUTH, UC-PROFILE, UC-OPS-01..04, UC-PROMO, UC-REVIEW-02, UC-NOTIF, UC-ADMIN và UC-REPORT | Tách theo mục tiêu actor để tránh sơ đồ quá tải |
+| BP-01 — Tìm chuyến và đặt vé | [Activity BP-01](../../system-design/02-04-activity-diagrams/01-search-booking-payment.md) | Hiện có — Mermaid/Markdown |
+| BP-02 — Hủy vé và hoàn tiền | [Activity BP-02](../../system-design/02-04-activity-diagrams/02-ticket-cancellation-refund.md) | Hiện có — Mermaid/Markdown |
+| BP-03 — Đổi vé | [Activity BP-03](../../system-design/02-04-activity-diagrams/03-ticket-change.md) | Hiện có — Mermaid/Markdown |
+| BP-04 — Tạo và mở bán chuyến xe | [Activity BP-04](../../system-design/02-04-activity-diagrams/04-create-publish-trip.md) | Hiện có — Mermaid/Markdown |
+| BP-05 — Thực hiện chuyến và check-in | [Activity BP-05](../../system-design/02-04-activity-diagrams/05-trip-operation-checkin.md) | Hiện có — Mermaid/Markdown |
+| BP-06 — Hủy chuyến xe | [Activity BP-06](../../system-design/02-04-activity-diagrams/06-trip-cancellation.md) | Hiện có — Mermaid/Markdown |
+| BP-07 — Quản lý tài khoản, nhà xe và nền tảng | [Activity BP-07](../../system-design/02-04-activity-diagrams/07-account-platform-management.md) | Hiện có — tách nhánh theo mục tiêu actor |
 
 ## 4.6. Danh mục Sequence Diagram
+
+Toàn bộ 28 Use Case có phiên bản sequence Mermaid nhúng trực tiếp trong Markdown tại [System Design — Sequence Diagrams](../../system-design/02-03-sequence-diagrams/README.md).
 
 | Mục đích | Sơ đồ |
 |---|---|
@@ -92,10 +105,15 @@ Mỗi Use Case chi tiết phải có mục tiêu, actor, kích hoạt khi phù h
 
 ## 4.7. Danh mục State Diagram
 
-- [TripSeat và SeatHold](../../diagrams/subdiagrams/states/state-trip-seat-hold.html)
-- [Booking và Payment](../../diagrams/subdiagrams/states/state-booking-payment.html)
-- [Ticket và Refund](../../diagrams/subdiagrams/states/state-ticket-refund.html)
-- [Trip](../../diagrams/subdiagrams/states/state-trip.html)
+Bộ State Machine Mermaid bám trực tiếp các transition tại Chương 6 nằm tại [System Design — State Machine Diagrams](../../system-design/02-05-state-machine-diagrams/README.md).
+
+- [TripSeat](../../system-design/02-05-state-machine-diagrams/01-trip-seat.md)
+- [SeatHold](../../system-design/02-05-state-machine-diagrams/02-seat-hold.md)
+- [Booking](../../system-design/02-05-state-machine-diagrams/03-booking.md)
+- [Payment](../../system-design/02-05-state-machine-diagrams/04-payment.md)
+- [Ticket](../../system-design/02-05-state-machine-diagrams/05-ticket.md)
+- [Refund](../../system-design/02-05-state-machine-diagrams/06-refund.md)
+- [Trip](../../system-design/02-05-state-machine-diagrams/07-trip.md)
 
 Các trạng thái và chuyển trạng thái có hiệu lực được định nghĩa trong [Chương 6](../06-yeu-cau-trang-thai.md).
 

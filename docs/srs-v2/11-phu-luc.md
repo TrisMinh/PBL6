@@ -31,39 +31,26 @@ Chi tiết code, schema và mapping HTTP được quản lý trong API Specifica
 
 ### Use Case Diagram
 
-- [Customer](../diagrams/subdiagrams/use-cases/use-cases-customer.html)
-- [Operator Staff và Driver](../diagrams/subdiagrams/use-cases/use-cases-operations.html)
-- [Admin](../diagrams/subdiagrams/use-cases/use-cases-admin.html)
+- [Bộ Use Case Diagram Markdown — đủ 28 UC](../system-design/02-02-use-case-diagrams/README.md)
 
 ### Activity Diagram
 
-- [Tìm chuyến và đặt vé](../diagrams/subdiagrams/processes/activity-booking.html)
-
-Các Activity Diagram còn lại được sinh từ luồng BP-02..07 và Use Case tương ứng khi hoàn thiện bộ hình. Văn bản BP/UC hiện đã đủ làm nguồn, không được suy diễn thêm hành vi trong hình.
+- [Bộ Activity Diagram Markdown — đủ BP-01..07](../system-design/02-04-activity-diagrams/README.md)
 
 ### Sequence Diagram
 
-- [SeatHold](../diagrams/subdiagrams/sequences/sequence-seat-hold.html)
-- [Create Booking](../diagrams/subdiagrams/sequences/sequence-create-booking.html)
-- [Payment Provider](../diagrams/subdiagrams/sequences/sequence-payment-provider.html)
-- [Payment Confirm Booking](../diagrams/subdiagrams/sequences/sequence-payment-confirm-booking.html)
-- [Ticket Delivery](../diagrams/subdiagrams/sequences/sequence-ticket-delivery.html)
-- [Cancellation Preview](../diagrams/subdiagrams/sequences/sequence-cancel-preview.html)
-- [Refund Saga](../diagrams/subdiagrams/sequences/sequence-refund-saga.html)
-- [Publish Trip](../diagrams/subdiagrams/sequences/sequence-publish-trip.html)
-- [Cancel Trip](../diagrams/subdiagrams/sequences/sequence-cancel-trip.html)
+- [Bộ Sequence Diagram Markdown — đủ 28 UC](../system-design/02-03-sequence-diagrams/README.md)
 
 ### State Diagram
 
-- [TripSeat và SeatHold](../diagrams/subdiagrams/states/state-trip-seat-hold.html)
-- [Booking và Payment](../diagrams/subdiagrams/states/state-booking-payment.html)
-- [Ticket và Refund](../diagrams/subdiagrams/states/state-ticket-refund.html)
-- [Trip](../diagrams/subdiagrams/states/state-trip.html)
+- [Bộ State Machine Markdown](../system-design/02-05-state-machine-diagrams/README.md)
 
 ## 11.3. Sơ đồ/tài liệu thiết kế tham khảo
 
 Các nội dung dưới đây hữu ích cho thiết kế nhưng không phải nguồn yêu cầu chính:
 
+- [System Design](../system-design/README.md)
+- [Detailed Design](../detailed-design/README.md)
 - [Kiến trúc Microservices](../diagrams/subdiagrams/architecture/microservices-architecture.html)
 - [ERD Identity](../diagrams/subdiagrams/data-models/erd-identity.html)
 - [ERD Transport](../diagrams/subdiagrams/data-models/erd-transport.html)

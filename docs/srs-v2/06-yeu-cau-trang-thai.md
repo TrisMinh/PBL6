@@ -6,7 +6,7 @@ Tên trạng thái trong yêu cầu, API, dữ liệu, event và giao diện ph�
 
 ## 6.1. TripSeat
 
-[Mở State Diagram TripSeat và SeatHold](../diagrams/subdiagrams/states/state-trip-seat-hold.html)
+[Mở State Diagram TripSeat](../system-design/02-05-state-machine-diagrams/01-trip-seat.md) · [SeatHold](../system-design/02-05-state-machine-diagrams/02-seat-hold.md)
 
 | Từ | Đến | Điều kiện |
 |---|---|---|
@@ -40,7 +40,7 @@ Ràng buộc:
 
 ## 6.3. Booking
 
-[Mở State Diagram Booking và Payment](../diagrams/subdiagrams/states/state-booking-payment.html)
+[Mở State Diagram Booking](../system-design/02-05-state-machine-diagrams/03-booking.md) · [Payment](../system-design/02-05-state-machine-diagrams/04-payment.md)
 
 | Từ | Đến | Trigger/điều kiện |
 |---|---|---|
@@ -80,7 +80,7 @@ Ràng buộc:
 
 ## 6.5. Ticket
 
-[Mở State Diagram Ticket và Refund](../diagrams/subdiagrams/states/state-ticket-refund.html)
+[Mở State Diagram Ticket](../system-design/02-05-state-machine-diagrams/05-ticket.md) · [Refund](../system-design/02-05-state-machine-diagrams/06-refund.md)
 
 | Từ | Đến | Điều kiện |
 |---|---|---|
@@ -112,7 +112,7 @@ Ràng buộc:
 
 ## 6.7. Trip
 
-[Mở State Diagram Trip](../diagrams/subdiagrams/states/state-trip.html)
+[Mở State Diagram Trip](../system-design/02-05-state-machine-diagrams/07-trip.md)
 
 | Từ | Đến | Actor/điều kiện |
 |---|---|---|

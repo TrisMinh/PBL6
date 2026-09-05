@@ -137,6 +137,8 @@ Chương này mô tả dữ liệu nghiệp vụ và ràng buộc quan sát đư
 
 SRS không yêu cầu ERD vật lý. Khi đồ án cần hình minh họa, có thể tham khảo các ERD hiện có nhưng coi chúng là tài liệu thiết kế:
 
+- [Bộ ERD Mermaid/Markdown theo sáu service](../system-design/02-07-database-erd/README.md)
+
 - [ERD Identity](../diagrams/subdiagrams/data-models/erd-identity.html)
 - [ERD Transport](../diagrams/subdiagrams/data-models/erd-transport.html)
 - [ERD Booking](../diagrams/subdiagrams/data-models/erd-booking.html)
