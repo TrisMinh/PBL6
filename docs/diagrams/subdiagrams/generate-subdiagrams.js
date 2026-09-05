@@ -345,6 +345,16 @@ function labelChip(x, y, label, className = 'tag') {
   return `<g><rect class="protocol-label" x="${x - width / 2}" y="${y - 14}" width="${width}" height="20" rx="4"/><text class="${className}" x="${x}" y="${y}" text-anchor="middle">${escapeText(label)}</text></g>`;
 }
 
+function flowLabel(x, connectorY, label) {
+  const width = Math.max(64, Math.ceil((label.length * 7 + 24) / 8) * 8);
+  return `<g><rect class="protocol-label" x="${x - width / 2}" y="${connectorY - 28}" width="${width}" height="20" rx="4"/><text class="tag" x="${x}" y="${connectorY - 12}" text-anchor="middle">${escapeText(label)}</text></g>`;
+}
+
+function flowLabelBelow(x, connectorY, label) {
+  const width = Math.max(64, Math.ceil((label.length * 7 + 24) / 8) * 8);
+  return `<g><rect class="protocol-label" x="${x - width / 2}" y="${connectorY + 8}" width="${width}" height="20" rx="4"/><text class="tag" x="${x}" y="${connectorY + 24}" text-anchor="middle">${escapeText(label)}</text></g>`;
+}
+
 function actorFigure(cx, y, label, sub = '') {
   const labelLines = wrapSvgText(label, 190, 8.5, 2);
   const subLines = sub ? wrapSvgText(sub, 210, 7, 2) : [];
@@ -420,72 +430,94 @@ function deploymentNode(x, y, width, height, title, sub = '', stereotype = 'node
 }
 
 function renderSystemContext() {
-  const width = 1760;
+  const width = 2200;
   const height = 1080;
   const actors = [
-    ['Guest', 'Tìm và xem chuyến công khai', 108],
-    ['Customer', 'Đặt vé · thanh toán · quản lý vé', 278],
-    ['Driver', 'Vận hành chuyến được phân công', 448],
-    ['Operator Staff', 'Quản lý nghiệp vụ trong tenant', 618],
-    ['Admin', 'Quản trị toàn nền tảng', 788],
+    ['Guest', 'Tìm kiếm và xem chuyến công khai', 80],
+    ['Customer', 'Đặt vé · thanh toán · quản lý vé', 240],
+    ['Admin', 'Quản trị toàn nền tảng', 400],
+    ['Operator Staff', 'Quản lý nghiệp vụ nhà xe', 560],
+    ['Driver', 'Vận hành chuyến được phân công', 720],
   ];
   const connectors = [
-    elbow(216, 166, 392, 218, 'uml-association'),
-    elbow(216, 336, 392, 218, 'uml-association'),
-    elbow(216, 336, 392, 378, 'uml-association'),
-    elbow(216, 506, 392, 596, 'uml-association'),
-    elbow(216, 676, 392, 596, 'uml-association'),
-    elbow(216, 846, 392, 596, 'uml-association'),
-    straight(712, 218, 820, 218, 'edge-link', 'arrow-link'),
-    straight(712, 378, 820, 378, 'edge-link', 'arrow-link'),
-    straight(712, 596, 820, 596, 'edge-link', 'arrow-link'),
-    elbow(1276, 332, 1460, 260, 'edge-link', 'arrow-link'),
-    elbow(1276, 572, 1460, 650, 'edge-link', 'arrow-link'),
+    routedElbow(216, 138, 336, 148, 272, 'uml-association'),
+    routedElbow(216, 294, 336, 188, 280, 'uml-association'),
+    routedElbow(216, 306, 336, 344, 288, 'uml-association'),
+    routedElbow(216, 458, 336, 600, 272, 'uml-association'),
+    routedElbow(216, 618, 336, 624, 280, 'uml-association'),
+    routedElbow(216, 778, 336, 648, 288, 'uml-association'),
+    `<line class="edge-link" x1="560" y1="168" x2="608" y2="168"/>`,
+    `<line class="edge-link" x1="560" y1="344" x2="608" y2="344"/>`,
+    `<line class="edge-link" x1="560" y1="624" x2="608" y2="624"/>`,
+    straight(608, 448, 676, 448, 'edge-link', 'arrow-link'),
+    straight(812, 448, 928, 448, 'edge-link', 'arrow-link'),
+    straight(928, 148, 968, 148, 'edge-link', 'arrow-link'),
+    straight(928, 268, 968, 268, 'edge-link', 'arrow-link'),
+    straight(928, 388, 968, 388, 'edge-link', 'arrow-link'),
+    straight(928, 508, 968, 508, 'edge-link', 'arrow-link'),
+    straight(928, 628, 968, 628, 'edge-link', 'arrow-link'),
+    straight(928, 748, 968, 748, 'edge-link', 'arrow-link'),
+    straight(1520, 148, 1600, 148, 'edge-event', 'arrow'),
+    straight(1480, 388, 1600, 388, 'edge-event', 'arrow'),
+    `<line class="edge-event" x1="1520" y1="508" x2="1600" y2="508" marker-start="url(#arrow)" marker-end="url(#arrow)"/>`,
+    straight(1480, 616, 1600, 616, 'edge-link', 'arrow-link'),
+    `<line class="edge-link" x1="1600" y1="640" x2="1480" y2="640" stroke-dasharray="5 4" marker-end="url(#arrow-link)"/>`,
+    straight(1480, 748, 1600, 748, 'edge-link', 'arrow-link'),
   ].join('\n');
 
   const body = `
-    ${zone(40, 64, 248, 864, 'PEOPLE · C4 PERSON')}
-    ${zone(336, 64, 424, 864, 'CLIENT CONTAINERS')}
-    ${zone(804, 64, 504, 864, 'SOFTWARE SYSTEM')}
-    ${zone(1416, 64, 304, 864, 'EXTERNAL SYSTEMS')}
+    <style>
+      .zone-title{font-size:12px;font-weight:600}
+      .name{font-size:20px}.name-sm{font-size:16px}
+      .body{font-size:16px}.mono,.mono-xs{font-size:12px}
+      .tag,.footer{font-size:12px;font-weight:600}
+      .edge-link{stroke-width:1.8}.edge-event{stroke-width:1.6}.uml-association{stroke-width:1.6}
+    </style>
+    ${zone(40, 64, 224, 824, 'NGƯỜI DÙNG')}
+    ${zone(304, 64, 288, 824, 'ỨNG DỤNG')}
+    ${zone(632, 64, 224, 824, 'CỔNG VÀO')}
+    ${zone(896, 64, 624, 824, 'BACKEND MICROSERVICES')}
+    ${zone(1560, 64, 600, 824, 'DỮ LIỆU · HẠ TẦNG · TÍCH HỢP')}
     ${connectors}
-    ${actors.map(([name, sub, y]) => actorFigure(164, y, name, sub)).join('\n')}
-    ${node(392, 170, 320, 96, 'Web End-user', 'Guest · Customer · HTTPS', 'node', '«CONTAINER»')}
-    ${node(392, 330, 320, 96, 'Mobile App', 'Customer · HTTPS · push token', 'node', '«CONTAINER»')}
-    ${node(392, 548, 320, 96, 'Back-office Web', 'Driver · Operator Staff · Admin', 'node', '«CONTAINER»')}
-    <g data-c4="software-system">
-      <rect class="focal" x="820" y="152" width="456" height="568" rx="8"/>
-      <text class="tag" x="848" y="184">«SOFTWARE SYSTEM»</text>
-      <text class="title" x="1048" y="230" text-anchor="middle">Online Bus Ticket</text>
-      <text class="title" x="1048" y="258" text-anchor="middle">Booking Platform</text>
-      ${textLines(860, 318, [
-        'Identity và tenant authorization',
-        'Tìm chuyến, giá và availability snapshot',
-        'Giữ toàn bộ ghế an toàn hoặc từ chối toàn bộ',
-        'Booking · payment · cancellation · refund',
-        'Ticket QR · manifest · check-in · trip operation',
-        'Notification · reporting · security audit',
-      ], 'body', 46)}
-      <line class="footer-rule" x1="860" y1="624" x2="1236" y2="624"/>
-      <text class="mono" x="1048" y="654" text-anchor="middle">Public API dùng chung cho Web · Mobile · Back-office</text>
-      <text class="mono-xs" x="1048" y="682" text-anchor="middle">Ranh giới service nội bộ được mô tả ở Architecture Diagram</text>
-    </g>
-    ${node(1460, 212, 216, 112, 'Payment Gateway', 'Payment intent · signed webhook · refund', 'external', '«EXTERNAL SYSTEM»')}
-    ${node(1460, 594, 216, 112, 'Email / Push Provider', 'Delivery only · không quyết định nghiệp vụ', 'external', '«EXTERNAL SYSTEM»')}
-    ${labelChip(766, 206, 'HTTPS / JSON')}${labelChip(766, 366, 'HTTPS / JSON')}${labelChip(766, 584, 'HTTPS / JSON')}
-    ${labelChip(1370, 280, 'payment · webhook')}${labelChip(1374, 624, 'delivery request')}
-    <rect class="quality" x="336" y="960" width="1384" height="52" rx="8"/>
-    <text class="body" x="360" y="992">Phạm vi context: người dùng, kênh truy cập, một software system và các hệ thống ngoài; không đưa database, broker hoặc microservice nội bộ vào hình này.</text>`;
+    <line class="edge-link" x1="608" y1="168" x2="608" y2="624"/>
+    <line class="edge-link" x1="928" y1="148" x2="928" y2="748"/>
+    ${flowLabel(640, 448, 'HTTPS')}
+    ${flowLabel(868, 448, 'AUTH / ROUTE')}
+    ${flowLabel(1556, 148, 'DB RIÊNG')}
+    ${flowLabel(1540, 388, 'SEAT CACHE')}
+    ${flowLabel(1560, 508, 'EVENTS')}
+    ${flowLabel(1540, 616, 'PAY')}
+    ${flowLabelBelow(1540, 640, 'WEBHOOK')}
+    ${flowLabel(1540, 748, 'DELIVERY')}
+    ${actors.map(([name, sub, y]) => actorFigure(152, y, name, sub)).join('\n')}
+    ${node(336, 112, 224, 112, 'Web End-user', 'Guest · Customer', 'node', '«WEB APP»').trim()}
+    ${node(336, 288, 224, 112, 'Mobile App', 'Customer', 'node', '«MOBILE APP»').trim()}
+    ${node(336, 568, 224, 112, 'Back-office Web', 'Admin · Operator Staff · Driver', 'node', '«RESPONSIVE WEB»').trim()}
+    ${node(676, 320, 136, 256, 'API Gateway', 'Xác thực · phân quyền · định tuyến', 'focal', '«GATEWAY»').trim()}
+    ${serviceComponent(968, 104, 512, 88, 'Identity Service', 'Tài khoản · vai trò · tenant')}
+    ${serviceComponent(968, 224, 512, 88, 'Transport Service', 'Nhà xe · phương tiện · tuyến · chuyến')}
+    ${serviceComponent(968, 344, 512, 88, 'Booking Service', 'SeatHold · booking · ticket', 'MICROSERVICE', true)}
+    ${serviceComponent(968, 464, 512, 88, 'Reporting Service', 'Read model · thống kê · export')}
+    ${serviceComponent(968, 584, 512, 88, 'Payment Service', 'Thanh toán · webhook · hoàn tiền')}
+    ${serviceComponent(968, 704, 512, 88, 'Notification Service', 'Email · SMS · push')}
+    ${databaseCylinder(1600, 104, 520, 88, 'CSDL riêng từng service', '6 DB/schema · migration độc lập', 'SERVICE-OWNED DATA')}
+    ${databaseCylinder(1600, 344, 520, 88, 'Redis', 'SeatHold TTL · cache · rate limit', 'CACHE')}
+    ${node(1600, 464, 520, 88, 'RabbitMQ', 'Event backbone · retry · dead-letter queue', 'rule', '«MESSAGE BROKER»').trim()}
+    ${node(1600, 584, 520, 88, 'Payment Gateway', 'Payment intent · signed webhook · refund', 'external', '«EXTERNAL SYSTEM»').trim()}
+    ${node(1600, 704, 520, 88, 'Email / SMS / Push Provider', 'Chỉ thực hiện gửi thông báo', 'external', '«EXTERNAL SYSTEM»').trim()}
+    <rect class="quality" x="304" y="920" width="1856" height="76" rx="8"/>
+    <text class="body" x="328" y="948">Luồng tổng quát: người dùng → ứng dụng phù hợp → API Gateway → microservice nghiệp vụ → dữ liệu, hạ tầng hoặc hệ thống bên ngoài.</text>
+    <text class="body" x="328" y="976">Web, Mobile và Back-office dùng chung API; Admin, Operator Staff và Driver dùng chung Back-office Web theo quyền.</text>`;
 
   return htmlPage({
     slug: 'system-context',
     title: 'Tổng quan bối cảnh hệ thống',
-    subtitle: 'Ai sử dụng sản phẩm, đi qua kênh nào và nền tảng tích hợp với hệ thống bên ngoài nào.',
+    subtitle: 'Luồng truy cập từ người dùng qua ứng dụng, API Gateway và các microservice đến dữ liệu hoặc hệ thống bên ngoài.',
     width,
     height,
     body,
-    source: 'Product Overview · System Scope · Actors and Permissions',
-    legend: 'Ký pháp C4 Context · Người que: Person · Hộp «container»: kênh truy cập · Cam: software system · Nét đứt: hệ thống ngoài',
+    source: 'System Scope · Actors and Permissions · Service Architecture',
+    legend: 'Xanh liền: HTTPS/REST · Nét đứt: dữ liệu/sự kiện · Hai đầu: request + callback/consume · Mỗi service sở hữu dữ liệu riêng',
   });
 }
 

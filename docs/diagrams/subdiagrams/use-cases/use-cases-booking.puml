@@ -1,0 +1,59 @@
+@startuml
+
+left to right direction
+
+skinparam monochrome true
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam defaultFontName Arial
+skinparam defaultFontSize 18
+skinparam dpi 180
+skinparam nodesep 55
+skinparam ranksep 65
+skinparam linetype polyline
+skinparam ArrowColor black
+skinparam usecase {
+  BorderColor black
+  BackgroundColor white
+  FontColor black
+}
+skinparam actor {
+  BorderColor black
+  BackgroundColor white
+  FontColor black
+}
+skinparam rectangle {
+  BorderColor black
+  BackgroundColor white
+  FontColor black
+}
+
+actor Guest
+actor Customer
+actor "Payment Gateway" as PaymentGateway
+
+rectangle "HỆ THỐNG ĐẶT VÉ XE KHÁCH TRỰC TUYẾN" {
+  together {
+    usecase "UC-SEARCH-01\nTìm và xem chuyến" as UC_SEARCH_01
+    usecase "UC-BOOK-01\nGiữ ghế và tạo Booking" as UC_BOOK_01
+    usecase "UC-PROMO-01 · nhánh Customer\nÁp dụng khuyến mãi" as UC_PROMO_01
+    usecase "UC-PAY-01\nThanh toán và nhận vé" as UC_PAY_01
+    usecase "UC-BOOK-02\nXem Booking và Ticket của tôi" as UC_BOOK_02
+    usecase "UC-TICKET-01\nXem và sử dụng vé điện tử" as UC_TICKET_01
+  }
+}
+
+Guest -- UC_SEARCH_01
+
+Customer -- UC_SEARCH_01
+Customer -- UC_BOOK_01
+Customer -- UC_PROMO_01
+Customer -- UC_PAY_01
+Customer -- UC_BOOK_02
+Customer -- UC_TICKET_01
+
+UC_PAY_01 -- PaymentGateway
+
+UC_PROMO_01 .right.> UC_BOOK_01 : <<extend>>\n[có mã hợp lệ]
+
+@enduml
