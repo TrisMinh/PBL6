@@ -5,9 +5,9 @@
 | Tool | Baseline | Mục đích |
 |---|---|---|
 | .NET Target Framework | `net8.0` cho mọi project | ASP.NET Core, EF Core, test/build cùng một runtime contract |
-| .NET SDK | SDK có khả năng build `net8.0`; pin một feature band trong `global.json` khi tạo source | SDK build có thể mới hơn Target Framework; không trộn TFM giữa service |
+| .NET SDK | SDK có khả năng build `net8.0`; pin một feature band trong `workspace/global.json` khi tạo source | SDK build có thể mới hơn Target Framework; không trộn TFM giữa service |
 | Node.js | 24.x LTS | React/Vite/React Native toolchain |
-| npm | Đi kèm Node 24; pin `packageManager` ở root | Workspaces và một lockfile |
+| npm | Đi kèm Node 24; pin `packageManager` trong `workspace/package.json` | Workspaces và một lockfile |
 | Docker engine + Compose v2 | Bản còn hỗ trợ | PostgreSQL, RabbitMQ, Redis, Mailpit, provider simulator, observability |
 | Git | Bản còn hỗ trợ | Source/version workflow |
 | Android toolchain | JDK/Android SDK tương thích React Native 0.87 | Chỉ bắt buộc khi chạy Mobile Android |
@@ -26,7 +26,7 @@ Workstation hiện có thể scaffold và build project `net8.0`. Trước khi c
 
 ## Bootstrap gate
 
-1. `dotnet build` thành công với toàn bộ `.csproj` target `net8.0`; `global.json` resolve đúng SDK đã pin cho nhóm/CI.
+1. Từ `workspace/`, `dotnet build` thành công với toàn bộ `.csproj` target `net8.0`; `workspace/global.json` resolve đúng SDK đã pin cho nhóm/CI.
 2. `node --version` trả 24.x; `npm --version` chạy được.
 3. `docker version` và `docker compose version` thành công trước integration test.
 4. OpenAPI, AsyncAPI và JSON Schema lint/validate sạch.

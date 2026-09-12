@@ -1,6 +1,6 @@
 # 2.2.2 Use Case Diagram — Tìm chuyến, Booking và Ticket
 
-Nguồn đặc tả: [Tìm chuyến, Booking và Ticket](../../../srs/v2/04-use-cases/02-search-booking-ticket.md).
+Nguồn đặc tả: [Tìm chuyến, Booking và Ticket](../../srs/v2/04-use-cases/02-search-booking-ticket.md).
 
 ```mermaid
 flowchart LR

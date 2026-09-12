@@ -1,6 +1,6 @@
 # Diagram
 
-Nguồn yêu cầu chính thức được tổ chức trong [Software Requirements Specification](../../srs/v1/README.md). Bộ sơ đồ dùng cho thiết kế và triển khai được viết bằng Mermaid trong [System Design](../system-design/README.md) để có thể review trực tiếp cùng tài liệu.
+Nguồn yêu cầu chính thức được tổ chức trong [Software Requirements Specification](../srs/v1/README.md). Bộ sơ đồ dùng cho thiết kế và triển khai được viết bằng Mermaid trong [System Design](../system-design/README.md) để có thể review trực tiếp cùng tài liệu.
 
 Thư mục này chỉ giữ đặc tả đầu vào và một số nguồn/hình tham chiếu không trùng với bộ System Design:
 

@@ -99,7 +99,7 @@
 
 **Context:** SRS yêu cầu ba client và sáu bounded context. Nhóm đã chọn C# ASP.NET và React, cần một baseline duy nhất để tạo skeleton, CI, contract generation và phân công.
 
-**Decision:** Backend service/worker, Gateway, class library và test project dùng C# target .NET 8 (`net8.0`), ASP.NET Core, EF Core/Npgsql và YARP. Customer Web/Back-office dùng React 19.2 + TypeScript + Vite trên Node.js 24 LTS. Mobile dùng React Native 0.87 + TypeScript. Monorepo dùng npm workspaces và một lockfile. Contract HTTP là OpenAPI 3.1; message là JSON Schema 2020-12/AsyncAPI 3.1. SDK build được pin trong `global.json` và có thể mới hơn TFM nếu tương thích; không được trộn Target Framework giữa service. Version patch và dependency cụ thể được pin trong manifest/lockfile khi khởi tạo code.
+**Decision:** Backend service/worker, Gateway, class library và test project dùng C# target .NET 8 (`net8.0`), ASP.NET Core, EF Core/Npgsql và YARP. Customer Web/Back-office dùng React 19.2 + TypeScript + Vite trên Node.js 24 LTS. Mobile dùng React Native 0.87 + TypeScript. Monorepo dùng npm workspaces và một lockfile trong `workspace/`. Contract HTTP là OpenAPI 3.1; message là JSON Schema 2020-12/AsyncAPI 3.1. SDK build được pin trong `workspace/global.json` và có thể mới hơn TFM nếu tương thích; không được trộn Target Framework giữa service. Version patch và dependency cụ thể được pin trong manifest/lockfile khi khởi tạo code.
 
 **Consequences:** backend thống nhất `net8.0`; Web/Mobile chia sẻ TypeScript contract/tooling nhưng không chia business state. Nhóm phải duy trì boundary service, không tạo shared domain model package, và đánh giá/nâng runtime bằng ADR riêng trước production nếu dòng .NET 8 không còn đáp ứng yêu cầu hỗ trợ bảo mật.
 

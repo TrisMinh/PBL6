@@ -1,6 +1,6 @@
 # 2.3 Sequence Diagrams
 
-Bộ 28 sơ đồ tuần tự ánh xạ một-một với 28 mã Use Case trong [SRS v2](../../../srs/v2/04-use-cases/README.md). Tất cả sơ đồ được viết bằng Mermaid trực tiếp trong Markdown; không phụ thuộc file Word, SVG, PNG hoặc HTML.
+Bộ 28 sơ đồ tuần tự ánh xạ một-một với 28 mã Use Case trong [SRS v2](../../srs/v2/04-use-cases/README.md). Tất cả sơ đồ được viết bằng Mermaid trực tiếp trong Markdown; không phụ thuộc file Word, SVG, PNG hoặc HTML.
 
 ## 1. Danh mục
 
@@ -39,7 +39,7 @@ Các nhãn message dùng tên nghiệp vụ để sơ đồ dễ đọc; endpoin
 
 ## 4. Nguồn quyết định
 
-- [Danh mục và đặc tả 28 Use Case](../../../srs/v2/04-use-cases/README.md)
+- [Danh mục và đặc tả 28 Use Case](../../srs/v2/04-use-cases/README.md)
 - [Microservices Architecture](../02-01-system-architecture/02-01-04-microservices-architecture.md)
 - [Service Communication](../02-01-system-architecture/02-01-05-service-communication.md)
 - [Message Broker — RabbitMQ](../02-01-system-architecture/02-01-06-message-broker.md)

@@ -13,4 +13,4 @@
 - Mỗi success/error có schema; example parse được.
 - Breaking-change diff chặn remove/rename/type/required-field change trong cùng major.
 
-Redocly dùng [`../../../redocly.yaml`](../../../redocly.yaml). Rule bắt buộc explicit `4XX` được tắt có chủ đích vì mọi operation đã dùng `default` trỏ tới cùng `ErrorEnvelope`; không được bỏ `default` khỏi operation.
+Redocly dùng [`workspace/redocly.yaml`](../../../workspace/redocly.yaml). Rule bắt buộc explicit `4XX` được tắt có chủ đích vì mọi operation đã dùng `default` trỏ tới cùng `ErrorEnvelope`; không được bỏ `default` khỏi operation.

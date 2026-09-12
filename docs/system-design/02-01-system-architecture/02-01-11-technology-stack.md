@@ -4,7 +4,7 @@
 
 Stack dưới đây là baseline đã được chốt cho MVP 2.0. Thay đổi framework hoặc runtime phải có ADR supersede trước khi thay code/contract.
 
-Baseline backend được cập nhật ngày 2026-09-10: mọi project target `.NET 8 / net8.0`; web dùng React `19.2`; mobile dùng React Native `0.87`; toolchain client dùng Node.js `24` LTS và npm workspaces. SDK build được pin riêng trong `global.json`; dùng SDK mới hơn không được tự đổi Target Framework. Patch version thực tế phải pin trong manifest/lockfile và cập nhật bảo mật trong dòng nhóm đang duy trì.
+Baseline backend được cập nhật ngày 2026-09-10: mọi project target `.NET 8 / net8.0`; web dùng React `19.2`; mobile dùng React Native `0.87`; toolchain client dùng Node.js `24` LTS và npm workspaces. SDK build được pin riêng trong `workspace/global.json`; dùng SDK mới hơn không được tự đổi Target Framework. Patch version thực tế phải pin trong manifest/lockfile và cập nhật bảo mật trong dòng nhóm đang duy trì.
 
 ## 2. Application stack
 

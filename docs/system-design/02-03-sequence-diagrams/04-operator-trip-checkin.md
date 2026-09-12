@@ -1,6 +1,6 @@
 # 2.3.4 Vận hành nhà xe, Trip và check-in
 
-Nguồn nghiệp vụ: [SRS — Vận hành nhà xe, Trip và check-in](../../../srs/v2/04-use-cases/04-operator-trip-checkin.md).
+Nguồn nghiệp vụ: [SRS — Vận hành nhà xe, Trip và check-in](../../srs/v2/04-use-cases/04-operator-trip-checkin.md).
 
 ## UC-OPS-01 — Quản lý thông tin nhà xe
 

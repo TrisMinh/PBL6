@@ -1,6 +1,6 @@
 # 2.2.3 Use Case Diagram — Payment, hủy và đổi vé
 
-Nguồn đặc tả: [Payment, hủy và đổi vé](../../../srs/v2/04-use-cases/03-payment-cancellation-change.md).
+Nguồn đặc tả: [Payment, hủy và đổi vé](../../srs/v2/04-use-cases/03-payment-cancellation-change.md).
 
 ```mermaid
 flowchart LR

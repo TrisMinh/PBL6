@@ -32,10 +32,10 @@ Kiến trúc cho nền tảng đặt vé xe khách trực tuyến dùng chung ba
 
 ## Nguồn yêu cầu
 
-- [Ràng buộc và nguyên tắc tích hợp](../../../srs/v2/07-giao-dien-va-tich-hop.md)
-- [Yêu cầu trạng thái](../../../srs/v2/06-yeu-cau-trang-thai.md)
-- [Yêu cầu phi chức năng](../../../srs/v2/09-yeu-cau-phi-chuc-nang.md)
-- [Yêu cầu dữ liệu](../../../srs/v2/08-yeu-cau-du-lieu.md)
-- [Nghiệm thu và truy vết](../../../srs/v2/10-nghiem-thu-va-truy-vet.md)
+- [Ràng buộc và nguyên tắc tích hợp](../../srs/v2/07-giao-dien-va-tich-hop.md)
+- [Yêu cầu trạng thái](../../srs/v2/06-yeu-cau-trang-thai.md)
+- [Yêu cầu phi chức năng](../../srs/v2/09-yeu-cau-phi-chuc-nang.md)
+- [Yêu cầu dữ liệu](../../srs/v2/08-yeu-cau-du-lieu.md)
+- [Nghiệm thu và truy vết](../../srs/v2/10-nghiem-thu-va-truy-vet.md)
 
 Khi tài liệu này và SRS mâu thuẫn về hành vi sản phẩm, SRS thắng. Khi mâu thuẫn về cách triển khai, Architecture Decision mới nhất thắng.

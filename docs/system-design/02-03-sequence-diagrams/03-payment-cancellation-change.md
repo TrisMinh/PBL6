@@ -1,6 +1,6 @@
 # 2.3.3 Payment, hủy và đổi vé
 
-Nguồn nghiệp vụ: [SRS — Payment, hủy và đổi vé](../../../srs/v2/04-use-cases/03-payment-cancellation-change.md).
+Nguồn nghiệp vụ: [SRS — Payment, hủy và đổi vé](../../srs/v2/04-use-cases/03-payment-cancellation-change.md).
 
 ## UC-PAY-01 — Thanh toán và nhận vé
 

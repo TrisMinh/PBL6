@@ -1,6 +1,6 @@
 # 2.2.4 Use Case Diagram — Vận hành nhà xe, Trip và check-in
 
-Nguồn đặc tả: [Vận hành nhà xe, Trip và check-in](../../../srs/v2/04-use-cases/04-operator-trip-checkin.md).
+Nguồn đặc tả: [Vận hành nhà xe, Trip và check-in](../../srs/v2/04-use-cases/04-operator-trip-checkin.md).
 
 ```mermaid
 flowchart LR
