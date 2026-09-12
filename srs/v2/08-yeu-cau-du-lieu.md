@@ -139,9 +139,9 @@ SRS không yêu cầu ERD vật lý. Khi đồ án cần hình minh họa, có t
 
 - [Bộ ERD Mermaid/Markdown theo sáu service](../../docs/system-design/02-07-database-erd/README.md)
 
-- [ERD Identity](../../docs/diagrams/subdiagrams/data-models/erd-identity.html)
-- [ERD Transport](../../docs/diagrams/subdiagrams/data-models/erd-transport.html)
-- [ERD Booking](../../docs/diagrams/subdiagrams/data-models/erd-booking.html)
-- [ERD Payment](../../docs/diagrams/subdiagrams/data-models/erd-payment.html)
+- [ERD Identity](../../docs/system-design/02-07-database-erd/01-identity-db.md)
+- [ERD Transport](../../docs/system-design/02-07-database-erd/02-transport-db.md)
+- [ERD Booking](../../docs/system-design/02-07-database-erd/03-booking-db.md)
+- [ERD Payment](../../docs/system-design/02-07-database-erd/04-payment-db.md)
 
 [← Chương 7](./07-giao-dien-va-tich-hop.md) · [Mục lục](./README.md) · [Chương 9 →](./09-yeu-cau-phi-chuc-nang.md)

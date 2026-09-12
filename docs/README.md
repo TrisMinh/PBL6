@@ -11,6 +11,5 @@ Thư mục `docs/` chỉ chứa tài liệu kỹ thuật phục vụ thiết k�
 - [Báo cáo readiness](./implementation/06-document-readiness-report.md): kết luận có thể bắt đầu code, evidence đã kiểm tra và các điều kiện toolchain còn thiếu.
 - [Executable Contracts](./contracts/README.md): OpenAPI, AsyncAPI và JSON Schema active của MVP.
 - [Database Migration Baseline](./database/README.md): schema PostgreSQL nghiệp vụ cho sáu service.
-- [QA artifacts](./qa-artifacts/final-all/): ảnh render đã kiểm tra của kiến trúc, luồng, state, sequence và data model.
 
 [SRS 2.0](../srs/v2/README.md) là nguồn quyết định cho yêu cầu và quy tắc nghiệp vụ. System/Detailed Design quyết định cách triển khai nhưng không được tự tạo thêm hành vi. Diagram dùng để giải thích trực quan và phải truy vết về requirement ID tương ứng.

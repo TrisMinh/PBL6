@@ -1,29 +1,14 @@
 # Diagram
 
-Nguồn yêu cầu chính thức được tổ chức trong [Software Requirements Specification](../../srs/v1/README.md). Footer của từng diagram dùng tên tài liệu và requirement ID thay vì số thứ tự file để liên kết không bị lỗi khi SRS được sắp xếp lại.
+Nguồn yêu cầu chính thức được tổ chức trong [Software Requirements Specification](../../srs/v1/README.md). Bộ sơ đồ dùng cho thiết kế và triển khai được viết bằng Mermaid trong [System Design](../system-design/README.md) để có thể review trực tiếp cùng tài liệu.
 
-- [Online Bus Ticket Platform — Super Diagram](./bus-ticket-platform-super-diagram.html): bản đồ tổng hợp một canvas từ nghiệp vụ đến kiến trúc, trạng thái và dữ liệu.
-- [Bộ diagram con](./subdiagrams/index.html): 38 diagram độc lập, đi từ System Context đến Use Case, Activity, Robustness, Sequence, State, Domain Model, ERD, Microservices, Event Flow và Deployment.
-- [Đặc tả đầu vào cho sơ đồ](./specifications/diagram-specifications.md): quy định nội dung, nguồn yêu cầu và ký pháp cần dùng cho từng loại diagram.
+Thư mục này chỉ giữ đặc tả đầu vào và một số nguồn/hình tham chiếu không trùng với bộ System Design:
 
-## Cấu trúc bộ diagram con
+- [Đặc tả đầu vào cho sơ đồ](./specifications/diagram-specifications.md): nội dung, nguồn yêu cầu và ký pháp cho từng loại diagram.
+- [System Context — mã nguồn Mermaid](./subdiagrams/overview/system-context-mermaid.mmd), kèm bản [SVG](./subdiagrams/overview/system-context-mermaid.svg) và [PNG](./subdiagrams/overview/system-context-mermaid.png).
+- [Use Case đặt vé — mã nguồn PlantUML](./subdiagrams/use-cases/use-cases-booking.puml), kèm bản [PNG](./subdiagrams/use-cases/use-cases-booking.png).
 
-```text
-subdiagrams/
-├── overview/        Tổng quan bối cảnh hệ thống
-├── use-cases/       Chức năng theo actor
-├── processes/       Quy trình nghiệp vụ xuyên actor
-├── robustness/      Boundary – Control – Entity
-├── sequences/       Tương tác theo thời gian
-├── states/          Vòng đời trạng thái
-├── domain-models/   Mô hình miền
-├── data-models/     ERD theo service sở hữu dữ liệu
-├── architecture/    Kiến trúc microservice
-├── events/          Luồng sự kiện bất đồng bộ
-└── deployment/      Topology local/demo và production
-```
-
-Nguồn sinh toàn bộ diagram con: [`subdiagrams/generate-subdiagrams.js`](./subdiagrams/generate-subdiagrams.js). Chỉnh nội dung trong nguồn này rồi chạy `node docs/diagrams/subdiagrams/generate-subdiagrams.js`; không sửa trực tiếp các HTML được sinh ra.
+Các bản HTML sinh tự động và ảnh QA render không được lưu trong repository.
 
 ## Ký pháp áp dụng theo loại diagram
 

@@ -49,10 +49,9 @@
 
 ### Sơ đồ liên quan
 
-- [Sequence Payment Provider](../../../docs/diagrams/subdiagrams/sequences/sequence-payment-provider.html)
-- [Sequence Payment Confirm Booking](../../../docs/diagrams/subdiagrams/sequences/sequence-payment-confirm-booking.html)
-- [Sequence Ticket Delivery](../../../docs/diagrams/subdiagrams/sequences/sequence-ticket-delivery.html)
-- [State Booking và Payment](../../../docs/diagrams/subdiagrams/states/state-booking-payment.html)
+- [Sequence Payment, Booking và Ticket Delivery](../../../docs/system-design/02-03-sequence-diagrams/03-payment-cancellation-change.md)
+- [State Booking](../../../docs/system-design/02-05-state-machine-diagrams/03-booking.md)
+- [State Payment](../../../docs/system-design/02-05-state-machine-diagrams/04-payment.md)
 
 ## UC-CANCEL-01 — Hủy vé và hoàn tiền
 
@@ -96,9 +95,9 @@
 
 ### Sơ đồ liên quan
 
-- [Sequence Cancellation Preview](../../../docs/diagrams/subdiagrams/sequences/sequence-cancel-preview.html)
-- [Sequence Refund Saga](../../../docs/diagrams/subdiagrams/sequences/sequence-refund-saga.html)
-- [State Ticket và Refund](../../../docs/diagrams/subdiagrams/states/state-ticket-refund.html)
+- [Sequence Cancellation Preview và Refund Saga](../../../docs/system-design/02-03-sequence-diagrams/03-payment-cancellation-change.md)
+- [State Ticket](../../../docs/system-design/02-05-state-machine-diagrams/05-ticket.md)
+- [State Refund](../../../docs/system-design/02-05-state-machine-diagrams/06-refund.md)
 
 ## UC-CHANGE-01 — Đổi vé
 

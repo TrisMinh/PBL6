@@ -55,8 +55,8 @@ Tổng cộng có 28 Use Case, gồm 23 Use Case mức `MUST` và 5 Use Case m�
 
 Sơ đồ được dựng từ [mã nguồn PlantUML](../../../docs/diagrams/subdiagrams/use-cases/use-cases-booking.puml). `Payment Gateway` là actor hỗ trợ nằm ngoài biên hệ thống. Quan hệ `«extend»` đi từ **Áp dụng khuyến mãi** đến **Giữ ghế và tạo Booking** vì đây là hành vi tùy chọn, chỉ xảy ra khi Customer cung cấp mã hợp lệ.
 
-- [Use Case Operator Staff và Driver](../../../docs/diagrams/subdiagrams/use-cases/use-cases-operations.html)
-- [Use Case Admin](../../../docs/diagrams/subdiagrams/use-cases/use-cases-admin.html)
+- [Use Case Operator Staff và Driver](../../../docs/system-design/02-02-use-case-diagrams/04-operator-trip-checkin.md)
+- [Use Case Admin](../../../docs/system-design/02-02-use-case-diagrams/06-administration-reporting.md)
 
 Các sơ đồ trên thể hiện phạm vi và quan hệ giữa actor với các nhóm chức năng. Bảng tổng hợp và nội dung đặc tả bên dưới là nguồn xác định đầy đủ hành vi của từng Use Case.
 
@@ -93,15 +93,15 @@ Toàn bộ 28 Use Case có phiên bản sequence Mermaid nhúng trực tiếp tr
 
 | Mục đích | Sơ đồ |
 |---|---|
-| Giữ ghế | [Sequence SeatHold](../../../docs/diagrams/subdiagrams/sequences/sequence-seat-hold.html) |
-| Tạo Booking | [Sequence Create Booking](../../../docs/diagrams/subdiagrams/sequences/sequence-create-booking.html) |
-| Thanh toán với provider | [Sequence Payment Provider](../../../docs/diagrams/subdiagrams/sequences/sequence-payment-provider.html) |
-| Xác nhận Payment và Booking | [Sequence Payment Confirm Booking](../../../docs/diagrams/subdiagrams/sequences/sequence-payment-confirm-booking.html) |
-| Phát hành Ticket | [Sequence Ticket Delivery](../../../docs/diagrams/subdiagrams/sequences/sequence-ticket-delivery.html) |
-| Preview hủy | [Sequence Cancellation Preview](../../../docs/diagrams/subdiagrams/sequences/sequence-cancel-preview.html) |
-| Refund | [Sequence Refund Saga](../../../docs/diagrams/subdiagrams/sequences/sequence-refund-saga.html) |
-| Publish Trip | [Sequence Publish Trip](../../../docs/diagrams/subdiagrams/sequences/sequence-publish-trip.html) |
-| Hủy Trip | [Sequence Cancel Trip](../../../docs/diagrams/subdiagrams/sequences/sequence-cancel-trip.html) |
+| Giữ ghế | [Sequence SeatHold](../../../docs/system-design/02-03-sequence-diagrams/02-search-booking-ticket.md) |
+| Tạo Booking | [Sequence Create Booking](../../../docs/system-design/02-03-sequence-diagrams/02-search-booking-ticket.md) |
+| Thanh toán với provider | [Sequence Payment Provider](../../../docs/system-design/02-03-sequence-diagrams/03-payment-cancellation-change.md) |
+| Xác nhận Payment và Booking | [Sequence Payment Confirm Booking](../../../docs/system-design/02-03-sequence-diagrams/03-payment-cancellation-change.md) |
+| Phát hành Ticket | [Sequence Ticket Delivery](../../../docs/system-design/02-03-sequence-diagrams/03-payment-cancellation-change.md) |
+| Preview hủy | [Sequence Cancellation Preview](../../../docs/system-design/02-03-sequence-diagrams/03-payment-cancellation-change.md) |
+| Refund | [Sequence Refund Saga](../../../docs/system-design/02-03-sequence-diagrams/03-payment-cancellation-change.md) |
+| Publish Trip | [Sequence Publish Trip](../../../docs/system-design/02-03-sequence-diagrams/04-operator-trip-checkin.md) |
+| Hủy Trip | [Sequence Cancel Trip](../../../docs/system-design/02-03-sequence-diagrams/04-operator-trip-checkin.md) |
 
 ## 4.7. Danh mục State Diagram
 

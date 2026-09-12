@@ -51,16 +51,15 @@ Các nội dung dưới đây hữu ích cho thiết kế nhưng không phải n
 
 - [System Design](../../docs/system-design/README.md)
 - [Detailed Design](../../docs/detailed-design/README.md)
-- [Kiến trúc Microservices](../../docs/diagrams/subdiagrams/architecture/microservices-architecture.html)
-- [ERD Identity](../../docs/diagrams/subdiagrams/data-models/erd-identity.html)
-- [ERD Transport](../../docs/diagrams/subdiagrams/data-models/erd-transport.html)
-- [ERD Booking](../../docs/diagrams/subdiagrams/data-models/erd-booking.html)
-- [ERD Payment](../../docs/diagrams/subdiagrams/data-models/erd-payment.html)
-- [Deployment mục tiêu](../../docs/diagrams/subdiagrams/deployment/deployment.html)
-- [Deployment local/demo](../../docs/diagrams/subdiagrams/deployment/deployment-local-demo.html)
-- [Luồng event Payment](../../docs/diagrams/subdiagrams/events/event-payment.html)
-- [Luồng event cancellation](../../docs/diagrams/subdiagrams/events/event-cancellation.html)
-- [Luồng event Trip](../../docs/diagrams/subdiagrams/events/event-trip.html)
+- [Kiến trúc Microservices](../../docs/system-design/02-01-system-architecture/02-01-04-microservices-architecture.md)
+- [ERD Identity](../../docs/system-design/02-07-database-erd/01-identity-db.md)
+- [ERD Transport](../../docs/system-design/02-07-database-erd/02-transport-db.md)
+- [ERD Booking](../../docs/system-design/02-07-database-erd/03-booking-db.md)
+- [ERD Payment](../../docs/system-design/02-07-database-erd/04-payment-db.md)
+- [Kiến trúc triển khai](../../docs/system-design/02-01-system-architecture/02-01-09-deployment-architecture.md)
+- [Luồng event Payment](../../docs/system-design/02-08-rabbitmq-event-flow/04-payment-booking-events.md)
+- [Luồng event cancellation](../../docs/system-design/02-08-rabbitmq-event-flow/05-cancellation-refund-events.md)
+- [Luồng event Trip](../../docs/system-design/02-08-rabbitmq-event-flow/03-trip-lifecycle-events.md)
 
 ## 11.4. Phân tách tài liệu
 

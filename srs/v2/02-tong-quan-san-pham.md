@@ -130,7 +130,7 @@ Toàn bộ mục này nằm ngoài kế hoạch triển khai hiện tại.
 
 Hệ thống bao gồm các client, backend nghiệp vụ, cơ chế lưu trữ, message broker/cache khi cần và khả năng quan sát. Payment Gateway và Notification Provider là hệ thống ngoài. Hệ thống không cam kết SLA của bên ngoài nhưng phải có timeout, retry có giới hạn, idempotency, đối soát và xử lý thủ công khi cần.
 
-[Mở System Context Diagram](../../docs/diagrams/subdiagrams/overview/system-context.html)
+[Mở System Context Diagram](../../docs/system-design/02-01-system-architecture/02-01-02-architecture-overview.md)
 
 ## 2.9. Giả định và phụ thuộc
 

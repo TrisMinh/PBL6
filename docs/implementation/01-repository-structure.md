@@ -65,7 +65,6 @@ PBL6/
     │   ├── payment/
     │   ├── notification/
     │   └── reporting/
-    └── qa-artifacts/
 ```
 
 ## Cấu trúc một service

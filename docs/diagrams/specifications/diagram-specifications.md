@@ -2,7 +2,7 @@
 
 Tài liệu này quy định nội dung cần đưa vào từng diagram. Diagram phải phản ánh đúng requirement ID, business rule, trạng thái và service ownership đã định nghĩa; không tự thêm entity hoặc luồng không có trong SRS.
 
-Diagram tổng hợp đã được hiện thực tại [Online Bus Ticket Platform — Super Diagram](../bus-ticket-platform-super-diagram.html).
+Bộ diagram hiện thực được quản lý tại [System Design](../../system-design/README.md).
 
 ## 1. Thứ tự vẽ từ đơn giản đến phức tạp
 
