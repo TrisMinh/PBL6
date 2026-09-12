@@ -26,6 +26,7 @@ Tài liệu này là cầu nối từ SRS/System Design/Detailed Design sang cod
 9. [API contract](../contracts/openapi/README.md)
 10. [Event contract](../contracts/asyncapi/README.md)
 11. [Database migrations](../database/README.md)
+12. [Roadmap, phân công và Kanban Markdown](../project-management/README.md)
 
 ## Thứ tự ưu tiên khi có mâu thuẫn
 

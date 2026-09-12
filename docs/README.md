@@ -8,6 +8,7 @@ Thư mục `docs/` chỉ chứa tài liệu kỹ thuật phục vụ thiết k�
 - [Detailed Design](./detailed-design/README.md): API, event contract, physical database, authorization, recovery và test design có thể triển khai.
 - [Diagram](./diagrams/README.md): sơ đồ tổng hợp, các sơ đồ chuyên biệt và đặc tả đầu vào để vẽ.
 - [Implementation Baseline](./implementation/README.md): quyết định công nghệ, cấu trúc repository, thứ tự triển khai và Definition of Ready/Done.
+- [Project Management](./project-management/README.md): ownership nhóm 4 người, roadmap, backlog, Kanban Markdown và tracking tiến độ.
 - [Báo cáo readiness](./implementation/06-document-readiness-report.md): kết luận có thể bắt đầu code, evidence đã kiểm tra và các điều kiện toolchain còn thiếu.
 - [Executable Contracts](./contracts/README.md): OpenAPI, AsyncAPI và JSON Schema active của MVP.
 - [Database Migration Baseline](./database/README.md): schema PostgreSQL nghiệp vụ cho sáu service.

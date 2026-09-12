@@ -12,7 +12,7 @@
 | Git | Bản còn hỗ trợ | Source/version workflow |
 | Android toolchain | JDK/Android SDK tương thích React Native 0.87 | Chỉ bắt buộc khi chạy Mobile Android |
 
-## Trạng thái workstation kiểm tra ngày 2026-09-09
+## Trạng thái workstation cập nhật ngày 2026-09-12
 
 | Check | Kết quả |
 |---|---|
@@ -20,9 +20,9 @@
 | npm | Có `11.16.0` |
 | .NET SDK | Có `9.0.316`; lệnh template dry-run đã xác minh có thể tạo project target `net8.0` |
 | .NET 8 runtime | Có `Microsoft.NETCore.App` và `Microsoft.AspNetCore.App 8.0.29`; đạt target runtime local |
-| Docker/Compose | Không tìm thấy command; **chưa đạt** integration/local stack |
+| Docker/Compose | Docker client `29.7.2`, Compose `5.5.1` đã cài; Docker Desktop Linux engine chưa chạy nên **chưa đạt** integration/local stack |
 
-Workstation hiện có thể scaffold và build project `net8.0`. Trước khi chạy migration/integration test hoặc full local stack, cài Docker Desktop/engine có Compose v2. Việc cài tool là thay đổi máy người dùng nên không được tự động thực hiện như một phần chỉnh tài liệu.
+Workstation hiện có thể scaffold và build project `net8.0`. Trước khi chạy migration/integration test hoặc full local stack, khởi động Docker Desktop và xác nhận `docker version` có cả Client lẫn Server section; việc chỉ có CLI/Compose chưa đủ.
 
 ## Bootstrap gate
 

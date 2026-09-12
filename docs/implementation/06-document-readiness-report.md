@@ -3,13 +3,14 @@
 - Baseline: SRS 2.0
 - Ngày đánh giá ban đầu: 2026-09-09
 - Cập nhật baseline runtime: 2026-09-10
+- Cập nhật toolchain: 2026-09-12
 - Kết luận: **READY có điều kiện về toolchain**
 
 ## 1. Kết luận chuyên môn
 
 Bộ tài liệu hiện tại đủ để bắt đầu **Slice 0 — Foundation và contract gate** mà không phải tự đoán thêm requirement, route, event hoặc schema nghiệp vụ. Phạm vi MVP được khóa ở toàn bộ `MUST`; `SHOULD/COULD` không được đưa vào route, UI hoặc consumer đang hoạt động.
 
-Workstation đã có thể scaffold project target `net8.0`: SDK `9.0.316` nhận template `net8.0`, đồng thời máy có .NET/ASP.NET Core runtime 8. Docker Engine/Compose v2 vẫn còn thiếu để chạy PostgreSQL, RabbitMQ và integration test. Node.js/npm hiện đã đạt baseline.
+Workstation đã có thể scaffold project target `net8.0`: SDK `9.0.316` nhận template `net8.0`, đồng thời máy có .NET/ASP.NET Core runtime 8. Docker client `29.7.2` và Compose `5.5.1` đã được cài, nhưng Docker Desktop Linux engine chưa chạy nên PostgreSQL, RabbitMQ và integration test vẫn bị chặn. Node.js/npm hiện đã đạt baseline.
 
 ## 2. Scope đã khóa
 

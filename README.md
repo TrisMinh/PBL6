@@ -8,6 +8,7 @@ Repository dùng SRS 2.0 làm baseline hiện hành để triển khai hệ th�
 - [SRS 2.0 — active baseline](./srs/v2/README.md)
 - [Kết luận sẵn sàng triển khai](./docs/implementation/06-document-readiness-report.md)
 - [Kế hoạch triển khai MVP](./docs/implementation/02-mvp-delivery-plan.md)
+- [Roadmap, phân công và Kanban Markdown](./docs/project-management/README.md)
 - [OpenAPI/AsyncAPI/JSON Schema](./docs/contracts/README.md)
 - [PostgreSQL migration baseline](./docs/database/README.md)
 
