@@ -1,5 +1,15 @@
 # Software Requirements Specification
 
+## Thông tin baseline
+
+| Thuộc tính | Giá trị |
+|---|---|
+| Mã tài liệu | PBL6-SRS-001 |
+| Phiên bản nội dung | 1.0.0 |
+| Trạng thái | Superseded — historical baseline |
+| Ngày baseline | 2026-08-19 |
+| Được thay thế bởi | [SRS 2.0.0](../srs-v2/README.md) |
+
 Tài liệu đặc tả cho nền tảng đặt vé xe khách trực tuyến dùng chung backend cho Web khách hàng, Mobile App và Back-office Web. Hệ thống áp dụng kiến trúc Microservices; mỗi service chịu trách nhiệm cho một miền nghiệp vụ và cung cấp khả năng qua API hoặc sự kiện.
 
 SRS tập trung trả lời: hệ thống phục vụ ai, phải làm gì, tuân theo quy tắc nào, xử lý thành công/thất bại ra sao và được nghiệm thu bằng tiêu chí nào. Chi tiết triển khai chỉ được đưa vào khi nó là một ràng buộc cần thiết của sản phẩm.

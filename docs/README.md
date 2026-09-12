@@ -4,7 +4,8 @@
 
 - [SRS 2.0 — Active baseline](./srs-v2/README.md): nguồn quyết định hiện hành cho phạm vi, nghiệp vụ, yêu cầu, trạng thái và tiêu chí nghiệm thu.
 - [SRS 1.x — Historical baseline](./srs/README.md): được giữ nguyên để truy vết lịch sử; không dùng để quyết định hành vi mới khi khác SRS 2.0.
-- Các file trong [`word-snapshots/`](./word-snapshots/) là bản đóng gói/báo cáo theo thời điểm. Markdown đã được phê duyệt mới là nguồn quyết định; Word được đồng bộ sau mỗi mốc phát hành tài liệu.
+- [Lịch sử baseline SRS](./SRS-CHANGELOG.md): ghi rõ quan hệ giữa SRS 1.0.0, SRS 2.0.0 và các bản Word phát hành.
+- [Word SRS v001](./word-snapshots/releases/PBL6-SRS-v001.docx) là bản Word phát hành hiện hành; các file trong [`word-snapshots/`](./word-snapshots/) là bản đóng gói/báo cáo theo thời điểm. Markdown đã được phê duyệt mới là nguồn quyết định; Word được đồng bộ sau mỗi mốc phát hành tài liệu.
 
 Không xóa hoặc ghi đè một baseline cũ. Khi thay đổi yêu cầu, tạo phiên bản/baseline mới, ghi lịch sử thay đổi và nêu rõ phiên bản active tại file này.
 
