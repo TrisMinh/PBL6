@@ -138,9 +138,9 @@
 
 ### Sơ đồ liên quan
 
-- [Sequence Publish Trip](../../diagrams/subdiagrams/sequences/sequence-publish-trip.html)
-- [Robustness Create Trip](../../diagrams/subdiagrams/robustness/robustness-create-trip.html)
-- [State Trip](../../diagrams/subdiagrams/states/state-trip.html)
+- [Sequence Publish Trip](../../../docs/diagrams/subdiagrams/sequences/sequence-publish-trip.html)
+- [Robustness Create Trip](../../../docs/diagrams/subdiagrams/robustness/robustness-create-trip.html)
+- [State Trip](../../../docs/diagrams/subdiagrams/states/state-trip.html)
 
 ## UC-OPS-06 — Vận hành Trip và danh sách hành khách
 
@@ -204,8 +204,8 @@
 
 ### Sơ đồ liên quan
 
-- [Robustness Check-in](../../diagrams/subdiagrams/robustness/robustness-check-in.html)
-- [State Ticket và Refund](../../diagrams/subdiagrams/states/state-ticket-refund.html)
+- [Robustness Check-in](../../../docs/diagrams/subdiagrams/robustness/robustness-check-in.html)
+- [State Ticket và Refund](../../../docs/diagrams/subdiagrams/states/state-ticket-refund.html)
 
 ## UC-TRIP-01 — Hủy chuyến xe có vé đã bán
 
@@ -240,8 +240,8 @@
 
 ### Sơ đồ liên quan
 
-- [Sequence Cancel Trip](../../diagrams/subdiagrams/sequences/sequence-cancel-trip.html)
-- [Robustness Cancel Trip](../../diagrams/subdiagrams/robustness/robustness-cancel-trip.html)
-- [State Trip](../../diagrams/subdiagrams/states/state-trip.html)
+- [Sequence Cancel Trip](../../../docs/diagrams/subdiagrams/sequences/sequence-cancel-trip.html)
+- [Robustness Cancel Trip](../../../docs/diagrams/subdiagrams/robustness/robustness-cancel-trip.html)
+- [State Trip](../../../docs/diagrams/subdiagrams/states/state-trip.html)
 
 [← Danh mục Use Case](./README.md)

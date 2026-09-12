@@ -137,11 +137,11 @@ Chương này mô tả dữ liệu nghiệp vụ và ràng buộc quan sát đư
 
 SRS không yêu cầu ERD vật lý. Khi đồ án cần hình minh họa, có thể tham khảo các ERD hiện có nhưng coi chúng là tài liệu thiết kế:
 
-- [Bộ ERD Mermaid/Markdown theo sáu service](../system-design/02-07-database-erd/README.md)
+- [Bộ ERD Mermaid/Markdown theo sáu service](../../docs/system-design/02-07-database-erd/README.md)
 
-- [ERD Identity](../diagrams/subdiagrams/data-models/erd-identity.html)
-- [ERD Transport](../diagrams/subdiagrams/data-models/erd-transport.html)
-- [ERD Booking](../diagrams/subdiagrams/data-models/erd-booking.html)
-- [ERD Payment](../diagrams/subdiagrams/data-models/erd-payment.html)
+- [ERD Identity](../../docs/diagrams/subdiagrams/data-models/erd-identity.html)
+- [ERD Transport](../../docs/diagrams/subdiagrams/data-models/erd-transport.html)
+- [ERD Booking](../../docs/diagrams/subdiagrams/data-models/erd-booking.html)
+- [ERD Payment](../../docs/diagrams/subdiagrams/data-models/erd-payment.html)
 
 [← Chương 7](./07-giao-dien-va-tich-hop.md) · [Mục lục](./README.md) · [Chương 9 →](./09-yeu-cau-phi-chuc-nang.md)

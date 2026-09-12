@@ -31,36 +31,36 @@ Chi tiết code, schema và mapping HTTP được quản lý trong API Specifica
 
 ### Use Case Diagram
 
-- [Bộ Use Case Diagram Markdown — đủ 28 UC](../system-design/02-02-use-case-diagrams/README.md)
+- [Bộ Use Case Diagram Markdown — đủ 28 UC](../../docs/system-design/02-02-use-case-diagrams/README.md)
 
 ### Activity Diagram
 
-- [Bộ Activity Diagram Markdown — đủ BP-01..07](../system-design/02-04-activity-diagrams/README.md)
+- [Bộ Activity Diagram Markdown — đủ BP-01..07](../../docs/system-design/02-04-activity-diagrams/README.md)
 
 ### Sequence Diagram
 
-- [Bộ Sequence Diagram Markdown — đủ 28 UC](../system-design/02-03-sequence-diagrams/README.md)
+- [Bộ Sequence Diagram Markdown — đủ 28 UC](../../docs/system-design/02-03-sequence-diagrams/README.md)
 
 ### State Diagram
 
-- [Bộ State Machine Markdown](../system-design/02-05-state-machine-diagrams/README.md)
+- [Bộ State Machine Markdown](../../docs/system-design/02-05-state-machine-diagrams/README.md)
 
 ## 11.3. Sơ đồ/tài liệu thiết kế tham khảo
 
 Các nội dung dưới đây hữu ích cho thiết kế nhưng không phải nguồn yêu cầu chính:
 
-- [System Design](../system-design/README.md)
-- [Detailed Design](../detailed-design/README.md)
-- [Kiến trúc Microservices](../diagrams/subdiagrams/architecture/microservices-architecture.html)
-- [ERD Identity](../diagrams/subdiagrams/data-models/erd-identity.html)
-- [ERD Transport](../diagrams/subdiagrams/data-models/erd-transport.html)
-- [ERD Booking](../diagrams/subdiagrams/data-models/erd-booking.html)
-- [ERD Payment](../diagrams/subdiagrams/data-models/erd-payment.html)
-- [Deployment mục tiêu](../diagrams/subdiagrams/deployment/deployment.html)
-- [Deployment local/demo](../diagrams/subdiagrams/deployment/deployment-local-demo.html)
-- [Luồng event Payment](../diagrams/subdiagrams/events/event-payment.html)
-- [Luồng event cancellation](../diagrams/subdiagrams/events/event-cancellation.html)
-- [Luồng event Trip](../diagrams/subdiagrams/events/event-trip.html)
+- [System Design](../../docs/system-design/README.md)
+- [Detailed Design](../../docs/detailed-design/README.md)
+- [Kiến trúc Microservices](../../docs/diagrams/subdiagrams/architecture/microservices-architecture.html)
+- [ERD Identity](../../docs/diagrams/subdiagrams/data-models/erd-identity.html)
+- [ERD Transport](../../docs/diagrams/subdiagrams/data-models/erd-transport.html)
+- [ERD Booking](../../docs/diagrams/subdiagrams/data-models/erd-booking.html)
+- [ERD Payment](../../docs/diagrams/subdiagrams/data-models/erd-payment.html)
+- [Deployment mục tiêu](../../docs/diagrams/subdiagrams/deployment/deployment.html)
+- [Deployment local/demo](../../docs/diagrams/subdiagrams/deployment/deployment-local-demo.html)
+- [Luồng event Payment](../../docs/diagrams/subdiagrams/events/event-payment.html)
+- [Luồng event cancellation](../../docs/diagrams/subdiagrams/events/event-cancellation.html)
+- [Luồng event Trip](../../docs/diagrams/subdiagrams/events/event-trip.html)
 
 ## 11.4. Phân tách tài liệu
 

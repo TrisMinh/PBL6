@@ -8,7 +8,7 @@
 | Phiên bản nội dung | 1.0.0 |
 | Trạng thái | Superseded — historical baseline |
 | Ngày baseline | 2026-08-19 |
-| Được thay thế bởi | [SRS 2.0.0](../srs-v2/README.md) |
+| Được thay thế bởi | [SRS 2.0.0](../v2/README.md) |
 
 Tài liệu đặc tả cho nền tảng đặt vé xe khách trực tuyến dùng chung backend cho Web khách hàng, Mobile App và Back-office Web. Hệ thống áp dụng kiến trúc Microservices; mỗi service chịu trách nhiệm cho một miền nghiệp vụ và cung cấp khả năng qua API hoặc sự kiện.
 
@@ -17,7 +17,7 @@ SRS tập trung trả lời: hệ thống phục vụ ai, phải làm gì, tuân
 ## Cấu trúc tài liệu
 
 ```text
-srs/
+v1/
 ├── README.md
 ├── overview/
 │   ├── product-overview.md
@@ -80,8 +80,8 @@ Tên thư mục thể hiện tầng nội dung; tên file thể hiện chủ đ�
 ### Nghiệm thu và trực quan hóa
 
 - [Tiêu chí chấp nhận và truy vết](./verification/acceptance-and-traceability.md): liên kết requirement → rule → use case → test.
-- [Đặc tả đầu vào cho sơ đồ](../diagrams/specifications/diagram-specifications.md): nội dung chuẩn để xây dựng từng loại diagram; được đặt ngoài SRS vì đây là tài liệu hỗ trợ thiết kế.
-- [Thư viện diagram](../diagrams/README.md): các diagram đã được sinh và kiểm tra trực quan.
+- [Đặc tả đầu vào cho sơ đồ](../../docs/diagrams/specifications/diagram-specifications.md): nội dung chuẩn để xây dựng từng loại diagram; được đặt ngoài SRS vì đây là tài liệu hỗ trợ thiết kế.
+- [Thư viện diagram](../../docs/diagrams/README.md): các diagram đã được sinh và kiểm tra trực quan.
 
 ## Cách dùng theo công việc
 

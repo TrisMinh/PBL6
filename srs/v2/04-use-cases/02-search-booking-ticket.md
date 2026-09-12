@@ -76,10 +76,10 @@ Khi nhiều Customer cùng giữ một TripSeat, đúng một request được p
 
 ### Sơ đồ liên quan
 
-- [Activity Booking](../../diagrams/subdiagrams/processes/activity-booking.html)
-- [Sequence SeatHold](../../diagrams/subdiagrams/sequences/sequence-seat-hold.html)
-- [Sequence Create Booking](../../diagrams/subdiagrams/sequences/sequence-create-booking.html)
-- [State TripSeat và SeatHold](../../diagrams/subdiagrams/states/state-trip-seat-hold.html)
+- [Activity Booking](../../../docs/diagrams/subdiagrams/processes/activity-booking.html)
+- [Sequence SeatHold](../../../docs/diagrams/subdiagrams/sequences/sequence-seat-hold.html)
+- [Sequence Create Booking](../../../docs/diagrams/subdiagrams/sequences/sequence-create-booking.html)
+- [State TripSeat và SeatHold](../../../docs/diagrams/subdiagrams/states/state-trip-seat-hold.html)
 
 ## UC-BOOK-02 — Xem Booking và Ticket của tôi
 

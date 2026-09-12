@@ -401,7 +401,7 @@ Không gộp tất cả entity vào một hình. Vẽ các hình riêng:
 3. `Ticket + Refund`.
 4. `Trip`.
 
-Nguồn chuyển trạng thái chính thức: [Yêu cầu về trạng thái nghiệp vụ](../../srs/requirements/state-requirements.md). Mỗi mũi tên phải có dạng:
+Nguồn chuyển trạng thái chính thức: [Yêu cầu về trạng thái nghiệp vụ](../../../srs/v1/requirements/state-requirements.md). Mỗi mũi tên phải có dạng:
 
 ```text
 event [guard] / action

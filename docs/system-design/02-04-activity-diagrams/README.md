@@ -19,6 +19,6 @@ Bộ sơ đồ activity mô tả đủ bảy quy trình nghiệp vụ `BP-01..07
 - Hình tròn kép: điểm bắt đầu/kết thúc.
 - Hình thoi: decision; nhãn cạnh là guard.
 - Action có tiền tố `Actor`, `Client`, `Service` hoặc `Provider` để thay cho swimlane khi Mermaid không có UML Activity native.
-- Trạng thái viết hoa phải khớp [State Requirements](../../srs-v2/06-yeu-cau-trang-thai.md).
+- Trạng thái viết hoa phải khớp [State Requirements](../../../srs/v2/06-yeu-cau-trang-thai.md).
 - Redirect từ provider không phải bằng chứng thanh toán; chỉ webhook đã xác minh mới được phép tạo `PaymentSucceeded`.
 

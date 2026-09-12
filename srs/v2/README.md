@@ -8,7 +8,7 @@
 | Phiên bản nội dung | 2.0.0 |
 | Trạng thái | Accepted — active baseline cho triển khai MVP |
 | Phạm vi | Web End-user, Mobile App, Back-office Web và API dùng chung |
-| Nguồn baseline | SRS phiên bản 1.0.0 và bộ đặc tả mô-đun trong `docs/srs` |
+| Nguồn baseline | SRS phiên bản 1.0.0 và bộ đặc tả mô-đun trong `srs/v1` |
 | Ngày baseline | 2026-09-09 |
 
 ## Mục lục

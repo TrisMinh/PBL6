@@ -134,7 +134,7 @@ Cho phép Operator Staff tạo một Trip hợp lệ, chốt dữ liệu cần t
 | 3 | Thời gian hoặc dữ liệu bắt buộc không hợp lệ. | Trả validation error và giữ Trip ở dạng nháp. |
 | 4 | Tạo TripSeat thất bại hoặc yêu cầu mở bán bị gửi lặp. | Chưa mở bán Trip; retry an toàn và không tạo snapshot/inventory trùng. |
 
-**Tham chiếu:** `UC-OPS-05`. Quy tắc liên quan: `BR-TRIP-001..002`, `BR-SEAT-010` và `BR-TENANT-*`. Sơ đồ: [Sequence publish Trip](../diagrams/subdiagrams/sequences/sequence-publish-trip.html).
+**Tham chiếu:** `UC-OPS-05`. Quy tắc liên quan: `BR-TRIP-001..002`, `BR-SEAT-010` và `BR-TENANT-*`. Sơ đồ: [Sequence publish Trip](../../docs/diagrams/subdiagrams/sequences/sequence-publish-trip.html).
 
 ## 3.6. BP-05 — Thực hiện chuyến và check-in
 

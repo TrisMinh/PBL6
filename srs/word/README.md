@@ -13,10 +13,10 @@ Phiên bản nội dung và phiên bản file Word là hai trục độc lập:
 
 | Trục | Bản lịch sử | Bản hiện hành | Nguồn quyết định |
 |---|---|---|---|
-| Baseline nội dung SRS | [1.0.0](../srs/README.md) | [2.0.0](../srs-v2/README.md) | Markdown trong `docs/srs-v2` |
+| Baseline nội dung SRS | [1.0.0](../v1/README.md) | [2.0.0](../v2/README.md) | Markdown trong `srs/v2` |
 | Bản đóng gói Word | Snapshot `docsv1` trong `legacy/` | `PBL6-SRS-v001.docx` | File phát hành trong `releases/` |
 
-`v001` là số phát hành của file Word, không đồng nghĩa với phiên bản nội dung `1.0.0`. Xem [lịch sử baseline SRS](../SRS-CHANGELOG.md) để biết mốc nào đang active.
+`v001` là số phát hành của file Word, không đồng nghĩa với phiên bản nội dung `1.0.0`. Xem [lịch sử baseline SRS](../CHANGELOG.md) để biết mốc nào đang active.
 
 ## Cấu trúc thư mục
 

@@ -1,6 +1,6 @@
 # Diagram
 
-Nguồn yêu cầu chính thức được tổ chức trong [Software Requirements Specification](../srs/README.md). Footer của từng diagram dùng tên tài liệu và requirement ID thay vì số thứ tự file để liên kết không bị lỗi khi SRS được sắp xếp lại.
+Nguồn yêu cầu chính thức được tổ chức trong [Software Requirements Specification](../../srs/v1/README.md). Footer của từng diagram dùng tên tài liệu và requirement ID thay vì số thứ tự file để liên kết không bị lỗi khi SRS được sắp xếp lại.
 
 - [Online Bus Ticket Platform — Super Diagram](./bus-ticket-platform-super-diagram.html): bản đồ tổng hợp một canvas từ nghiệp vụ đến kiến trúc, trạng thái và dữ liệu.
 - [Bộ diagram con](./subdiagrams/index.html): 38 diagram độc lập, đi từ System Context đến Use Case, Activity, Robustness, Sequence, State, Domain Model, ERD, Microservices, Event Flow và Deployment.

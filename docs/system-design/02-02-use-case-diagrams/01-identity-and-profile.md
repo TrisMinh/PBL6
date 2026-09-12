@@ -1,6 +1,6 @@
 # 2.2.1 Use Case Diagram — Định danh và hồ sơ
 
-Nguồn đặc tả: [Định danh và hồ sơ](../../srs-v2/04-use-cases/01-identity-and-profile.md).
+Nguồn đặc tả: [Định danh và hồ sơ](../../../srs/v2/04-use-cases/01-identity-and-profile.md).
 
 ```mermaid
 flowchart LR

@@ -1,6 +1,6 @@
 # PBL6 SRS — Nhật ký phiên bản
 
-Nhật ký này quản lý các file Word phát hành. Lịch sử phiên bản nội dung SRS 1.0.0 và 2.0.0 được quản lý riêng tại [`docs/SRS-CHANGELOG.md`](../SRS-CHANGELOG.md).
+Nhật ký này quản lý các file Word phát hành. Lịch sử phiên bản nội dung SRS 1.0.0 và 2.0.0 được quản lý riêng tại [`srs/CHANGELOG.md`](../CHANGELOG.md).
 
 ## PBL6 SRS v001
 
@@ -40,5 +40,5 @@ Nhật ký này quản lý các file Word phát hành. Lịch sử phiên bản 
 - Tên bản phát hành: `PBL6-SRS-vNNN.docx`.
 - Mỗi lần chỉnh sửa, lưu thành một file mới với số phiên bản kế tiếp.
 - Không ghi đè hoặc xóa phiên bản đã phát hành.
-- Phiên bản có số lớn nhất trong `docs/word-snapshots/releases` là bản Word hiện hành.
+- Phiên bản có số lớn nhất trong `srs/word/releases` là bản Word hiện hành.
 - Mỗi phiên bản phải có ngày, trạng thái, ghi chú thay đổi, kích thước và mã SHA-256.

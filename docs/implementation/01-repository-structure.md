@@ -39,9 +39,17 @@ PBL6/
 │       ├── e2e/
 │       ├── performance/
 │       └── architecture/
+├── srs/
+│   ├── v1/
+│   ├── v2/
+│   ├── word/
+│   │   ├── releases/
+│   │   ├── legacy/
+│   │   ├── references/
+│   │   └── sources/
+│   ├── README.md
+│   └── CHANGELOG.md
 └── docs/
-    ├── srs/
-    ├── srs-v2/
     ├── system-design/
     ├── detailed-design/
     ├── implementation/
@@ -57,7 +65,6 @@ PBL6/
     │   ├── payment/
     │   ├── notification/
     │   └── reporting/
-    ├── word-snapshots/
     └── qa-artifacts/
 ```
 
