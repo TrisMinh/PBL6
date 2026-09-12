@@ -21,7 +21,9 @@ File này là log append-only. Không sửa lịch sử để làm số liệu �
 ### 2026-09-12 — Project setup
 
 - Done: tạo roadmap, ownership, backlog, Kanban, Sprint 0 checklist và risk/dependency baseline.
-- Next: điền tên 4 thành viên; xác nhận ngày kickoff; nhận các card READY.
+- Done: gán `BE-1` Hoàng Minh Trí, `BE-2` Ngô Quang Sinh, `FE` Đinh Công Trung Sỹ và `MOBILE` Ngô Thành Đạt.
+- Done: tách bốn roadmap cá nhân với timeline, task, dependency, handoff và checklist riêng.
+- Next: xác nhận ngày kickoff; từng người nhận card READY trong roadmap cá nhân.
 - Blocked: `DEP-003/RISK-001` — Docker CLI/Compose đã cài nhưng Docker Desktop engine chưa chạy.
 - Decision: tracking dùng Markdown trong repository; trạng thái chỉ được tính Done sau merge + evidence.
 

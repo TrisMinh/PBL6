@@ -11,7 +11,7 @@
 
 ### `S0-TEAM-01` — Team/Git setup
 
-- [ ] Điền tên vào [team ownership](../01-team-ownership.md).
+- [x] Điền tên vào [team ownership](../01-team-ownership.md).
 - [ ] Chọn một người facilitator cho Sprint 0; facilitator không phải “sếp kỹ thuật”.
 - [ ] Tạo/xác nhận `develop`; bảo vệ `main`, cấm direct push.
 - [ ] Thống nhất branch/commit/PR convention.
@@ -28,7 +28,7 @@
 - [ ] Mobile xác nhận JDK/Android SDK/emulator/device phù hợp React Native.
 - [ ] Ghi blocker vào [risk register](../registers/risks-and-dependencies.md), không để trong chat rồi thất lạc.
 
-## 3. BE-1 checklist
+## 3. Hoàng Minh Trí (`BE-1`) checklist
 
 ### `S0-BE1-01` — .NET solution/build baseline
 
@@ -63,7 +63,7 @@
 - [ ] Health/readiness phản ánh database connectivity.
 - [ ] Unit + integration smoke pass; chưa thêm auth flow ngoài scope.
 
-## 4. BE-2 checklist
+## 4. Ngô Quang Sinh (`BE-2`) checklist
 
 ### `S0-BE2-01` — Local Compose stack
 
@@ -98,7 +98,7 @@
 - [ ] Tạo command ổn định để local và CI gọi cùng cách.
 - [ ] Gate fail với fixture sai để chứng minh check thực sự hoạt động.
 
-## 5. FE checklist
+## 5. Đinh Công Trung Sỹ (`FE`) checklist
 
 ### `S0-FE-01` — Web workspace
 
@@ -129,7 +129,7 @@
 - [ ] Loading/skeleton, empty, error và retry primitives.
 - [ ] Focus visible, keyboard flow và contrast baseline.
 
-## 6. MOBILE checklist
+## 6. Ngô Thành Đạt (`MOBILE`) checklist
 
 ### `S0-MOB-01` — React Native baseline
 

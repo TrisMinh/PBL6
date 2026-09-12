@@ -8,7 +8,7 @@
 - Progress: `0%`
 - Cập nhật gần nhất: 2026-09-12
 
-Chi tiết checklist: [Sprint 0 Foundation](./sprint-00-foundation.md). Nguồn card: [Product Backlog — EP-00](../03-product-backlog.md#ep-00--foundation--contract-gate-s0).
+Chi tiết checklist: [Sprint 0 Foundation](./sprint-00-foundation.md). Nguồn card: [Product Backlog — EP-00](../03-product-backlog.md#ep-00--foundation--contract-gate-s0). Mỗi người xem đường dài tại [roadmap cá nhân](../people/README.md).
 
 ## BLOCKED
 
@@ -28,29 +28,29 @@ _Chưa có card nào._
 
 | ID | P | Owner | PD | Outcome | Reviewer | Started |
 |---|---|---|---:|---|---|---|
-| `S0-TEAM-01` | P0 | TEAM | 0.5 | Điền tên/ownership, chốt Git flow và WIP | TEAM | — |
+| `S0-TEAM-01` | P0 | TEAM | 0.5 | Tên đã điền; còn chốt Git flow, reviewer và WIP | TEAM | — |
 | `S0-TEAM-02` | P0 | TEAM | 0.5 | Kiểm tra toolchain của cả 4 thành viên | TEAM | — |
-| `S0-BE1-01` | P0 | BE-1 | 2 | Solution/build baseline | BE-2 | — |
-| `S0-BE2-01` | P0 | BE-2 | 2 | Compose local stack | BE-1 | — |
-| `S0-BE2-04` | P0 | BE-2 | 1 | Contract/SQL validation gates | FE | — |
-| `S0-FE-01` | P0 | FE | 1 | npm/TypeScript/Vite workspace baseline | MOBILE | — |
-| `S0-MOB-01` | P0 | MOBILE | 2 | React Native Android app baseline | FE | — |
+| `S0-BE1-01` | P0 | Hoàng Minh Trí (`BE-1`) | 2 | Solution/build baseline | Ngô Quang Sinh | — |
+| `S0-BE2-01` | P0 | Ngô Quang Sinh (`BE-2`) | 2 | Compose local stack | Hoàng Minh Trí | — |
+| `S0-BE2-04` | P0 | Ngô Quang Sinh (`BE-2`) | 1 | Contract/SQL validation gates | Đinh Công Trung Sỹ | — |
+| `S0-FE-01` | P0 | Đinh Công Trung Sỹ (`FE`) | 1 | npm/TypeScript/Vite workspace baseline | Ngô Thành Đạt | — |
+| `S0-MOB-01` | P0 | Ngô Thành Đạt (`MOBILE`) | 2 | React Native Android app baseline | Đinh Công Trung Sỹ | — |
 
 ## BACKLOG — đã commit, chờ dependency
 
 | ID | P | Owner | PD | Depends | Outcome |
 |---|---|---|---:|---|---|
-| `S0-BE1-02` | P0 | BE-1 | 1 | `S0-BE1-01` | Gateway health + error/correlation |
-| `S0-BE1-03` | P0 | BE-1 | 2 | `S0-BE1-01` | Shared technical primitives |
-| `S0-BE1-04` | P1 | BE-1 | 1.5 | `S0-BE1-03` | Identity service skeleton/migration |
-| `S0-BE2-02` | P0 | BE-2 | 1.5 | `S0-BE2-01` | Database bootstrap/migration smoke |
-| `S0-BE2-03` | P0 | BE-2 | 2 | `S0-BE1-03`, `S0-BE2-01` | Event + Inbox/Outbox smoke |
-| `S0-FE-02` | P1 | FE | 1.5 | `S0-FE-01` | Customer/Back-office shells |
-| `S0-FE-03` | P0 | FE | 1 | `S0-FE-01`, `S0-BE2-04` | Generated client compile/health |
-| `S0-FE-04` | P1 | FE | 1 | `S0-FE-02` | Web base UI states |
-| `S0-MOB-02` | P1 | MOBILE | 1.5 | `S0-MOB-01` | Navigation/env/session/error boundary |
-| `S0-MOB-03` | P0 | MOBILE | 1 | `S0-MOB-01`, `S0-BE2-04` | Generated client compile/health |
-| `S0-MOB-04` | P1 | MOBILE | 1 | `S0-MOB-02` | Mobile base UI states |
+| `S0-BE1-02` | P0 | Hoàng Minh Trí | 1 | `S0-BE1-01` | Gateway health + error/correlation |
+| `S0-BE1-03` | P0 | Hoàng Minh Trí | 2 | `S0-BE1-01` | Shared technical primitives |
+| `S0-BE1-04` | P1 | Hoàng Minh Trí | 1.5 | `S0-BE1-03` | Identity service skeleton/migration |
+| `S0-BE2-02` | P0 | Ngô Quang Sinh | 1.5 | `S0-BE2-01` | Database bootstrap/migration smoke |
+| `S0-BE2-03` | P0 | Ngô Quang Sinh | 2 | `S0-BE1-03`, `S0-BE2-01` | Event + Inbox/Outbox smoke |
+| `S0-FE-02` | P1 | Đinh Công Trung Sỹ | 1.5 | `S0-FE-01` | Customer/Back-office shells |
+| `S0-FE-03` | P0 | Đinh Công Trung Sỹ | 1 | `S0-FE-01`, `S0-BE2-04` | Generated client compile/health |
+| `S0-FE-04` | P1 | Đinh Công Trung Sỹ | 1 | `S0-FE-02` | Web base UI states |
+| `S0-MOB-02` | P1 | Ngô Thành Đạt | 1.5 | `S0-MOB-01` | Navigation/env/session/error boundary |
+| `S0-MOB-03` | P0 | Ngô Thành Đạt | 1 | `S0-MOB-01`, `S0-BE2-04` | Generated client compile/health |
+| `S0-MOB-04` | P1 | Ngô Thành Đạt | 1 | `S0-MOB-02` | Mobile base UI states |
 
 ## DONE
 

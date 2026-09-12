@@ -2,38 +2,40 @@
 
 ## 1. Danh sách thành viên
 
-Điền tên thật một lần trước Sprint 0. Nếu đổi người, giữ nguyên mã vai trò và ghi thay đổi trong progress log.
+Tên được gán ngày 2026-09-12. Nếu đổi người, giữ nguyên mã vai trò và ghi thay đổi trong progress log.
 
 | Mã | Tên thành viên | Vai trò chính | Ownership chính | Backup |
 |---|---|---|---|---|
-| `BE-1` | _Chưa điền_ | Backend — Platform & Operations | Gateway, Identity, authorization, Transport, Admin/Reporting | `BE-2` |
-| `BE-2` | _Chưa điền_ | Backend — Transaction & Integration | Booking, Payment, Ticket, Refund, Notification, RabbitMQ | `BE-1` |
-| `FE` | _Chưa điền_ | Frontend Web | Customer Web, Back-office Web, web design system, web E2E | `MOBILE` review UX |
-| `MOBILE` | _Chưa điền_ | Mobile | Customer/Driver mobile, QR check-in UX, mobile E2E | `FE` review TypeScript |
+| `BE-1` | [Hoàng Minh Trí](./people/be-1-hoang-minh-tri.md) | Backend — Platform & Operations | Gateway, Identity, authorization, Transport, Admin/Reporting | Ngô Quang Sinh (`BE-2`) |
+| `BE-2` | [Ngô Quang Sinh](./people/be-2-ngo-quang-sinh.md) | Backend — Transaction & Integration | Booking, Payment, Ticket, Refund, Notification, RabbitMQ | Hoàng Minh Trí (`BE-1`) |
+| `FE` | [Đinh Công Trung Sỹ](./people/fe-dinh-cong-trung-sy.md) | Frontend Web | Customer Web, Back-office Web, web design system, web E2E | Ngô Thành Đạt (`MOBILE`) review UX |
+| `MOBILE` | [Ngô Thành Đạt](./people/mobile-ngo-thanh-dat.md) | Mobile | Customer/Driver mobile, QR check-in UX, mobile E2E | Đinh Công Trung Sỹ (`FE`) review TypeScript |
 
 Không hiểu ownership là “chỉ người đó được sửa”. Owner chịu trách nhiệm đưa việc tới Done, giữ contract ổn định, tìm reviewer và xử lý blocker.
 
 ## 2. Trách nhiệm chi tiết
 
-### BE-1 — Platform & Operations
+### BE-1 — Hoàng Minh Trí — Platform & Operations
 
 - Solution/build baseline, Gateway, shared error/correlation/authorization primitives.
-- Identity: register, verify, login, refresh, logout, reset password, profile, membership/role.
+- Identity architecture, login/refresh/logout, membership/role, tenant context và audit.
 - Transport: Organization, Bus/Seat, Driver, Route/Stop, Trip, assignment, public search.
 - Tenant isolation, permission matrix và security negative tests.
 - Admin lookup và Reporting projection/query ở giai đoạn cuối.
 - Review migration, event contract và failure handling do `BE-2` sở hữu.
 
-### BE-2 — Transaction & Integration
+### BE-2 — Ngô Quang Sinh — Transaction & Integration
 
 - Local infrastructure, PostgreSQL/RabbitMQ/Redis/Mailpit/payment simulator và integration harness.
+- Identity account lifecycle: register/verify, reset/profile, notification outbox và security fixtures theo architecture của `BE-1`.
+- Transport support: Driver/Route/Stop, public search và Booking inventory projection.
 - Booking: TripSeat, SeatHold, Booking, Passenger, idempotency và expiry worker.
 - Payment/Ticket: intent, VNPay adapter, webhook, Inbox/Outbox, saga và ticket issuance.
 - Cancellation/Refund/Notification, retry/DLQ và reconciliation state.
 - Concurrency, idempotency, crash/retry và event compatibility tests.
 - Review API authorization/tenant boundary do `BE-1` sở hữu.
 
-### FE — Web
+### FE — Đinh Công Trung Sỹ — Web
 
 - `customer-web` và `backoffice-web`; routing, session, state/query layer và accessibility.
 - Web design system, token/component states và responsive behavior.
@@ -42,7 +44,7 @@ Không hiểu ownership là “chỉ người đó được sửa”. Owner ch�
 - Generated OpenAPI client; không viết DTO API bằng tay.
 - Component, integration và Playwright E2E cho web.
 
-### MOBILE — Customer & Driver
+### MOBILE — Ngô Thành Đạt — Customer & Driver
 
 - React Native app, navigation, environment, secure session storage và deep link.
 - Customer flow tối thiểu: auth, search, booking/payment status, ticket.
@@ -59,8 +61,8 @@ Không hiểu ownership là “chỉ người đó được sửa”. Owner ch�
 |---|:---:|:---:|:---:|:---:|
 | Repository, Gateway, CI baseline | A/R | C/R | C | C |
 | Local infra, messaging, integration harness | C | A/R | I | I |
-| Identity, tenant, permission | A/R | C | R | R |
-| Transport, Trip, public search | A/R | C | R | R |
+| Identity, tenant, permission | A/R | R | R | R |
+| Transport, Trip, public search | A/R | R | R | R |
 | SeatHold, Booking | C | A/R | R | R |
 | Payment, Ticket, Refund | C | A/R | R | R |
 | Notification | C | A/R | R | R |

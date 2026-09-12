@@ -11,22 +11,23 @@
 | Giai đoạn | `M0 — Foundation` |
 | Sprint hiện tại | `S0 — Foundation & Contract Gate` |
 | Thời gian dự kiến | 2026-09-14 đến 2026-09-27 |
-| Trạng thái | `PLANNED` — chưa nhận tên thành viên và chưa bắt đầu task code |
+| Trạng thái | `READY TO START` — đã gán 4 thành viên; chưa có card code ở `IN PROGRESS` |
 | Source | Chưa scaffold; `src/` đang rỗng |
 | Blocker đã biết | Docker CLI/Compose đã cài nhưng Docker Desktop engine chưa chạy; integration stack chưa dùng được |
 | Cập nhật gần nhất | 2026-09-12 |
 
 ## Mở nhanh
 
-1. [Nhóm và ownership](./01-team-ownership.md) — điền tên thật và biết ai quyết định/review phần nào.
-2. [Roadmap phát hành](./02-roadmap.md) — 9 sprint + release buffer, mục tiêu và exit gate.
-3. [Product backlog](./03-product-backlog.md) — toàn bộ epic/task từ Foundation đến nghiệm thu.
-4. [Quy trình làm việc](./04-working-agreements.md) — Git, review, Definition of Ready/Done và cách cập nhật board.
-5. [Kanban board hiện tại](./board/README.md) — bảng kéo-thả bằng cách chuyển dòng giữa các cột Markdown.
-6. [Sprint 0 checklist](./board/sprint-00-foundation.md) — checklist khởi động chi tiết cho từng người.
-7. [Risk và dependency](./registers/risks-and-dependencies.md) — blocker, rủi ro, owner và phương án xử lý.
-8. [Nhật ký tiến độ](./registers/progress-log.md) — snapshot hằng ngày và kết quả sprint.
-9. [Task card template](./templates/task-card.md) — mẫu cho card mới/bug/unplanned work.
+1. [Roadmap theo từng người](./people/README.md) — mỗi thành viên có một file riêng để theo dõi, không phải đọc toàn backlog.
+2. [Nhóm và ownership](./01-team-ownership.md) — ai quyết định, thực hiện và review phần nào.
+3. [Roadmap cấp nhóm](./02-roadmap.md) — 9 sprint + release buffer, mục tiêu và exit gate.
+4. [Product backlog](./03-product-backlog.md) — nguồn task toàn dự án dành cho planning/refinement.
+5. [Quy trình làm việc](./04-working-agreements.md) — Git, review, Definition of Ready/Done và cách cập nhật board.
+6. [Kanban board hiện tại](./board/README.md) — bảng kéo-thả bằng cách chuyển dòng giữa các cột Markdown.
+7. [Sprint 0 checklist](./board/sprint-00-foundation.md) — checklist khởi động chi tiết cho từng người.
+8. [Risk và dependency](./registers/risks-and-dependencies.md) — blocker, rủi ro, owner và phương án xử lý.
+9. [Nhật ký tiến độ](./registers/progress-log.md) — snapshot hằng ngày và kết quả sprint.
+10. [Task card template](./templates/task-card.md) — mẫu cho card mới/bug/unplanned work.
 
 ## Phân cấp công việc
 
@@ -40,6 +41,22 @@ Release MVP
 ```
 
 Ví dụ `S3-BE2-02` là card thứ 02 của Backend 2 trong Sprint 3. ID không đổi khi card chuyển trạng thái hoặc đổi owner.
+
+## Cấu trúc theo dõi
+
+```text
+project-management/
+├── people/                 Một roadmap riêng cho từng thành viên
+├── board/                  Kanban sprint hiện tại + archive
+├── registers/              Progress log, risk và dependency
+├── templates/              Mẫu card mới
+├── 01-team-ownership.md    Phân quyền và reviewer
+├── 02-roadmap.md           Timeline/exit gate cấp nhóm
+├── 03-product-backlog.md   Nguồn task toàn dự án
+└── 04-working-agreements.md
+```
+
+Thành viên làm việc hằng ngày từ `people/<tên>.md` và `board/README.md`; không cần dò toàn bộ product backlog.
 
 ## Trạng thái card
 

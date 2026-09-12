@@ -1,5 +1,7 @@
 # Roadmap MVP — nhóm 4 người
 
+Đây là roadmap cấp nhóm. Roadmap thực thi được tách riêng theo thành viên tại [People Roadmaps](./people/README.md): [Hoàng Minh Trí](./people/be-1-hoang-minh-tri.md), [Ngô Quang Sinh](./people/be-2-ngo-quang-sinh.md), [Đinh Công Trung Sỹ](./people/fe-dinh-cong-trung-sy.md) và [Ngô Thành Đạt](./people/mobile-ngo-thanh-dat.md).
+
 ## 1. Baseline thời gian
 
 Roadmap dùng mốc kickoff dự kiến 2026-09-14. Nếu nhóm bắt đầu ngày khác, dịch toàn bộ sprint nhưng giữ thứ tự dependency. Mỗi sprint 2 tuần; tuần release cuối chỉ hardening và đóng evidence, không nhận feature mới.
