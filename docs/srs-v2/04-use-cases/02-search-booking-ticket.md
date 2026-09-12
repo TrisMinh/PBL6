@@ -19,8 +19,8 @@
 1. Người dùng chọn điểm đi, điểm đến, ngày đi và số hành khách.
 2. Hệ thống kiểm tra ngày, cặp điểm và số hành khách.
 3. Hệ thống trả các Trip còn khả năng bán phù hợp với tiêu chí.
-4. Người dùng lọc theo giá, giờ đi, nhà xe, loại xe, điểm đón/trả, tiện nghi hoặc đánh giá.
-5. Người dùng sắp xếp theo giá, giờ khởi hành, thời lượng hoặc đánh giá.
+4. Người dùng lọc theo giá, giờ đi, nhà xe, loại xe, điểm đón/trả hoặc tiện nghi; lọc theo đánh giá là P1 cùng Review.
+5. Người dùng sắp xếp theo giá, giờ khởi hành hoặc thời lượng; sắp xếp theo đánh giá là P1 cùng Review.
 6. Người dùng mở chi tiết Trip.
 7. Hệ thống hiển thị nhà xe, lịch trình, Bus, tiện nghi, điểm đón/trả, giá, policy và availability có thời điểm cập nhật.
 8. Người dùng có thể chuyển sang bước chọn ghế.

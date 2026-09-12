@@ -1,0 +1,224 @@
+asyncapi: 3.1.0
+id: urn:pbl6:asyncapi:mvp-platform-producers
+info:
+  title: PBL6 MVP Integration Messages
+  version: 2.0.0
+  description: MUST-only RabbitMQ routing and producer message catalog.
+  contact:
+    name: PBL6 project team
+  license:
+    name: Academic project - all rights reserved
+  tags:
+    - name: mvp
+      description: Active MUST-only messages.
+    - name: rabbitmq
+      description: Messages routed through the platform.events topic exchange.
+defaultContentType: application/json
+servers:
+  local:
+    host: rabbitmq:5672
+    protocol: amqp
+channels:
+  identity.user.registered.v1:
+    address: identity.user.registered.v1
+    messages: {UserRegistered: {$ref: '#/components/messages/UserRegistered'}}
+  transport.trip.published.v1:
+    address: transport.trip.published.v1
+    messages: {TripPublished: {$ref: '#/components/messages/TripPublished'}}
+  transport.trip.updated.v1:
+    address: transport.trip.updated.v1
+    messages: {TripUpdated: {$ref: '#/components/messages/TripUpdated'}}
+  transport.trip.status-changed.v1:
+    address: transport.trip.status-changed.v1
+    messages: {TripStatusChanged: {$ref: '#/components/messages/TripStatusChanged'}}
+  transport.trip.cancelled.v1:
+    address: transport.trip.cancelled.v1
+    messages: {TripCancelled: {$ref: '#/components/messages/TripCancelled'}}
+  booking.trip-inventory.ready.v1:
+    address: booking.trip-inventory.ready.v1
+    messages: {TripInventoryReady: {$ref: '#/components/messages/TripInventoryReady'}}
+  booking.seat-hold.created.v1:
+    address: booking.seat-hold.created.v1
+    messages: {SeatHoldCreated: {$ref: '#/components/messages/SeatHoldCreated'}}
+  booking.seat-hold.expired.v1:
+    address: booking.seat-hold.expired.v1
+    messages: {SeatHoldExpired: {$ref: '#/components/messages/SeatHoldExpired'}}
+  booking.booking.created.v1:
+    address: booking.booking.created.v1
+    messages: {BookingCreated: {$ref: '#/components/messages/BookingCreated'}}
+  booking.booking.paid.v1:
+    address: booking.booking.paid.v1
+    messages: {BookingPaid: {$ref: '#/components/messages/BookingPaid'}}
+  booking.booking.cancelled.v1:
+    address: booking.booking.cancelled.v1
+    messages: {BookingCancelled: {$ref: '#/components/messages/BookingCancelled'}}
+  booking.ticket.issued.v1:
+    address: booking.ticket.issued.v1
+    messages: {TicketIssued: {$ref: '#/components/messages/TicketIssued'}}
+  booking.ticket.cancelled.v1:
+    address: booking.ticket.cancelled.v1
+    messages: {TicketCancelled: {$ref: '#/components/messages/TicketCancelled'}}
+  booking.ticket.checked-in.v1:
+    address: booking.ticket.checked-in.v1
+    messages: {PassengerCheckedIn: {$ref: '#/components/messages/PassengerCheckedIn'}}
+  booking.refund.requested.v1:
+    address: booking.refund.requested.v1
+    messages: {RefundRequested: {$ref: '#/components/messages/RefundRequested'}}
+  payment.payment.succeeded.v1:
+    address: payment.payment.succeeded.v1
+    messages: {PaymentSucceeded: {$ref: '#/components/messages/PaymentSucceeded'}}
+  payment.payment.failed.v1:
+    address: payment.payment.failed.v1
+    messages: {PaymentFailed: {$ref: '#/components/messages/PaymentFailed'}}
+  payment.refund.succeeded.v1:
+    address: payment.refund.succeeded.v1
+    messages: {RefundSucceeded: {$ref: '#/components/messages/RefundSucceeded'}}
+  payment.refund.failed.v1:
+    address: payment.refund.failed.v1
+    messages: {RefundFailed: {$ref: '#/components/messages/RefundFailed'}}
+  booking.payment.compensation-requested.v1:
+    address: booking.payment.compensation-requested.v1
+    messages: {PaymentCompensationRequested: {$ref: '#/components/messages/PaymentCompensationRequested'}}
+operations:
+  sendUserRegistered:
+    action: send
+    summary: Identity sends a new-user registration event.
+    channel: {$ref: '#/channels/identity.user.registered.v1'}
+    messages: [{$ref: '#/channels/identity.user.registered.v1/messages/UserRegistered'}]
+  sendTripPublished:
+    action: send
+    summary: Transport sends a published trip snapshot.
+    channel: {$ref: '#/channels/transport.trip.published.v1'}
+    messages: [{$ref: '#/channels/transport.trip.published.v1/messages/TripPublished'}]
+  sendTripUpdated:
+    action: send
+    summary: Transport sends an eligible published-trip update.
+    channel: {$ref: '#/channels/transport.trip.updated.v1'}
+    messages: [{$ref: '#/channels/transport.trip.updated.v1/messages/TripUpdated'}]
+  sendTripStatusChanged:
+    action: send
+    summary: Transport sends an operating state transition.
+    channel: {$ref: '#/channels/transport.trip.status-changed.v1'}
+    messages: [{$ref: '#/channels/transport.trip.status-changed.v1/messages/TripStatusChanged'}]
+  sendTripCancelled:
+    action: send
+    summary: Transport sends a trip cancellation event.
+    channel: {$ref: '#/channels/transport.trip.cancelled.v1'}
+    messages: [{$ref: '#/channels/transport.trip.cancelled.v1/messages/TripCancelled'}]
+  sendTripInventoryReady:
+    action: send
+    summary: Booking confirms that the exact trip inventory is ready.
+    channel: {$ref: '#/channels/booking.trip-inventory.ready.v1'}
+    messages: [{$ref: '#/channels/booking.trip-inventory.ready.v1/messages/TripInventoryReady'}]
+  sendSeatHoldCreated:
+    action: send
+    summary: Booking sends a successful atomic seat hold.
+    channel: {$ref: '#/channels/booking.seat-hold.created.v1'}
+    messages: [{$ref: '#/channels/booking.seat-hold.created.v1/messages/SeatHoldCreated'}]
+  sendSeatHoldExpired:
+    action: send
+    summary: Booking sends an expired seat hold.
+    channel: {$ref: '#/channels/booking.seat-hold.expired.v1'}
+    messages: [{$ref: '#/channels/booking.seat-hold.expired.v1/messages/SeatHoldExpired'}]
+  sendBookingCreated:
+    action: send
+    summary: Booking sends a pending-payment booking snapshot.
+    channel: {$ref: '#/channels/booking.booking.created.v1'}
+    messages: [{$ref: '#/channels/booking.booking.created.v1/messages/BookingCreated'}]
+  sendBookingPaid:
+    action: send
+    summary: Booking sends a fully confirmed paid booking.
+    channel: {$ref: '#/channels/booking.booking.paid.v1'}
+    messages: [{$ref: '#/channels/booking.booking.paid.v1/messages/BookingPaid'}]
+  sendBookingCancelled:
+    action: send
+    summary: Booking sends a booking cancellation outcome.
+    channel: {$ref: '#/channels/booking.booking.cancelled.v1'}
+    messages: [{$ref: '#/channels/booking.booking.cancelled.v1/messages/BookingCancelled'}]
+  sendTicketIssued:
+    action: send
+    summary: Booking sends an issued ticket event.
+    channel: {$ref: '#/channels/booking.ticket.issued.v1'}
+    messages: [{$ref: '#/channels/booking.ticket.issued.v1/messages/TicketIssued'}]
+  sendTicketCancelled:
+    action: send
+    summary: Booking sends a cancelled ticket event.
+    channel: {$ref: '#/channels/booking.ticket.cancelled.v1'}
+    messages: [{$ref: '#/channels/booking.ticket.cancelled.v1/messages/TicketCancelled'}]
+  sendPassengerCheckedIn:
+    action: send
+    summary: Booking sends a successful passenger check-in.
+    channel: {$ref: '#/channels/booking.ticket.checked-in.v1'}
+    messages: [{$ref: '#/channels/booking.ticket.checked-in.v1/messages/PassengerCheckedIn'}]
+  sendRefundRequested:
+    action: send
+    summary: Booking requests one logical refund from Payment.
+    channel: {$ref: '#/channels/booking.refund.requested.v1'}
+    messages: [{$ref: '#/channels/booking.refund.requested.v1/messages/RefundRequested'}]
+  sendPaymentSucceeded:
+    action: send
+    summary: Payment sends a verified successful payment.
+    channel: {$ref: '#/channels/payment.payment.succeeded.v1'}
+    messages: [{$ref: '#/channels/payment.payment.succeeded.v1/messages/PaymentSucceeded'}]
+  sendPaymentFailed:
+    action: send
+    summary: Payment sends a terminal failed payment.
+    channel: {$ref: '#/channels/payment.payment.failed.v1'}
+    messages: [{$ref: '#/channels/payment.payment.failed.v1/messages/PaymentFailed'}]
+  sendRefundSucceeded:
+    action: send
+    summary: Payment sends a successful refund outcome.
+    channel: {$ref: '#/channels/payment.refund.succeeded.v1'}
+    messages: [{$ref: '#/channels/payment.refund.succeeded.v1/messages/RefundSucceeded'}]
+  sendRefundFailed:
+    action: send
+    summary: Payment sends a terminal or retryable refund failure.
+    channel: {$ref: '#/channels/payment.refund.failed.v1'}
+    messages: [{$ref: '#/channels/payment.refund.failed.v1/messages/RefundFailed'}]
+  sendPaymentCompensationRequested:
+    action: send
+    summary: Booking requests compensation for an unconfirmable successful payment.
+    channel: {$ref: '#/channels/booking.payment.compensation-requested.v1'}
+    messages: [{$ref: '#/channels/booking.payment.compensation-requested.v1/messages/PaymentCompensationRequested'}]
+components:
+  messages:
+    UserRegistered: {$ref: '#/components/messages/_UserRegistered'}
+    TripPublished: {$ref: '#/components/messages/_TripPublished'}
+    TripUpdated: {$ref: '#/components/messages/_TripUpdated'}
+    TripStatusChanged: {$ref: '#/components/messages/_TripStatusChanged'}
+    TripCancelled: {$ref: '#/components/messages/_TripCancelled'}
+    TripInventoryReady: {$ref: '#/components/messages/_TripInventoryReady'}
+    SeatHoldCreated: {$ref: '#/components/messages/_SeatHoldCreated'}
+    SeatHoldExpired: {$ref: '#/components/messages/_SeatHoldExpired'}
+    BookingCreated: {$ref: '#/components/messages/_BookingCreated'}
+    BookingPaid: {$ref: '#/components/messages/_BookingPaid'}
+    BookingCancelled: {$ref: '#/components/messages/_BookingCancelled'}
+    TicketIssued: {$ref: '#/components/messages/_TicketIssued'}
+    TicketCancelled: {$ref: '#/components/messages/_TicketCancelled'}
+    PassengerCheckedIn: {$ref: '#/components/messages/_PassengerCheckedIn'}
+    RefundRequested: {$ref: '#/components/messages/_RefundRequested'}
+    PaymentSucceeded: {$ref: '#/components/messages/_PaymentSucceeded'}
+    PaymentFailed: {$ref: '#/components/messages/_PaymentFailed'}
+    RefundSucceeded: {$ref: '#/components/messages/_RefundSucceeded'}
+    RefundFailed: {$ref: '#/components/messages/_RefundFailed'}
+    PaymentCompensationRequested: {$ref: '#/components/messages/_PaymentCompensationRequested'}
+    _UserRegistered: {name: UserRegistered, payload: {$ref: '../schemas/platform-message.schema.json#/$defs/UserRegistered'}}
+    _TripPublished: {name: TripPublished, payload: {$ref: '../schemas/platform-message.schema.json#/$defs/TripPublished'}}
+    _TripUpdated: {name: TripUpdated, payload: {$ref: '../schemas/platform-message.schema.json#/$defs/TripUpdated'}}
+    _TripStatusChanged: {name: TripStatusChanged, payload: {$ref: '../schemas/platform-message.schema.json#/$defs/TripStatusChanged'}}
+    _TripCancelled: {name: TripCancelled, payload: {$ref: '../schemas/platform-message.schema.json#/$defs/TripCancelled'}}
+    _TripInventoryReady: {name: TripInventoryReady, payload: {$ref: '../schemas/platform-message.schema.json#/$defs/TripInventoryReady'}}
+    _SeatHoldCreated: {name: SeatHoldCreated, payload: {$ref: '../schemas/platform-message.schema.json#/$defs/SeatHoldCreated'}}
+    _SeatHoldExpired: {name: SeatHoldExpired, payload: {$ref: '../schemas/platform-message.schema.json#/$defs/SeatHoldExpired'}}
+    _BookingCreated: {name: BookingCreated, payload: {$ref: '../schemas/platform-message.schema.json#/$defs/BookingCreated'}}
+    _BookingPaid: {name: BookingPaid, payload: {$ref: '../schemas/platform-message.schema.json#/$defs/BookingPaid'}}
+    _BookingCancelled: {name: BookingCancelled, payload: {$ref: '../schemas/platform-message.schema.json#/$defs/BookingCancelled'}}
+    _TicketIssued: {name: TicketIssued, payload: {$ref: '../schemas/platform-message.schema.json#/$defs/TicketIssued'}}
+    _TicketCancelled: {name: TicketCancelled, payload: {$ref: '../schemas/platform-message.schema.json#/$defs/TicketCancelled'}}
+    _PassengerCheckedIn: {name: PassengerCheckedIn, payload: {$ref: '../schemas/platform-message.schema.json#/$defs/PassengerCheckedIn'}}
+    _RefundRequested: {name: RefundRequested, payload: {$ref: '../schemas/platform-message.schema.json#/$defs/RefundRequested'}}
+    _PaymentSucceeded: {name: PaymentSucceeded, payload: {$ref: '../schemas/platform-message.schema.json#/$defs/PaymentSucceeded'}}
+    _PaymentFailed: {name: PaymentFailed, payload: {$ref: '../schemas/platform-message.schema.json#/$defs/PaymentFailed'}}
+    _RefundSucceeded: {name: RefundSucceeded, payload: {$ref: '../schemas/platform-message.schema.json#/$defs/RefundSucceeded'}}
+    _RefundFailed: {name: RefundFailed, payload: {$ref: '../schemas/platform-message.schema.json#/$defs/RefundFailed'}}
+    _PaymentCompensationRequested: {name: PaymentCompensationRequested, payload: {$ref: '../schemas/platform-message.schema.json#/$defs/PaymentCompensationRequested'}}

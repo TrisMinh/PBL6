@@ -8,11 +8,11 @@
 - Idempotent command khai báo `Idempotency-Key`; versioned mutation khai báo `If-Match/expectedVersion`.
 - Pagination max enforced; sort/filter allow-list; no unbounded list.
 - Breaking-change diff fail CI cho remove/rename/type/required/semantics incompatibility.
-- Gateway route contract test gửi request nhận diện được tới từng pattern trong 3.1, gồm cả collection root và descendant: payment-under-booking, trip seats/holds/reviews, operator manifest/promotions và organization membership phải đến đúng downstream owner, không rơi vào wildcard Transport/Booking khác.
+- Gateway route contract test gửi request nhận diện được tới từng pattern MVP trong 3.1, gồm cả collection root và descendant: payment-under-booking, trip seats/holds, operator manifest và organization membership phải đến đúng downstream owner, không rơi vào wildcard Transport/Booking khác. Route P1 phải trả `404` vì chưa được đăng ký.
 
 ## Event schema tests
 
-- 15 baseline và approved design message validate envelope + payload v1.
+- 20 message trong AsyncAPI MVP validate envelope + payload v1.
 - Producer example/golden fixture được consumer contract test đọc thành công.
 - Consumer bỏ qua optional unknown field; missing required/wrong type/unsupported version vào permanent failure path.
 - Routing key, message type/version và exchange khớp catalog.

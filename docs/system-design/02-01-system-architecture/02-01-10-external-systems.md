@@ -32,7 +32,7 @@ Payment provider và notification provider nằm ngoài system boundary. Object 
 
 | Tình huống | Xử lý |
 |---|---|
-| Create intent timeout, chưa rõ kết quả | Đánh dấu `UNKNOWN/PROCESSING`, query provider; không tạo charge mới ngay |
+| Create intent timeout, chưa rõ kết quả | Giữ `PROCESSING`, query provider; không tạo trạng thái `UNKNOWN` ngoài state machine và không tạo charge mới ngay |
 | Webhook đến trễ | Process idempotent; Booking saga kiểm tra hold/seat và bù trừ nếu cần |
 | Chữ ký/amount sai | Reject, security metric/alert; không phát `PaymentSucceeded` |
 | Provider unavailable khi refund | Retry/reconciliation; Ticket vẫn cancelled, mở manual case khi quá ngưỡng |

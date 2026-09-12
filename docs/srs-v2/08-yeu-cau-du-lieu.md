@@ -19,7 +19,7 @@ Chương này mô tả dữ liệu nghiệp vụ và ràng buộc quan sát đư
 
 | Thực thể | Dữ liệu tối thiểu | Ràng buộc nghiệp vụ |
 |---|---|---|
-| User | ID, họ tên, email, số điện thoại, password hash, status, verifiedAt | Email/số điện thoại chuẩn hóa và duy nhất khi có giá trị; không lưu mật khẩu dạng rõ. |
+| User | ID, họ tên, email, số điện thoại, password hash, status, emailVerifiedAt | MVP yêu cầu email và phone chuẩn hóa/duy nhất; kích hoạt bằng email verification; không lưu mật khẩu dạng rõ. |
 | Role | ID, code, scope | Code duy nhất; scope xác định platform hoặc tenant. |
 | UserRole | User ID, Role ID, Organization ID khi cần | Role tenant bắt buộc có Organization ID. |
 | OrganizationMembership | User ID, Organization ID, status | Membership active không được trùng ngoài policy. |
@@ -44,11 +44,11 @@ Chương này mô tả dữ liệu nghiệp vụ và ràng buộc quan sát đư
 | Thực thể | Dữ liệu tối thiểu | Ràng buộc nghiệp vụ |
 |---|---|---|
 | TripSnapshot | Trip/Organization ID, Route/Stop snapshot, schedule, fare/policy version, sellable | Bảo toàn dữ liệu dùng khi Booking/Ticket được tạo. |
-| TripSeat | ID, Trip ID, source Seat ID/code, status, base price, hold/Booking reference, version | Duy nhất theo Trip và ghế; là nguồn trạng thái ghế theo Trip. |
-| SeatHold | ID/token hash, Customer ID, Trip ID, status, expiresAt, idempotency key | Một logical key cho cùng Customer/operation; chỉ consume một lần. |
+| TripSeat | ID, Trip ID, source Seat ID/code, status, base price, hold/Booking reference, version | Duy nhất theo Trip và ghế; chiếm quyền cho toàn bộ Trip trong MVP, không có segment inventory. |
+| SeatHold | ID/token hash, Customer ID, Trip ID, status, createdAt, expiresAt, idempotency key | Transaction window cố định 10 phút; một logical key cho cùng Customer/operation; chỉ consume một lần. |
 | SeatHoldItem | Hold ID, TripSeat ID, price snapshot | Không có cùng TripSeat trong hai hold ACTIVE. |
-| Booking | ID/code, Customer ID, Trip ID, status, subtotal, discount, fee, total, currency, expiry | Code duy nhất; tiền chính xác; giữ policy snapshot. |
-| Passenger | ID, Booking ID, họ tên, liên hệ/giấy tờ cần thiết, pickup/dropoff | Một Passenger cho mỗi Booking Item. |
+| Booking | ID/code, Customer ID, Trip ID, status, contactName/email/phone, subtotal, discount, fee, total, currency, expiresAt | Code duy nhất; tiền chính xác; giữ policy snapshot; expiry không muộn hơn SeatHold ban đầu. |
+| Passenger | ID, Booking ID, fullName, document type/number khi policy yêu cầu, pickup/dropoff | Một Passenger cho mỗi Booking Item; MVP không thu thập ngày sinh/giới tính/CCCD nếu policy không yêu cầu. |
 | BookingItem | Booking ID, Passenger ID, TripSeat ID, giá/discount/total | Không sửa trực tiếp sau PAID. |
 | Ticket | ID/public code, Booking Item ID, QR token hash/signature, status, checkedInAt | Một Ticket có hiệu lực cho mỗi Booking Item/TripSeat. |
 | Promotion | ID, scope/Organization ID, code, type/value, quota, thời hạn, status | Code duy nhất theo scope; không vượt quota. |
@@ -59,7 +59,7 @@ Chương này mô tả dữ liệu nghiệp vụ và ràng buộc quan sát đư
 
 | Thực thể | Dữ liệu tối thiểu | Ràng buộc nghiệp vụ |
 |---|---|---|
-| Payment | ID, Booking ID, amount, currency, status, provider, idempotency key | Amount lấy từ nguồn tin cậy; một logical Payment có thể có nhiều attempt. |
+| Payment | ID, Booking ID, amount, currency, status, provider, idempotency key | Amount lấy từ nguồn tin cậy; MVP provider là VNPay Sandbox; một logical Payment có thể có nhiều attempt. |
 | PaymentAttempt | Payment ID, provider transaction ID, status, request reference, thời gian | Provider transaction ID duy nhất. |
 | WebhookReceipt | Provider, external event ID, payload hash/metadata an toàn, verified, processedAt | External event ID duy nhất; không lưu dữ liệu thẻ nhạy cảm. |
 | Refund | Payment/Booking ID, amount, reason, status, idempotency key | Tổng Refund thành công không vượt Payment thành công. |
@@ -69,7 +69,7 @@ Chương này mô tả dữ liệu nghiệp vụ và ràng buộc quan sát đư
 
 | Thực thể | Dữ liệu tối thiểu | Ràng buộc nghiệp vụ |
 |---|---|---|
-| Notification | User ID, type, title/body an toàn, reference, read state, createdAt | Không chứa secret/PII không cần thiết. |
+| Notification | User ID, type, title/body an toàn, reference, read state, createdAt | In-app và email là kênh MVP; không chứa secret/PII không cần thiết. |
 | DeliveryAttempt | Notification ID, channel, provider reference, status, attempt, error an toàn | Retry có giới hạn và truy vết được. |
 | UserPreference | User ID, channel/type, enabled | Không tắt thông báo thiết yếu ngoài policy. |
 | ReportProjection | Scope, metric, period, value, lastUpdatedAt | Không phải nguồn để cập nhật giao dịch; hiển thị độ trễ. |

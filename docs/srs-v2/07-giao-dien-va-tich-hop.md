@@ -50,7 +50,7 @@
 ### 7.2.5. Payment
 
 - Hiển thị Booking code, amount, currency, phương thức và thời hạn.
-- Trạng thái tối thiểu: chờ thao tác, đang xử lý, thành công, thất bại, đã hủy và cần hỗ trợ.
+- Trạng thái hiển thị tối thiểu: chờ thao tác, đang xử lý tại provider, đang xác nhận Booking/Ticket (`CONFIRMING` ở UI), thành công, thất bại, đã hủy và cần hỗ trợ. `CONFIRMING` là presentation state tổng hợp, không phải Payment domain state mới.
 - Không khuyến khích thanh toán lại khi trạng thái provider chưa chắc chắn.
 - Sau redirect, client truy vấn server; không tin query parameter để phát hành Ticket.
 
@@ -76,12 +76,13 @@
 
 ## 7.3. Mobile App
 
+- Baseline triển khai là React Native + TypeScript; không chia sẻ business state với Web, chỉ chia sẻ generated contract/type và design token phù hợp.
 - Cung cấp chức năng Customer MUST tương đương Web End-user.
 - Credential được lưu trong secure storage của nền tảng.
 - Deep link/payment return kiểm tra state/nonce và truy vấn trạng thái server.
 - App resume phải refresh SeatHold, Booking và Payment state.
-- Ticket đã tải có thể xem khi mạng tạm mất nếu policy cho phép; trạng thái phải đồng bộ khi online.
-- QR offline không được dùng để bỏ qua việc Driver xác minh với server, trừ khi có offline policy riêng được phê duyệt.
+- Ticket đã tải có thể xem khi mạng tạm mất; trạng thái phải đồng bộ khi online và UI phải hiển thị thời điểm đồng bộ gần nhất.
+- QR offline không được dùng để bỏ qua việc Driver xác minh với server; Driver check-in bắt buộc online trong MVP.
 - Phiên bản API không hỗ trợ phải hiển thị yêu cầu cập nhật ứng dụng rõ ràng.
 - Push Notification không được chứa PII hoặc token nhạy cảm trong nội dung hiển thị công khai.
 

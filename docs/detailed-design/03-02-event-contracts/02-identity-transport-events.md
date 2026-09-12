@@ -4,7 +4,7 @@
 
 | Event v1 | Routing key | Aggregate | Required payload |
 |---|---|---|---|
-| `UserRegistered` | `identity.user.registered.v1` | User | `userId:string`, `verificationChannel:EMAIL\|SMS`, `registeredAt:datetime` |
+| `UserRegistered` | `identity.user.registered.v1` | User | `userId:string`, `verificationChannel:EMAIL`, `registeredAt:datetime` |
 
 `UserRegistered` không chứa OTP/link/token hoặc raw email/SMS body. Notification lấy destination từ scoped contract hoặc payload đã tokenized/encrypted theo provider design được phê duyệt.
 
@@ -54,4 +54,3 @@ Booking phải xử lý toàn bộ seat snapshot idempotently; Trip chỉ sellab
 - Booking queue: validate trip version; tạo/cập nhật TripSnapshot, TripSeat; đóng inventory khi cancel/depart.
 - Notification: chỉ Trip update/cancel ảnh hưởng Customer; không gửi cho mọi technical update.
 - Reporting: projection update kèm `dataAsOf`; version gap được reconcile.
-

@@ -39,6 +39,7 @@ Các giá trị dưới đây là baseline nghiệm thu cho môi trường test 
 | NFR-CONS-004 | Khi không thể hoàn tất quy trình nhiều miền, hệ thống phải retry, bù trừ hoặc mở manual case; không bỏ dở âm thầm. |
 | NFR-CONS-005 | Giao dịch chưa có kết quả cuối phải truy vết và đối soát được bằng mã giao dịch/correlation ID. |
 | NFR-CONS-006 | Cache/read model có thể chậm nhưng không được dùng làm nguồn quyết định cuối cho ghế, Payment hoặc quyền truy cập. |
+| NFR-CONS-007 | Từ khi Payment Service commit `PaymentSucceeded`, Booking/Ticket phải hội tụ p95 ≤ 5 giây và p99 ≤ 30 giây trong môi trường nghiệm thu; quá p99 phải còn trạng thái truy vết, retry hoặc manual case, không mất giao dịch. |
 
 ## 9.4. Khả năng mở rộng
 

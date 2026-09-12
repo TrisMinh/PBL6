@@ -2,6 +2,8 @@
 
 Register này liệt kê từng requirement ID chính xác để CI/script phát hiện ID bị bỏ sót; range chỉ dùng trong văn bản giải thích, không dùng thay danh sách kiểm soát.
 
+Release gate MVP chỉ áp dụng 56 `MUST`. Mười `SHOULD` được giữ để truy vết P1, không được hiểu là test/runtime MVP: `FR-SEARCH-007`, `FR-BOOK-010`, `FR-PAY-010`, `FR-PROMO-001`, `FR-PROMO-002`, `FR-REVIEW-001`, `FR-REVIEW-002`, `FR-NOTIF-003`, `FR-ADMIN-003`, `FR-REPORT-003`.
+
 ## Functional Requirements — 66/66
 
 | Nhóm | Requirement IDs | Design/Test owner |
@@ -15,13 +17,13 @@ Register này liệt kê từng requirement ID chính xác để CI/script phát
 | Promotion/Review/Notification | `FR-PROMO-001`, `FR-PROMO-002`, `FR-REVIEW-001`, `FR-REVIEW-002`, `FR-NOTIF-001`, `FR-NOTIF-002`, `FR-NOTIF-003` | Booking/Notification; TS-PROMOTION/REVIEW/NOTIFICATION |
 | Admin/Reporting | `FR-ADMIN-001`, `FR-ADMIN-002`, `FR-ADMIN-003`, `FR-REPORT-001`, `FR-REPORT-002`, `FR-REPORT-003` | Identity/Booking/Reporting; TS-ADMIN/SUPPORT/REPORT |
 
-## Non-functional Requirements — 58/58
+## Non-functional Requirements — 59/59
 
 | Nhóm | Requirement IDs | Verification suite |
 |---|---|---|
 | Performance | `NFR-PERF-001`, `NFR-PERF-002`, `NFR-PERF-003`, `NFR-PERF-004`, `NFR-PERF-005`, `NFR-PERF-006`, `NFR-PERF-007` | Performance + concurrency |
 | Reliability | `NFR-REL-001`, `NFR-REL-002`, `NFR-REL-003`, `NFR-REL-004`, `NFR-REL-005`, `NFR-REL-006` | Availability/fault/restore/health |
-| Consistency | `NFR-CONS-001`, `NFR-CONS-002`, `NFR-CONS-003`, `NFR-CONS-004`, `NFR-CONS-005`, `NFR-CONS-006` | Idempotency/redelivery/saga/reconcile |
+| Consistency | `NFR-CONS-001`, `NFR-CONS-002`, `NFR-CONS-003`, `NFR-CONS-004`, `NFR-CONS-005`, `NFR-CONS-006`, `NFR-CONS-007` | Idempotency/redelivery/saga/reconcile/convergence latency |
 | Scale | `NFR-SCALE-001`, `NFR-SCALE-002`, `NFR-SCALE-003`, `NFR-SCALE-004` | Horizontal scale and multi-consumer |
 | Security | `NFR-SEC-001`, `NFR-SEC-002`, `NFR-SEC-003`, `NFR-SEC-004`, `NFR-SEC-005`, `NFR-SEC-006`, `NFR-SEC-007`, `NFR-SEC-008`, `NFR-SEC-009`, `NFR-SEC-010`, `NFR-SEC-011`, `NFR-SEC-012` | Security/privacy suite + CI scan |
 | Privacy | `NFR-PRIV-001`, `NFR-PRIV-002`, `NFR-PRIV-003`, `NFR-PRIV-004`, `NFR-PRIV-005` | Data minimization/manifest/export/retention |
@@ -42,4 +44,3 @@ Register này liệt kê từng requirement ID chính xác để CI/script phát
 | System quality | `AC-NFR-001`, `AC-NFR-002`, `AC-NFR-003`, `AC-SEC-001`, `AC-SEC-002`, `AC-UX-001`, `AC-UX-002`, `AC-OBS-001` |
 
 Automation status và latest run ID sẽ được bổ sung khi repository có code/pipeline; requirement ID không được xóa khỏi register khi test chưa triển khai.
-

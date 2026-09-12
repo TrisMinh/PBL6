@@ -10,7 +10,7 @@
 | Payment | `payment.refund-requests.q` | events: `booking.booking.cancelled.v1`, `booking.refund.requested.v1`; commands: `booking.payment.compensation-requested.v1` |
 | Notification | `notification.integration-events.q` | explicit User/Trip/Booking/Ticket/Payment/Refund notification events |
 | Notification | `notification.commands.q` | commands: `notification.delivery.send.v1` |
-| Reporting | `reporting.integration-events.q` | explicit 15 baseline + approved design projection events; không bind `#` |
+| Reporting | `reporting.integration-events.q` | explicit 20 message trong AsyncAPI MVP cần cho projection; không bind `#` |
 
 ## Event consumer behavior
 

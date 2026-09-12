@@ -1,0 +1,7 @@
+extends:
+  - recommended
+
+rules:
+  # Every operation uses the documented `default` ErrorEnvelope for all non-success
+  # responses. Requiring a duplicate explicit 4XX entry would not add contract detail.
+  operation-4xx-response: off

@@ -5,10 +5,11 @@
 | Thuộc tính | Giá trị |
 |---|---|
 | Mã tài liệu | PBL6-SRS-002 |
-| Phiên bản nội dung | 2.0.0-draft |
-| Trạng thái | Bản viết lại đang hoàn thiện |
+| Phiên bản nội dung | 2.0.0 |
+| Trạng thái | Accepted — active baseline cho triển khai MVP |
 | Phạm vi | Web End-user, Mobile App, Back-office Web và API dùng chung |
 | Nguồn baseline | SRS phiên bản 1.0.0 và bộ đặc tả mô-đun trong `docs/srs` |
+| Ngày baseline | 2026-09-09 |
 
 ## Mục lục
 
@@ -38,6 +39,14 @@ Các chi tiết thiết kế sau không phải nguồn yêu cầu chính của S
 
 Các nội dung này được liên kết trong [Phụ lục](./11-phu-luc.md) để nhóm thiết kế triển khai tiếp mà không làm phần yêu cầu bị lan man.
 
+## Quyết định phạm vi MVP
+
+- Tất cả yêu cầu `MUST` thuộc baseline triển khai và nghiệm thu MVP.
+- Yêu cầu `SHOULD` không thuộc MVP 2.0; chỉ triển khai sau khi luồng `MUST` đạt Definition of Done và có quyết định đưa vào release sau.
+- Yêu cầu `COULD` là backlog dài hạn, không dùng để đánh giá hoàn thành MVP.
+- Chức năng `SHOULD/COULD` chưa triển khai phải bị tắt ở API, UI và event consumer; không để endpoint nửa hoàn thiện hoặc hành vi ngầm.
+- Backend dùng C#/.NET và ASP.NET Core; Customer Web/Back-office dùng React + TypeScript; Mobile dùng React Native + TypeScript để giữ yêu cầu kênh Mobile `MUST`.
+
 ## Quy tắc sử dụng mã
 
 | Loại nội dung | Tiền tố |
@@ -65,4 +74,3 @@ Thứ tự ưu tiên là:
 5. Sơ đồ minh họa.
 
 Sơ đồ hỗ trợ hiểu nhanh nhưng không được tạo thêm hành vi không tồn tại trong yêu cầu văn bản.
-

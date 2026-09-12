@@ -249,7 +249,7 @@ Các nhóm bên dưới là những luồng quản lý độc lập thuộc cùn
 | BR-SEAT-003 | TripSeat chỉ dùng các trạng thái được định nghĩa tại chương trạng thái. |
 | BR-SEAT-004 | Một TripSeat có tối đa một SeatHold ACTIVE hoặc một Ticket còn hiệu lực. |
 | BR-SEAT-005 | Giữ nhiều ghế phải thành công toàn bộ hoặc thất bại toàn bộ. |
-| BR-SEAT-006 | SeatHold hết hạn theo timeout cấu hình; thời điểm chính xác được trả bằng `expiresAt`. |
+| BR-SEAT-006 | MVP dùng một transaction window 10 phút từ lúc tạo SeatHold; thời điểm chính xác được trả bằng `expiresAt` và tạo Booking không gia hạn window. |
 | BR-SEAT-007 | Request lặp cùng idempotency key và payload trả lại cùng logical hold. |
 | BR-SEAT-008 | Hold hết hạn được giải phóng chủ động và cũng được kiểm tra lại khi có request kế tiếp. |
 | BR-SEAT-009 | Cache/TTL có thể hỗ trợ hiệu năng nhưng ràng buộc giao dịch bền vững là nguồn chống double-book. |
@@ -265,7 +265,7 @@ Các nhóm bên dưới là những luồng quản lý độc lập thuộc cùn
 | BR-BOOK-004 | Giá được tính tại server từ fare, fee, discount và policy snapshot; giá client chỉ mang tính tham khảo. |
 | BR-BOOK-005 | Booking lưu đầy đủ subtotal, discount, fee, total, currency và phiên bản policy tại thời điểm xác nhận. |
 | BR-BOOK-006 | Tiền VND dùng số nguyên đồng hoặc decimal chính xác; không dùng float/double. |
-| BR-BOOK-007 | Booking PENDING_PAYMENT quá hạn mà chưa có Payment hợp lệ chuyển EXPIRED. |
+| BR-BOOK-007 | Booking PENDING_PAYMENT quá `expiresAt` kế thừa từ SeatHold mà chưa có Payment hợp lệ chuyển EXPIRED; tạo Booking không gia hạn thời gian giữ ghế. |
 | BR-BOOK-008 | Booking PAID không sửa trực tiếp Passenger/TripSeat; thay đổi phải qua quy trình đổi vé. |
 | BR-BOOK-009 | Không cho đặt Trip đã DEPARTED hoặc trạng thái sau đó. |
 | BR-BOOK-010 | Tạo Booking phải có idempotency key; cùng key và payload trả cùng Booking, khác payload trả conflict. |
@@ -289,14 +289,16 @@ Các nhóm bên dưới là những luồng quản lý độc lập thuộc cùn
 
 | ID | Quy tắc |
 |---|---|
-| BR-CANCEL-001 | Policy hủy/đổi được snapshot vào Booking/Ticket. |
+| BR-CANCEL-001 | Policy hủy được version hóa và snapshot vào Booking/Ticket; MVP dùng các tier 24h/6h/2h tại Phụ lục 11.5.1. Đổi vé là backlog `SHOULD`. |
 | BR-CANCEL-002 | Hiển thị phí và số tiền hoàn trước xác nhận cuối. |
 | BR-CANCEL-003 | Ticket CHECKED_IN, USED, CANCELLED hoặc REFUNDED không được Customer hủy. |
-| BR-CANCEL-004 | Customer không được hủy sau giờ khởi hành; can thiệp đặc biệt phải có quyền và audit. |
+| BR-CANCEL-004 | Customer không được self-service hủy trong vòng dưới 2 giờ trước khởi hành hoặc sau giờ khởi hành; can thiệp đặc biệt phải có quyền, reason và audit. |
 | BR-CANCEL-005 | Ghế chỉ trở lại AVAILABLE khi hủy có hiệu lực và Trip còn cho phép bán. |
 | BR-CANCEL-006 | Đổi vé phải giữ được ghế mới trước khi hủy quyền trên ghế cũ. |
 | BR-CANCEL-007 | Đổi vé thất bại phải giữ nguyên vé cũ hoặc chạy compensation rõ ràng. |
 | BR-CANCEL-008 | Trip bị nhà xe hủy tạo Refund theo policy nhà xe, không áp phí hủy Customer. |
+
+Policy fee cụ thể, quy tắc làm tròn và dữ liệu Passenger/Booking contact được khóa tại [Phụ lục 11.5](./11-phu-luc.md#115-quyết-định-baseline-mvp-20).
 
 ## 3.14. Quy tắc Trip và vận hành
 

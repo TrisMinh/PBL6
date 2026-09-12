@@ -28,12 +28,12 @@ Owner: Identity Service. Nguồn: `UC-AUTH-01..04`, `UC-PROFILE-01`, phần Iden
   "fullName": "Nguyễn Văn A",
   "email": "a@example.com",
   "phone": "+84901234567",
-  "password": "client-supplied-secret",
-  "verificationChannel": "EMAIL"
+  "password": "client-supplied-secret"
 }
 ```
 
 Password chỉ tồn tại trong request TLS và vùng nhớ xử lý cần thiết; không log/echo/persist dạng rõ.
+MVP luôn phát challenge xác minh email. `phone` vẫn bắt buộc, chuẩn hóa và kiểm tra duy nhất nhưng chưa gửi SMS OTP.
 
 ### Login response
 
@@ -86,4 +86,3 @@ Mutation request bắt buộc `reason`, `expectedVersion` và audit. Không cho 
 - Token claim tối thiểu: `sub`, `sid`, `roles`, tenant membership IDs/scopes, `iat`, `exp`, `jti`, issuer/audience.
 - Service business tự kiểm tra permission và resource scope; token không chứa profile PII không cần thiết.
 - Identity không sở hữu Organization profile; `organizationId` là external ID được xác nhận qua projection/contract với Transport.
-

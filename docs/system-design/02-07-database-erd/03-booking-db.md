@@ -1,5 +1,7 @@
 # Booking Database ERD
 
+ERD giữ cả mô hình P1 để làm roadmap. Migration MVP chỉ tạo TripSnapshot/TripSeat/SeatHold/Booking/BookingItem/Passenger/Ticket/CancellationPreview; Promotion, Review và SupportCase chưa được tạo hoặc map runtime.
+
 Database: `booking_db`. `customer_id_external`, `source_trip_id` và `source_seat_id` không có foreign key sang service khác.
 
 ```mermaid

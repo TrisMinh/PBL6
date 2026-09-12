@@ -9,8 +9,6 @@ Logical DB/schema: `reporting_db`; ERD: [Reporting](../../system-design/02-07-da
 | `booking_projections` | `booking_id` | BookingCreated/Paid/Cancelled |
 | `revenue_projections` | `(organization,period_date,currency)` | BookingPaid, RefundSucceeded |
 | `occupancy_projections` | `trip_id` | TripPublished, SeatHold, Booking, CheckIn |
-| `export_jobs` | `id` | API command |
-| `export_download_audits` | `id` | download action |
 | `projection_checkpoints` | `projection_name` | projector progress |
 
 ## Idempotent projector
@@ -26,8 +24,8 @@ Logical DB/schema: `reporting_db`; ERD: [Reporting](../../system-design/02-07-da
 - Revenue `(organization_id_external,period_date,currency)`.
 - Booking `(organization_id_external,booked_at desc,status)` và transaction lookup.
 - Occupancy `(organization_id_external,departure_at,status)` nếu departure denormalized.
-- Export `(requested_by_external,created_at desc)` và partial `(status,created_at)` cho worker.
 - Deep pagination dùng keyset/cursor; report query giới hạn date range.
 
-Export job lưu `object_key`, không lưu CSV blob trong DB/RabbitMQ. Download signed URL ngắn hạn và audit. Rebuild projection vào shadow table/schema, validate count/checksum rồi switch atomically khi khả thi.
+Rebuild projection vào shadow table/schema, validate count/checksum rồi switch atomically khi khả thi.
 
+`export_jobs` và `export_download_audits` thuộc P1 theo `FR-REPORT-003`, chưa được tạo trong migration MVP. Khi được kích hoạt, Export job lưu `object_key`, không lưu CSV blob trong DB/RabbitMQ; download dùng signed URL ngắn hạn, recheck quyền và ghi audit.

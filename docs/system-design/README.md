@@ -2,6 +2,8 @@
 
 Tài liệu System Design chuyển các yêu cầu và ràng buộc trong SRS thành cấu trúc kỹ thuật có thể triển khai. SRS vẫn là nguồn quyết định cho hành vi nghiệp vụ; tài liệu này quyết định cách các thành phần được phân ranh giới, giao tiếp, lưu trữ, bảo vệ và vận hành.
 
+Phạm vi active của MVP là 56 FR `MUST`. Một số sơ đồ vẫn giữ thiết kế `SHOULD` để làm log/roadmap P1; các node đó không phải capability runtime. [MVP Traceability](../implementation/04-mvp-traceability.md), OpenAPI/AsyncAPI active và migration MVP là nguồn phân biệt phần được code ngay với phần để sau.
+
 ## Nội dung
 
 - [2.1 System Architecture](./02-01-system-architecture/README.md)

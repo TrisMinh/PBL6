@@ -12,7 +12,7 @@ Owner: Transport Service. Nguồn: `UC-SEARCH-01`, `UC-OPS-01..06`, `UC-TRIP-01`
 
 Search chỉ trả Trip `sellable=true` theo state/policy. Availability chỉ là snapshot tham khảo và phải trả `availabilityAsOf`; Booking kiểm tra lại khi hold.
 
-Sort allow-list: `PRICE_ASC`, `PRICE_DESC`, `DEPARTURE_ASC`, `DURATION_ASC`, `RATING_DESC`. Filter không hợp lệ trả `VALIDATION_ERROR`, không bỏ qua âm thầm.
+Filter MVP: khoảng giá, khoảng giờ đi, nhà xe, loại xe, điểm đón/trả và danh sách tiện nghi. Sort allow-list: `PRICE_ASC`, `PRICE_DESC`, `DEPARTURE_ASC`, `DEPARTURE_DESC`, `DURATION_ASC`, `DURATION_DESC`. Filter/sort theo rating chỉ được thêm cùng Review P1. Filter không hợp lệ trả `VALIDATION_ERROR`, không bỏ qua âm thầm.
 
 ## Organization, Bus và Seat
 
@@ -78,4 +78,3 @@ Server lấy organization từ identity context. `organizationId` trong body n�
 ```
 
 Target phải nằm trong state machine; hủy không dùng endpoint transition chung. Audit ghi actor, Trip, source/target, version và correlation ID.
-

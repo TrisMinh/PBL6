@@ -1,5 +1,7 @@
 # Reporting Domain/Class Diagram
 
+ExportJob/ExportDownloadAudit là P1; MVP chỉ triển khai projection và báo cáo online có giới hạn query.
+
 Owner: Reporting Service. Tất cả projection đều có thể rebuild từ event/reconciliation API và không sửa transaction nguồn.
 
 ```mermaid

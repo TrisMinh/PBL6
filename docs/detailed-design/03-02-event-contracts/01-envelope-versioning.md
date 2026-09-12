@@ -42,7 +42,7 @@ Event chỉ có `eventId/eventType`; command chỉ có `commandId/commandType`. 
 
 | Field | Required | Quy định |
 |---|:---:|---|
-| Message ID | Có | ULID/UUID globally unique; map vào AMQP `message_id` |
+| Message ID | Có | UUIDv7 globally unique; map vào AMQP `message_id` |
 | Type | Có | PascalCase; map AMQP `type`; immutable semantics trong major version |
 | `version` | Có | Positive integer major schema version |
 | `occurredAt` | Có | UTC ISO-8601; không dùng làm ordering authority |
@@ -84,4 +84,3 @@ Event chỉ có `eventId/eventType`; command chỉ có `commandId/commandType`. 
 ## Data classification
 
 Message không chứa password, OTP/reset/access/refresh token, CVV/PAN, QR secret, full identity document hoặc provider raw credential. Passenger/contact chỉ đưa khi consumer có mục đích bắt buộc; ưu tiên ID/safe reference rồi query owner qua scoped API.
-

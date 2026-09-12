@@ -2,6 +2,13 @@
 
 Thiết kế API public qua API Gateway và internal endpoint có kiểm soát. Các bảng là OpenAPI-ready source: khi sinh file OpenAPI, operation ID, schema và error code phải giữ nguyên semantics tại đây.
 
+## Trạng thái endpoint theo MVP 2.0
+
+- Endpoint phục vụ requirement `MUST` được đăng ký và công bố trong OpenAPI MVP.
+- Endpoint chỉ phục vụ `SHOULD/COULD` có thể giữ thiết kế tại đây nhưng **không** được map route trong runtime, không xuất hiện trong navigation UI và không được quảng bá là capability đã triển khai.
+- P1 sau MVP gồm ticket change, Promotion, Review, SupportCase, Notification preference, reconciliation job và Export CSV.
+- Feature bị hoãn trả `404` do route không tồn tại; không trả mock success hoặc `501` từ endpoint nửa hoàn thiện.
+
 ## Danh mục
 
 - [3.1.1 Common API Contract](./01-common-api-contract.md)
@@ -17,14 +24,14 @@ Thiết kế API public qua API Gateway và internal endpoint có kiểm soát. 
 |---:|---|---|
 | 1 | `/integrations/payments/{provider}/webhooks` | Payment |
 | 2 | `/api/v1/bookings/{bookingId}/payments` | Payment |
-| 3 | `/api/v1/trips/{tripId}/seats`, `/api/v1/trips/{tripId}/seat-holds`, `/api/v1/trips/{tripId}/reviews`, `/api/v1/seat-holds/**` | Booking |
-| 4 | `/api/v1/operator/trips/{tripId}/manifest`, `/api/v1/operator/promotions/**` | Booking |
+| 3 | `/api/v1/trips/{tripId}/seats`, `/api/v1/trips/{tripId}/seat-holds`, `/api/v1/seat-holds/**` | Booking |
+| 4 | `/api/v1/operator/trips/{tripId}/manifest` | Booking |
 | 5 | `/api/v1/admin/organizations/{organizationId}/members/**` | Identity |
 | 6 | `/api/v1/admin/organizations/**`, `/api/v1/operator/**`, `/api/v1/trips/**`, `/api/v1/routes/**` | Transport |
 | 7 | `/api/v1/auth/**`, `/api/v1/users/**`, `/api/v1/admin/users/**` | Identity |
-| 8 | `/api/v1/bookings/**`, `/api/v1/tickets/**`, `/api/v1/reviews/**`, `/api/v1/admin/bookings/**`, `/api/v1/admin/reviews/**`, `/api/v1/admin/support/**` | Booking |
+| 8 | `/api/v1/bookings/**`, `/api/v1/tickets/**`, `/api/v1/admin/bookings/**` | Booking |
 | 9 | `/api/v1/payments/**`, `/api/v1/refunds/**`, `/api/v1/admin/payments/**`, `/api/v1/admin/refunds/**` | Payment |
-| 10 | `/api/v1/notifications/**`, `/api/v1/notification-preferences/**` | Notification |
-| 11 | `/api/v1/reports/**`, `/api/v1/exports/**` | Reporting |
+| 10 | `/api/v1/notifications/**` | Notification |
+| 11 | `/api/v1/reports/**` | Reporting |
 
-Specific route phải đứng trước wildcard route. `/**` trong bảng biểu diễn cả collection root và descendant; cấu hình framework phải khai báo cả hai nếu matcher không có semantics đó. Test cấu hình Gateway phải chứng minh từng pattern đến đúng owner trước khi deploy. Gateway chỉ route và kiểm tra token sơ bộ; service owner vẫn tự thực thi authorization, tenant và ownership.
+Đây là route table active của MVP; route P1 chỉ được thêm khi feature được đưa vào release. Specific route phải đứng trước wildcard route. `/**` trong bảng biểu diễn cả collection root và descendant; cấu hình framework phải khai báo cả hai nếu matcher không có semantics đó. Test cấu hình Gateway phải chứng minh từng pattern đến đúng owner trước khi deploy. Gateway chỉ route và kiểm tra token sơ bộ; service owner vẫn tự thực thi authorization, tenant và ownership.

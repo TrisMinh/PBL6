@@ -2,6 +2,8 @@
 
 Owner: Booking Service. Nguồn: `UC-BOOK-*`, `UC-TICKET-01`, `UC-CANCEL-01`, `UC-CHANGE-01`, `UC-DRIVER-01`, `UC-PROMO-01`, `UC-REVIEW-*`, `UC-ADMIN-03`.
 
+MVP active: SeatHold, Booking, Ticket, cancellation và check-in. Ticket change, Promotion, Review và SupportCase là P1 vì requirement tương ứng là `SHOULD`; các route này không được đăng ký trong runtime MVP.
+
 ## Seat availability và SeatHold
 
 | Operation ID | Method/path | Auth | Idempotency | Success/errors |
@@ -31,9 +33,36 @@ Response trả opaque `holdToken`, seat code/price, `currency`, `expiresAt` và 
 | `getTripManifest` | `GET /api/v1/operator/trips/{tripId}/manifest` | `tenant.manifest.read` + assigned/tenant Trip, hoặc `platform.support.read` có reason | No |
 | `searchBookingsForSupport` | `GET /api/v1/admin/bookings` | `tenant.booking.read` hoặc `platform.support.read`, luôn filter theo scope | No |
 
-Create body gồm `holdToken`, đúng một Passenger trên mỗi `seatId`, pickup/dropoff, optional `promotionCode`. Client có thể gửi expected price để cảnh báo thay đổi nhưng server tự tính subtotal/discount/fee/total.
+Create body MVP gồm `holdToken`, Booking contact, đúng một Passenger trên mỗi `seatId` và pickup/dropoff. Client có thể gửi expected price để cảnh báo thay đổi nhưng server tự tính subtotal/discount/fee/total. `promotionCode` chưa được nhận trong MVP.
+
+```json
+{
+  "holdToken": "opaque-hold-token",
+  "contact": {
+    "fullName": "Nguyễn Văn A",
+    "email": "a@example.com",
+    "phone": "+84901234567"
+  },
+  "passengers": [
+    {
+      "seatId": "trip-seat-1",
+      "fullName": "Nguyễn Văn A",
+      "documentType": null,
+      "documentNumber": null,
+      "pickupStopId": "stop-1",
+      "dropoffStopId": "stop-4"
+    }
+  ],
+  "expectedTotal": 150000,
+  "currency": "VND"
+}
+```
+
+`documentType/documentNumber` chỉ trở thành required khi Trip policy snapshot yêu cầu. Mỗi Passenger phải ánh xạ đúng một seat trong hold; thiếu/thừa/trùng seat làm toàn request thất bại.
 
 ## Cancellation và change
+
+Cancellation là MVP. Các operation `previewTicketChange/changeTicket` được giữ làm thiết kế P1 và không map route trong MVP.
 
 | Operation ID | Method/path | Idempotency | Success |
 |---|---|---|---:|
@@ -59,6 +88,8 @@ Check-in body có `tripId`, `scannedToken/publicCode`, `expectedVersion`. Scan l
 
 ## Promotion và Review
 
+Toàn bộ section này là P1; route không được đăng ký trong MVP.
+
 | Operation ID | Method/path | Permission |
 |---|---|---|
 | `listPromotions` | `GET /api/v1/operator/promotions` | `tenant.promotion.read` |
@@ -73,6 +104,8 @@ Check-in body có `tripId`, `scannedToken/publicCode`, `expectedVersion`. Scan l
 Promotion quota và redemption được bảo vệ bằng database transaction; cùng Booking không redeem hai lần. Moderation bắt buộc `action`, `reason`, `expectedVersion` và audit; ẩn không xóa lịch sử.
 
 ## Support case
+
+Toàn bộ section này là P1; route không được đăng ký trong MVP. Manual payment/cancellation issue của MVP được lưu dưới `ReconciliationCase` ở Payment và audit/operator runbook, không mở SupportCase API.
 
 `UC-ADMIN-03` được đặt trong Booking Service ở baseline vì liên kết chủ yếu Booking/Ticket/Payment external reference, chưa đủ lý do tạo service thứ bảy.
 

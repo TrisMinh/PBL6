@@ -11,6 +11,7 @@
 | `NFR-PERF-005` | Valid payment webhook persist+ack | p95 ≤2s; downstream excluded |
 | `NFR-PERF-006` | Online report | ≤10s; larger request becomes ExportJob |
 | `NFR-PERF-007` | Full load/concurrency | zero duplicate logical Booking/Payment/Ticket/Refund |
+| `NFR-CONS-007` | PaymentSucceeded timestamp đến Booking PAID và đủ Ticket | p95 ≤5s; p99 ≤30s; quá ngưỡng vẫn có retry/manual case truy vết được |
 
 Report environment CPU/memory/replicas/DB/Rabbit/Redis versions, dataset distribution, warm-up, duration, request mix, error rate và percentile method. Không loại slow/error sample tùy ý.
 
@@ -33,4 +34,3 @@ Customer API monthly target 99.5%, excluding announced maintenance as approved. 
 - Metrics: latency/error/rate, DB pool/lock, queue ready/unacked/oldest, outbox age, DLQ, hold expiry, payment success, refund failure.
 - Alerts fire and resolve for high error rate, unavailable service, queue age/backlog, signature failure spike and Refund failure.
 - Telemetry contains safe IDs/error codes and no forbidden PII/secret.
-

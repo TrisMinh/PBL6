@@ -45,7 +45,7 @@
 
 | ID | Given | When | Then |
 |---|---|---|---|
-| AC-PAY-001 | Booking còn hiệu lực; webhook có signature/amount/currency hợp lệ | Xử lý webhook | Payment SUCCEEDED, Booking PAID, TripSeat BOOKED và mỗi item có một Ticket. |
+| AC-PAY-001 | Booking còn hiệu lực; webhook có signature/amount/currency hợp lệ | Xử lý webhook và chờ workflow hội tụ trong ngưỡng NFR-CONS-007 | Payment SUCCEEDED, Booking PAID, TripSeat BOOKED và mỗi item có đúng một Ticket; trước khi hội tụ client chỉ thấy `CONFIRMING`, không thấy Ticket xác nhận một phần. |
 | AC-PAY-002 | Provider gửi cùng webhook nhiều lần | Hệ thống xử lý | Chỉ một logical Payment success và một tập Ticket được tạo. |
 | AC-PAY-003 | Webhook amount/currency sai | Hệ thống xác minh | Booking không PAID, không tạo Ticket và tạo reconciliation/security record. |
 | AC-PAY-004 | Payment thành công sau expiry và ghế đã thuộc Booking khác | Hệ thống nhận kết quả | Không double-book; tạo compensation Refund/manual case. |

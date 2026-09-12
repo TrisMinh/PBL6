@@ -74,32 +74,61 @@ Các nội dung dưới đây hữu ích cho thiết kế nhưng không phải n
 | Container, environment, secret, backup và release procedure | Deployment/Operations Guide |
 | Test step, test data và evidence | Test Plan/Test Case Specification |
 
-## 11.5. Thông tin cần phê duyệt trước baseline
+## 11.5. Quyết định baseline MVP 2.0
 
-| Vấn đề | Ảnh hưởng | Chủ sở hữu quyết định |
+| Vấn đề | Quyết định | Trạng thái |
 |---|---|---|
-| Payment Gateway chính thức | Webhook, trạng thái và reconciliation | Product/Tech Lead |
-| Notification Provider/kênh MVP | Email, push, SMS và retry | Product/Tech Lead |
-| Timeout SeatHold | UX, concurrency và Payment | Product Owner |
-| Chính sách hủy/đổi và mức phí | Booking, Refund và AC | Product Owner/Operator |
-| Promotion/Review có nằm trong MVP hay P1 | Phạm vi SHOULD | Product Owner |
-| Retention/deletion | Privacy, audit và storage | Product/Legal/Operations |
-| Dataset và tải nghiệm thu | NFR-PERF | Product/QA/Tech Lead |
-| Browser/Mobile version tối thiểu | NFR-UX | Product/Frontend Lead |
-| Offline Ticket/QR policy | Mobile và check-in | Product/Operations/Security |
+| Phạm vi | Triển khai và nghiệm thu toàn bộ `MUST`; chuyển toàn bộ `SHOULD/COULD` sang backlog sau MVP. | Accepted |
+| Backend | C# target .NET 8 (`net8.0`) cho toàn bộ API, Worker, Gateway, class library và test project; dùng ASP.NET Core Web API, EF Core và YARP Gateway. | Accepted, cập nhật 2026-09-10 |
+| Web | Customer Web và Back-office dùng React 19.2 + TypeScript/Vite trên Node.js 24 LTS và npm workspaces; tách application nhưng dùng chung package UI/tooling thuần kỹ thuật. | Accepted |
+| Mobile | React Native 0.87 stable + TypeScript; dùng cùng OpenAPI, error code và state semantics với Web. | Accepted |
+| Payment | Adapter port thống nhất; provider tích hợp MVP là VNPay Sandbox. CI/local dùng provider simulator có signed webhook deterministic. | Accepted |
+| Notification | In-app và email là kênh MVP; email qua SMTP adapter, local dùng Mailpit. Push/SMS là backlog `SHOULD/COULD`. | Accepted |
+| SeatHold/payment window | Một transaction window dài 10 phút từ lúc tạo SeatHold; tạo Booking không gia hạn. Client luôn dùng `expiresAt/serverTime`. | Accepted |
+| Hủy/đổi | Hủy Ticket theo policy versioned tại mục 11.5.1. Đổi vé là `SHOULD`, không thuộc MVP 2.0. | Accepted |
+| Promotion/Review | Không thuộc MVP 2.0 vì là `SHOULD`; endpoint/UI/event liên quan mặc định tắt. | Accepted |
+| Retention | Dùng baseline tại Chương 8 cho môi trường đồ án; production thực tế cần legal review trước go-live. | Accepted cho đồ án |
+| Dataset/tải | Giữ ngưỡng NFR: tối thiểu 100.000 Trip và 300 User đồng thời cho kịch bản search/seat liên quan. | Accepted |
+| Browser | Hai phiên bản ổn định gần nhất tại thời điểm release; responsive từ 360 px. | Accepted |
+| Offline Ticket/QR | Customer có thể xem bản Ticket đã cache; check-in của Driver bắt buộc xác minh online trong MVP. | Accepted |
+| Seat inventory | Một TripSeat chiếm quyền cho toàn bộ Trip; chưa bán lại cùng ghế theo các chặng không giao nhau. | Accepted |
+| Xác minh tài khoản | Email và số điện thoại là dữ liệu đăng ký; MVP xác minh email. SMS OTP không thuộc MVP. | Accepted |
+
+### 11.5.1. Policy hủy vé mặc định
+
+Policy được cấu hình, có version và snapshot vào Booking/Ticket. Mốc thời gian tính theo `departureAt` của Trip:
+
+| Thời điểm Customer xác nhận hủy | Phí hủy | Cho phép self-service |
+|---|---:|:---:|
+| Từ 24 giờ trở lên trước giờ đi | 10% giá trị Ticket | Có |
+| Từ 6 giờ đến dưới 24 giờ | 20% giá trị Ticket | Có |
+| Từ 2 giờ đến dưới 6 giờ | 30% giá trị Ticket | Có |
+| Dưới 2 giờ hoặc sau giờ đi | Không áp dụng | Không |
+
+- Phí làm tròn đến đồng theo quy tắc half-up; số tiền hoàn bằng `paidAmount - cancellationFee`, không âm.
+- Nhà xe hủy Trip hoàn 100% phần tiền đã thu cho Ticket bị ảnh hưởng và không áp phí Customer.
+- Ticket `CHECKED_IN`, `USED`, `CANCELLED` hoặc `REFUNDED` không được Customer hủy.
+- Policy riêng của Operator chỉ có hiệu lực sau khi được version hóa và snapshot vào Trip trước khi mở bán.
+
+### 11.5.2. Passenger và Booking contact MVP
+
+- Mỗi Passenger bắt buộc có `fullName`; `documentType/documentNumber` chỉ bắt buộc khi Trip policy yêu cầu.
+- Booking bắt buộc có `contactName`, `contactEmail` và `contactPhone`; mặc định lấy từ hồ sơ nhưng Customer được sửa cho riêng Booking.
+- Không yêu cầu ngày sinh/giới tính/CCCD nếu Trip policy không chứng minh nhu cầu.
+- Email/phone/document được mask trong màn hình hỗ trợ, log và event theo data-classification rule.
 
 ## 11.6. Checklist baseline
 
-- [ ] Tất cả trường người xem xét/phê duyệt đã được điền.
-- [ ] Phạm vi MUST/SHOULD/COULD được chốt.
-- [ ] Mọi Use Case có actor, tiền/hậu điều kiện, luồng chính và ngoại lệ.
-- [ ] Mọi FR/NFR MUST có AC/Test Case.
-- [ ] Business Rule không mâu thuẫn state transition.
-- [ ] Web, Mobile và Back-office có scope rõ.
+- [x] Baseline active và lịch sử phiên bản đã được chỉ rõ trong `docs/README.md`.
+- [x] Phạm vi MUST/SHOULD/COULD được chốt.
+- [x] Mọi Use Case có actor, tiền/hậu điều kiện, luồng chính và ngoại lệ.
+- [x] Mọi FR/NFR MUST có AC/Test Case design và coverage register.
+- [x] Business Rule không mâu thuẫn state transition tại baseline tài liệu.
+- [x] Web, Mobile và Back-office có scope rõ.
 - [ ] Tenant isolation và ownership được kiểm thử âm tính.
 - [ ] Payment callback lặp/trễ/sai amount có test.
 - [ ] Double-booking có concurrency test.
-- [ ] Sơ đồ không chứa hành vi ngoài văn bản.
-- [ ] Các liên kết Markdown và sơ đồ mở được.
+- [x] Sơ đồ không chứa hành vi ngoài văn bản; node SHOULD/P1 được ghi rõ không thuộc runtime MVP.
+- [x] Các liên kết Markdown nội bộ mở được tại lần kiểm tra baseline 2026-09-09.
 
 [← Chương 10](./10-nghiem-thu-va-truy-vet.md) · [Mục lục](./README.md)

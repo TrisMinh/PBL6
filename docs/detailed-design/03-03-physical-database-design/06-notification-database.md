@@ -7,7 +7,6 @@ Logical DB/schema: `notification_db`; ERD: [Notification](../../system-design/02
 | Table | Unique/check | Query/worker |
 |---|---|---|
 | `templates` | `(code,channel,locale,version)`; one active by policy | active code/channel/locale |
-| `user_preferences` | `(user_external,type,channel)` | user/type |
 | `notifications` | source message/reference dedupe when applicable | user cursor inbox |
 | `delivery_attempts` | `(notification_id,channel,attempt_no)` | status/next attempt |
 
@@ -24,7 +23,8 @@ create index ix_delivery_ready
 
 Transaction consumer: Inbox + Notification + initial DeliveryAttempt commit, rồi ACK. Provider call xảy ra ngoài transaction. Outcome update attempt; transient failure đặt `RETRYING/next_attempt_at`, permanent/exhausted đặt `FAILED` và metric/alert.
 
-Essential notification type được cấu hình allow-list có version. Preference không được disable mọi required channel ngoài policy. Template render chỉ nhận safe data schema theo notification type; unknown placeholder làm delivery fail permanent thay vì gửi nội dung sai.
+MVP chỉ bật `IN_APP` và `EMAIL`; essential notification type được cấu hình allow-list có version. Template render chỉ nhận safe data schema theo notification type; unknown placeholder làm delivery fail permanent thay vì gửi nội dung sai.
+
+`user_preferences` và push/SMS thuộc P1. Chỉ tạo bảng/route preference bằng migration mới khi requirement `FR-NOTIF-003` được đưa vào release; lúc đó preference không được disable mọi required channel ngoài policy.
 
 Retention tách in-app notification, attempt metadata và provider reference; cleanup không xóa record đang retry/điều tra.
-

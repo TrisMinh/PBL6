@@ -1,5 +1,7 @@
 # Notification Database ERD
 
+UserPreference trong ERD là P1. Migration/runtime MVP chỉ dùng Template, Notification và DeliveryAttempt cho kênh `IN_APP`/`EMAIL` theo allow-list policy.
+
 Database: `notification_db`. User/reference IDs là external reference và không có FK sang service khác.
 
 ```mermaid

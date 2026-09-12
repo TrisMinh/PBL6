@@ -59,6 +59,8 @@ Admin quản lý Organization, User, role, membership, review/khiếu nại, tra
 
 ### 2.5.1. MUST
 
+Toàn bộ mục này thuộc MVP 2.0 và là điều kiện nghiệm thu bắt buộc.
+
 - Đăng ký, xác minh, đăng nhập, refresh, logout và reset mật khẩu.
 - Xem và cập nhật hồ sơ.
 - Tìm kiếm, lọc, sắp xếp và xem chi tiết Trip.
@@ -73,6 +75,8 @@ Admin quản lý Organization, User, role, membership, review/khiếu nại, tra
 
 ### 2.5.2. SHOULD
 
+Toàn bộ mục này được chuyển sang backlog sau MVP 2.0. Không triển khai cho đến khi mọi luồng `MUST` liên quan đã đạt Definition of Done.
+
 - Đổi Trip/ghế theo policy.
 - Promotion/voucher.
 - Review và kiểm duyệt Review.
@@ -81,6 +85,8 @@ Admin quản lý Organization, User, role, membership, review/khiếu nại, tra
 - Job đối soát Payment/Refund chưa có kết quả cuối.
 
 ### 2.5.3. COULD
+
+Toàn bộ mục này nằm ngoài kế hoạch triển khai hiện tại.
 
 - Theo dõi vị trí xe.
 - Gợi ý Trip bằng AI.

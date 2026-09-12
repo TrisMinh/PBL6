@@ -9,7 +9,7 @@ Mỗi FR dưới đây mô tả một hành vi quan sát được. Luồng và n
 | ID | Mức | Yêu cầu | Use Case |
 |---|---|---|---|
 | FR-IAM-001 | MUST | Guest có thể đăng ký bằng họ tên, email, số điện thoại và mật khẩu; hệ thống kiểm tra định dạng và tính duy nhất. | UC-AUTH-01 |
-| FR-IAM-002 | MUST | Hệ thống gửi và xác minh email hoặc OTP trước khi kích hoạt đầy đủ tài khoản Customer. | UC-AUTH-01 |
+| FR-IAM-002 | MUST | MVP gửi và xác minh email trước khi kích hoạt đầy đủ tài khoản Customer; SMS OTP là khả năng sau MVP. | UC-AUTH-01 |
 | FR-IAM-003 | MUST | User có thể đăng nhập bằng email hoặc số điện thoại và nhận access/refresh token theo chính sách bảo mật. | UC-AUTH-02 |
 | FR-IAM-004 | MUST | User có thể refresh phiên và logout; logout phải thu hồi refresh token hiện tại. | UC-AUTH-03 |
 | FR-IAM-005 | MUST | User có thể yêu cầu reset mật khẩu bằng token/OTP có thời hạn mà không làm lộ tài khoản có tồn tại hay không. | UC-AUTH-04 |
@@ -24,8 +24,8 @@ Mỗi FR dưới đây mô tả một hành vi quan sát được. Luồng và n
 |---|---|---|---|
 | FR-SEARCH-001 | MUST | Guest/Customer có thể tìm Trip theo điểm đi, điểm đến, ngày đi và số hành khách hợp lệ. | UC-SEARCH-01 |
 | FR-SEARCH-002 | MUST | Kết quả chỉ gồm Trip còn khả năng bán theo trạng thái/policy, có phân trang và tổng số kết quả. | UC-SEARCH-01 |
-| FR-SEARCH-003 | MUST | Người dùng có thể lọc theo khoảng giá, giờ đi, nhà xe, loại xe, điểm đón/trả, tiện nghi và đánh giá. | UC-SEARCH-01 |
-| FR-SEARCH-004 | MUST | Người dùng có thể sắp xếp theo giá, giờ khởi hành, thời lượng và đánh giá. | UC-SEARCH-01 |
+| FR-SEARCH-003 | MUST | Người dùng có thể lọc theo khoảng giá, giờ đi, nhà xe, loại xe, điểm đón/trả và tiện nghi. Lọc theo đánh giá được bổ sung cùng Review sau MVP. | UC-SEARCH-01 |
+| FR-SEARCH-004 | MUST | Người dùng có thể sắp xếp theo giá, giờ khởi hành và thời lượng. Sắp xếp theo đánh giá được bổ sung cùng Review sau MVP. | UC-SEARCH-01 |
 | FR-SEARCH-005 | MUST | Chi tiết Trip hiển thị nhà xe, lịch trình, xe, tiện nghi, điểm đón/trả, giá và policy snapshot áp dụng. | UC-SEARCH-01 |
 | FR-SEARCH-006 | MUST | Số ghế khả dụng hiển thị phải kèm thời điểm cập nhật và được xác minh lại khi tạo SeatHold. | UC-SEARCH-01, UC-BOOK-01 |
 | FR-SEARCH-007 | SHOULD | Hệ thống ghi nhận truy vấn tìm kiếm đã ẩn danh để phục vụ báo cáo và không thu thập dữ liệu nhạy cảm không cần thiết. | UC-SEARCH-01 |
@@ -54,7 +54,7 @@ Mỗi FR dưới đây mô tả một hành vi quan sát được. Luồng và n
 | FR-PAY-002 | MUST | Hệ thống gửi request đến provider với mã tham chiếu duy nhất, amount, currency và callback URL. | UC-PAY-01 |
 | FR-PAY-003 | MUST | Hệ thống xác minh chữ ký, provider, transaction ID, amount và currency trước khi chấp nhận webhook. | UC-PAY-01 |
 | FR-PAY-004 | MUST | Webhook lặp không được tạo thêm Payment, Ticket hoặc thay đổi trạng thái lần thứ hai. | UC-PAY-01 |
-| FR-PAY-005 | MUST | Khi Payment hợp lệ thành công, hệ thống phải cập nhật Booking, ghế và Ticket nhất quán, không tạo trạng thái dở dang quan sát được. | UC-PAY-01 |
+| FR-PAY-005 | MUST | Khi Payment hợp lệ thành công, hệ thống phải hội tụ Booking, ghế và Ticket nhất quán qua workflow bền vững; trong thời gian hội tụ client thấy trạng thái `CONFIRMING`, không thấy dữ liệu xác nhận một phần như Ticket thiếu hoặc ghế bị bán lại. | UC-PAY-01 |
 | FR-PAY-006 | MUST | Payment thất bại/hủy không được chuyển Booking sang PAID; ghế được giữ đến hết hạn hoặc giải phóng theo rule. | UC-PAY-01 |
 | FR-PAY-007 | MUST | Payment thành công trễ nhưng Booking không thể xác nhận phải tạo compensation Refund hoặc case xử lý thủ công. | UC-PAY-01 |
 | FR-PAY-008 | MUST | Hệ thống tạo và theo dõi Refund; refund request lặp phải idempotent. | UC-CANCEL-01 |

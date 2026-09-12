@@ -43,3 +43,29 @@ Mỗi code dưới đây là một permission nguyên tử; ký hiệu kiểu `r
 - Role change không cho actor tự nâng quyền hoặc loại bỏ last active platform admin.
 - Operator Finance không có fleet/trip mutation nếu chưa được cấp riêng.
 - Permission check luôn kết hợp resource tenant/ownership; role name đơn lẻ không đủ.
+
+## Default role profiles cho MVP
+
+Đây là seed baseline. Role có thể được quản trị sau này nhưng không được tự động mở rộng quyền khi thêm permission mới; permission mới phải được gán tường minh bằng migration/administrative decision.
+
+| Role code | Scope | Permission baseline |
+|---|---|---|
+| `CUSTOMER` | Own resources | Không dùng tenant/platform permission; policy ownership cho profile, Booking, Payment, Ticket, cancellation và Notification của chính User |
+| `DRIVER` | Tenant + active assignment | `tenant.trip.read`, `tenant.manifest.read`, `tenant.ticket.validate`, `tenant.ticket.checkin`, `tenant.trip.operate` |
+| `OPERATOR_ADMIN` | Tenant | Toàn bộ `tenant.*` và `report.*` ngoại trừ quyền chỉ dành platform; vẫn cần resource tenant check |
+| `OPERATOR_SCHEDULER` | Tenant | `tenant.bus.read/manage`, `tenant.driver.read/manage`, `tenant.route.read/manage`, `tenant.trip.read/manage/publish` |
+| `OPERATOR_OPERATIONS` | Tenant | `tenant.trip.read/operate/cancel`, `tenant.booking.read`, `tenant.manifest.read`, `tenant.ticket.validate/checkin` |
+| `OPERATOR_FINANCE` | Tenant | `tenant.payment.read`, `tenant.refund.read/request`, toàn bộ `report.*.read`; export permission chưa cấp trong MVP |
+| `PLATFORM_ADMIN` | Platform | `platform.organization.read/manage`, `platform.user.read/manage`, `platform.role.manage`, `platform.membership.read/manage`, `platform.audit.read` |
+| `PLATFORM_SUPPORT` | Platform | `platform.support.read/manage`, `platform.payment.read`, `platform.refund.read`, `platform.audit.read` |
+| `PLATFORM_FINANCE` | Platform | `platform.payment.read/manage/reconcile`, `platform.refund.read/request`, các `report.*.read` |
+| `PLATFORM_AUDITOR` | Platform read-only | `platform.audit.read`, `platform.organization.read`, `platform.user.read`, `platform.payment.read`, `platform.refund.read`, các `report.*.read` |
+
+Quy ước `tenant.bus.read/manage` trong bảng chỉ là cách viết gọn hai code `tenant.bus.read` và `tenant.bus.manage`; token luôn chứa permission nguyên tử đầy đủ. `OPERATOR_ADMIN` không có platform permission, DLQ replay, secret hoặc deployment permission.
+
+## Bootstrap và thay đổi quyền
+
+- Migration seed permission catalog và role profile bằng code ổn định; không seed user/password production.
+- Local development tạo tài khoản demo qua seed riêng, credential lấy từ local secret/config không commit.
+- Thay đổi role/permission tăng `authorizationVersion`, ghi audit và revoke/refresh các session bị ảnh hưởng.
+- Repository query vẫn áp organization/ownership filter dù controller đã có policy authorization.

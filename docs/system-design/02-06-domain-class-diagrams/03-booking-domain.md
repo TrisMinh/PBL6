@@ -1,5 +1,7 @@
 # Booking Domain/Class Diagram
 
+Các class Promotion, Review và SupportCase được giữ như thiết kế P1; aggregate runtime MVP dừng ở SeatHold, Booking, Passenger, Ticket và cancellation.
+
 Owner: Booking Service. `customerId` và `sourceTripId/sourceSeatId` là external reference; `TripSnapshot` là bản sao lịch sử cục bộ.
 
 ## Inventory và SeatHold
