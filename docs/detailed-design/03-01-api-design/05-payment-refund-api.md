@@ -19,7 +19,7 @@ Create Payment không nhận `amount` làm nguồn sự thật. Payment Service 
 
 ```json
 {
-  "provider": "CONFIGURED_PROVIDER",
+  "provider": "VNPAY_SANDBOX",
   "method": "EWALLET",
   "returnUri": "https://allowed.example/payment-return"
 }
@@ -75,3 +75,5 @@ Internal caller phải có workload identity và scoped permission. Payment khó
 ## Reconciliation API/job
 
 Admin endpoint `POST /api/v1/admin/payments/{paymentId}/reconcile` yêu cầu `platform.payment.reconcile`, reason và Idempotency-Key. Kết quả chưa chắc chắn giữ `PROCESSING`; outcome mâu thuẫn mở `ReconciliationCase`, không đổi `SUCCEEDED → FAILED`.
+
+Endpoint/job tự động reconciliation là P1 theo `FR-PAY-010` và không map route trong MVP. MVP vẫn phải lưu `ReconciliationCase`, cho phép tra cứu/audit và xử lý late/duplicate/mismatch an toàn; automated provider polling được bật khi đưa P1 vào release.

@@ -5,7 +5,7 @@
 | Component | Trách nhiệm | Không chịu trách nhiệm |
 |---|---|---|
 | Customer Web | Search, seat selection, booking/payment UX, ticket và profile | Quyết định seat availability hoặc payment success |
-| Mobile App | Customer flow, ticket/QR, push token và mobile session UX | Lưu business state làm nguồn sự thật |
+| Mobile App | Customer flow, ticket/QR và mobile session UX | Lưu business state làm nguồn sự thật |
 | Back-office Web | Operator, Driver và Admin workflow theo role/tenant | Bỏ qua authorization phía backend |
 | WAF/Reverse Proxy | TLS, request size limit, basic attack filtering, routing tới Gateway | Business authorization |
 | API Gateway | Route, CORS, rate limit, token validation sơ bộ, correlation ID, access log | Business rule, transaction hoặc truy cập database |
@@ -16,10 +16,10 @@
 |---|---|---|
 | Identity Service | Đăng ký, đăng nhập, token, user, role, organization membership | User, credential, role, membership, refresh token, security audit |
 | Transport Service | Nhà xe, xe/ghế vật lý, tài xế, tuyến, điểm dừng, chuyến và assignment | Organization, Bus, Seat, DriverProfile, Route, Stop, Trip, Assignment |
-| Booking Service | Trip snapshot, TripSeat, SeatHold, pricing snapshot, booking, passenger, ticket, promotion, review và support case | Toàn bộ inventory theo chuyến, booking aggregate và support case liên quan giao dịch |
+| Booking Service | Trip snapshot, TripSeat, SeatHold, pricing snapshot, booking, passenger, ticket và cancellation | Toàn bộ inventory theo chuyến và booking aggregate; Promotion/Review/SupportCase là P1 |
 | Payment Service | Payment intent/attempt, webhook receipt, refund và reconciliation | Payment, PaymentAttempt, WebhookReceipt, Refund, ReconciliationCase |
-| Notification Service | Template, preference, notification và delivery attempt | Notification, Template, Preference, DeliveryAttempt |
-| Reporting Service | Revenue/booking/occupancy projection và export job | Read model, export metadata; không sở hữu transaction gốc |
+| Notification Service | Template, in-app/email notification và delivery attempt | Notification, Template, DeliveryAttempt; Preference/push/SMS là P1 |
+| Reporting Service | Revenue/booking/occupancy projection | Read model; ExportJob là P1, không sở hữu transaction gốc |
 
 ## 3. Platform components
 
@@ -28,7 +28,7 @@
 | RabbitMQ | Integration event, asynchronous command, retry và DLQ | Durable topology; publisher confirm; manual ack; least-privilege vhost user |
 | PostgreSQL | Transactional source of truth | Logical DB/schema và role riêng cho từng service; không query chéo |
 | Redis | Cache, rate-limit helper, SeatHold expiry helper | Dữ liệu có thể mất/rebuild; không quyết định invariant ghế |
-| Object Storage | File export và backup artifact phù hợp | Private bucket/container; signed URL có hạn; audit download chứa PII |
+| Object Storage | Hạ tầng backup artifact; file export chỉ khi P1 được bật | Private bucket/container; signed URL có hạn; audit download chứa PII |
 | Observability | Log, metric, trace và alert | Redact secret/PII; correlation xuyên HTTP và AMQP |
 | Secret Store | Phân phối credential/key theo workload | Không commit secret; rotate và audit truy cập |
 | CI/CD | Build, test, scan, migrate và deploy | Một artifact/container image bất biến qua môi trường |

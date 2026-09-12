@@ -15,9 +15,11 @@
 | ADR-009 | Reporting dùng projection/eventual consistency | Accepted | Query/report không gây tải và coupling lên transaction DB |
 | ADR-010 | Container hóa; Docker Compose cho local | Accepted | Môi trường lặp lại được và phù hợp PBL6 |
 | ADR-011 | Production topology vendor-neutral | Proposed | Chưa có yêu cầu cloud/budget/SLA đủ để khóa nhà cung cấp |
-| ADR-012 | Java/Spring, React và Flutter là stack triển khai đề xuất | Proposed | Hệ sinh thái phù hợp nhưng codebase chưa khóa framework |
+| ADR-012 | C#/.NET 8/ASP.NET Core, React và React Native là stack triển khai | Accepted, revised 2026-09-10 | Thống nhất backend target `net8.0` và client TypeScript; ưu tiên tương thích toolchain của nhóm |
 | ADR-013 | Transport sở hữu Organization profile; Identity sở hữu membership/role | Accepted | Tách tenant business profile khỏi identity/authorization nhưng giữ một authoritative owner cho mỗi dữ liệu |
 | ADR-014 | Booking tạm sở hữu SupportCase liên quan giao dịch | Accepted | Đủ cho phạm vi hiện tại và tránh tạo service thứ bảy chưa có scale/lifecycle độc lập |
+| ADR-015 | MVP triển khai toàn bộ MUST, hoãn SHOULD/COULD | Accepted | Giảm rủi ro phạm vi và giữ tiêu chí nghiệm thu rõ |
+| ADR-016 | Monorepo với contract-first và deployable độc lập | Accepted | Nhóm nhỏ cần thay đổi đồng bộ nhưng service/app vẫn build, test và deploy độc lập |
 
 ## 2. Chi tiết quyết định trọng yếu
 
@@ -93,6 +95,32 @@
 
 **Consequences:** triển khai được UC và audit/history rõ; nếu support mở rộng thành capability độc lập, tạo ADR migration/service split thay vì chia sẻ Booking DB.
 
+### ADR-012 — Application stack
+
+**Context:** SRS yêu cầu ba client và sáu bounded context. Nhóm đã chọn C# ASP.NET và React, cần một baseline duy nhất để tạo skeleton, CI, contract generation và phân công.
+
+**Decision:** Backend service/worker, Gateway, class library và test project dùng C# target .NET 8 (`net8.0`), ASP.NET Core, EF Core/Npgsql và YARP. Customer Web/Back-office dùng React 19.2 + TypeScript + Vite trên Node.js 24 LTS. Mobile dùng React Native 0.87 + TypeScript. Monorepo dùng npm workspaces và một lockfile trong `workspace/`. Contract HTTP là OpenAPI 3.1; message là JSON Schema 2020-12/AsyncAPI 3.1. SDK build được pin trong `workspace/global.json` và có thể mới hơn TFM nếu tương thích; không được trộn Target Framework giữa service. Version patch và dependency cụ thể được pin trong manifest/lockfile khi khởi tạo code.
+
+**Consequences:** backend thống nhất `net8.0`; Web/Mobile chia sẻ TypeScript contract/tooling nhưng không chia business state. Nhóm phải duy trì boundary service, không tạo shared domain model package, và đánh giá/nâng runtime bằng ADR riêng trước production nếu dòng .NET 8 không còn đáp ứng yêu cầu hỗ trợ bảo mật.
+
+**Verification:** mỗi deployable build/test độc lập; generated client compile; integration test dùng PostgreSQL/RabbitMQ thật; Gateway route test chứng minh đúng owner.
+
+### ADR-015 — MVP scope freeze
+
+**Context:** SRS có `MUST/SHOULD/COULD`; triển khai đồng thời toàn bộ sẽ làm loãng critical path.
+
+**Decision:** MVP 2.0 chỉ chứa toàn bộ `MUST`. `SHOULD/COULD` ở backlog, mặc định tắt ở API/UI/consumer và không chặn nghiệm thu MVP.
+
+**Consequences:** ticket change, Promotion, Review, push/SMS và CSV export chưa triển khai ở MVP. Contract dành cho tính năng sau có thể được lưu để thiết kế nhưng không được quảng bá là endpoint hoạt động.
+
+### ADR-016 — Repository và contract-first
+
+**Context:** nhóm cần phát triển nhiều app/service nhưng vẫn review contract và thay đổi liên miền trong một pull request.
+
+**Decision:** dùng monorepo. Mỗi service có source, test, migration, container và ownership riêng. OpenAPI/AsyncAPI/JSON Schema nằm trong `contracts/` và là input cho generated client/contract tests.
+
+**Consequences:** CI dùng path filter để tránh build thừa; không cho service tham chiếu project/domain model của service khác; chỉ chia sẻ package kỹ thuật đã allow-list.
+
 ## 3. Rejected alternatives
 
 | Phương án | Vì sao chưa chọn |
@@ -107,16 +135,15 @@
 
 ## 4. Open decisions
 
-Các mục sau cần ADR riêng trước production hoặc khi bắt đầu module liên quan:
+Các mục sau không chặn coding MVP; cần ADR riêng trước production hoặc khi bắt đầu capability liên quan:
 
 1. Cloud/managed platform và region/data residency.
-2. Payment Gateway cụ thể và reconciliation API.
-3. Email/push provider và quota/delivery webhook.
-4. Backend/frontend/mobile framework cuối cùng nếu khác stack đề xuất.
-5. Secret store, CI/CD và observability backend.
-6. PostgreSQL/RabbitMQ managed hay self-hosted.
-7. Timeout, retry, prefetch và capacity threshold sau load test.
-8. Retention chi tiết theo pháp lý/nhà trường/nghiệp vụ.
+2. Production Payment Gateway account/merchant, credential rotation và reconciliation API ngoài sandbox.
+3. Production email provider, quota và delivery webhook; push/SMS chỉ khi đưa khỏi backlog.
+4. Secret store, CI/CD runner và observability backend production.
+5. PostgreSQL/RabbitMQ managed hay self-hosted.
+6. Retry, prefetch và capacity threshold cuối sau load test.
+7. Retention chi tiết theo pháp lý/nhà trường/nghiệp vụ khi có dữ liệu thật.
 
 ## 5. Mẫu ADR cho thay đổi tiếp theo
 

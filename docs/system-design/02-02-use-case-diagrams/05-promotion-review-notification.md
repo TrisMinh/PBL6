@@ -1,6 +1,6 @@
 # 2.2.5 Use Case Diagram — Promotion, Review và Notification
 
-Nguồn đặc tả: [Promotion, Review và Notification](../../srs-v2/04-use-cases/05-promotion-review-notification.md).
+Nguồn đặc tả: [Promotion, Review và Notification](../../srs/v2/04-use-cases/05-promotion-review-notification.md).
 
 ```mermaid
 flowchart LR

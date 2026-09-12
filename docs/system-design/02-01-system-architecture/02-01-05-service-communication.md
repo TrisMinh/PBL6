@@ -8,7 +8,7 @@
 | Thông báo một sự thật đã commit cho nhiều consumer | RabbitMQ integration event | Fan-out, giảm coupling, consumer độc lập |
 | Giao việc không cần hoàn tất trong request hiện tại | RabbitMQ asynchronous command | Hấp thụ burst, retry và failure isolation |
 | Dữ liệu đọc thường xuyên từ context khác | Local snapshot/projection cập nhật bằng event | Tránh sync chain và query database chéo |
-| Batch/export dài | Async job + trạng thái polling/download | Không giữ HTTP connection lâu |
+| Batch/export dài (P1) | Async job + trạng thái polling/download | Không giữ HTTP connection lâu; chưa có runtime MVP |
 
 Không dùng event để giả lập RPC. Nếu caller không thể tiếp tục khi chưa có kết quả, dùng REST với timeout rõ hoặc thiết kế workflow có trạng thái `PENDING`.
 
@@ -22,7 +22,7 @@ Không dùng event để giả lập RPC. Nếu caller không thể tiếp tục
 - `Authorization: Bearer <token>`; service tự kiểm tra quyền và tenant scope.
 - `Idempotency-Key` bắt buộc cho hold, booking, payment, cancel và refund command.
 - Error dùng envelope có `code`, safe `message`, `details` và `correlationId`.
-- API list dùng pagination; response lớn hoặc xử lý > 10 giây chuyển sang export job.
+- API list dùng pagination. MVP giới hạn filter/date range và từ chối query vượt giới hạn bằng lỗi validation an toàn; chỉ chuyển sang ExportJob sau khi `FR-REPORT-003` được đưa vào release.
 
 ### 2.2 Resilience policy
 

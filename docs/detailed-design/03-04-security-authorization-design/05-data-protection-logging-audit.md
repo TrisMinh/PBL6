@@ -4,7 +4,7 @@
 
 | Data | Persist | Log/UI | Control |
 |---|---|---|---|
-| Password | Argon2id/bcrypt hash | Never | secret-safe memory handling |
+| Password | Argon2id PHC string có salt/parameter/version | Never | adapter đã review, secret-safe memory handling, rehash-on-login |
 | OTP/reset/refresh token | Hash + expiry/revoke | Never | one-time/rotation/rate limit |
 | Access token | Không persist raw mặc định | Never | short TTL, signed claims |
 | CCCD/license | Chỉ khi mục đích được duyệt; encrypt at rest | Mask | permission + access audit |
@@ -29,4 +29,3 @@ Audit bắt buộc cho role/membership/user status, organization/Trip/fare/polic
 Audit fields: actor ID hoặc workload identity, action, target type/ID, tenant, result, reason, timestamp UTC, correlation ID, source channel và safe metadata. Application actor thông thường không update/delete audit.
 
 Debug log retention không quyết định audit retention. Audit read cần permission riêng và truy vấn cũng có access audit khi dữ liệu nhạy cảm.
-

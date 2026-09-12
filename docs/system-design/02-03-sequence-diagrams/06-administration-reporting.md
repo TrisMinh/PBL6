@@ -1,6 +1,6 @@
 # 2.3.6 Quản trị và báo cáo
 
-Nguồn nghiệp vụ: [SRS — Quản trị và báo cáo](../../srs-v2/04-use-cases/06-administration-reporting.md).
+Nguồn nghiệp vụ: [SRS — Quản trị và báo cáo](../../srs/v2/04-use-cases/06-administration-reporting.md).
 
 ## UC-ADMIN-01 — Quản lý User, Organization và quyền
 

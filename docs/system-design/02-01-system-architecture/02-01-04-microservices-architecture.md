@@ -8,16 +8,16 @@ Ranh giới service bám theo business capability, không bám theo bảng dữ 
 |---|---|---|---|
 | Identity | `/auth/**`, `/users/**`, admin user/role/organization membership | Phát `UserRegistered`, user/role lifecycle event khi cần | Login burst, token refresh |
 | Transport | `/trips/**`, `/routes/**`, `/operator/**`, Organization profile, driver assignment | Phát `TripPublished`, `TripUpdated`, `TripCancelled` | Search/read traffic, operator batch |
-| Booking | `/seat-holds/**`, `/bookings/**`, `/tickets/**`, `/reviews/**`, `/support/**` | Nhận Trip/Payment event; phát Booking/Ticket/Refund request | Seat contention, booking checkout |
+| Booking | `/seat-holds/**`, `/bookings/**`, `/tickets/**`, operator manifest/admin booking lookup | Nhận Trip/Payment event; phát Booking/Ticket/Refund request | Seat contention, booking checkout |
 | Payment | `/payments/**`, `/refunds/**`, payment webhook | Nhận refund/compensation command; phát payment/refund event | Provider webhook và reconciliation |
-| Notification | Notification preference/read API | Nhận notification command hoặc domain event; phát delivery result | Provider throughput, retry backlog |
-| Reporting | `/reports/**`, `/exports/**` | Nhận integration event để dựng projection | Query/export workload |
+| Notification | Notification read API; in-app/email delivery | Nhận notification command hoặc domain event | Provider throughput, retry backlog |
+| Reporting | `/reports/**` | Nhận integration event để dựng projection | Query workload |
 
 ## 2. Data ownership
 
 - Identity là nguồn sự thật cho user/role/membership; service khác chỉ lưu immutable identifier và snapshot tối thiểu.
 - Transport là nguồn sự thật cho Organization profile, tài sản vận tải và lịch chuyến.
-- Booking là nguồn sự thật cho inventory theo chuyến, hold, booking, ticket và support case liên quan giao dịch.
+- Booking là nguồn sự thật cho inventory theo chuyến, hold, booking và ticket. SupportCase là thiết kế P1.
 - Payment là nguồn sự thật cho trạng thái giao dịch với payment provider.
 - Notification sở hữu delivery lifecycle; trạng thái gửi không thay đổi trạng thái Booking.
 - Reporting sở hữu projection có thể rebuild; không sửa transaction nguồn.
@@ -33,7 +33,7 @@ Không có foreign key, view, trigger hoặc ORM relation xuyên database servic
 | Consumer tolerant | Bỏ qua field không biết; producer chỉ thêm optional field trong cùng version |
 | Timeout bắt buộc | Mọi HTTP client cấu hình connect/read/overall timeout theo use case |
 | Idempotency | HTTP command tạo side effect dùng `Idempotency-Key`; event dùng `eventId`, async command dùng `commandId` |
-| Failure isolation | Notification/Reporting và export job không nằm trong transaction của Booking/Payment |
+| Failure isolation | Notification/Reporting không nằm trong transaction của Booking/Payment |
 | Deploy independence | Không release đồng thời bắt buộc chỉ vì import shared business model |
 
 ## 4. Transaction boundaries
@@ -85,4 +85,4 @@ Một service chỉ đạt baseline khi:
 
 ## 7. Khi nào chưa tách thêm service
 
-Promotion và Review ban đầu thuộc Booking vì cùng vòng đời và tải chưa chứng minh cần tách. Export job thuộc Reporting. Chỉ tách khi xuất hiện ít nhất một động lực rõ: owner riêng, compliance boundary, scale profile khác biệt, release cadence độc lập hoặc blast radius cần cô lập.
+Khi P1 được kích hoạt, Promotion/Review/SupportCase thuộc Booking và ExportJob thuộc Reporting theo ADR hiện tại. Chỉ tách khi xuất hiện ít nhất một động lực rõ: owner riêng, compliance boundary, scale profile khác biệt, release cadence độc lập hoặc blast radius cần cô lập.

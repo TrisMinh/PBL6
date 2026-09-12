@@ -32,6 +32,6 @@ Chi tiết thứ tự message/service/database nằm riêng tại [2.3 Sequence 
 
 ## Nguồn
 
-- [Danh mục 28 Use Case](../../srs-v2/04-use-cases/README.md)
-- [Actor và phân quyền](../../srs-v2/02-tong-quan-san-pham.md)
-- [Yêu cầu chức năng](../../srs-v2/05-yeu-cau-chuc-nang.md)
+- [Danh mục 28 Use Case](../../srs/v2/04-use-cases/README.md)
+- [Actor và phân quyền](../../srs/v2/02-tong-quan-san-pham.md)
+- [Yêu cầu chức năng](../../srs/v2/05-yeu-cau-chuc-nang.md)

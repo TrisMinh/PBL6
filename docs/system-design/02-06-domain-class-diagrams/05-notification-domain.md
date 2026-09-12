@@ -1,5 +1,7 @@
 # Notification Domain/Class Diagram
 
+Preference/push/SMS là P1. MVP lập kế hoạch delivery theo allow-list policy cố định cho in-app và email.
+
 Owner: Notification Service. Delivery lifecycle độc lập với transaction Booking/Payment.
 
 ```mermaid
@@ -58,4 +60,3 @@ classDiagram
 - Push/email body không chứa secret, full token hoặc PII không cần thiết.
 - Provider lỗi tạo retry có giới hạn; không rollback transaction nguồn.
 - Mỗi delivery attempt giữ safe error code và provider reference để vận hành.
-

@@ -1,6 +1,6 @@
 # 2.3.1 Định danh và hồ sơ
 
-Nguồn nghiệp vụ: [SRS — Định danh và hồ sơ](../../srs-v2/04-use-cases/01-identity-and-profile.md).
+Nguồn nghiệp vụ: [SRS — Định danh và hồ sơ](../../srs/v2/04-use-cases/01-identity-and-profile.md).
 
 ## UC-AUTH-01 — Đăng ký và kích hoạt tài khoản
 

@@ -10,6 +10,7 @@ Chương này chuyển System Design thành contract và quy tắc triển khai 
 - [3.4 Security & Authorization Design](./03-04-security-authorization-design/README.md)
 - [3.5 Error, Concurrency & Recovery](./03-05-error-concurrency-recovery/README.md)
 - [3.6 Test Design](./03-06-test-design/README.md)
+- [3.7 UI/UX Design](./03-07-ui-ux-design/README.md)
 
 ## Baseline và trạng thái
 
@@ -30,4 +31,3 @@ Provider, timeout nghiệp vụ và một số policy sản phẩm chưa đượ
 - Schema migration dùng expand-and-contract và tương thích rolling deployment.
 - Thay đổi owner dữ liệu/service boundary phải cập nhật ADR trước.
 - Mọi contract MUST phải truy vết được về UC/FR/BR/AC hoặc NFR.
-

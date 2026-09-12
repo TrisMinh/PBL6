@@ -1,5 +1,7 @@
 # Reporting Database ERD
 
+`ExportJob` và audit download trong ERD là P1. Migration/runtime MVP chỉ gồm ba projection online và ProjectionCheckpoint.
+
 Database: `reporting_db`. Các ID nghiệp vụ là projection key, không có FK sang transaction database.
 
 ```mermaid
@@ -75,4 +77,3 @@ erDiagram
 - API report bắt buộc trả `generatedAt/dataAsOf`; projection không được dùng để update transaction nguồn.
 - Export file nằm ở Object Storage; database chỉ giữ object key, expiry và audit metadata.
 - `reporting.integration-events.q` vẫn dùng Inbox để dedupe; checkpoint không thay Inbox unique constraint.
-

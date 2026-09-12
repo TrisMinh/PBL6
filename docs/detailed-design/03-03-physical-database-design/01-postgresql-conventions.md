@@ -4,7 +4,7 @@
 
 | Concern | Baseline |
 |---|---|
-| ID | UUID/ULID-compatible UUID; không tái sử dụng |
+| ID | PostgreSQL `uuid`; application tạo UUIDv7, không tái sử dụng |
 | Time | `timestamptz`, UTC |
 | Money | `bigint` đơn vị nhỏ nhất cho MVP VND; hoặc `numeric(19,4)` nếu provider/currency buộc fractional, không dùng float |
 | Currency | `char(3)` uppercase + check/allow-list |
@@ -101,4 +101,3 @@ Application role thông thường chỉ có INSERT/SELECT theo permission; khôn
 - Outbox worker claim batch bằng `FOR UPDATE SKIP LOCKED`; chỉ set `published_at` sau publisher confirm.
 - Không giữ DB transaction mở trong khi gọi HTTP/provider/RabbitMQ.
 - Retry transaction chỉ với SQLSTATE transient được allow-list và command idempotent.
-

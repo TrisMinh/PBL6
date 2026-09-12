@@ -22,7 +22,7 @@ Database, Redis, AMQP và RabbitMQ management UI không public Internet.
 
 ## 3. Authentication và session
 
-- Password hash bằng Argon2id hoặc bcrypt với work factor được benchmark/quản lý; không dùng SHA/MD5 thuần.
+- Password hash bằng Argon2id với parameter có version (`m=19456 KiB`, `t=2`, `p=1`, salt 16 byte, hash 32 byte), lưu PHC-format string và rehash sau login khi policy tăng. Không dùng SHA/MD5 thuần và không tự viết primitive mật mã.
 - Access token ngắn hạn, mặc định không quá 15 phút; ký bất đối xứng để service verify mà không giữ signing key.
 - Refresh token rotation, revoke và reuse detection; chỉ lưu dạng hash nếu thiết kế cho phép.
 - Mobile dùng secure platform storage; Web ưu tiên HttpOnly, Secure, SameSite cookie khi phù hợp và có CSRF protection.

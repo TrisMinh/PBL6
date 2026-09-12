@@ -8,10 +8,12 @@ Hệ thống áp dụng database-per-service ở mức logic. Giai đoạn local
 |---|---|---|---|
 | `identity_db` | Identity | User, Role, Membership, RefreshToken, SecurityAudit | Bảo mật cao, lookup theo identity/tenant |
 | `transport_db` | Transport | Organization, Bus, Seat, Driver, Route, Stop, Trip | Nhiều read/search, operator write |
-| `booking_db` | Booking | TripSnapshot, TripSeat, SeatHold, Booking, Passenger, Ticket, Promotion, Review, SupportCase | Transaction contention và invariant ghế |
+| `booking_db` | Booking | TripSnapshot, TripSeat, SeatHold, Booking, Passenger, Ticket, CancellationPreview | Transaction contention và invariant ghế |
 | `payment_db` | Payment | Payment, Attempt, WebhookReceipt, Refund, ReconciliationCase | Idempotency/audit cao, provider references |
-| `notification_db` | Notification | Template, Preference, Notification, DeliveryAttempt | Retry lifecycle và retention riêng |
-| `reporting_db` | Reporting | Revenue, Booking, Occupancy projection, ExportJob | Read-optimized, rebuild được từ nguồn/event |
+| `notification_db` | Notification | Template, Notification, DeliveryAttempt | Retry lifecycle và retention riêng |
+| `reporting_db` | Reporting | Revenue, Booking, Occupancy projection, ProjectionCheckpoint | Read-optimized, rebuild được từ nguồn/event |
+
+Promotion/Review/SupportCase, Preference và ExportJob chỉ được thêm bằng migration P1 sau release decision; migration MVP không tạo bảng rỗng cho các capability này.
 
 ## 2. Quy tắc dữ liệu xuyên service
 
@@ -95,7 +97,7 @@ Redis không dùng làm nguồn sự thật của TripSeat, Booking, Payment ho�
 - Mã hóa at rest theo capability hạ tầng và mã hóa cấp ứng dụng cho trường đặc biệt nhạy cảm khi cần.
 - Mask CCCD/giấy phép, contact và provider reference trong UI/log.
 - Không lưu CVV hoặc full card number; dùng token/reference của payment provider.
-- Export PII có authorization, expiry, watermark/metadata và audit download.
+- Khi Export P1 được bật, export PII phải có authorization, expiry, watermark/metadata và audit download.
 - Quy trình xóa/anonymize phải tôn trọng quan hệ nghiệp vụ và retention bắt buộc.
 
 ## 9. Reporting consistency

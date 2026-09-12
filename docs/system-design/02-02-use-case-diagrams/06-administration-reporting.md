@@ -1,6 +1,6 @@
 # 2.2.6 Use Case Diagram — Quản trị và báo cáo
 
-Nguồn đặc tả: [Quản trị và báo cáo](../../srs-v2/04-use-cases/06-administration-reporting.md).
+Nguồn đặc tả: [Quản trị và báo cáo](../../srs/v2/04-use-cases/06-administration-reporting.md).
 
 ```mermaid
 flowchart LR

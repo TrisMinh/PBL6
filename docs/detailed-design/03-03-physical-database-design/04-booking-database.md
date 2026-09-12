@@ -2,6 +2,8 @@
 
 Logical DB/schema: `booking_db`; ERD: [Booking](../../system-design/02-07-database-erd/03-booking-db.md). Đây là concurrency boundary chống double-booking.
 
+Migration MVP chỉ tạo các bảng phục vụ requirement `MUST`. Promotion, Review và SupportCase ở phần cuối là thiết kế P1, chưa có table/runtime route trong baseline MVP.
+
 ## Aggregate tables
 
 | Nhóm | Tables | Guard chính |
@@ -10,8 +12,6 @@ Logical DB/schema: `booking_db`; ERD: [Booking](../../system-design/02-07-databa
 | Hold | `seat_holds`, `seat_hold_items` | one logical hold/key, ACTIVE expiry, all-or-nothing |
 | Booking | `bookings`, `booking_items`, `passengers` | one Booking per hold; one Passenger per item |
 | Ticket | `tickets` | unique booking item/public code/QR hash |
-| Promotion | `promotions`, `promotion_redemptions` | scope/code, quota, unique booking redemption |
-| Review/support | `reviews`, `support_cases`, `support_case_history` | one review per Ticket; append history |
 
 ## TripSeat constraints
 
@@ -57,7 +57,7 @@ Không “update các ghế còn trống rồi báo partial success”. Request 
 - Booking `PAID` ticket completeness được bảo đảm trong application transaction + deferred constraint/verification query; reconciliation job phát hiện gap không thể xảy ra bình thường.
 - Booking/Ticket/Passenger snapshot sau PAID không update trực tiếp; đổi vé tạo audited workflow.
 
-## Promotion concurrency
+## Thiết kế P1 chưa kích hoạt: Promotion concurrency
 
 ```sql
 update promotions
@@ -77,6 +77,5 @@ Affected row phải bằng 1 rồi insert `promotion_redemptions` unique `(promo
 - Partial `seat_holds(expires_at)` where status=`ACTIVE`.
 - `bookings(customer_id_external,created_at desc)` và `(trip_id,status)`.
 - `tickets(public_code)`, `(booking_item_id)`, `(status,checked_in_at)`.
-- `reviews(ticket_id)` unique; public query `(trip_id,status,created_at desc)` qua local denormalized trip reference.
-- Support `(organization_id_external,status,updated_at desc)` và transaction reference indexes.
 
+Khi Promotion/Review/SupportCase được đưa vào release, migration mới mới được phép tạo các bảng/index tương ứng; không thêm bảng rỗng vào migration MVP.

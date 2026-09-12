@@ -1,6 +1,6 @@
 # 2.3.5 Promotion, Review và Notification
 
-Nguồn nghiệp vụ: [SRS — Promotion, Review và Notification](../../srs-v2/04-use-cases/05-promotion-review-notification.md).
+Nguồn nghiệp vụ: [SRS — Promotion, Review và Notification](../../srs/v2/04-use-cases/05-promotion-review-notification.md).
 
 ## UC-PROMO-01 — Quản lý và áp dụng Promotion
 

@@ -1,0 +1,1468 @@
+openapi: 3.1.0
+info:
+  title: PBL6 Bus Ticket Platform MVP API
+  version: 2.0.0
+  description: Active MUST-only HTTP contract for ASP.NET Core services behind YARP.
+  license:
+    name: Academic project - all rights reserved
+    identifier: LicenseRef-Academic-All-Rights-Reserved
+servers:
+  - url: /api/v1
+tags:
+  - name: Auth
+    description: Public authentication and session lifecycle.
+  - name: Profile
+    description: Current-user profile operations.
+  - name: AdminIdentity
+    description: Platform user, role and membership administration.
+  - name: Trips
+    description: Public trip search and detail.
+  - name: Operator
+    description: Tenant-scoped transport operations.
+  - name: Driver
+    description: Assigned-driver trip and check-in operations.
+  - name: Booking
+    description: Seat hold, booking and cancellation operations.
+  - name: Tickets
+    description: Customer ticket and authorized validation operations.
+  - name: Payments
+    description: Payment intent, status, administration and provider callbacks.
+  - name: Refunds
+    description: Refund request, status and administration.
+  - name: Notifications
+    description: In-app notification inbox operations.
+  - name: Reports
+    description: Scoped online MVP reporting operations.
+security:
+  - bearerAuth: []
+paths:
+  /auth/register:
+    post:
+      tags: [Auth]
+      operationId: registerUser
+      summary: Register a customer account
+      security: []
+      requestBody: {$ref: '#/components/requestBodies/Register'}
+      responses:
+        '202': {$ref: '#/components/responses/Accepted'}
+        default: {$ref: '#/components/responses/Error'}
+  /auth/verify:
+    post:
+      tags: [Auth]
+      operationId: verifyRegistration
+      summary: Verify a registration email challenge
+      security: []
+      parameters: [{$ref: '#/components/parameters/IdempotencyKey'}]
+      requestBody: {$ref: '#/components/requestBodies/Verification'}
+      responses:
+        '200': {$ref: '#/components/responses/Session'}
+        default: {$ref: '#/components/responses/Error'}
+  /auth/resend-verification:
+    post:
+      tags: [Auth]
+      operationId: resendVerification
+      summary: Resend the registration verification email
+      security: []
+      parameters: [{$ref: '#/components/parameters/IdempotencyKey'}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/EmailRequest'}
+      responses:
+        '202': {$ref: '#/components/responses/Accepted'}
+        default: {$ref: '#/components/responses/Error'}
+  /auth/login:
+    post:
+      tags: [Auth]
+      operationId: login
+      summary: Sign in with email or phone
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/LoginRequest'}
+      responses:
+        '200': {$ref: '#/components/responses/Session'}
+        default: {$ref: '#/components/responses/Error'}
+  /auth/refresh:
+    post:
+      tags: [Auth]
+      operationId: refreshSession
+      summary: Rotate a refresh token and renew the session
+      security: []
+      parameters: [{$ref: '#/components/parameters/IdempotencyKey'}]
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/RefreshRequest'}
+      responses:
+        '200': {$ref: '#/components/responses/Session'}
+        default: {$ref: '#/components/responses/Error'}
+  /auth/logout:
+    post:
+      tags: [Auth]
+      operationId: logout
+      summary: Revoke the current refresh session
+      parameters: [{$ref: '#/components/parameters/IdempotencyKey'}]
+      responses:
+        '204': {description: Session revoked}
+        default: {$ref: '#/components/responses/Error'}
+  /auth/forgot-password:
+    post:
+      tags: [Auth]
+      operationId: forgotPassword
+      summary: Request a password reset email
+      security: []
+      parameters: [{$ref: '#/components/parameters/IdempotencyKey'}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/EmailRequest'}
+      responses:
+        '202': {$ref: '#/components/responses/Accepted'}
+        default: {$ref: '#/components/responses/Error'}
+  /auth/reset-password:
+    post:
+      tags: [Auth]
+      operationId: resetPassword
+      summary: Reset a password with a valid challenge
+      security: []
+      parameters: [{$ref: '#/components/parameters/IdempotencyKey'}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/ResetPasswordRequest'}
+      responses:
+        '204': {description: Password changed and sessions revoked}
+        default: {$ref: '#/components/responses/Error'}
+  /users/me:
+    get:
+      tags: [Profile]
+      operationId: getMyProfile
+      summary: Get the current user profile
+      responses:
+        '200':
+          description: Current profile
+          content: {application/json: {schema: {$ref: '#/components/schemas/UserProfile'}}}
+        default: {$ref: '#/components/responses/Error'}
+    patch:
+      tags: [Profile]
+      operationId: updateMyProfile
+      summary: Update the current user profile
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/UpdateProfileRequest'}}}
+      responses:
+        '200':
+          description: Profile updated
+          content: {application/json: {schema: {$ref: '#/components/schemas/UserProfile'}}}
+        '202': {$ref: '#/components/responses/Accepted'}
+        default: {$ref: '#/components/responses/Error'}
+  /admin/users:
+    get:
+      tags: [AdminIdentity]
+      operationId: listUsers
+      summary: List platform users in the permitted scope
+      x-permission: platform.user.read
+      parameters: [{$ref: '#/components/parameters/Page'}, {$ref: '#/components/parameters/Size'}]
+      responses:
+        '200':
+          description: User page
+          content: {application/json: {schema: {$ref: '#/components/schemas/UserPage'}}}
+        default: {$ref: '#/components/responses/Error'}
+  /admin/users/{userId}:
+    parameters: [{$ref: '#/components/parameters/UserId'}]
+    get:
+      tags: [AdminIdentity]
+      operationId: getUser
+      summary: Get a platform user
+      x-permission: platform.user.read
+      responses:
+        '200': {description: User, content: {application/json: {schema: {$ref: '#/components/schemas/AdminUser'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /admin/users/{userId}/status:
+    parameters: [{$ref: '#/components/parameters/UserId'}]
+    patch:
+      tags: [AdminIdentity]
+      operationId: changeUserStatus
+      summary: Change a user account status
+      x-permission: platform.user.manage
+      requestBody: {$ref: '#/components/requestBodies/VersionedStatus'}
+      responses:
+        '200': {description: User, content: {application/json: {schema: {$ref: '#/components/schemas/AdminUser'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /admin/users/{userId}/roles:
+    parameters: [{$ref: '#/components/parameters/UserId'}]
+    put:
+      tags: [AdminIdentity]
+      operationId: replaceUserRoles
+      summary: Replace the assigned roles of a user
+      x-permission: platform.role.manage
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/ReplaceRolesRequest'}}}
+      responses:
+        '200': {description: User, content: {application/json: {schema: {$ref: '#/components/schemas/AdminUser'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /admin/organizations/{organizationId}/members:
+    parameters: [{$ref: '#/components/parameters/OrganizationId'}]
+    get:
+      tags: [AdminIdentity]
+      operationId: listMemberships
+      summary: List organization memberships
+      x-permission: platform.membership.read
+      responses:
+        '200': {description: Memberships, content: {application/json: {schema: {type: array, items: {$ref: '#/components/schemas/Membership'}}}}}
+        default: {$ref: '#/components/responses/Error'}
+    post:
+      tags: [AdminIdentity]
+      operationId: addMembership
+      summary: Add an organization membership
+      x-permission: platform.membership.manage
+      parameters: [{$ref: '#/components/parameters/IdempotencyKey'}]
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/MembershipInput'}}}
+      responses:
+        '201': {description: Membership, content: {application/json: {schema: {$ref: '#/components/schemas/Membership'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /admin/organizations/{organizationId}/members/{membershipId}:
+    parameters:
+      - {$ref: '#/components/parameters/OrganizationId'}
+      - {name: membershipId, in: path, required: true, schema: {$ref: '#/components/schemas/Id'}}
+    patch:
+      tags: [AdminIdentity]
+      operationId: changeMembership
+      summary: Change an organization membership
+      x-permission: platform.membership.manage
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/MembershipInput'}}}
+      responses:
+        '200': {description: Membership, content: {application/json: {schema: {$ref: '#/components/schemas/Membership'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /trips:
+    get:
+      tags: [Trips]
+      operationId: searchTrips
+      summary: Search sellable trips
+      security: []
+      parameters:
+        - {name: origin, in: query, required: true, schema: {type: string, minLength: 1}}
+        - {name: destination, in: query, required: true, schema: {type: string, minLength: 1}}
+        - {name: departureDate, in: query, required: true, schema: {type: string, format: date}}
+        - {name: passengerCount, in: query, required: true, schema: {type: integer, minimum: 1, maximum: 10}}
+        - {name: minPrice, in: query, schema: {type: integer, format: int64, minimum: 0}}
+        - {name: maxPrice, in: query, schema: {type: integer, format: int64, minimum: 0}}
+        - {name: departureTimeFrom, in: query, schema: {type: string, format: time}}
+        - {name: departureTimeTo, in: query, schema: {type: string, format: time}}
+        - {name: organizationId, in: query, schema: {$ref: '#/components/schemas/Id'}}
+        - {name: busType, in: query, schema: {type: string, minLength: 1, maxLength: 80}}
+        - {name: pickupStopId, in: query, schema: {$ref: '#/components/schemas/Id'}}
+        - {name: dropoffStopId, in: query, schema: {$ref: '#/components/schemas/Id'}}
+        - {name: amenities, in: query, schema: {type: array, uniqueItems: true, maxItems: 20, items: {type: string, minLength: 1, maxLength: 50}}, style: form, explode: false}
+        - {name: sort, in: query, schema: {$ref: '#/components/schemas/TripSort'}}
+        - {$ref: '#/components/parameters/Page'}
+        - {$ref: '#/components/parameters/Size'}
+      responses:
+        '200': {description: Trip page, content: {application/json: {schema: {$ref: '#/components/schemas/TripPage'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /trips/{tripId}:
+    parameters: [{$ref: '#/components/parameters/TripId'}]
+    get:
+      tags: [Trips]
+      operationId: getTrip
+      summary: Get public trip details
+      security: []
+      responses:
+        '200': {description: Trip, content: {application/json: {schema: {$ref: '#/components/schemas/Trip'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /trips/{tripId}/stops:
+    parameters: [{$ref: '#/components/parameters/TripId'}]
+    get:
+      tags: [Trips]
+      operationId: getTripStops
+      summary: List stops and pickup or drop-off rules for a trip
+      security: []
+      responses:
+        '200': {description: Stops, content: {application/json: {schema: {type: array, items: {$ref: '#/components/schemas/TripStop'}}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /trips/{tripId}/seats:
+    parameters: [{$ref: '#/components/parameters/TripId'}]
+    get:
+      tags: [Booking]
+      operationId: getTripSeats
+      summary: Get current seat availability for a trip
+      responses:
+        '200': {description: Seats, content: {application/json: {schema: {$ref: '#/components/schemas/TripSeatList'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /trips/{tripId}/seat-holds:
+    parameters: [{$ref: '#/components/parameters/TripId'}]
+    post:
+      tags: [Booking]
+      operationId: createSeatHold
+      summary: Atomically hold selected seats
+      parameters: [{$ref: '#/components/parameters/IdempotencyKey'}]
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/CreateSeatHoldRequest'}}}
+      responses:
+        '201': {description: Hold, content: {application/json: {schema: {$ref: '#/components/schemas/SeatHold'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /seat-holds/{holdToken}:
+    parameters: [{$ref: '#/components/parameters/HoldToken'}]
+    get:
+      tags: [Booking]
+      operationId: getSeatHold
+      summary: Get an owned seat hold by opaque token
+      responses:
+        '200': {description: Hold, content: {application/json: {schema: {$ref: '#/components/schemas/SeatHold'}}}}
+        default: {$ref: '#/components/responses/Error'}
+    delete:
+      tags: [Booking]
+      operationId: releaseSeatHold
+      summary: Release an owned seat hold
+      parameters: [{$ref: '#/components/parameters/IdempotencyKey'}]
+      responses:
+        '204': {description: Released or already terminal}
+        default: {$ref: '#/components/responses/Error'}
+  /bookings:
+    post:
+      tags: [Booking]
+      operationId: createBooking
+      summary: Create a booking from an active seat hold
+      parameters: [{$ref: '#/components/parameters/IdempotencyKey'}]
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/CreateBookingRequest'}}}
+      responses:
+        '201': {description: Booking, content: {application/json: {schema: {$ref: '#/components/schemas/Booking'}}}}
+        default: {$ref: '#/components/responses/Error'}
+    get:
+      tags: [Booking]
+      operationId: listMyBookings
+      summary: List bookings owned by the current customer
+      parameters: [{$ref: '#/components/parameters/Page'}, {$ref: '#/components/parameters/Size'}]
+      responses:
+        '200': {description: Booking page, content: {application/json: {schema: {$ref: '#/components/schemas/BookingPage'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /bookings/{bookingId}:
+    parameters: [{$ref: '#/components/parameters/BookingId'}]
+    get:
+      tags: [Booking]
+      operationId: getMyBooking
+      summary: Get an owned booking
+      responses:
+        '200': {description: Booking, content: {application/json: {schema: {$ref: '#/components/schemas/Booking'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /bookings/{bookingId}/cancellation-preview:
+    parameters: [{$ref: '#/components/parameters/BookingId'}]
+    post:
+      tags: [Booking]
+      operationId: previewCancellation
+      summary: Preview cancellation fees and refund amount
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/CancellationPreviewRequest'}}}
+      responses:
+        '200': {description: Preview, content: {application/json: {schema: {$ref: '#/components/schemas/CancellationPreview'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /bookings/{bookingId}/cancel:
+    parameters: [{$ref: '#/components/parameters/BookingId'}]
+    post:
+      tags: [Booking]
+      operationId: cancelBookingItems
+      summary: Cancel eligible booking items
+      parameters: [{$ref: '#/components/parameters/IdempotencyKey'}]
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/CancelBookingRequest'}}}
+      responses:
+        '202': {$ref: '#/components/responses/Accepted'}
+        default: {$ref: '#/components/responses/Error'}
+  /bookings/{bookingId}/payments:
+    parameters: [{$ref: '#/components/parameters/BookingId'}]
+    post:
+      tags: [Payments]
+      operationId: createPayment
+      summary: Create a payment for a pending booking
+      parameters: [{$ref: '#/components/parameters/IdempotencyKey'}]
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/CreatePaymentRequest'}}}
+      responses:
+        '201': {description: Payment, content: {application/json: {schema: {$ref: '#/components/schemas/Payment'}}}}
+        '202': {description: Payment processing, content: {application/json: {schema: {$ref: '#/components/schemas/Payment'}}}}
+        default: {$ref: '#/components/responses/Error'}
+    get:
+      tags: [Payments]
+      operationId: listBookingPayments
+      summary: List payment attempts for an owned booking
+      responses:
+        '200': {description: Payments, content: {application/json: {schema: {type: array, items: {$ref: '#/components/schemas/Payment'}}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /payments/{paymentId}:
+    parameters: [{$ref: '#/components/parameters/PaymentId'}]
+    get:
+      tags: [Payments]
+      operationId: getPayment
+      summary: Get an accessible payment
+      responses:
+        '200': {description: Payment, content: {application/json: {schema: {$ref: '#/components/schemas/Payment'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /payments/{paymentId}/cancel:
+    parameters: [{$ref: '#/components/parameters/PaymentId'}]
+    post:
+      tags: [Payments]
+      operationId: cancelPayment
+      summary: Cancel a payment that has not succeeded
+      parameters: [{$ref: '#/components/parameters/IdempotencyKey'}]
+      responses:
+        '202': {$ref: '#/components/responses/Accepted'}
+        default: {$ref: '#/components/responses/Error'}
+  /refunds:
+    post:
+      tags: [Refunds]
+      operationId: createRefund
+      summary: Request an idempotent refund
+      x-permission: workload-or-tenant.refund.request-or-platform.refund.request
+      parameters: [{$ref: '#/components/parameters/IdempotencyKey'}]
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/CreateRefundRequest'}}}
+      responses:
+        '202': {$ref: '#/components/responses/Accepted'}
+        default: {$ref: '#/components/responses/Error'}
+  /refunds/{refundId}:
+    parameters: [{$ref: '#/components/parameters/RefundId'}]
+    get:
+      tags: [Refunds]
+      operationId: getRefund
+      summary: Get an accessible refund
+      responses:
+        '200': {description: Refund, content: {application/json: {schema: {$ref: '#/components/schemas/Refund'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /tickets:
+    get:
+      tags: [Tickets]
+      operationId: listMyTickets
+      summary: List tickets owned by the current customer
+      parameters: [{$ref: '#/components/parameters/Page'}, {$ref: '#/components/parameters/Size'}]
+      responses:
+        '200': {description: Ticket page, content: {application/json: {schema: {$ref: '#/components/schemas/TicketPage'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /tickets/{ticketId}:
+    parameters: [{$ref: '#/components/parameters/TicketId'}]
+    get:
+      tags: [Tickets]
+      operationId: getMyTicket
+      summary: Get an owned ticket
+      responses:
+        '200': {description: Ticket, content: {application/json: {schema: {$ref: '#/components/schemas/Ticket'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /tickets/validate:
+    post:
+      tags: [Tickets, Driver]
+      operationId: validateTicket
+      summary: Validate a ticket for an assigned trip
+      x-permission: tenant.ticket.validate
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/TicketScanRequest'}}}
+      responses:
+        '200': {description: Validation result, content: {application/json: {schema: {$ref: '#/components/schemas/TicketValidation'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /tickets/{ticketId}/check-in:
+    parameters: [{$ref: '#/components/parameters/TicketId'}]
+    post:
+      tags: [Tickets, Driver]
+      operationId: checkInTicket
+      summary: Check in a valid ticket exactly once
+      x-permission: tenant.ticket.checkin
+      parameters: [{$ref: '#/components/parameters/IdempotencyKey'}]
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/TicketScanRequest'}}}
+      responses:
+        '200': {description: Ticket, content: {application/json: {schema: {$ref: '#/components/schemas/Ticket'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /operator/organization:
+    get:
+      tags: [Operator]
+      operationId: getMyOrganization
+      summary: Get the current operator organization
+      x-permission: tenant.organization.manage
+      responses:
+        '200': {description: Organization, content: {application/json: {schema: {$ref: '#/components/schemas/Organization'}}}}
+        default: {$ref: '#/components/responses/Error'}
+    patch:
+      tags: [Operator]
+      operationId: updateOrganization
+      summary: Update the current operator organization
+      x-permission: tenant.organization.manage
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/OrganizationInput'}}}
+      responses:
+        '200': {description: Organization, content: {application/json: {schema: {$ref: '#/components/schemas/Organization'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /admin/organizations:
+    post:
+      tags: [AdminIdentity]
+      operationId: createOrganization
+      summary: Create an operator organization
+      x-permission: platform.organization.manage
+      parameters: [{$ref: '#/components/parameters/IdempotencyKey'}]
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/OrganizationInput'}}}
+      responses:
+        '201': {description: Organization, content: {application/json: {schema: {$ref: '#/components/schemas/Organization'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /admin/organizations/{organizationId}:
+    parameters: [{$ref: '#/components/parameters/OrganizationId'}]
+    get:
+      tags: [AdminIdentity]
+      operationId: getOrganization
+      summary: Get an organization as platform admin
+      x-permission: platform.organization.read
+      responses:
+        '200': {description: Organization, content: {application/json: {schema: {$ref: '#/components/schemas/Organization'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /operator/buses:
+    get:
+      tags: [Operator]
+      operationId: listBuses
+      summary: List buses in the current organization
+      x-permission: tenant.bus.read
+      responses:
+        '200': {description: Buses, content: {application/json: {schema: {type: array, items: {$ref: '#/components/schemas/Bus'}}}}}
+        default: {$ref: '#/components/responses/Error'}
+    post:
+      tags: [Operator]
+      operationId: createBus
+      summary: Create a bus in the current organization
+      x-permission: tenant.bus.manage
+      parameters: [{$ref: '#/components/parameters/IdempotencyKey'}]
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/BusInput'}}}
+      responses:
+        '201': {description: Bus, content: {application/json: {schema: {$ref: '#/components/schemas/Bus'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /operator/buses/{busId}:
+    parameters: [{$ref: '#/components/parameters/BusId'}]
+    patch:
+      tags: [Operator]
+      operationId: updateBus
+      summary: Update a bus in the current organization
+      x-permission: tenant.bus.manage
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/BusInput'}}}
+      responses:
+        '200': {description: Bus, content: {application/json: {schema: {$ref: '#/components/schemas/Bus'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /operator/buses/{busId}/deactivate:
+    parameters: [{$ref: '#/components/parameters/BusId'}]
+    post:
+      tags: [Operator]
+      operationId: deactivateBus
+      summary: Deactivate a bus without deleting history
+      x-permission: tenant.bus.manage
+      parameters: [{$ref: '#/components/parameters/IdempotencyKey'}]
+      responses:
+        '200': {description: Bus, content: {application/json: {schema: {$ref: '#/components/schemas/Bus'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /operator/buses/{busId}/seats:
+    parameters: [{$ref: '#/components/parameters/BusId'}]
+    put:
+      tags: [Operator]
+      operationId: replaceSeatLayout
+      summary: Replace the seat layout of an unsold bus template
+      x-permission: tenant.bus.manage
+      parameters: [{$ref: '#/components/parameters/IdempotencyKey'}]
+      requestBody:
+        required: true
+        content: {application/json: {schema: {type: array, minItems: 1, items: {$ref: '#/components/schemas/SeatInput'}}}}
+      responses:
+        '200': {description: Bus, content: {application/json: {schema: {$ref: '#/components/schemas/Bus'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /operator/drivers:
+    get:
+      tags: [Operator]
+      operationId: listDrivers
+      summary: List driver profiles in the current organization
+      x-permission: tenant.driver.read
+      responses:
+        '200': {description: Drivers, content: {application/json: {schema: {type: array, items: {$ref: '#/components/schemas/DriverProfile'}}}}}
+        default: {$ref: '#/components/responses/Error'}
+    post:
+      tags: [Operator]
+      operationId: createDriverProfile
+      summary: Create a driver profile
+      x-permission: tenant.driver.manage
+      parameters: [{$ref: '#/components/parameters/IdempotencyKey'}]
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/DriverInput'}}}
+      responses:
+        '201': {description: Driver, content: {application/json: {schema: {$ref: '#/components/schemas/DriverProfile'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /operator/drivers/{driverId}:
+    parameters: [{$ref: '#/components/parameters/DriverId'}]
+    patch:
+      tags: [Operator]
+      operationId: updateDriverProfile
+      summary: Update a driver profile
+      x-permission: tenant.driver.manage
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/DriverInput'}}}
+      responses:
+        '200': {description: Driver, content: {application/json: {schema: {$ref: '#/components/schemas/DriverProfile'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /operator/drivers/{driverId}/deactivate:
+    parameters: [{$ref: '#/components/parameters/DriverId'}]
+    post:
+      tags: [Operator]
+      operationId: deactivateDriver
+      summary: Deactivate a driver profile
+      x-permission: tenant.driver.manage
+      parameters: [{$ref: '#/components/parameters/IdempotencyKey'}]
+      responses:
+        '200': {description: Driver, content: {application/json: {schema: {$ref: '#/components/schemas/DriverProfile'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /operator/routes:
+    get:
+      tags: [Operator]
+      operationId: listRoutes
+      summary: List routes in the current organization
+      x-permission: tenant.route.read
+      responses:
+        '200': {description: Routes, content: {application/json: {schema: {type: array, items: {$ref: '#/components/schemas/Route'}}}}}
+        default: {$ref: '#/components/responses/Error'}
+    post:
+      tags: [Operator]
+      operationId: createRoute
+      summary: Create a route
+      x-permission: tenant.route.manage
+      parameters: [{$ref: '#/components/parameters/IdempotencyKey'}]
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/RouteInput'}}}
+      responses:
+        '201': {description: Route, content: {application/json: {schema: {$ref: '#/components/schemas/Route'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /operator/routes/{routeId}:
+    parameters: [{$ref: '#/components/parameters/RouteId'}]
+    patch:
+      tags: [Operator]
+      operationId: updateRoute
+      summary: Update a route
+      x-permission: tenant.route.manage
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/RouteInput'}}}
+      responses:
+        '200': {description: Route, content: {application/json: {schema: {$ref: '#/components/schemas/Route'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /operator/routes/{routeId}/stops:
+    parameters: [{$ref: '#/components/parameters/RouteId'}]
+    put:
+      tags: [Operator]
+      operationId: replaceRouteStops
+      summary: Replace the ordered stops of a route
+      x-permission: tenant.route.manage
+      requestBody:
+        required: true
+        content: {application/json: {schema: {type: array, minItems: 2, items: {$ref: '#/components/schemas/RouteStopInput'}}}}
+      responses:
+        '200': {description: Route, content: {application/json: {schema: {$ref: '#/components/schemas/Route'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /operator/routes/{routeId}/deactivate:
+    parameters: [{$ref: '#/components/parameters/RouteId'}]
+    post:
+      tags: [Operator]
+      operationId: deactivateRoute
+      summary: Deactivate a route without deleting history
+      x-permission: tenant.route.manage
+      parameters: [{$ref: '#/components/parameters/IdempotencyKey'}]
+      responses:
+        '200': {description: Route, content: {application/json: {schema: {$ref: '#/components/schemas/Route'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /operator/trips:
+    get:
+      tags: [Operator]
+      operationId: listOperatorTrips
+      summary: List trips in the current organization
+      x-permission: tenant.trip.read
+      parameters: [{$ref: '#/components/parameters/Page'}, {$ref: '#/components/parameters/Size'}]
+      responses:
+        '200': {description: Trips, content: {application/json: {schema: {$ref: '#/components/schemas/TripPage'}}}}
+        default: {$ref: '#/components/responses/Error'}
+    post:
+      tags: [Operator]
+      operationId: createTripDraft
+      summary: Create a draft trip
+      x-permission: tenant.trip.manage
+      parameters: [{$ref: '#/components/parameters/IdempotencyKey'}]
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/TripInput'}}}
+      responses:
+        '201': {description: Trip, content: {application/json: {schema: {$ref: '#/components/schemas/Trip'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /operator/trips/{tripId}:
+    parameters: [{$ref: '#/components/parameters/TripId'}]
+    patch:
+      tags: [Operator]
+      operationId: updateTripDraft
+      summary: Update a draft trip
+      x-permission: tenant.trip.manage
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/TripInput'}}}
+      responses:
+        '200': {description: Trip, content: {application/json: {schema: {$ref: '#/components/schemas/Trip'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /operator/trips/{tripId}/publish:
+    parameters: [{$ref: '#/components/parameters/TripId'}]
+    post:
+      tags: [Operator]
+      operationId: publishTrip
+      summary: Publish a conflict-free trip and prepare inventory
+      x-permission: tenant.trip.publish
+      parameters: [{$ref: '#/components/parameters/IdempotencyKey'}]
+      requestBody: {$ref: '#/components/requestBodies/ExpectedVersion'}
+      responses:
+        '202': {$ref: '#/components/responses/Accepted'}
+        default: {$ref: '#/components/responses/Error'}
+  /operator/trips/{tripId}/cancel:
+    parameters: [{$ref: '#/components/parameters/TripId'}]
+    post:
+      tags: [Operator]
+      operationId: cancelTrip
+      summary: Cancel an eligible trip with a reason
+      x-permission: tenant.trip.cancel
+      parameters: [{$ref: '#/components/parameters/IdempotencyKey'}]
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/VersionedReasonRequest'}}}
+      responses:
+        '202': {$ref: '#/components/responses/Accepted'}
+        default: {$ref: '#/components/responses/Error'}
+  /operator/trips/{tripId}/status-transitions:
+    parameters: [{$ref: '#/components/parameters/TripId'}]
+    post:
+      tags: [Operator, Driver]
+      operationId: transitionTrip
+      summary: Transition a trip through its operating state machine
+      x-permission: tenant.trip.operate
+      parameters: [{$ref: '#/components/parameters/IdempotencyKey'}]
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/TripTransitionRequest'}}}
+      responses:
+        '200': {description: Trip, content: {application/json: {schema: {$ref: '#/components/schemas/Trip'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /operator/trips/{tripId}/manifest:
+    parameters: [{$ref: '#/components/parameters/TripId'}]
+    get:
+      tags: [Operator, Driver]
+      operationId: getTripManifest
+      summary: Get the minimum authorized manifest for a trip
+      x-permission: tenant.manifest.read
+      responses:
+        '200': {description: Manifest, content: {application/json: {schema: {$ref: '#/components/schemas/Manifest'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /driver/assignments:
+    get:
+      tags: [Driver]
+      operationId: getMyAssignments
+      summary: List trips assigned to the current driver
+      responses:
+        '200': {description: Assignments, content: {application/json: {schema: {type: array, items: {$ref: '#/components/schemas/DriverAssignment'}}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /admin/bookings:
+    get:
+      tags: [Booking]
+      operationId: searchBookingsForSupport
+      summary: Search bookings in the authorized support scope
+      x-permission: tenant.booking.read-or-platform.support.read
+      parameters: [{$ref: '#/components/parameters/Page'}, {$ref: '#/components/parameters/Size'}]
+      responses:
+        '200': {description: Bookings, content: {application/json: {schema: {$ref: '#/components/schemas/BookingPage'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /admin/payments:
+    get:
+      tags: [Payments]
+      operationId: searchAdminPayments
+      summary: Search payments in the authorized finance scope
+      x-permission: tenant.payment.read-or-platform.payment.read
+      parameters: [{$ref: '#/components/parameters/Page'}, {$ref: '#/components/parameters/Size'}]
+      responses:
+        '200': {description: Payments, content: {application/json: {schema: {$ref: '#/components/schemas/PaymentPage'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /admin/refunds:
+    get:
+      tags: [Refunds]
+      operationId: searchAdminRefunds
+      summary: Search refunds in the authorized finance scope
+      x-permission: tenant.refund.read-or-platform.refund.read
+      parameters: [{$ref: '#/components/parameters/Page'}, {$ref: '#/components/parameters/Size'}]
+      responses:
+        '200': {description: Refunds, content: {application/json: {schema: {$ref: '#/components/schemas/RefundPage'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /notifications:
+    get:
+      tags: [Notifications]
+      operationId: listMyNotifications
+      summary: List notifications for the current user
+      parameters:
+        - {name: cursor, in: query, schema: {type: string}}
+        - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 20}}
+      responses:
+        '200': {description: Notifications, content: {application/json: {schema: {$ref: '#/components/schemas/NotificationPage'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /notifications/{notificationId}/read:
+    parameters: [{$ref: '#/components/parameters/NotificationId'}]
+    patch:
+      tags: [Notifications]
+      operationId: markNotificationRead
+      summary: Mark an owned notification as read
+      responses:
+        '200': {description: Notification, content: {application/json: {schema: {$ref: '#/components/schemas/Notification'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /reports/revenue:
+    get:
+      tags: [Reports]
+      operationId: getRevenueReport
+      summary: Get a scoped online revenue report
+      x-permission: report.revenue.read
+      parameters: [{$ref: '#/components/parameters/From'}, {$ref: '#/components/parameters/To'}, {$ref: '#/components/parameters/Timezone'}]
+      responses:
+        '200': {description: Report, content: {application/json: {schema: {$ref: '#/components/schemas/Report'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /reports/bookings:
+    get:
+      tags: [Reports]
+      operationId: getBookingReport
+      summary: Get a scoped online booking report
+      x-permission: report.booking.read
+      parameters: [{$ref: '#/components/parameters/From'}, {$ref: '#/components/parameters/To'}, {$ref: '#/components/parameters/Timezone'}]
+      responses:
+        '200': {description: Report, content: {application/json: {schema: {$ref: '#/components/schemas/Report'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /reports/occupancy:
+    get:
+      tags: [Reports]
+      operationId: getOccupancyReport
+      summary: Get a scoped online occupancy report
+      x-permission: report.occupancy.read
+      parameters: [{$ref: '#/components/parameters/From'}, {$ref: '#/components/parameters/To'}, {$ref: '#/components/parameters/Timezone'}]
+      responses:
+        '200': {description: Report, content: {application/json: {schema: {$ref: '#/components/schemas/Report'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /integrations/payments/{provider}/webhooks:
+    servers:
+      - url: /
+    post:
+      tags: [Payments]
+      operationId: handlePaymentWebhook
+      summary: Receive and verify a payment provider webhook
+      security: []
+      parameters:
+        - {name: provider, in: path, required: true, schema: {type: string, enum: [vnpay-sandbox]}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {type: object, additionalProperties: true, description: Raw body is verified before transformation.}
+      responses:
+        '204': {description: Verified outcome persisted or duplicate acknowledged}
+        '400': {$ref: '#/components/responses/Error'}
+        default: {$ref: '#/components/responses/Error'}
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    IdempotencyKey: {name: Idempotency-Key, in: header, required: true, schema: {type: string, minLength: 16, maxLength: 200}}
+    Page: {name: page, in: query, schema: {type: integer, minimum: 0, default: 0}}
+    Size: {name: size, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 20}}
+    UserId: {name: userId, in: path, required: true, schema: {$ref: '#/components/schemas/Id'}}
+    OrganizationId: {name: organizationId, in: path, required: true, schema: {$ref: '#/components/schemas/Id'}}
+    TripId: {name: tripId, in: path, required: true, schema: {$ref: '#/components/schemas/Id'}}
+    BusId: {name: busId, in: path, required: true, schema: {$ref: '#/components/schemas/Id'}}
+    DriverId: {name: driverId, in: path, required: true, schema: {$ref: '#/components/schemas/Id'}}
+    RouteId: {name: routeId, in: path, required: true, schema: {$ref: '#/components/schemas/Id'}}
+    BookingId: {name: bookingId, in: path, required: true, schema: {$ref: '#/components/schemas/Id'}}
+    PaymentId: {name: paymentId, in: path, required: true, schema: {$ref: '#/components/schemas/Id'}}
+    RefundId: {name: refundId, in: path, required: true, schema: {$ref: '#/components/schemas/Id'}}
+    TicketId: {name: ticketId, in: path, required: true, schema: {$ref: '#/components/schemas/Id'}}
+    NotificationId: {name: notificationId, in: path, required: true, schema: {$ref: '#/components/schemas/Id'}}
+    HoldToken: {name: holdToken, in: path, required: true, schema: {type: string, minLength: 20, maxLength: 300}}
+    From: {name: from, in: query, required: true, schema: {type: string, format: date-time}}
+    To: {name: to, in: query, required: true, schema: {type: string, format: date-time}}
+    Timezone: {name: timezone, in: query, required: true, schema: {type: string, example: Asia/Ho_Chi_Minh}}
+  requestBodies:
+    Register:
+      required: true
+      content: {application/json: {schema: {$ref: '#/components/schemas/RegisterRequest'}}}
+    Verification:
+      required: true
+      content: {application/json: {schema: {$ref: '#/components/schemas/VerificationRequest'}}}
+    ExpectedVersion:
+      required: true
+      content: {application/json: {schema: {$ref: '#/components/schemas/ExpectedVersionRequest'}}}
+    VersionedStatus:
+      required: true
+      content: {application/json: {schema: {$ref: '#/components/schemas/VersionedStatusRequest'}}}
+  responses:
+    Accepted:
+      description: Command accepted
+      content: {application/json: {schema: {$ref: '#/components/schemas/OperationAccepted'}}}
+    Session:
+      description: Session
+      content: {application/json: {schema: {$ref: '#/components/schemas/SessionResponse'}}}
+    Error:
+      description: Safe error envelope
+      content: {application/json: {schema: {$ref: '#/components/schemas/ErrorEnvelope'}}}
+  schemas:
+    Id: {type: string, format: uuid}
+    DateTime: {type: string, format: date-time}
+    Currency: {type: string, enum: [VND]}
+    Money:
+      type: object
+      required: [amount, currency]
+      properties:
+        amount: {type: integer, format: int64, minimum: 0}
+        currency: {$ref: '#/components/schemas/Currency'}
+    ErrorEnvelope:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message, correlationId]
+          properties:
+            code: {type: string, pattern: '^[A-Z][A-Z0-9_]+$'}
+            message: {type: string}
+            details: {type: object, additionalProperties: true}
+            correlationId: {type: string, format: uuid}
+    PageMeta:
+      type: object
+      required: [page, size, totalElements, totalPages]
+      properties:
+        page: {type: integer, minimum: 0}
+        size: {type: integer, minimum: 1, maximum: 100}
+        totalElements: {type: integer, format: int64, minimum: 0}
+        totalPages: {type: integer, minimum: 0}
+    OperationAccepted:
+      type: object
+      required: [operationId, status]
+      properties:
+        operationId: {$ref: '#/components/schemas/Id'}
+        status: {type: string, enum: [ACCEPTED, PROCESSING]}
+        statusUrl: {type: [string, 'null']}
+    EmailRequest:
+      type: object
+      required: [email]
+      properties: {email: {type: string, format: email, maxLength: 254}}
+    RegisterRequest:
+      type: object
+      additionalProperties: false
+      required: [fullName, email, phone, password]
+      properties:
+        fullName: {type: string, minLength: 2, maxLength: 150}
+        email: {type: string, format: email, maxLength: 254}
+        phone: {type: string, pattern: '^\+[1-9][0-9]{7,14}$'}
+        password: {type: string, minLength: 10, maxLength: 128, writeOnly: true}
+    VerificationRequest:
+      type: object
+      required: [challengeId, code]
+      properties:
+        challengeId: {$ref: '#/components/schemas/Id'}
+        code: {type: string, minLength: 6, maxLength: 200, writeOnly: true}
+    LoginRequest:
+      type: object
+      required: [identifier, password]
+      properties:
+        identifier: {type: string, minLength: 3, maxLength: 254}
+        password: {type: string, minLength: 1, maxLength: 128, writeOnly: true}
+    RefreshRequest:
+      type: object
+      properties:
+        refreshToken: {type: [string, 'null'], writeOnly: true, description: Mobile only; Web may use secure cookie.}
+    ResetPasswordRequest:
+      type: object
+      required: [challengeId, code, newPassword]
+      properties:
+        challengeId: {$ref: '#/components/schemas/Id'}
+        code: {type: string, writeOnly: true}
+        newPassword: {type: string, minLength: 10, maxLength: 128, writeOnly: true}
+    SessionResponse:
+      type: object
+      required: [accessToken, tokenType, expiresIn, sessionId, user]
+      properties:
+        accessToken: {type: string, writeOnly: true}
+        refreshToken: {type: [string, 'null'], writeOnly: true}
+        tokenType: {type: string, const: Bearer}
+        expiresIn: {type: integer, const: 900}
+        sessionId: {$ref: '#/components/schemas/Id'}
+        user: {$ref: '#/components/schemas/UserProfile'}
+    UserProfile:
+      type: object
+      required: [id, fullName, email, phone, status, roles, rowVersion]
+      properties:
+        id: {$ref: '#/components/schemas/Id'}
+        fullName: {type: string}
+        email: {type: string, format: email}
+        phone: {type: string}
+        status: {type: string, enum: [PENDING_VERIFICATION, ACTIVE, LOCKED, DISABLED]}
+        roles: {type: array, items: {type: string}}
+        organizationMemberships: {type: array, items: {$ref: '#/components/schemas/Membership'}}
+        rowVersion: {type: integer, format: int64}
+    UpdateProfileRequest:
+      type: object
+      required: [expectedVersion]
+      properties:
+        fullName: {type: string, minLength: 2, maxLength: 150}
+        email: {type: string, format: email}
+        phone: {type: string}
+        expectedVersion: {type: integer, format: int64, minimum: 0}
+    AdminUser:
+      allOf:
+        - {$ref: '#/components/schemas/UserProfile'}
+        - {type: object, required: [createdAt], properties: {createdAt: {$ref: '#/components/schemas/DateTime'}}}
+    UserPage:
+      allOf:
+        - {$ref: '#/components/schemas/PageMeta'}
+        - {type: object, required: [items], properties: {items: {type: array, items: {$ref: '#/components/schemas/AdminUser'}}}}
+    ExpectedVersionRequest:
+      type: object
+      required: [expectedVersion]
+      properties: {expectedVersion: {type: integer, format: int64, minimum: 0}}
+    VersionedStatusRequest:
+      type: object
+      required: [status, reason, expectedVersion]
+      properties:
+        status: {type: string, enum: [ACTIVE, LOCKED, DISABLED]}
+        reason: {type: string, minLength: 3, maxLength: 500}
+        expectedVersion: {type: integer, format: int64}
+    ReplaceRolesRequest:
+      type: object
+      required: [roleCodes, reason, expectedVersion]
+      properties:
+        roleCodes: {type: array, uniqueItems: true, items: {type: string}}
+        reason: {type: string, minLength: 3, maxLength: 500}
+        expectedVersion: {type: integer, format: int64}
+    Membership:
+      type: object
+      required: [id, userId, organizationId, status, roleCodes, rowVersion]
+      properties:
+        id: {$ref: '#/components/schemas/Id'}
+        userId: {$ref: '#/components/schemas/Id'}
+        organizationId: {$ref: '#/components/schemas/Id'}
+        status: {type: string, enum: [ACTIVE, SUSPENDED, ENDED]}
+        roleCodes: {type: array, items: {type: string}}
+        rowVersion: {type: integer, format: int64}
+    MembershipInput:
+      type: object
+      required: [userId, roleCodes, status, reason, expectedVersion]
+      properties:
+        userId: {$ref: '#/components/schemas/Id'}
+        roleCodes: {type: array, minItems: 1, uniqueItems: true, items: {type: string}}
+        status: {type: string, enum: [ACTIVE, SUSPENDED, ENDED]}
+        reason: {type: string, minLength: 3, maxLength: 500}
+        expectedVersion: {type: integer, format: int64, minimum: 0}
+    TripSort: {type: string, enum: [PRICE_ASC, PRICE_DESC, DEPARTURE_ASC, DEPARTURE_DESC, DURATION_ASC, DURATION_DESC]}
+    TripStatus: {type: string, enum: [DRAFT, SCHEDULED, BOARDING, DEPARTED, IN_TRANSIT, ARRIVED, COMPLETED, CANCELLED]}
+    TripStop:
+      type: object
+      required: [id, name, sequence, offsetMinutes, pickupAllowed, dropoffAllowed]
+      properties:
+        id: {$ref: '#/components/schemas/Id'}
+        name: {type: string}
+        address: {type: [string, 'null']}
+        sequence: {type: integer, minimum: 0}
+        offsetMinutes: {type: integer, minimum: 0}
+        pickupAllowed: {type: boolean}
+        dropoffAllowed: {type: boolean}
+    Trip:
+      type: object
+      required: [id, organizationId, operatorName, busType, amenities, departureAt, arrivalAt, origin, destination, fare, status, sellable, availabilityAsOf, stops, rowVersion]
+      properties:
+        id: {$ref: '#/components/schemas/Id'}
+        organizationId: {$ref: '#/components/schemas/Id'}
+        operatorName: {type: string}
+        busType: {type: string}
+        amenities: {type: array, uniqueItems: true, items: {type: string}}
+        departureAt: {$ref: '#/components/schemas/DateTime'}
+        arrivalAt: {$ref: '#/components/schemas/DateTime'}
+        origin: {type: string}
+        destination: {type: string}
+        fare: {$ref: '#/components/schemas/Money'}
+        status: {$ref: '#/components/schemas/TripStatus'}
+        sellable: {type: boolean}
+        availableSeatCount: {type: integer, minimum: 0}
+        availabilityAsOf: {$ref: '#/components/schemas/DateTime'}
+        policyVersion: {type: string}
+        stops: {type: array, items: {$ref: '#/components/schemas/TripStop'}}
+        rowVersion: {type: integer, format: int64}
+    TripPage:
+      allOf:
+        - {$ref: '#/components/schemas/PageMeta'}
+        - {type: object, required: [items], properties: {items: {type: array, items: {$ref: '#/components/schemas/Trip'}}}}
+    Organization:
+      type: object
+      required: [id, code, name, status, rowVersion]
+      properties:
+        id: {$ref: '#/components/schemas/Id'}
+        code: {type: string}
+        name: {type: string}
+        contactEmail: {type: string, format: email}
+        contactPhone: {type: string}
+        status: {type: string, enum: [ACTIVE, SUSPENDED, INACTIVE]}
+        rowVersion: {type: integer, format: int64}
+    OrganizationInput:
+      type: object
+      required: [name, contactEmail, contactPhone, expectedVersion]
+      properties:
+        code: {type: string, pattern: '^[A-Z0-9_-]{3,30}$'}
+        name: {type: string, minLength: 2, maxLength: 200}
+        contactEmail: {type: string, format: email}
+        contactPhone: {type: string}
+        expectedVersion: {type: integer, format: int64, minimum: 0}
+    SeatInput:
+      type: object
+      required: [code, deck, row, column, type, enabled]
+      properties:
+        code: {type: string, minLength: 1, maxLength: 20}
+        deck: {type: integer, minimum: 1, maximum: 2}
+        row: {type: integer, minimum: 1}
+        column: {type: integer, minimum: 1}
+        type: {type: string, enum: [STANDARD, VIP, SLEEPER]}
+        enabled: {type: boolean}
+    BusInput:
+      type: object
+      required: [plateNumber, type, amenities, expectedVersion]
+      properties:
+        plateNumber: {type: string, minLength: 5, maxLength: 20}
+        type: {type: string, minLength: 2, maxLength: 80}
+        amenities: {type: array, uniqueItems: true, maxItems: 50, items: {type: string, minLength: 1, maxLength: 50}}
+        expectedVersion: {type: integer, format: int64, minimum: 0}
+    Bus:
+      allOf:
+        - {$ref: '#/components/schemas/BusInput'}
+        - {type: object, required: [id, status, seatTemplateVersion, seats], properties: {id: {$ref: '#/components/schemas/Id'}, status: {type: string, enum: [ACTIVE, MAINTENANCE, INACTIVE]}, seatTemplateVersion: {type: integer, minimum: 1}, seats: {type: array, items: {$ref: '#/components/schemas/SeatInput'}}}}
+    DriverInput:
+      type: object
+      required: [userId, licenseNumber, licenseExpiresOn, expectedVersion]
+      properties:
+        userId: {$ref: '#/components/schemas/Id'}
+        licenseNumber: {type: string, minLength: 3, maxLength: 80}
+        licenseExpiresOn: {type: string, format: date}
+        expectedVersion: {type: integer, format: int64, minimum: 0}
+    DriverProfile:
+      allOf:
+        - {$ref: '#/components/schemas/DriverInput'}
+        - {type: object, required: [id, status], properties: {id: {$ref: '#/components/schemas/Id'}, status: {type: string, enum: [ACTIVE, SUSPENDED, INACTIVE, EXPIRED]}}}
+    RouteStopInput:
+      type: object
+      required: [name, sequence, offsetMinutes, pickupAllowed, dropoffAllowed]
+      properties:
+        name: {type: string, minLength: 1, maxLength: 200}
+        address: {type: [string, 'null'], maxLength: 500}
+        sequence: {type: integer, minimum: 0}
+        offsetMinutes: {type: integer, minimum: 0}
+        pickupAllowed: {type: boolean}
+        dropoffAllowed: {type: boolean}
+    RouteInput:
+      type: object
+      required: [name, origin, destination, expectedVersion]
+      properties:
+        name: {type: string, minLength: 2, maxLength: 200}
+        origin: {type: string, minLength: 1, maxLength: 200}
+        destination: {type: string, minLength: 1, maxLength: 200}
+        distanceKm: {type: [number, 'null'], minimum: 0}
+        durationMinutes: {type: integer, minimum: 1}
+        expectedVersion: {type: integer, format: int64, minimum: 0}
+    Route:
+      allOf:
+        - {$ref: '#/components/schemas/RouteInput'}
+        - {type: object, required: [id, status, stops], properties: {id: {$ref: '#/components/schemas/Id'}, status: {type: string, enum: [ACTIVE, INACTIVE]}, stops: {type: array, items: {$ref: '#/components/schemas/TripStop'}}}}
+    TripInput:
+      type: object
+      required: [routeId, busId, driverId, departureAt, arrivalAt, fare, policyVersion, expectedVersion]
+      properties:
+        routeId: {$ref: '#/components/schemas/Id'}
+        busId: {$ref: '#/components/schemas/Id'}
+        driverId: {$ref: '#/components/schemas/Id'}
+        departureAt: {$ref: '#/components/schemas/DateTime'}
+        arrivalAt: {$ref: '#/components/schemas/DateTime'}
+        fare: {$ref: '#/components/schemas/Money'}
+        policyVersion: {type: string, const: cancel-mvp-v1}
+        expectedVersion: {type: integer, format: int64, minimum: 0}
+    VersionedReasonRequest:
+      type: object
+      required: [reason, expectedVersion]
+      properties:
+        reason: {type: string, minLength: 3, maxLength: 500}
+        expectedVersion: {type: integer, format: int64}
+    TripTransitionRequest:
+      allOf:
+        - {$ref: '#/components/schemas/ExpectedVersionRequest'}
+        - {type: object, required: [targetStatus], properties: {targetStatus: {$ref: '#/components/schemas/TripStatus'}, reason: {type: [string, 'null'], maxLength: 500}}}
+    DriverAssignment:
+      type: object
+      required: [tripId, driverId, startAt, endAt, active]
+      properties:
+        tripId: {$ref: '#/components/schemas/Id'}
+        driverId: {$ref: '#/components/schemas/Id'}
+        startAt: {$ref: '#/components/schemas/DateTime'}
+        endAt: {$ref: '#/components/schemas/DateTime'}
+        active: {type: boolean}
+    TripSeat:
+      type: object
+      required: [id, code, type, status, price, rowVersion]
+      properties:
+        id: {$ref: '#/components/schemas/Id'}
+        code: {type: string}
+        type: {type: string}
+        status: {type: string, enum: [AVAILABLE, HELD, BOOKED, DISABLED]}
+        price: {$ref: '#/components/schemas/Money'}
+        rowVersion: {type: integer, format: int64}
+    TripSeatList:
+      type: object
+      required: [tripId, seats, availabilityAsOf, serverTime]
+      properties:
+        tripId: {$ref: '#/components/schemas/Id'}
+        seats: {type: array, items: {$ref: '#/components/schemas/TripSeat'}}
+        availabilityAsOf: {$ref: '#/components/schemas/DateTime'}
+        serverTime: {$ref: '#/components/schemas/DateTime'}
+    CreateSeatHoldRequest:
+      type: object
+      additionalProperties: false
+      required: [seatIds, pickupStopId, dropoffStopId]
+      properties:
+        seatIds: {type: array, minItems: 1, maxItems: 10, uniqueItems: true, items: {$ref: '#/components/schemas/Id'}}
+        pickupStopId: {$ref: '#/components/schemas/Id'}
+        dropoffStopId: {$ref: '#/components/schemas/Id'}
+    SeatHold:
+      type: object
+      required: [holdToken, tripId, status, seats, expiresAt, serverTime]
+      properties:
+        holdToken: {type: string, minLength: 20}
+        tripId: {$ref: '#/components/schemas/Id'}
+        status: {type: string, enum: [ACTIVE, CONSUMED, EXPIRED, RELEASED]}
+        seats: {type: array, items: {$ref: '#/components/schemas/TripSeat'}}
+        expiresAt: {$ref: '#/components/schemas/DateTime'}
+        serverTime: {$ref: '#/components/schemas/DateTime'}
+    BookingContact:
+      type: object
+      required: [fullName, email, phone]
+      properties:
+        fullName: {type: string, minLength: 2, maxLength: 150}
+        email: {type: string, format: email}
+        phone: {type: string}
+    PassengerInput:
+      type: object
+      required: [seatId, fullName, pickupStopId, dropoffStopId]
+      properties:
+        seatId: {$ref: '#/components/schemas/Id'}
+        fullName: {type: string, minLength: 2, maxLength: 150}
+        documentType: {type: [string, 'null'], enum: [null, NATIONAL_ID, PASSPORT, OTHER]}
+        documentNumber: {type: [string, 'null'], maxLength: 80}
+        pickupStopId: {$ref: '#/components/schemas/Id'}
+        dropoffStopId: {$ref: '#/components/schemas/Id'}
+    CreateBookingRequest:
+      type: object
+      additionalProperties: false
+      required: [holdToken, contact, passengers, expectedTotal, currency]
+      properties:
+        holdToken: {type: string}
+        contact: {$ref: '#/components/schemas/BookingContact'}
+        passengers: {type: array, minItems: 1, maxItems: 10, items: {$ref: '#/components/schemas/PassengerInput'}}
+        expectedTotal: {type: integer, format: int64, minimum: 0}
+        currency: {$ref: '#/components/schemas/Currency'}
+    Booking:
+      type: object
+      required: [id, code, customerId, tripId, status, contact, subtotal, discount, fee, total, currency, expiresAt, items, rowVersion]
+      properties:
+        id: {$ref: '#/components/schemas/Id'}
+        code: {type: string}
+        customerId: {$ref: '#/components/schemas/Id'}
+        tripId: {$ref: '#/components/schemas/Id'}
+        status: {type: string, enum: [PENDING_PAYMENT, PAID, EXPIRED, CANCELLED, REFUND_PENDING, REFUNDED, COMPLETED]}
+        contact: {$ref: '#/components/schemas/BookingContact'}
+        subtotal: {type: integer, format: int64, minimum: 0}
+        discount: {type: integer, format: int64, minimum: 0}
+        fee: {type: integer, format: int64, minimum: 0}
+        total: {type: integer, format: int64, minimum: 0}
+        currency: {$ref: '#/components/schemas/Currency'}
+        expiresAt: {$ref: '#/components/schemas/DateTime'}
+        items: {type: array, items: {$ref: '#/components/schemas/PassengerInput'}}
+        rowVersion: {type: integer, format: int64}
+    BookingPage:
+      allOf:
+        - {$ref: '#/components/schemas/PageMeta'}
+        - {type: object, required: [items], properties: {items: {type: array, items: {$ref: '#/components/schemas/Booking'}}}}
+    CancellationPreviewRequest:
+      type: object
+      required: [ticketIds]
+      properties: {ticketIds: {type: array, minItems: 1, uniqueItems: true, items: {$ref: '#/components/schemas/Id'}}}
+    CancellationPreview:
+      type: object
+      required: [previewId, ticketIds, policyVersion, fee, refundAmount, currency, expiresAt]
+      properties:
+        previewId: {$ref: '#/components/schemas/Id'}
+        ticketIds: {type: array, items: {$ref: '#/components/schemas/Id'}}
+        policyVersion: {type: string}
+        fee: {type: integer, format: int64, minimum: 0}
+        refundAmount: {type: integer, format: int64, minimum: 0}
+        currency: {$ref: '#/components/schemas/Currency'}
+        expiresAt: {$ref: '#/components/schemas/DateTime'}
+    CancelBookingRequest:
+      type: object
+      required: [previewId, reason, expectedVersion]
+      properties:
+        previewId: {$ref: '#/components/schemas/Id'}
+        reason: {type: string, minLength: 3, maxLength: 500}
+        expectedVersion: {type: integer, format: int64}
+    CreatePaymentRequest:
+      type: object
+      required: [provider, method, returnUri]
+      properties:
+        provider: {type: string, enum: [VNPAY_SANDBOX]}
+        method: {type: string, enum: [VNPAY_QR, ATM_CARD, BANK_ACCOUNT]}
+        returnUri: {type: string, format: uri}
+    Payment:
+      type: object
+      required: [id, bookingId, status, amount, currency, provider, rowVersion]
+      properties:
+        id: {$ref: '#/components/schemas/Id'}
+        bookingId: {$ref: '#/components/schemas/Id'}
+        status: {type: string, enum: [PENDING, PROCESSING, SUCCEEDED, FAILED, CANCELLED, REFUND_PENDING, PARTIALLY_REFUNDED, REFUNDED]}
+        amount: {type: integer, format: int64, minimum: 1}
+        currency: {$ref: '#/components/schemas/Currency'}
+        provider: {type: string, enum: [VNPAY_SANDBOX]}
+        providerAction: {type: [object, 'null'], additionalProperties: true}
+        statusUrl: {type: [string, 'null']}
+        rowVersion: {type: integer, format: int64}
+    PaymentPage:
+      allOf:
+        - {$ref: '#/components/schemas/PageMeta'}
+        - {type: object, required: [items], properties: {items: {type: array, items: {$ref: '#/components/schemas/Payment'}}}}
+    CreateRefundRequest:
+      type: object
+      required: [refundReference, paymentId, bookingId, amount, currency, reason]
+      properties:
+        refundReference: {type: string, minLength: 8, maxLength: 200}
+        paymentId: {$ref: '#/components/schemas/Id'}
+        bookingId: {$ref: '#/components/schemas/Id'}
+        amount: {type: integer, format: int64, minimum: 1}
+        currency: {$ref: '#/components/schemas/Currency'}
+        reason: {type: string, enum: [CUSTOMER_CANCELLATION, TRIP_CANCELLATION, LATE_PAYMENT_SEAT_LOST, TICKET_ISSUANCE_FAILED_AFTER_PAYMENT]}
+    Refund:
+      type: object
+      required: [id, refundReference, paymentId, bookingId, amount, currency, status]
+      properties:
+        id: {$ref: '#/components/schemas/Id'}
+        refundReference: {type: string}
+        paymentId: {$ref: '#/components/schemas/Id'}
+        bookingId: {$ref: '#/components/schemas/Id'}
+        amount: {type: integer, format: int64}
+        currency: {$ref: '#/components/schemas/Currency'}
+        status: {type: string, enum: [REQUESTED, PROCESSING, SUCCEEDED, FAILED]}
+        reason: {type: string}
+    RefundPage:
+      allOf:
+        - {$ref: '#/components/schemas/PageMeta'}
+        - {type: object, required: [items], properties: {items: {type: array, items: {$ref: '#/components/schemas/Refund'}}}}
+    Ticket:
+      type: object
+      required: [id, publicCode, bookingId, tripId, passengerName, seatCode, status, issuedAt, rowVersion]
+      properties:
+        id: {$ref: '#/components/schemas/Id'}
+        publicCode: {type: string}
+        bookingId: {$ref: '#/components/schemas/Id'}
+        tripId: {$ref: '#/components/schemas/Id'}
+        passengerName: {type: string}
+        seatCode: {type: string}
+        status: {type: string, enum: [ISSUED, CHECKED_IN, USED, CANCELLED, REFUNDED]}
+        qrPayload: {type: [string, 'null'], description: Signed/opaque; only returned to authorized owner.}
+        issuedAt: {$ref: '#/components/schemas/DateTime'}
+        checkedInAt: {oneOf: [{$ref: '#/components/schemas/DateTime'}, {type: 'null'}]}
+        rowVersion: {type: integer, format: int64}
+    TicketPage:
+      allOf:
+        - {$ref: '#/components/schemas/PageMeta'}
+        - {type: object, required: [items], properties: {items: {type: array, items: {$ref: '#/components/schemas/Ticket'}}}}
+    TicketScanRequest:
+      type: object
+      required: [tripId, scannedToken, expectedVersion]
+      properties:
+        tripId: {$ref: '#/components/schemas/Id'}
+        scannedToken: {type: string, minLength: 8, maxLength: 500, writeOnly: true}
+        expectedVersion: {type: integer, format: int64, minimum: 0}
+    TicketValidation:
+      type: object
+      required: [valid, reasonCode, ticket]
+      properties:
+        valid: {type: boolean}
+        reasonCode: {type: [string, 'null']}
+        ticket: {oneOf: [{$ref: '#/components/schemas/Ticket'}, {type: 'null'}]}
+    Manifest:
+      type: object
+      required: [tripId, generatedAt, passengers]
+      properties:
+        tripId: {$ref: '#/components/schemas/Id'}
+        generatedAt: {$ref: '#/components/schemas/DateTime'}
+        passengers:
+          type: array
+          items:
+            type: object
+            required: [ticketId, passengerName, seatCode, pickupStopName, status]
+            properties:
+              ticketId: {$ref: '#/components/schemas/Id'}
+              passengerName: {type: string}
+              seatCode: {type: string}
+              pickupStopName: {type: string}
+              status: {type: string}
+    Notification:
+      type: object
+      required: [id, type, title, body, read, createdAt]
+      properties:
+        id: {$ref: '#/components/schemas/Id'}
+        type: {type: string}
+        title: {type: string}
+        body: {type: string}
+        referenceType: {type: [string, 'null']}
+        referenceId: {type: [string, 'null']}
+        read: {type: boolean}
+        createdAt: {$ref: '#/components/schemas/DateTime'}
+    NotificationPage:
+      type: object
+      required: [items]
+      properties:
+        items: {type: array, items: {$ref: '#/components/schemas/Notification'}}
+        nextCursor: {type: [string, 'null']}
+    Report:
+      type: object
+      required: [data, generatedAt, dataAsOf, timezone, metricDefinitions]
+      properties:
+        data: {type: array, items: {type: object, additionalProperties: true}}
+        generatedAt: {$ref: '#/components/schemas/DateTime'}
+        dataAsOf: {$ref: '#/components/schemas/DateTime'}
+        timezone: {type: string}
+        metricDefinitions: {type: object, additionalProperties: {type: string}}

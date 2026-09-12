@@ -1,6 +1,6 @@
 # 2.5 State Machine Diagrams
 
-Bộ sơ đồ này là hình biểu diễn trực tiếp của [Chương 6 — Yêu cầu trạng thái nghiệp vụ](../../srs-v2/06-yeu-cau-trang-thai.md). Transition không xuất hiện trong các sơ đồ dưới đây phải bị server từ chối.
+Bộ sơ đồ này là hình biểu diễn trực tiếp của [Chương 6 — Yêu cầu trạng thái nghiệp vụ](../../srs/v2/06-yeu-cau-trang-thai.md). Transition không xuất hiện trong các sơ đồ dưới đây phải bị server từ chối.
 
 ## Danh mục
 

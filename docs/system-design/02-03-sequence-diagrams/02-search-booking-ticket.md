@@ -1,6 +1,6 @@
 # 2.3.2 Tìm chuyến, Booking và Ticket
 
-Nguồn nghiệp vụ: [SRS — Tìm chuyến, Booking và Ticket](../../srs-v2/04-use-cases/02-search-booking-ticket.md).
+Nguồn nghiệp vụ: [SRS — Tìm chuyến, Booking và Ticket](../../srs/v2/04-use-cases/02-search-booking-ticket.md).
 
 ## UC-SEARCH-01 — Tìm và xem chuyến
 

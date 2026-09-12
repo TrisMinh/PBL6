@@ -1,0 +1,193 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pbl6.local/schemas/platform-message.schema.json",
+  "title": "PBL6 MVP Platform Messages",
+  "oneOf": [
+    {"$ref": "#/$defs/UserRegistered"},
+    {"$ref": "#/$defs/TripPublished"},
+    {"$ref": "#/$defs/TripUpdated"},
+    {"$ref": "#/$defs/TripStatusChanged"},
+    {"$ref": "#/$defs/TripCancelled"},
+    {"$ref": "#/$defs/TripInventoryReady"},
+    {"$ref": "#/$defs/SeatHoldCreated"},
+    {"$ref": "#/$defs/SeatHoldExpired"},
+    {"$ref": "#/$defs/BookingCreated"},
+    {"$ref": "#/$defs/BookingPaid"},
+    {"$ref": "#/$defs/BookingCancelled"},
+    {"$ref": "#/$defs/TicketIssued"},
+    {"$ref": "#/$defs/TicketCancelled"},
+    {"$ref": "#/$defs/PassengerCheckedIn"},
+    {"$ref": "#/$defs/RefundRequested"},
+    {"$ref": "#/$defs/PaymentSucceeded"},
+    {"$ref": "#/$defs/PaymentFailed"},
+    {"$ref": "#/$defs/RefundSucceeded"},
+    {"$ref": "#/$defs/RefundFailed"},
+    {"$ref": "#/$defs/PaymentCompensationRequested"}
+  ],
+  "$defs": {
+    "Id": {"type": "string", "format": "uuid"},
+    "DateTime": {"type": "string", "format": "date-time"},
+    "Currency": {"type": "string", "const": "VND"},
+    "EventEnvelope": {
+      "type": "object",
+      "required": ["eventId", "eventType", "version", "occurredAt", "producer", "correlationId", "aggregateId", "payload"],
+      "properties": {
+        "eventId": {"$ref": "#/$defs/Id"},
+        "eventType": {"type": "string"},
+        "version": {"type": "integer", "const": 1},
+        "occurredAt": {"$ref": "#/$defs/DateTime"},
+        "producer": {"type": "string", "minLength": 2, "maxLength": 80},
+        "correlationId": {"$ref": "#/$defs/Id"},
+        "causationId": {"type": ["string", "null"], "maxLength": 128},
+        "aggregateId": {"$ref": "#/$defs/Id"},
+        "aggregateVersion": {"type": ["integer", "null"], "minimum": 0},
+        "tenantId": {"type": ["string", "null"], "format": "uuid"},
+        "payload": {"type": "object"}
+      },
+      "additionalProperties": false
+    },
+    "CommandEnvelope": {
+      "type": "object",
+      "required": ["commandId", "commandType", "version", "occurredAt", "producer", "correlationId", "aggregateId", "payload"],
+      "properties": {
+        "commandId": {"$ref": "#/$defs/Id"},
+        "commandType": {"type": "string"},
+        "version": {"type": "integer", "const": 1},
+        "occurredAt": {"$ref": "#/$defs/DateTime"},
+        "producer": {"type": "string", "minLength": 2, "maxLength": 80},
+        "correlationId": {"$ref": "#/$defs/Id"},
+        "causationId": {"type": ["string", "null"], "maxLength": 128},
+        "aggregateId": {"$ref": "#/$defs/Id"},
+        "aggregateVersion": {"type": ["integer", "null"], "minimum": 0},
+        "tenantId": {"type": ["string", "null"], "format": "uuid"},
+        "payload": {"type": "object"}
+      },
+      "additionalProperties": false
+    },
+    "EventBaseFields": {
+      "type": "object",
+      "required": ["eventId", "eventType", "version", "occurredAt", "producer", "correlationId", "aggregateId", "payload"]
+    },
+    "CommandBaseFields": {
+      "type": "object",
+      "required": ["commandId", "commandType", "version", "occurredAt", "producer", "correlationId", "aggregateId", "payload"]
+    },
+    "UserRegisteredPayload": {
+      "type": "object", "additionalProperties": false,
+      "required": ["userId", "verificationChannel", "registeredAt"],
+      "properties": {"userId": {"$ref": "#/$defs/Id"}, "verificationChannel": {"const": "EMAIL"}, "registeredAt": {"$ref": "#/$defs/DateTime"}}
+    },
+    "TripPublishedPayload": {
+      "type": "object", "additionalProperties": false,
+      "required": ["tripId", "organizationId", "sourceVersion", "departureAt", "arrivalAt", "routeSnapshot", "seatSnapshot", "fareSnapshot", "policyVersion"],
+      "properties": {
+        "tripId": {"$ref": "#/$defs/Id"}, "organizationId": {"$ref": "#/$defs/Id"}, "sourceVersion": {"type": "integer", "minimum": 1},
+        "departureAt": {"$ref": "#/$defs/DateTime"}, "arrivalAt": {"$ref": "#/$defs/DateTime"},
+        "routeSnapshot": {"type": "object", "required": ["routeId", "origin", "destination", "stops"], "properties": {"routeId": {"$ref": "#/$defs/Id"}, "origin": {"type": "string"}, "destination": {"type": "string"}, "stops": {"type": "array", "minItems": 2, "items": {"type": "object"}}}},
+        "seatSnapshot": {"type": "array", "minItems": 1, "items": {"type": "object", "required": ["sourceSeatId", "code", "type", "enabled"], "properties": {"sourceSeatId": {"$ref": "#/$defs/Id"}, "code": {"type": "string"}, "type": {"type": "string"}, "enabled": {"type": "boolean"}}}},
+        "fareSnapshot": {"type": "object", "required": ["amount", "currency"], "properties": {"amount": {"type": "integer", "minimum": 0}, "currency": {"$ref": "#/$defs/Currency"}}},
+        "policyVersion": {"type": "string", "const": "cancel-mvp-v1"}
+      }
+    },
+    "TripUpdatedPayload": {
+      "type": "object", "additionalProperties": false,
+      "required": ["tripId", "organizationId", "sourceVersion", "changedFields", "effectiveAt"],
+      "properties": {"tripId": {"$ref": "#/$defs/Id"}, "organizationId": {"$ref": "#/$defs/Id"}, "sourceVersion": {"type": "integer"}, "changedFields": {"type": "array", "items": {"type": "string"}}, "effectiveAt": {"$ref": "#/$defs/DateTime"}}
+    },
+    "TripStatusChangedPayload": {
+      "type": "object", "additionalProperties": false,
+      "required": ["tripId", "organizationId", "sourceStatus", "targetStatus", "sourceVersion", "transitionedAt"],
+      "properties": {"tripId": {"$ref": "#/$defs/Id"}, "organizationId": {"$ref": "#/$defs/Id"}, "sourceStatus": {"type": "string"}, "targetStatus": {"type": "string"}, "sourceVersion": {"type": "integer"}, "transitionedAt": {"$ref": "#/$defs/DateTime"}}
+    },
+    "TripCancelledPayload": {
+      "type": "object", "additionalProperties": false,
+      "required": ["tripId", "organizationId", "sourceVersion", "reasonCode", "cancelledAt", "cancelledByType"],
+      "properties": {"tripId": {"$ref": "#/$defs/Id"}, "organizationId": {"$ref": "#/$defs/Id"}, "sourceVersion": {"type": "integer"}, "reasonCode": {"type": "string"}, "cancelledAt": {"$ref": "#/$defs/DateTime"}, "cancelledByType": {"type": "string", "enum": ["OPERATOR", "ADMIN"]}}
+    },
+    "TripInventoryReadyPayload": {
+      "type": "object", "additionalProperties": false,
+      "required": ["tripId", "organizationId", "sourceTripVersion", "tripSeatCount", "preparedAt"],
+      "properties": {"tripId": {"$ref": "#/$defs/Id"}, "organizationId": {"$ref": "#/$defs/Id"}, "sourceTripVersion": {"type": "integer"}, "tripSeatCount": {"type": "integer", "minimum": 1}, "preparedAt": {"$ref": "#/$defs/DateTime"}}
+    },
+    "SeatHoldPayload": {
+      "type": "object", "additionalProperties": false,
+      "required": ["holdId", "tripId", "organizationId", "seatCount"],
+      "properties": {"holdId": {"$ref": "#/$defs/Id"}, "tripId": {"$ref": "#/$defs/Id"}, "organizationId": {"$ref": "#/$defs/Id"}, "seatCount": {"type": "integer", "minimum": 1}, "expiresAt": {"$ref": "#/$defs/DateTime"}, "expiredAt": {"$ref": "#/$defs/DateTime"}}
+    },
+    "BookingCreatedPayload": {
+      "type": "object", "additionalProperties": false,
+      "required": ["bookingId", "customerId", "tripId", "organizationId", "total", "currency", "paymentExpiresAt"],
+      "properties": {"bookingId": {"$ref": "#/$defs/Id"}, "customerId": {"$ref": "#/$defs/Id"}, "tripId": {"$ref": "#/$defs/Id"}, "organizationId": {"$ref": "#/$defs/Id"}, "total": {"type": "integer", "minimum": 0}, "currency": {"$ref": "#/$defs/Currency"}, "paymentExpiresAt": {"$ref": "#/$defs/DateTime"}}
+    },
+    "BookingPaidPayload": {
+      "type": "object", "additionalProperties": false,
+      "required": ["bookingId", "customerId", "tripId", "organizationId", "paymentId", "total", "currency", "paidAt"],
+      "properties": {"bookingId": {"$ref": "#/$defs/Id"}, "customerId": {"$ref": "#/$defs/Id"}, "tripId": {"$ref": "#/$defs/Id"}, "organizationId": {"$ref": "#/$defs/Id"}, "paymentId": {"$ref": "#/$defs/Id"}, "total": {"type": "integer", "minimum": 0}, "currency": {"$ref": "#/$defs/Currency"}, "paidAt": {"$ref": "#/$defs/DateTime"}}
+    },
+    "BookingCancelledPayload": {
+      "type": "object", "additionalProperties": false,
+      "required": ["bookingId", "customerId", "tripId", "organizationId", "ticketIds", "refundAmount", "currency", "reasonCode", "cancelledAt"],
+      "properties": {"bookingId": {"$ref": "#/$defs/Id"}, "customerId": {"$ref": "#/$defs/Id"}, "tripId": {"$ref": "#/$defs/Id"}, "organizationId": {"$ref": "#/$defs/Id"}, "ticketIds": {"type": "array", "items": {"$ref": "#/$defs/Id"}}, "refundAmount": {"type": "integer", "minimum": 0}, "currency": {"$ref": "#/$defs/Currency"}, "reasonCode": {"type": "string"}, "cancelledAt": {"$ref": "#/$defs/DateTime"}}
+    },
+    "TicketIssuedPayload": {
+      "type": "object", "additionalProperties": false,
+      "required": ["ticketId", "bookingId", "customerId", "tripId", "organizationId", "issuedAt"],
+      "properties": {"ticketId": {"$ref": "#/$defs/Id"}, "bookingId": {"$ref": "#/$defs/Id"}, "customerId": {"$ref": "#/$defs/Id"}, "tripId": {"$ref": "#/$defs/Id"}, "organizationId": {"$ref": "#/$defs/Id"}, "issuedAt": {"$ref": "#/$defs/DateTime"}}
+    },
+    "TicketCancelledPayload": {
+      "type": "object", "additionalProperties": false,
+      "required": ["ticketId", "bookingId", "tripId", "organizationId", "reasonCode", "refundExpected", "cancelledAt"],
+      "properties": {"ticketId": {"$ref": "#/$defs/Id"}, "bookingId": {"$ref": "#/$defs/Id"}, "tripId": {"$ref": "#/$defs/Id"}, "organizationId": {"$ref": "#/$defs/Id"}, "reasonCode": {"type": "string"}, "refundExpected": {"type": "boolean"}, "cancelledAt": {"$ref": "#/$defs/DateTime"}}
+    },
+    "PassengerCheckedInPayload": {
+      "type": "object", "additionalProperties": false,
+      "required": ["ticketId", "tripId", "organizationId", "checkedInAt", "checkedInByType"],
+      "properties": {"ticketId": {"$ref": "#/$defs/Id"}, "tripId": {"$ref": "#/$defs/Id"}, "organizationId": {"$ref": "#/$defs/Id"}, "checkedInAt": {"$ref": "#/$defs/DateTime"}, "checkedInByType": {"type": "string", "enum": ["DRIVER", "OPERATOR", "ADMIN"]}}
+    },
+    "RefundRequestedPayload": {
+      "type": "object", "additionalProperties": false,
+      "required": ["refundReference", "paymentId", "bookingId", "organizationId", "amount", "currency", "reasonCode", "requestedAt"],
+      "properties": {"refundReference": {"type": "string"}, "paymentId": {"$ref": "#/$defs/Id"}, "bookingId": {"$ref": "#/$defs/Id"}, "organizationId": {"$ref": "#/$defs/Id"}, "amount": {"type": "integer", "minimum": 1}, "currency": {"$ref": "#/$defs/Currency"}, "reasonCode": {"type": "string"}, "requestedAt": {"$ref": "#/$defs/DateTime"}}
+    },
+    "PaymentSucceededPayload": {
+      "type": "object", "additionalProperties": false,
+      "required": ["paymentId", "bookingId", "organizationId", "amount", "currency", "provider", "providerTransactionId", "succeededAt"],
+      "properties": {"paymentId": {"$ref": "#/$defs/Id"}, "bookingId": {"$ref": "#/$defs/Id"}, "organizationId": {"$ref": "#/$defs/Id"}, "amount": {"type": "integer", "minimum": 1}, "currency": {"$ref": "#/$defs/Currency"}, "provider": {"const": "VNPAY_SANDBOX"}, "providerTransactionId": {"type": "string"}, "succeededAt": {"$ref": "#/$defs/DateTime"}}
+    },
+    "PaymentFailedPayload": {
+      "type": "object", "additionalProperties": false,
+      "required": ["paymentId", "bookingId", "organizationId", "reasonCode", "failedAt", "retryable"],
+      "properties": {"paymentId": {"$ref": "#/$defs/Id"}, "bookingId": {"$ref": "#/$defs/Id"}, "organizationId": {"$ref": "#/$defs/Id"}, "reasonCode": {"type": "string"}, "failedAt": {"$ref": "#/$defs/DateTime"}, "retryable": {"const": false}}
+    },
+    "RefundOutcomePayload": {
+      "type": "object", "additionalProperties": false,
+      "required": ["refundId", "refundReference", "paymentId", "bookingId", "organizationId", "amount", "currency"],
+      "properties": {"refundId": {"$ref": "#/$defs/Id"}, "refundReference": {"type": "string"}, "paymentId": {"$ref": "#/$defs/Id"}, "bookingId": {"$ref": "#/$defs/Id"}, "organizationId": {"$ref": "#/$defs/Id"}, "amount": {"type": "integer", "minimum": 1}, "currency": {"$ref": "#/$defs/Currency"}, "providerReference": {"type": "string"}, "succeededAt": {"$ref": "#/$defs/DateTime"}, "reasonCode": {"type": "string"}, "retryable": {"type": "boolean"}, "failedAt": {"$ref": "#/$defs/DateTime"}}
+    },
+    "PaymentCompensationPayload": {
+      "type": "object", "additionalProperties": false,
+      "required": ["compensationReference", "paymentId", "bookingId", "organizationId", "amount", "currency", "reasonCode", "requestedAt"],
+      "properties": {"compensationReference": {"type": "string"}, "paymentId": {"$ref": "#/$defs/Id"}, "bookingId": {"$ref": "#/$defs/Id"}, "organizationId": {"$ref": "#/$defs/Id"}, "amount": {"type": "integer", "minimum": 1}, "currency": {"$ref": "#/$defs/Currency"}, "reasonCode": {"type": "string", "enum": ["LATE_PAYMENT_SEAT_LOST", "TICKET_ISSUANCE_FAILED_AFTER_PAYMENT"]}, "requestedAt": {"$ref": "#/$defs/DateTime"}}
+    },
+    "UserRegistered": {"allOf": [{"$ref": "#/$defs/EventEnvelope"}, {"properties": {"eventType": {"const": "UserRegistered"}, "payload": {"$ref": "#/$defs/UserRegisteredPayload"}}}]},
+    "TripPublished": {"allOf": [{"$ref": "#/$defs/EventEnvelope"}, {"properties": {"eventType": {"const": "TripPublished"}, "payload": {"$ref": "#/$defs/TripPublishedPayload"}}}]},
+    "TripUpdated": {"allOf": [{"$ref": "#/$defs/EventEnvelope"}, {"properties": {"eventType": {"const": "TripUpdated"}, "payload": {"$ref": "#/$defs/TripUpdatedPayload"}}}]},
+    "TripStatusChanged": {"allOf": [{"$ref": "#/$defs/EventEnvelope"}, {"properties": {"eventType": {"const": "TripStatusChanged"}, "payload": {"$ref": "#/$defs/TripStatusChangedPayload"}}}]},
+    "TripCancelled": {"allOf": [{"$ref": "#/$defs/EventEnvelope"}, {"properties": {"eventType": {"const": "TripCancelled"}, "payload": {"$ref": "#/$defs/TripCancelledPayload"}}}]},
+    "TripInventoryReady": {"allOf": [{"$ref": "#/$defs/EventEnvelope"}, {"properties": {"eventType": {"const": "TripInventoryReady"}, "payload": {"$ref": "#/$defs/TripInventoryReadyPayload"}}}]},
+    "SeatHoldCreated": {"allOf": [{"$ref": "#/$defs/EventEnvelope"}, {"properties": {"eventType": {"const": "SeatHoldCreated"}, "payload": {"$ref": "#/$defs/SeatHoldPayload"}}}]},
+    "SeatHoldExpired": {"allOf": [{"$ref": "#/$defs/EventEnvelope"}, {"properties": {"eventType": {"const": "SeatHoldExpired"}, "payload": {"$ref": "#/$defs/SeatHoldPayload"}}}]},
+    "BookingCreated": {"allOf": [{"$ref": "#/$defs/EventEnvelope"}, {"properties": {"eventType": {"const": "BookingCreated"}, "payload": {"$ref": "#/$defs/BookingCreatedPayload"}}}]},
+    "BookingPaid": {"allOf": [{"$ref": "#/$defs/EventEnvelope"}, {"properties": {"eventType": {"const": "BookingPaid"}, "payload": {"$ref": "#/$defs/BookingPaidPayload"}}}]},
+    "BookingCancelled": {"allOf": [{"$ref": "#/$defs/EventEnvelope"}, {"properties": {"eventType": {"const": "BookingCancelled"}, "payload": {"$ref": "#/$defs/BookingCancelledPayload"}}}]},
+    "TicketIssued": {"allOf": [{"$ref": "#/$defs/EventEnvelope"}, {"properties": {"eventType": {"const": "TicketIssued"}, "payload": {"$ref": "#/$defs/TicketIssuedPayload"}}}]},
+    "TicketCancelled": {"allOf": [{"$ref": "#/$defs/EventEnvelope"}, {"properties": {"eventType": {"const": "TicketCancelled"}, "payload": {"$ref": "#/$defs/TicketCancelledPayload"}}}]},
+    "PassengerCheckedIn": {"allOf": [{"$ref": "#/$defs/EventEnvelope"}, {"properties": {"eventType": {"const": "PassengerCheckedIn"}, "payload": {"$ref": "#/$defs/PassengerCheckedInPayload"}}}]},
+    "RefundRequested": {"allOf": [{"$ref": "#/$defs/EventEnvelope"}, {"properties": {"eventType": {"const": "RefundRequested"}, "payload": {"$ref": "#/$defs/RefundRequestedPayload"}}}]},
+    "PaymentSucceeded": {"allOf": [{"$ref": "#/$defs/EventEnvelope"}, {"properties": {"eventType": {"const": "PaymentSucceeded"}, "payload": {"$ref": "#/$defs/PaymentSucceededPayload"}}}]},
+    "PaymentFailed": {"allOf": [{"$ref": "#/$defs/EventEnvelope"}, {"properties": {"eventType": {"const": "PaymentFailed"}, "payload": {"$ref": "#/$defs/PaymentFailedPayload"}}}]},
+    "RefundSucceeded": {"allOf": [{"$ref": "#/$defs/EventEnvelope"}, {"properties": {"eventType": {"const": "RefundSucceeded"}, "payload": {"allOf": [{"$ref": "#/$defs/RefundOutcomePayload"}, {"required": ["providerReference", "succeededAt"]}]}}}]},
+    "RefundFailed": {"allOf": [{"$ref": "#/$defs/EventEnvelope"}, {"properties": {"eventType": {"const": "RefundFailed"}, "payload": {"allOf": [{"$ref": "#/$defs/RefundOutcomePayload"}, {"required": ["reasonCode", "retryable", "failedAt"]}]}}}]},
+    "PaymentCompensationRequested": {"allOf": [{"$ref": "#/$defs/CommandEnvelope"}, {"properties": {"commandType": {"const": "PaymentCompensationRequested"}, "payload": {"$ref": "#/$defs/PaymentCompensationPayload"}}}]}
+  }
+}

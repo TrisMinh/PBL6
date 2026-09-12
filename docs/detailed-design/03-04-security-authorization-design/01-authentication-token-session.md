@@ -2,7 +2,7 @@
 
 ## Password
 
-- Hash bằng Argon2id hoặc bcrypt được benchmark trên production-like hardware; target cost đủ chậm để chống brute force nhưng không phá SLO/login capacity.
+- Hash bằng Argon2id qua một `IPasswordHasher` adapter; baseline `m=19456 KiB`, `t=2`, `p=1`, salt ngẫu nhiên 16 byte và hash 32 byte. Lưu PHC-format string có algorithm/parameter/version; benchmark trên production-like hardware, tăng parameter bằng rehash-on-login khi policy đổi.
 - Per-password salt từ library; optional pepper từ secret store, không nằm trong DB/repository.
 - Không log password, hash, strength input hoặc raw credential.
 - Password policy kiểm tra độ dài, block common/compromised pattern theo capability được duyệt; không ép rotation định kỳ vô nghĩa nếu không có incident/policy.
@@ -39,4 +39,3 @@ Token ký bằng asymmetric key khi nhiều verifier; verifier pin issuer/audien
 Sau 5 login failure liên tiếp khóa/làm chậm ít nhất 15 phút theo policy. Rate limit tách login, register, OTP resend/verify, reset và webhook. Redis có thể giữ counter nhanh nhưng security outcome/audit quan trọng phải bền vững và tránh fail-open không kiểm soát.
 
 Nếu Web dùng cookie auth, mutation cần CSRF token/origin checking; nếu Bearer token trong header, vẫn cấu hình CORS exact origin/method/header và không dùng wildcard với credential.
-

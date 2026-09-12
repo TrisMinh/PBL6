@@ -8,7 +8,7 @@
 | Base path | `/api/v1` |
 | Media type | `application/json; charset=utf-8` |
 | Authentication | `Authorization: Bearer <access-token>` trừ endpoint public/webhook |
-| Correlation | Client có thể gửi `X-Correlation-ID`; Gateway tạo ULID/UUID nếu thiếu |
+| Correlation | Client có thể gửi UUID hợp lệ ở `X-Correlation-ID`; Gateway tạo UUIDv7 nếu thiếu, request sai định dạng nhận `400` |
 | Trace | Propagate W3C `traceparent`; không trả internal trace detail |
 | Time | ISO-8601 có offset trong API; persist UTC |
 | Money | `amount` là integer 64-bit theo đơn vị nhỏ nhất; MVP VND dùng nguyên đồng, luôn kèm `currency=VND` |
@@ -41,7 +41,7 @@ Không trả `200` cho error. `202 PAYMENT_PROCESSING` là trạng thái hợp l
     "details": {
       "seatCodes": ["A1"]
     },
-    "correlationId": "01J..."
+    "correlationId": "01993f6d-a980-7000-8000-000000000001"
   }
 }
 ```
@@ -62,7 +62,7 @@ Không trả `200` cho error. `202 PAYMENT_PROCESSING` là trạng thái hợp l
         {"field": "departureDate", "reason": "MUST_NOT_BE_IN_PAST"}
       ]
     },
-    "correlationId": "01J..."
+    "correlationId": "01993f6d-a980-7000-8000-000000000001"
   }
 }
 ```
@@ -99,4 +99,3 @@ Audit/export hoặc danh sách lớn dùng cursor opaque: `cursor`, `limit`; res
 - Cùng major chỉ thêm optional field hoặc enum đã có fallback `UNKNOWN` ở consumer phù hợp.
 - Xóa/rename/đổi semantics/đổi required field cần `/api/v2` hoặc migration overlap.
 - OpenAPI CI lint operationId duy nhất, schema reference hợp lệ, example parse được và breaking-change check.
-
