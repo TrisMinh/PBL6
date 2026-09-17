@@ -9,4 +9,4 @@ Thư mục này là nơi scaffold toàn bộ mã nguồn trong Sprint 0 theo [re
 - `infra/`: Docker Compose, RabbitMQ và observability.
 - `tests/`: contract, integration, end-to-end, performance và architecture tests.
 
-Hiện chưa có project code. Mỗi thành viên bắt đầu từ card đã gán trong [Sprint 0](../../task-tracking/board/sprint-00-foundation.md).
+Identity Service đã có skeleton `Api/Application/Domain/Infrastructure` target `net10.0`. Các project còn lại được scaffold theo card đã gán trong [Sprint 0](../../task-tracking/board/sprint-00-foundation.md).

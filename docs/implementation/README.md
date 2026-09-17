@@ -4,7 +4,7 @@ Tài liệu này là cầu nối từ SRS/System Design/Detailed Design sang cod
 
 ## Baseline
 
-- Backend: C# trên .NET 8 (`net8.0`), ASP.NET Core, EF Core/Npgsql.
+- Backend: C# trên .NET 10 LTS (`net10.0`), ASP.NET Core, EF Core/Npgsql.
 - Gateway: ASP.NET Core + YARP.
 - Web: React 19.2 + TypeScript + Vite; Node.js 24 LTS, npm workspaces.
 - Mobile: React Native 0.87 stable + TypeScript.

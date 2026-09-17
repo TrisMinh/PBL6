@@ -5,13 +5,14 @@
 - Cập nhật baseline runtime: 2026-09-10
 - Cập nhật toolchain: 2026-09-12
 - Cập nhật PAY_LATER và phí sàn: 2026-09-17
+- Cập nhật runtime .NET 10 LTS: 2026-09-17
 - Kết luận: **READY có điều kiện về toolchain**
 
 ## 1. Kết luận chuyên môn
 
 Bộ tài liệu hiện tại đủ để bắt đầu **Slice 0 — Foundation và contract gate** mà không phải tự đoán thêm requirement, route, event hoặc schema nghiệp vụ. Phạm vi MVP được khóa ở toàn bộ `MUST`; `SHOULD/COULD` không được đưa vào route, UI hoặc consumer đang hoạt động.
 
-Workstation đã có thể scaffold project target `net8.0`: SDK `9.0.316` nhận template `net8.0`, đồng thời máy có .NET/ASP.NET Core runtime 8. Docker client `29.7.2` và Compose `5.5.1` đã được cài, nhưng Docker Desktop Linux engine chưa chạy nên PostgreSQL, RabbitMQ và integration test vẫn bị chặn. Node.js/npm hiện đã đạt baseline.
+Workstation đã có thể scaffold và build project target `net10.0` bằng SDK `10.0.401` và runtime .NET/ASP.NET Core `10.0.12`. Docker client `29.7.2` và Compose `5.5.1` đã được cài, nhưng Docker Desktop Linux engine chưa chạy nên PostgreSQL, RabbitMQ và integration test vẫn bị chặn. Node.js/npm hiện đã đạt baseline.
 
 ## 2. Scope đã khóa
 
@@ -42,7 +43,7 @@ Mười requirement P1 không thuộc MVP: `FR-SEARCH-007`, `FR-BOOK-010`, `FR-P
 
 ## 4. Quyết định đã khóa để code không phải suy đoán
 
-- Backend: mọi project target .NET 8 (`net8.0`), ASP.NET Core, EF Core/Npgsql; Gateway dùng YARP.
+- Backend: mọi project target .NET 10 LTS (`net10.0`), ASP.NET Core, EF Core/Npgsql; Gateway dùng YARP.
 - Web/back-office: React 19.2 + TypeScript + Vite; Node.js 24 LTS và npm workspaces.
 - Mobile: React Native 0.87 + TypeScript.
 - Dữ liệu/message: PostgreSQL, RabbitMQ; Redis chỉ là auxiliary store.
@@ -67,7 +68,7 @@ Mười requirement P1 không thuộc MVP: `FR-SEARCH-007`, `FR-BOOK-010`, `FR-P
 
 Các gate cần thực hiện sau khi có source/toolchain:
 
-1. Build/test toàn solution với mọi `.csproj` target `net8.0`.
+1. Build/test toàn solution với mọi `.csproj` target `net10.0`.
 2. Compose smoke test và migrate sáu database từ rỗng.
 3. Sinh TypeScript client từ OpenAPI rồi compile Web/Mobile.
 4. Chạy concurrency test SeatHold trên PostgreSQL thật.

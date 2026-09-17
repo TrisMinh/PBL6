@@ -4,7 +4,7 @@
 
 Stack dưới đây là baseline đã được chốt cho MVP 2.0. Thay đổi framework hoặc runtime phải có ADR supersede trước khi thay code/contract.
 
-Baseline backend được cập nhật ngày 2026-09-10: mọi project target `.NET 8 / net8.0`; web dùng React `19.2`; mobile dùng React Native `0.87`; toolchain client dùng Node.js `24` LTS và npm workspaces. SDK build được pin riêng trong `workspace/global.json`; dùng SDK mới hơn không được tự đổi Target Framework. Patch version thực tế phải pin trong manifest/lockfile và cập nhật bảo mật trong dòng nhóm đang duy trì.
+Baseline backend được cập nhật ngày 2026-09-17: mọi project target `.NET 10 LTS / net10.0`; web dùng React `19.2`; mobile dùng React Native `0.87`; toolchain client dùng Node.js `24` LTS và npm workspaces. SDK build được pin riêng trong `workspace/global.json`. Patch version thực tế phải pin trong manifest/lockfile và cập nhật bảo mật trong dòng nhóm đang duy trì.
 
 ## 2. Application stack
 
@@ -13,7 +13,7 @@ Baseline backend được cập nhật ngày 2026-09-10: mọi project target `.
 | Customer Web | React 19.2 + TypeScript | Accepted | Typed OpenAPI client, responsive Web và hệ sinh thái kiểm thử UI |
 | Back-office Web | React 19.2 + TypeScript | Accepted | Chia sẻ design tokens/component package thuần UI với Customer Web, không chia business state |
 | Mobile | React Native 0.87 + TypeScript | Accepted | Giữ một ngôn ngữ client, tái sử dụng contract/type và hỗ trợ QR/deep link |
-| Backend services | C# target .NET 8 (`net8.0`) + ASP.NET Core | Accepted | Tương thích toolchain hiện tại; transaction, authentication/authorization, OpenAPI, Worker Service và observability tích hợp tốt |
+| Backend services | C# target .NET 10 LTS (`net10.0`) + ASP.NET Core | Accepted | Dòng LTS active đến tháng 11/2028; transaction, authentication/authorization, OpenAPI, Worker Service và observability tích hợp tốt |
 | API Gateway | ASP.NET Core + YARP | Accepted | Route precedence, auth filter, rate limit và correlation trong cùng hệ sinh thái .NET |
 | API style | REST/JSON + OpenAPI | Accepted | Phù hợp request/response và đã được SRS yêu cầu |
 | Event schema | JSON Schema + AsyncAPI catalog | Accepted | Contract review, versioning và CI compatibility check |
@@ -103,7 +103,7 @@ Công cụ cụ thể theo ngôn ngữ, nhưng pipeline phải có:
 
 - Pin exact version trong build/deployment manifest và commit lockfile.
 - Ưu tiên runtime LTS và release line còn security support.
-- Toàn bộ backend giữ `net8.0`; không trộn `net8.0`, `net9.0` hoặc `net10.0` giữa các service. Trước khi triển khai production phải đánh giá lại support lifecycle và có ADR nâng cấp nếu cần.
+- Toàn bộ backend giữ `net10.0`; CI từ chối project dùng Target Framework khác. Đánh giá support lifecycle trước tháng 11/2028 và tạo ADR cho lần nâng major tiếp theo.
 - Minor/patch upgrade qua automated test; major upgrade có ADR/compatibility plan nếu ảnh hưởng contract hoặc vận hành.
 - Container base image tối giản, chạy non-root và rebuild định kỳ để nhận security patch.
 - RabbitMQ/PostgreSQL upgrade phải kiểm tra data format, plugin/policy, client compatibility và rollback/restore plan.

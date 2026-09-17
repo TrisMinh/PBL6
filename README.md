@@ -15,4 +15,4 @@ Repository dùng SRS 2.0.1 làm baseline hiện hành để triển khai hệ th
 
 ## Trạng thái
 
-Baseline tài liệu MVP đã đủ để bắt đầu Slice 0 với mọi project backend target `.NET 8 / net8.0`. Workstation hiện có thể tạo project `net8.0`; Docker Compose vẫn cần trước khi chạy full local stack và integration test. Source application sẽ được scaffold trong `workspace/src/`; xem [development prerequisites](./docs/implementation/05-development-prerequisites.md).
+Baseline tài liệu MVP đã đủ để bắt đầu Slice 0 với mọi project backend target `.NET 10 / net10.0`. Identity Service đã được scaffold trong `workspace/src/`; các service còn lại tiếp tục theo cùng dependency rule. Docker Compose vẫn cần trước khi chạy full local stack và integration test; xem [development prerequisites](./docs/implementation/05-development-prerequisites.md).

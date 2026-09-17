@@ -12,7 +12,7 @@
 Card đầu tiên: `S0-BE1-01` — 2 PD — `READY`.
 
 1. Tạo branch `feature/s0-be1-01-dotnet-baseline` từ nhánh tích hợp.
-2. Tạo solution/build baseline, pin `net8.0`, bật nullable/analyzer.
+2. Tạo solution/build baseline, pin `net10.0`, bật nullable/analyzer.
 3. Scaffold boundary và architecture test tối thiểu; chưa code business flow.
 4. Chạy restore/build/test từ `workspace/`.
 5. Mở PR, gắn Ngô Quang Sinh review; bàn giao lệnh build và dependency rule.

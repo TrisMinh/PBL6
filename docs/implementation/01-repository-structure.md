@@ -82,7 +82,7 @@ Worker project chỉ tạo khi service có outbox publisher, consumer hoặc sch
 
 - Mỗi service/app có thể restore, build, test và tạo image độc lập.
 - `workspace/package.json` dùng npm workspaces cho `workspace/src/apps/*` và package UI/contract client; chỉ commit một `workspace/package-lock.json`, không trộn npm/pnpm/yarn.
-- `workspace/global.json` pin SDK feature band mà nhóm/CI thống nhất và cho phép roll-forward patch an toàn; mọi `.csproj` bắt buộc target `net8.0`. SDK mới hơn có thể build `net8.0` nhưng không được tự đổi Target Framework.
+- `workspace/global.json` pin .NET 10 SDK feature band mà nhóm/CI thống nhất và cho phép roll-forward patch an toàn; mọi `.csproj` bắt buộc target `net10.0`. Không trộn Target Framework giữa các service, Gateway, Worker và test project.
 - Migration/credential/database history thuộc đúng service.
 - `docs/contracts` và `docs/database` là baseline có thể kiểm định; EF Core migration chạy thật vẫn thuộc `Infrastructure` của từng service.
 - Pull request đổi contract phải chạy producer/consumer compatibility test.

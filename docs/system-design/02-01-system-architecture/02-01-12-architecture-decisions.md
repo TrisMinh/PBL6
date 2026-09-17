@@ -15,11 +15,12 @@
 | ADR-009 | Reporting dùng projection/eventual consistency | Accepted | Query/report không gây tải và coupling lên transaction DB |
 | ADR-010 | Container hóa; Docker Compose cho local | Accepted | Môi trường lặp lại được và phù hợp PBL6 |
 | ADR-011 | Production topology vendor-neutral | Proposed | Chưa có yêu cầu cloud/budget/SLA đủ để khóa nhà cung cấp |
-| ADR-012 | C#/.NET 8/ASP.NET Core, React và React Native là stack triển khai | Accepted, revised 2026-09-10 | Thống nhất backend target `net8.0` và client TypeScript; ưu tiên tương thích toolchain của nhóm |
+| ADR-012 | C#/.NET 8/ASP.NET Core, React và React Native là stack triển khai | Superseded một phần bởi ADR-017 | Quyết định stack gốc; phần Target Framework backend đã được ADR-017 thay thế |
 | ADR-013 | Transport sở hữu Organization profile; Identity sở hữu membership/role | Accepted | Tách tenant business profile khỏi identity/authorization nhưng giữ một authoritative owner cho mỗi dữ liệu |
 | ADR-014 | Booking tạm sở hữu SupportCase liên quan giao dịch | Accepted | Đủ cho phạm vi hiện tại và tránh tạo service thứ bảy chưa có scale/lifecycle độc lập |
 | ADR-015 | MVP triển khai toàn bộ MUST, hoãn SHOULD/COULD | Accepted | Giảm rủi ro phạm vi và giữ tiêu chí nghiệm thu rõ |
 | ADR-016 | Monorepo với contract-first và deployable độc lập | Accepted | Nhóm nhỏ cần thay đổi đồng bộ nhưng service/app vẫn build, test và deploy độc lập |
+| ADR-017 | Nâng toàn bộ backend lên .NET 10 LTS | Accepted, 2026-09-17 | Tránh bắt đầu dự án mới trên dòng .NET 8/9 sắp hết hỗ trợ; thống nhất `net10.0` đến lần nâng major tiếp theo |
 
 ## 2. Chi tiết quyết định trọng yếu
 
@@ -105,6 +106,8 @@
 
 **Verification:** mỗi deployable build/test độc lập; generated client compile; integration test dùng PostgreSQL/RabbitMQ thật; Gateway route test chứng minh đúng owner.
 
+Phần lựa chọn C#, ASP.NET Core và boundary client/backend của ADR-012 vẫn có hiệu lực. Riêng Target Framework `.NET 8 / net8.0` được ADR-017 thay thế.
+
 ### ADR-015 — MVP scope freeze
 
 **Context:** SRS có `MUST/SHOULD/COULD`; triển khai đồng thời toàn bộ sẽ làm loãng critical path.
@@ -120,6 +123,16 @@
 **Decision:** dùng monorepo. Mỗi service có source, test, migration, container và ownership riêng. OpenAPI/AsyncAPI/JSON Schema nằm trong `contracts/` và là input cho generated client/contract tests.
 
 **Consequences:** CI dùng path filter để tránh build thừa; không cho service tham chiếu project/domain model của service khác; chỉ chia sẻ package kỹ thuật đã allow-list.
+
+### ADR-017 — .NET 10 LTS backend baseline
+
+**Context:** source backend mới chỉ ở giai đoạn scaffold. Theo [lifecycle Microsoft](https://dotnet.microsoft.com/en-us/platform/support/policy) tại ngày 2026-09-17, .NET 8 và .NET 9 đều kết thúc hỗ trợ trong tháng 11/2026, trong khi .NET 10 là dòng LTS active đến tháng 11/2028. Nâng cấp ngay ở Foundation ít rủi ro hơn migration sau khi các service, migration và pipeline đã phát triển.
+
+**Decision:** mọi Backend Service, Worker, API Gateway, class library và test project target `.NET 10 / net10.0`. Local và CI dùng SDK feature band `10.0.4xx`, pin `10.0.401` trong `workspace/global.json` với `rollForward: latestPatch`. Không trộn TFM giữa bounded context.
+
+**Consequences:** dự án có thời gian hỗ trợ dài hơn và dùng chung runtime/toolchain hiện hành; mọi workstation, runner và container image phải có .NET 10. Package ASP.NET Core, EF Core, Npgsql, YARP, test và observability phải được kiểm tra tương thích trước khi pin.
+
+**Verification:** `dotnet --version` từ `workspace/` resolve SDK đã pin; restore/build/test toàn solution thành công; CI và container target .NET 10; không còn project hoặc tài liệu baseline hiện hành nào yêu cầu Target Framework cũ.
 
 ## 3. Rejected alternatives
 

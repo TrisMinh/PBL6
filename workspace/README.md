@@ -23,6 +23,6 @@ workspace/
     └── tests/
 ```
 
-Hiện `src/` chưa có source. Sprint 0 sẽ scaffold theo [repository structure](../docs/implementation/01-repository-structure.md) và [Sprint 0 checklist](../task-tracking/board/sprint-00-foundation.md).
+Identity Service đã được scaffold và target `net10.0`; các boundary còn lại tiếp tục được tạo trong Sprint 0 theo [repository structure](../docs/implementation/01-repository-structure.md) và [Sprint 0 checklist](../task-tracking/board/sprint-00-foundation.md).
 
 Mọi lệnh build/npm/contract chạy với working directory là `workspace/`, trừ lệnh Git chạy ở repository root.

@@ -22,7 +22,7 @@
 ### `S0-TEAM-02` — Toolchain matrix
 
 - [ ] Cả 4 người chạy `git --version`, ghi khác biệt gây ảnh hưởng nếu có.
-- [ ] BE chạy `dotnet --info`; xác nhận build target `net8.0`.
+- [ ] BE chạy `dotnet --info`; xác nhận build target `net10.0`.
 - [ ] FE/Mobile chạy `node --version` và `npm --version`; baseline Node 24/npm 11.
 - [ ] Máy chạy integration xác nhận `docker version` và `docker compose version`.
 - [ ] Mobile xác nhận JDK/Android SDK/emulator/device phù hợp React Native.
@@ -33,7 +33,7 @@
 ### `S0-BE1-01` — .NET solution/build baseline
 
 - [ ] Trong `workspace/`, tạo `BusTicketPlatform.sln`, `global.json`, `Directory.Build.props`, `Directory.Packages.props`.
-- [ ] Pin package versions tập trung; mọi project target `net8.0`.
+- [ ] Pin package versions tập trung; mọi project target `net10.0`.
 - [ ] Scaffold đúng boundary `Api/Application/Domain/Infrastructure`; không tạo Worker rỗng.
 - [ ] Bật nullable, warnings phù hợp và analyzers thống nhất.
 - [ ] Thêm architecture test cho dependency rule tối thiểu.

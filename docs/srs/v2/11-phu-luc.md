@@ -78,7 +78,7 @@ Các nội dung dưới đây hữu ích cho thiết kế nhưng không phải n
 | Vấn đề | Quyết định | Trạng thái |
 |---|---|---|
 | Phạm vi | Triển khai và nghiệm thu toàn bộ `MUST`; chuyển toàn bộ `SHOULD/COULD` sang backlog sau MVP. | Accepted |
-| Backend | C# target .NET 8 (`net8.0`) cho toàn bộ API, Worker, Gateway, class library và test project; dùng ASP.NET Core Web API, EF Core và YARP Gateway. | Accepted, cập nhật 2026-09-10 |
+| Backend | C# target .NET 10 LTS (`net10.0`) cho toàn bộ API, Worker, Gateway, class library và test project; dùng ASP.NET Core Web API, EF Core và YARP Gateway. | Accepted, cập nhật 2026-09-17 |
 | Web | Customer Web và Back-office dùng React 19.2 + TypeScript/Vite trên Node.js 24 LTS và npm workspaces; tách application nhưng dùng chung package UI/tooling thuần kỹ thuật. | Accepted |
 | Mobile | React Native 0.87 stable + TypeScript; dùng cùng OpenAPI, error code và state semantics với Web. | Accepted |
 | Payment | Adapter port thống nhất; provider MVP là VNPay Sandbox cho `PREPAID`. `PAY_LATER` không đi qua cổng. Phí sàn mặc định 10% snapshot trên Organization, chỉ trừ khi thu `PREPAID`. | Accepted, cập nhật 2026-09-17 |
