@@ -18,8 +18,11 @@ flowchart TB
     A7 --> A8["Booking Service: kiểm tra hold, passenger, stop và tính giá phía server"]
     A8 --> D3{"SeatHold còn ACTIVE và dữ liệu hợp lệ?"}
     D3 -- Không --> N3["Không tạo Booking; release/expire hold phù hợp"] --> A4
-    D3 -- Có --> A9["Tạo Booking PENDING_PAYMENT và consume SeatHold"]
-    A9 --> A10["Customer: chọn phương thức thanh toán"]
+    D3 -- Có --> D3b{"paymentChannel?"}
+    D3b -- PAY_LATER và org bật --> A9b["Booking CONFIRMED; ghế BOOKED; Ticket ISSUED; không Payment cổng"]
+    A9b --> A17
+    D3b -- PREPAID --> A9["Tạo Booking PENDING_PAYMENT và consume SeatHold"]
+    A9 --> A10["Customer: chọn phương thức thanh toán cổng"]
     A10 --> A11["Payment Service: tạo Payment và provider intent bằng Idempotency-Key"]
     A11 --> A12["Payment Gateway: xử lý và gửi signed webhook"]
     A12 --> A13["Payment Service: xác minh signature, replay key, amount và currency"]
@@ -40,5 +43,6 @@ flowchart TB
 - Giữ nhiều ghế là all-or-nothing và được bảo vệ bởi transaction/lock của Booking DB.
 - Client không được tin payment redirect hoặc query parameter.
 - Duplicate HTTP command, webhook và RabbitMQ delivery không tạo thêm Booking, Payment hoặc Ticket.
-- Notification lỗi không rollback Booking đã `PAID`.
+- Notification lỗi không rollback Booking đã `PAID` hoặc `CONFIRMED`.
+- `PAY_LATER` không tạo Payment/Refund cổng; phí sàn chỉ chốt khi thu `PREPAID`.
 

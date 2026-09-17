@@ -11,6 +11,8 @@ classDiagram
         +UUID organizationId
         +date period
         +Money gross
+        +Money platformCommission
+        +Money operatorPayable
         +Money refund
         +Money net
         +datetime dataAsOf
@@ -21,6 +23,7 @@ classDiagram
         +UUID bookingId
         +UUID organizationId
         +BookingStatus status
+        +PaymentChannel paymentChannel
         +Money total
         +datetime createdAt
         +datetime dataAsOf
@@ -77,6 +80,7 @@ classDiagram
 ## Aggregate rules
 
 - API luôn trả `generatedAt/dataAsOf`; eventual-consistency lag phải quan sát được.
+- Gross/net/commission chỉ từ tiền `PREPAID` đã thu qua cổng; `PAY_LATER` không cộng doanh thu sàn.
 - Consumer inbox ngăn một event cộng doanh thu hoặc occupancy hai lần.
 - Export lớn chạy bất đồng bộ, lưu object key thay vì payload trong RabbitMQ.
 - Quyền được kiểm tra lúc tạo job và kiểm tra lại lúc tải; file có expiry.

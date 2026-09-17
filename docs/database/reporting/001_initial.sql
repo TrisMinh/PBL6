@@ -7,6 +7,7 @@ create table booking_projections (
   route_name varchar(200) not null,
   departure_at timestamptz not null,
   status varchar(30) not null,
+  payment_channel varchar(20) not null,
   seat_count integer not null check (seat_count > 0),
   gross_amount bigint not null check (gross_amount >= 0),
   cancellation_fee bigint not null default 0 check (cancellation_fee >= 0),
@@ -20,7 +21,8 @@ create table booking_projections (
   data_as_of timestamptz not null,
   updated_at timestamptz not null,
   constraint uq_booking_projections_code unique (booking_code),
-  constraint ck_booking_projection_status check (status in ('PENDING_PAYMENT','PAID','EXPIRED','CANCELLED','REFUND_PENDING','REFUNDED','COMPLETED')),
+  constraint ck_booking_projection_status check (status in ('PENDING_PAYMENT','CONFIRMED','PAID','EXPIRED','CANCELLED','REFUND_PENDING','REFUNDED','COMPLETED')),
+  constraint ck_booking_projection_channel check (payment_channel in ('PREPAID','PAY_LATER')),
   constraint ck_booking_projection_currency check (currency ~ '^[A-Z]{3}$'),
   constraint ck_booking_projection_amount check (
     cancellation_fee + refunded_amount <= gross_amount
@@ -42,6 +44,8 @@ create table revenue_projections (
   gross_revenue bigint not null default 0,
   refund_amount bigint not null default 0,
   cancellation_fee bigint not null default 0,
+  platform_commission bigint not null default 0,
+  operator_payable bigint not null default 0,
   net_revenue bigint not null default 0,
   paid_booking_count integer not null default 0 check (paid_booking_count >= 0),
   cancelled_booking_count integer not null default 0 check (cancelled_booking_count >= 0),
@@ -51,6 +55,7 @@ create table revenue_projections (
   constraint ck_revenue_projection_currency check (currency ~ '^[A-Z]{3}$'),
   constraint ck_revenue_projection_nonnegative check (
     gross_revenue >= 0 and refund_amount >= 0 and cancellation_fee >= 0
+    and platform_commission >= 0 and operator_payable >= 0
   ),
   constraint ck_revenue_projection_net check (net_revenue = gross_revenue - refund_amount)
 );

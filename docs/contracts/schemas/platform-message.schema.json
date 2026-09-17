@@ -116,8 +116,8 @@
     },
     "BookingCreatedPayload": {
       "type": "object", "additionalProperties": false,
-      "required": ["bookingId", "customerId", "tripId", "organizationId", "total", "currency", "paymentExpiresAt"],
-      "properties": {"bookingId": {"$ref": "#/$defs/Id"}, "customerId": {"$ref": "#/$defs/Id"}, "tripId": {"$ref": "#/$defs/Id"}, "organizationId": {"$ref": "#/$defs/Id"}, "total": {"type": "integer", "minimum": 0}, "currency": {"$ref": "#/$defs/Currency"}, "paymentExpiresAt": {"$ref": "#/$defs/DateTime"}}
+      "required": ["bookingId", "customerId", "tripId", "organizationId", "total", "currency", "paymentChannel"],
+      "properties": {"bookingId": {"$ref": "#/$defs/Id"}, "customerId": {"$ref": "#/$defs/Id"}, "tripId": {"$ref": "#/$defs/Id"}, "organizationId": {"$ref": "#/$defs/Id"}, "total": {"type": "integer", "minimum": 0}, "currency": {"$ref": "#/$defs/Currency"}, "paymentChannel": {"type": "string", "enum": ["PREPAID", "PAY_LATER"]}, "paymentExpiresAt": {"$ref": "#/$defs/DateTime"}}
     },
     "BookingPaidPayload": {
       "type": "object", "additionalProperties": false,
@@ -131,8 +131,8 @@
     },
     "TicketIssuedPayload": {
       "type": "object", "additionalProperties": false,
-      "required": ["ticketId", "bookingId", "customerId", "tripId", "organizationId", "issuedAt"],
-      "properties": {"ticketId": {"$ref": "#/$defs/Id"}, "bookingId": {"$ref": "#/$defs/Id"}, "customerId": {"$ref": "#/$defs/Id"}, "tripId": {"$ref": "#/$defs/Id"}, "organizationId": {"$ref": "#/$defs/Id"}, "issuedAt": {"$ref": "#/$defs/DateTime"}}
+      "required": ["ticketId", "bookingId", "customerId", "tripId", "organizationId", "paymentChannel", "issuedAt"],
+      "properties": {"ticketId": {"$ref": "#/$defs/Id"}, "bookingId": {"$ref": "#/$defs/Id"}, "customerId": {"$ref": "#/$defs/Id"}, "tripId": {"$ref": "#/$defs/Id"}, "organizationId": {"$ref": "#/$defs/Id"}, "paymentChannel": {"type": "string", "enum": ["PREPAID", "PAY_LATER"]}, "issuedAt": {"$ref": "#/$defs/DateTime"}}
     },
     "TicketCancelledPayload": {
       "type": "object", "additionalProperties": false,

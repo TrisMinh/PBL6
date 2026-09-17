@@ -67,6 +67,7 @@ classDiagram
         +UUID customerId
         +UUID tripId
         +BookingStatus status
+        +PaymentChannel paymentChannel
         +Money subtotal
         +Money discount
         +Money fee
@@ -95,6 +96,7 @@ classDiagram
         +UUID id
         +string publicCode
         +string qrTokenHash
+        +PaymentChannel paymentChannel
         +TicketStatus status
         +datetime checkedInAt
         +checkIn(actor, tripId)
@@ -162,5 +164,6 @@ classDiagram
 ## Aggregate rules
 
 - `TripSeat` concurrency guard là nguồn quyết định chống bán trùng; Redis không thay invariant DB.
-- Booking `PAID` có đúng một Ticket trên mỗi Booking Item và dữ liệu item không sửa trực tiếp.
+- Booking `PAID` (`PREPAID`) hoặc `CONFIRMED` (`PAY_LATER`) có đúng một Ticket trên mỗi Booking Item và dữ liệu item không sửa trực tiếp.
+- `PAY_LATER` không tạo Payment cổng; Ticket không chuyển `REFUNDED`.
 - Review tối đa một bản ghi trên Ticket đủ điều kiện; Promotion redemption không được ghi trùng.

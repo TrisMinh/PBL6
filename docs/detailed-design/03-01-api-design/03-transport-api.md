@@ -29,6 +29,8 @@ Filter MVP: khoảng giá, khoảng giờ đi, nhà xe, loại xe, điểm đón
 
 Bus/Seat đã được Trip snapshot không hard delete. Thay layout tăng `seatTemplateVersion`; Trip đã publish giữ snapshot cũ.
 
+`updateOrganization` nhận `allowPayLater`. `commissionRate` chỉ đọc trên GET; PATCH tenant bỏ qua. Mặc định 0.10, thuộc nền tảng.
+
 ## Driver, Route và Stop
 
 | Operation ID | Method/path | Permission |

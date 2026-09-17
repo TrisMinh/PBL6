@@ -10,8 +10,8 @@ Migration MVP chỉ tạo các bảng phục vụ requirement `MUST`. Promotion,
 |---|---|---|
 | Trip inventory | `trip_snapshots`, `trip_seats` | unique trip/seat, state + active owner + row version |
 | Hold | `seat_holds`, `seat_hold_items` | one logical hold/key, ACTIVE expiry, all-or-nothing |
-| Booking | `bookings`, `booking_items`, `passengers` | one Booking per hold; one Passenger per item |
-| Ticket | `tickets` | unique booking item/public code/QR hash |
+| Booking | `bookings`, `booking_items`, `passengers` | one Booking per hold; `payment_channel`; `CONFIRMED` for PAY_LATER |
+| Ticket | `tickets` | unique booking item/public code/QR hash; `payment_channel`; PAY_LATER cannot be REFUNDED |
 
 ## TripSeat constraints
 
@@ -54,7 +54,7 @@ Không “update các ghế còn trống rồi báo partial success”. Request 
 - `booking_items(booking_id,trip_seat_id)` unique.
 - `passengers.booking_item_id` unique, not null sau create complete.
 - `tickets.booking_item_id`, `public_code`, `qr_token_hash` unique.
-- Booking `PAID` ticket completeness được bảo đảm trong application transaction + deferred constraint/verification query; reconciliation job phát hiện gap không thể xảy ra bình thường.
+- Booking `PAID`/`CONFIRMED` ticket completeness được bảo đảm trong application transaction + deferred constraint/verification query.
 - Booking/Ticket/Passenger snapshot sau PAID không update trực tiếp; đổi vé tạo audited workflow.
 
 ## Thiết kế P1 chưa kích hoạt: Promotion concurrency

@@ -14,8 +14,11 @@ Owner: Payment Service. Chỉ service này giao tiếp Payment Gateway và sở 
 | `getRefund` | `GET /api/v1/refunds/{refundId}` | Customer owner hoặc `tenant.refund.read`/`platform.refund.read` + scope | No | `200` |
 | `searchAdminPayments` | `GET /api/v1/admin/payments` | `tenant.payment.read` hoặc `platform.payment.read` + scope | No | `200` |
 | `searchAdminRefunds` | `GET /api/v1/admin/refunds` | `tenant.refund.read` hoặc `platform.refund.read` + scope | No | `200` |
+| `listOperatorSettlements` | `GET /api/v1/operator/settlements` | `tenant.payment.read` | No | `200` |
+| `listAdminSettlements` | `GET /api/v1/admin/settlements` | `platform.payment.read` | No | `200` |
+| `createOperatorPayout` | `POST /api/v1/admin/payouts` | `platform.payment.manage` | Required | `201` |
 
-Create Payment không nhận `amount` làm nguồn sự thật. Payment Service lấy/verifies booking payment snapshot qua trusted internal contract/event projection; request chỉ chọn `provider`, `method` và return/deep-link metadata allow-listed.
+Create Payment không nhận `amount` làm nguồn sự thật. Chỉ nhận Booking `PREPAID` `PENDING_PAYMENT`. `PAY_LATER`/`CONFIRMED`: từ chối, không tạo Payment cổng. Payment Service lấy/verifies booking payment snapshot qua trusted internal contract/event projection; request chỉ chọn `provider`, `method` và return/deep-link metadata allow-listed.
 
 ```json
 {

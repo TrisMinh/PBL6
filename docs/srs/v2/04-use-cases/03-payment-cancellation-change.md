@@ -9,11 +9,11 @@
 | Mục tiêu | Ghi nhận Payment chính xác và phát hành Ticket đúng một lần. |
 | Actor chính | Customer |
 | Actor phụ | Payment Gateway |
-| Kích hoạt | Customer chọn phương thức thanh toán cho Booking. |
-| Tiền điều kiện | Booking PENDING_PAYMENT, còn hạn và thuộc Customer. |
-| Hậu điều kiện thành công | Payment SUCCEEDED, Booking PAID, TripSeat BOOKED và Ticket ISSUED. |
+| Kích hoạt | Customer chọn thanh toán cổng cho Booking `PREPAID`. |
+| Tiền điều kiện | Booking `PREPAID` `PENDING_PAYMENT`, còn hạn và thuộc Customer. |
+| Hậu điều kiện thành công | Payment SUCCEEDED, Booking PAID, TripSeat BOOKED, Ticket ISSUED `PREPAID`, settlement phí sàn được chốt. |
 | Hậu điều kiện thất bại | Không phát hành Ticket; giao dịch ở trạng thái có thể retry, bù trừ hoặc đối soát. |
-| Liên kết | FR-PAY-001..007; FR-TICKET-001..003; BR-PAY-*; AC-PAY-* |
+| Liên kết | FR-PAY-001..007, FR-PAY-012; FR-TICKET-001..003; BR-PAY-*; AC-PAY-* |
 
 ### Luồng chính
 
@@ -37,6 +37,7 @@
 - Chữ ký sai: từ chối và ghi security log đã loại bỏ dữ liệu nhạy cảm.
 - Amount/currency sai: không xác nhận Booking; tạo reconciliation/security case.
 - Payment FAILED/CANCELLED: Booking không chuyển PAID; ghế giữ đến expiry hoặc được giải phóng theo rule.
+- Booking `PAY_LATER` / `CONFIRMED`: từ chối create Payment cổng.
 - Payment thành công sau khi hold/Booking hết hạn nhưng ghế vẫn còn hợp lệ: xử lý theo quy tắc được duyệt và vẫn không tạo Ticket trùng.
 - Payment thành công trễ và ghế đã thuộc Booking khác: không chiếm lại ghế; tạo compensation Refund hoặc manual case.
 - Notification lỗi: giao dịch đã commit không rollback; Customer vẫn xem Ticket trong ứng dụng.
@@ -62,15 +63,15 @@
 | Actor phụ | Payment Gateway |
 | Kích hoạt | Customer chọn hủy một hoặc nhiều Ticket/Booking Item. |
 | Tiền điều kiện | Customer sở hữu Ticket; Ticket và Trip còn đủ điều kiện hủy. |
-| Hậu điều kiện thành công | Ticket bị hủy; ghế được mở lại nếu còn bán; Refund được tạo khi có tiền phải hoàn. |
+| Hậu điều kiện thành công | Ticket bị hủy; ghế được mở lại nếu còn bán; Refund cổng chỉ khi `PREPAID` đã thu và số hoàn > 0. |
 | Hậu điều kiện thất bại | Không hủy âm thầm; trạng thái tài chính không chắc chắn được giữ để retry/đối soát. |
-| Liên kết | FR-BOOK-009; FR-PAY-008; BR-CANCEL-*; AC-CANCEL-* |
+| Liên kết | FR-BOOK-009; FR-PAY-008, FR-PAY-011; BR-CANCEL-*; AC-CANCEL-* |
 
 ### Luồng preview
 
 1. Customer chọn Ticket muốn hủy.
 2. Hệ thống kiểm tra ownership, Ticket state, Trip state, giờ khởi hành và policy snapshot.
-3. Hệ thống tính phí, số tiền hoàn, phương thức hoàn và thời gian dự kiến.
+3. Hệ thống tính phí, số tiền hoàn (0 nếu `PAY_LATER`), phương thức hoàn và thời gian dự kiến.
 4. Hệ thống trả preview mà chưa thay đổi trạng thái.
 
 ### Luồng xác nhận

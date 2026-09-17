@@ -33,7 +33,7 @@ Response trả opaque `holdToken`, seat code/price, `currency`, `expiresAt` và 
 | `getTripManifest` | `GET /api/v1/operator/trips/{tripId}/manifest` | `tenant.manifest.read` + assigned/tenant Trip, hoặc `platform.support.read` có reason | No |
 | `searchBookingsForSupport` | `GET /api/v1/admin/bookings` | `tenant.booking.read` hoặc `platform.support.read`, luôn filter theo scope | No |
 
-Create body MVP gồm `holdToken`, Booking contact, đúng một Passenger trên mỗi `seatId` và pickup/dropoff. Client có thể gửi expected price để cảnh báo thay đổi nhưng server tự tính subtotal/discount/fee/total. `promotionCode` chưa được nhận trong MVP.
+Create body MVP gồm `holdToken`, `paymentChannel` (`PREPAID` | `PAY_LATER`), Booking contact, đúng một Passenger trên mỗi `seatId` và pickup/dropoff. Client có thể gửi expected price để cảnh báo thay đổi nhưng server tự tính subtotal/discount/fee/total. `promotionCode` chưa được nhận trong MVP. `PAY_LATER` khi org tắt: `PAY_LATER_NOT_ALLOWED`, không consume hold.
 
 ```json
 {
@@ -54,7 +54,8 @@ Create body MVP gồm `holdToken`, Booking contact, đúng một Passenger trên
     }
   ],
   "expectedTotal": 150000,
-  "currency": "VND"
+  "currency": "VND",
+  "paymentChannel": "PREPAID"
 }
 ```
 

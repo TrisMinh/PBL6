@@ -9,7 +9,7 @@ Hệ thống áp dụng database-per-service ở mức logic. Giai đoạn local
 | `identity_db` | Identity | User, Role, Membership, RefreshToken, SecurityAudit | Bảo mật cao, lookup theo identity/tenant |
 | `transport_db` | Transport | Organization, Bus, Seat, Driver, Route, Stop, Trip | Nhiều read/search, operator write |
 | `booking_db` | Booking | TripSnapshot, TripSeat, SeatHold, Booking, Passenger, Ticket, CancellationPreview | Transaction contention và invariant ghế |
-| `payment_db` | Payment | Payment, Attempt, WebhookReceipt, Refund, ReconciliationCase | Idempotency/audit cao, provider references |
+| `payment_db` | Payment | Payment, Attempt, WebhookReceipt, Refund, ReconciliationCase, BookingSettlement, LedgerEntry, OperatorPayout | Idempotency/audit cao, provider references, phí sàn |
 | `notification_db` | Notification | Template, Notification, DeliveryAttempt | Retry lifecycle và retention riêng |
 | `reporting_db` | Reporting | Revenue, Booking, Occupancy projection, ProjectionCheckpoint | Read-optimized, rebuild được từ nguồn/event |
 

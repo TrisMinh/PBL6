@@ -16,7 +16,7 @@
 ### Luồng quản lý Organization
 
 1. Admin tìm hoặc tạo Organization.
-2. Admin nhập thông tin pháp lý, liên hệ và trạng thái.
+2. Admin nhập thông tin pháp lý, liên hệ, trạng thái; tỷ lệ phí sàn mặc định 10% nếu không ghi đè.
 3. Hệ thống kiểm tra tính duy nhất và quyền.
 4. Hệ thống lưu Organization và ghi audit.
 5. Khi khóa/deactivate Organization, quyền truy cập tenant và ảnh hưởng vận hành phải được hiển thị trước xác nhận.
@@ -41,18 +41,18 @@
 
 | Thuộc tính | Nội dung |
 |---|---|
-| Mục tiêu | Hỗ trợ tra cứu Booking, Payment, Refund và audit để xử lý hỗ trợ/đối soát. |
+| Mục tiêu | Hỗ trợ tra cứu Booking, Payment, Refund, settlement và audit để xử lý hỗ trợ/đối soát. |
 | Actor chính | Admin, Operator Finance theo phạm vi |
 | Tiền điều kiện | Actor có permission tra cứu; bộ lọc hợp lệ. |
 | Hậu điều kiện thành công | Giao dịch và lịch sử liên quan được hiển thị đúng scope. |
 | Hậu điều kiện thất bại | Không lộ dữ liệu ngoài tenant/quyền và không sửa lịch sử. |
-| Liên kết | FR-ADMIN-002; FR-PAY-009..010; BR-AUDIT-*; GOAL-007 |
+| Liên kết | FR-ADMIN-002; FR-PAY-009..013; BR-AUDIT-*; GOAL-007 |
 
 ### Luồng chính
 
 1. Actor nhập Booking code, Ticket code, Payment/Refund ID, provider transaction ID hoặc correlation ID.
 2. Hệ thống kiểm tra permission và tenant scope.
-3. Hệ thống tìm và liên kết Booking, Payment, Ticket, Refund, Notification và audit liên quan.
+3. Hệ thống tìm và liên kết Booking, Payment, Ticket, Refund, settlement, Notification và audit liên quan.
 4. Hệ thống hiển thị trạng thái, số tiền, thời điểm, actor/request source và sai lệch nếu có.
 5. Nếu giao dịch chưa có kết quả cuối, actor có thể tạo/yêu cầu job reconciliation theo quyền.
 6. Mọi hành động can thiệp hoặc replay phải có reason và audit riêng.
@@ -107,7 +107,7 @@
 
 1. Actor chọn khoảng thời gian, timezone và bộ lọc.
 2. Hệ thống áp tenant scope; Admin có thể chọn phạm vi nếu được phép.
-3. Hệ thống trả gross revenue, net revenue, Booking, Refund và occupancy cùng định nghĩa metric.
+3. Hệ thống trả gross/net trên tiền `PREPAID` đã thu, phí sàn, công nợ nhà xe, Booking, Refund và occupancy; không cộng tiền mặt `PAY_LATER`.
 4. Giao diện hiển thị đơn vị, timezone, thời điểm dữ liệu gần nhất và phạm vi lọc.
 5. Actor có thể drill-down/tra cứu giao dịch khi có permission.
 

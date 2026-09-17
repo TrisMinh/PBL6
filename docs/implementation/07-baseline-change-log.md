@@ -8,7 +8,7 @@ Tài liệu này giữ lịch sử các quyết định công nghệ đã làm t
 | IBL-002 | 2026-09-10 | Gom toàn bộ application source dưới `src/` và dùng namespace prefix `BusTicketPlatform`. | Superseded một phần bởi IBL-003 | Gateway ở `src/gateway`, service ở `src/services`, client ở `src/apps`, technical shared library ở `src/building-blocks`; vị trí test được IBL-003 chuyển vào `src/tests`. |
 | IBL-003 | 2026-09-10 | Thu gọn repository thành hai vùng chính `src/` và `docs/`. | Superseded bởi IBL-004 | Test/infra chuyển vào `src`; executable contracts, SQL baseline, Word snapshots và QA render chuyển vào `docs`; solution và build config vẫn ở root. |
 | IBL-004 | 2026-09-12 | Tách SRS khỏi tài liệu kỹ thuật và loại bỏ artifact sinh tự động. | Superseded bởi IBL-005 | `srs/` giữ baseline và Word; `docs/` giữ tài liệu kỹ thuật; không lưu diagram HTML hoặc ảnh QA render trong repository. |
-| IBL-005 | 2026-09-12 | Phân vùng repository thành tài liệu, tracking và workspace triển khai. | Accepted, active | SRS chuyển vào `docs/srs/`; tracking tách ngang cấp tại `task-tracking/`; source và cấu hình build/tool nằm trong `workspace/`; root chỉ giữ metadata và điểm vào repository. |
+| IBL-006 | 2026-09-17 | Bổ sung `PAY_LATER` (in vé, không đo tiền mặt, no-show do nhà xe) và phí sàn trên tiền `PREPAID` đã thu qua cổng. | Accepted, active | SRS 2.0.1; Booking/Payment/Transport/Reporting SQL; OpenAPI 77 operation; settlement/ledger/payout. |
 
 ## Ghi chú về SDK và Target Framework
 

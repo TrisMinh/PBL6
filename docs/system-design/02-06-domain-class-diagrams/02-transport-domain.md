@@ -10,8 +10,11 @@ classDiagram
         +string code
         +string name
         +OrganizationStatus status
+        +bool allowPayLater
+        +decimal commissionRate
         +activate()
         +suspend(reason)
+        +setAllowPayLater(enabled)
     }
     class Bus {
         <<AggregateRoot>>
@@ -103,6 +106,7 @@ classDiagram
 ## Aggregate rules
 
 - `Trip.publish()` kiểm tra tenant, Route/Bus/Driver active, license và lịch xung đột trước khi commit.
+- `allowPayLater` do Operator bật/tắt; `commissionRate` thuộc nền tảng, mặc định 0.10, không đổi qua API tenant.
 - Trip event mang snapshot cần thiết; Booking không gọi lại Transport để sửa lịch sử booking.
 - Bus/Seat đã được Trip tham chiếu không hard delete; thay đổi layout tăng version cho các Trip tương lai.
 

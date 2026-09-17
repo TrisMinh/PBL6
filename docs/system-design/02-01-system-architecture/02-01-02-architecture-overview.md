@@ -78,19 +78,23 @@ Ký hiệu `PG` trong sơ đồ là một PostgreSQL cluster vật lý có nhi�
 
 ### 3.2 Thanh toán và phát hành vé
 
+`PREPAID`:
+
 1. Client yêu cầu Payment Service tạo payment intent bằng `bookingId` và `Idempotency-Key`.
 2. Payment Gateway gửi signed webhook trực tiếp đến integration endpoint của Payment Service.
-3. Payment persist kết quả và `PaymentSucceeded` trong cùng transaction qua outbox.
+3. Payment persist kết quả, chốt phí sàn/công nợ nhà xe, và `PaymentSucceeded` trong cùng transaction qua outbox.
 4. Outbox publisher gửi event đến RabbitMQ; Booking consumer dedupe bằng inbox.
 5. Booking xác nhận ghế, chuyển booking sang `PAID`, tạo ticket và phát `BookingPaid`/`TicketIssued`.
 6. Notification gửi vé; Reporting cập nhật projection. Hai bước này không chặn kết quả payment.
 
+`PAY_LATER` (nhà xe bật): Booking consume hold, `CONFIRMED`, phát Ticket ngay, không tạo Payment cổng; settlement `UNCOLLECTED` và phí sàn = 0.
+
 ### 3.3 Hủy và hoàn tiền
 
 1. Booking kiểm tra policy snapshot rồi commit trạng thái hủy.
-2. Booking phát integration event `RefundRequested` qua outbox/RabbitMQ.
-3. Payment gọi Payment Gateway, persist kết quả và phát `RefundSucceeded` hoặc `RefundFailed`.
-4. Booking cập nhật aggregate; Notification và Reporting xử lý eventual consistency.
+2. Chỉ khi Booking/Ticket `PREPAID` đã thu và số hoàn > 0, Booking phát `RefundRequested`.
+3. Payment gọi Payment Gateway, persist kết quả, đảo commission/payable, và phát `RefundSucceeded` hoặc `RefundFailed`.
+4. `PAY_LATER`: hủy chỗ/vé, không hoàn qua nền tảng. Notification và Reporting xử lý eventual consistency.
 
 ## 4. Consistency model
 

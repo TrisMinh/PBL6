@@ -65,9 +65,11 @@ Toàn bộ mục này thuộc MVP 2.0 và là điều kiện nghiệm thu bắt 
 - Xem và cập nhật hồ sơ.
 - Tìm kiếm, lọc, sắp xếp và xem chi tiết Trip.
 - Xem sơ đồ ghế, giữ ghế và tạo Booking.
-- Thanh toán, nhận Ticket QR và xem lịch sử.
-- Hủy Ticket/Booking và tạo Refund theo policy.
-- Operator quản lý Organization, Bus, Seat, Driver, Route, Stop và Trip.
+- Thanh toán trả trước qua cổng, nhận Ticket QR và xem lịch sử.
+- Trả sau khi nhà xe bật: in vé ghi rõ kênh trả; sàn không theo dõi tiền mặt trên xe; khách không tới do nhà xe chịu.
+- Hủy Ticket/Booking; Refund nền tảng chỉ khi đã thu trả trước.
+- Phí sàn (mặc định 10%) trừ trên tiền đã vào cổng; phần còn lại ghi công nợ trả nhà xe.
+- Operator quản lý Organization (kể cả bật/tắt trả sau), Bus, Seat, Driver, Route, Stop và Trip.
 - Driver xem assignment, manifest và check-in.
 - Admin quản lý User, Organization, role và tenant membership.
 - Tra cứu giao dịch, audit và báo cáo cơ bản.
@@ -109,6 +111,8 @@ Toàn bộ mục này nằm ngoài kế hoạch triển khai hiện tại.
 - Giữ nhiều ghế phải thành công toàn bộ hoặc thất bại toàn bộ.
 - Command tạo giao dịch phải có cơ chế chống xử lý lặp.
 - Payment redirect không phải bằng chứng thanh toán; trạng thái server đã xác minh mới là nguồn quyết định.
+- `paymentChannel` là kênh hợp đồng lúc đặt (`PREPAID` / `PAY_LATER`), không phải thời điểm đo tiền mặt trên xe.
+- Nền tảng chỉ hoàn tiền khi đã thu qua cổng; phí sàn chỉ tính trên khoản `PREPAID` đã `SUCCEEDED`.
 - Booking, Payment, Ticket và Refund phải truy vết được bằng ID nghiệp vụ và correlation ID.
 - Dữ liệu nhà xe được cô lập theo tenant.
 - Web và Mobile dùng cùng hợp đồng và quy tắc nghiệp vụ phía server.

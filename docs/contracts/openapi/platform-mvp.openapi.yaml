@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: PBL6 Bus Ticket Platform MVP API
-  version: 2.0.0
+  version: 2.0.1
   description: Active MUST-only HTTP contract for ASP.NET Core services behind YARP.
   license:
     name: Academic project - all rights reserved
@@ -819,6 +819,38 @@ paths:
       responses:
         '200': {description: Refunds, content: {application/json: {schema: {$ref: '#/components/schemas/RefundPage'}}}}
         default: {$ref: '#/components/responses/Error'}
+  /operator/settlements:
+    get:
+      tags: [Payments]
+      operationId: listOperatorSettlements
+      summary: List booking settlements for the current tenant
+      x-permission: tenant.payment.read
+      parameters: [{$ref: '#/components/parameters/Page'}, {$ref: '#/components/parameters/Size'}]
+      responses:
+        '200': {description: Settlements, content: {application/json: {schema: {$ref: '#/components/schemas/SettlementPage'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /admin/settlements:
+    get:
+      tags: [Payments]
+      operationId: listAdminSettlements
+      summary: List booking settlements in platform finance scope
+      x-permission: platform.payment.read
+      parameters: [{$ref: '#/components/parameters/Page'}, {$ref: '#/components/parameters/Size'}]
+      responses:
+        '200': {description: Settlements, content: {application/json: {schema: {$ref: '#/components/schemas/SettlementPage'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /admin/payouts:
+    post:
+      tags: [Payments]
+      operationId: createOperatorPayout
+      summary: Record a platform-to-operator payout for accrued prepaid net
+      x-permission: platform.payment.manage
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/CreatePayoutRequest'}}}
+      responses:
+        '201': {description: Payout, content: {application/json: {schema: {$ref: '#/components/schemas/OperatorPayout'}}}}
+        default: {$ref: '#/components/responses/Error'}
   /notifications:
     get:
       tags: [Notifications]
@@ -1125,7 +1157,7 @@ components:
         - {type: object, required: [items], properties: {items: {type: array, items: {$ref: '#/components/schemas/Trip'}}}}
     Organization:
       type: object
-      required: [id, code, name, status, rowVersion]
+    required: [id, code, name, status, allowPayLater, commissionRate, rowVersion]
       properties:
         id: {$ref: '#/components/schemas/Id'}
         code: {type: string}
@@ -1133,6 +1165,8 @@ components:
         contactEmail: {type: string, format: email}
         contactPhone: {type: string}
         status: {type: string, enum: [ACTIVE, SUSPENDED, INACTIVE]}
+        allowPayLater: {type: boolean}
+        commissionRate: {type: number, minimum: 0, maximum: 1, description: Platform-owned; ignored on operator PATCH.}
         rowVersion: {type: integer, format: int64}
     OrganizationInput:
       type: object
@@ -1142,6 +1176,7 @@ components:
         name: {type: string, minLength: 2, maxLength: 200}
         contactEmail: {type: string, format: email}
         contactPhone: {type: string}
+        allowPayLater: {type: boolean}
         expectedVersion: {type: integer, format: int64, minimum: 0}
     SeatInput:
       type: object
@@ -1288,22 +1323,24 @@ components:
     CreateBookingRequest:
       type: object
       additionalProperties: false
-      required: [holdToken, contact, passengers, expectedTotal, currency]
+      required: [holdToken, contact, passengers, expectedTotal, currency, paymentChannel]
       properties:
         holdToken: {type: string}
         contact: {$ref: '#/components/schemas/BookingContact'}
         passengers: {type: array, minItems: 1, maxItems: 10, items: {$ref: '#/components/schemas/PassengerInput'}}
         expectedTotal: {type: integer, format: int64, minimum: 0}
         currency: {$ref: '#/components/schemas/Currency'}
+        paymentChannel: {type: string, enum: [PREPAID, PAY_LATER]}
     Booking:
       type: object
-      required: [id, code, customerId, tripId, status, contact, subtotal, discount, fee, total, currency, expiresAt, items, rowVersion]
+      required: [id, code, customerId, tripId, status, paymentChannel, contact, subtotal, discount, fee, total, currency, expiresAt, items, rowVersion]
       properties:
         id: {$ref: '#/components/schemas/Id'}
         code: {type: string}
         customerId: {$ref: '#/components/schemas/Id'}
         tripId: {$ref: '#/components/schemas/Id'}
-        status: {type: string, enum: [PENDING_PAYMENT, PAID, EXPIRED, CANCELLED, REFUND_PENDING, REFUNDED, COMPLETED]}
+        status: {type: string, enum: [PENDING_PAYMENT, CONFIRMED, PAID, EXPIRED, CANCELLED, REFUND_PENDING, REFUNDED, COMPLETED]}
+        paymentChannel: {type: string, enum: [PREPAID, PAY_LATER]}
         contact: {$ref: '#/components/schemas/BookingContact'}
         subtotal: {type: integer, format: int64, minimum: 0}
         discount: {type: integer, format: int64, minimum: 0}
@@ -1389,9 +1426,49 @@ components:
       allOf:
         - {$ref: '#/components/schemas/PageMeta'}
         - {type: object, required: [items], properties: {items: {type: array, items: {$ref: '#/components/schemas/Refund'}}}}
+    BookingSettlement:
+      type: object
+      required: [id, bookingId, organizationId, paymentChannel, grossAmount, commissionRate, commissionAmount, operatorNet, currency, collectionStatus]
+      properties:
+        id: {$ref: '#/components/schemas/Id'}
+        bookingId: {$ref: '#/components/schemas/Id'}
+        organizationId: {$ref: '#/components/schemas/Id'}
+        paymentId: {oneOf: [{$ref: '#/components/schemas/Id'}, {type: 'null'}]}
+        paymentChannel: {type: string, enum: [PREPAID, PAY_LATER]}
+        grossAmount: {type: integer, format: int64, minimum: 0}
+        commissionRate: {type: number, minimum: 0, maximum: 1}
+        commissionAmount: {type: integer, format: int64, minimum: 0}
+        operatorNet: {type: integer, format: int64}
+        currency: {$ref: '#/components/schemas/Currency'}
+        collectionStatus: {type: string, enum: [UNCOLLECTED, COLLECTED, REFUNDED, NOSHOW_WRITTEN_OFF]}
+    SettlementPage:
+      allOf:
+        - {$ref: '#/components/schemas/PageMeta'}
+        - {type: object, required: [items], properties: {items: {type: array, items: {$ref: '#/components/schemas/BookingSettlement'}}}}
+    CreatePayoutRequest:
+      type: object
+      required: [organizationId, periodStart, periodEnd, currency, payableAmount]
+      properties:
+        organizationId: {$ref: '#/components/schemas/Id'}
+        periodStart: {type: string, format: date}
+        periodEnd: {type: string, format: date}
+        currency: {$ref: '#/components/schemas/Currency'}
+        payableAmount: {type: integer, format: int64}
+    OperatorPayout:
+      type: object
+      required: [id, organizationId, periodStart, periodEnd, currency, payableAmount, status]
+      properties:
+        id: {$ref: '#/components/schemas/Id'}
+        organizationId: {$ref: '#/components/schemas/Id'}
+        periodStart: {type: string, format: date}
+        periodEnd: {type: string, format: date}
+        currency: {$ref: '#/components/schemas/Currency'}
+        payableAmount: {type: integer, format: int64}
+        status: {type: string, enum: [PENDING, SENT, FAILED]}
+        transferredAt: {oneOf: [{$ref: '#/components/schemas/DateTime'}, {type: 'null'}]}
     Ticket:
       type: object
-      required: [id, publicCode, bookingId, tripId, passengerName, seatCode, status, issuedAt, rowVersion]
+      required: [id, publicCode, bookingId, tripId, passengerName, seatCode, status, paymentChannel, issuedAt, rowVersion]
       properties:
         id: {$ref: '#/components/schemas/Id'}
         publicCode: {type: string}
@@ -1400,6 +1477,7 @@ components:
         passengerName: {type: string}
         seatCode: {type: string}
         status: {type: string, enum: [ISSUED, CHECKED_IN, USED, CANCELLED, REFUNDED]}
+        paymentChannel: {type: string, enum: [PREPAID, PAY_LATER]}
         qrPayload: {type: [string, 'null'], description: Signed/opaque; only returned to authorized owner.}
         issuedAt: {$ref: '#/components/schemas/DateTime'}
         checkedInAt: {oneOf: [{$ref: '#/components/schemas/DateTime'}, {type: 'null'}]}

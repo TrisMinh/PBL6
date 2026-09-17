@@ -2,7 +2,7 @@
 
 Đây là contract machine-readable dùng để khóa biên triển khai C# ASP.NET Core, React và React Native:
 
-- [OpenAPI HTTP contract](./openapi/platform-mvp.openapi.yaml): 74 operation active, chỉ scope `MUST`.
+- [OpenAPI HTTP contract](./openapi/platform-mvp.openapi.yaml): 77 operation active, chỉ scope `MUST`.
 - [AsyncAPI message catalog](./asyncapi/platform-mvp.asyncapi.yaml): 20 channel/message active.
 - [JSON Schema envelope/payload](./schemas/platform-message.schema.json): schema runtime cho message v1.
 

@@ -40,6 +40,8 @@
 | AC-BOOK-003 | Cùng idempotency key nhưng payload khác | Gửi create Booking | Trả `IDEMPOTENCY_CONFLICT`, không tạo tác động mới. |
 | AC-BOOK-004 | Số Passenger khác số ghế | Tạo Booking | Trả validation error và không consume hold. |
 | AC-BOOK-005 | Customer A biết Booking ID của Customer B | A mở Booking B | Hệ thống từ chối và không lộ dữ liệu B. |
+| AC-BOOK-006 | Organization tắt trả sau | Customer tạo Booking `PAY_LATER` | Từ chối `PAY_LATER_NOT_ALLOWED`; không consume hold. |
+| AC-BOOK-007 | Organization bật trả sau; hold còn hạn | Customer tạo Booking `PAY_LATER` | Booking `CONFIRMED`, mỗi item một Ticket `PAY_LATER`, ghế `BOOKED`, không có Payment cổng. |
 
 ## 10.4. Payment, Ticket, hủy và đổi
 
@@ -51,8 +53,11 @@
 | AC-PAY-004 | Payment thành công sau expiry và ghế đã thuộc Booking khác | Hệ thống nhận kết quả | Không double-book; tạo compensation Refund/manual case. |
 | AC-PAY-005 | Customer quay lại trước webhook | Client hiển thị kết quả | Hiển thị PROCESSING và không tuyên bố thành công/thất bại sai. |
 | AC-PAY-006 | Payment FAILED/CANCELLED | Hệ thống nhận kết quả cuối | Booking không PAID và không phát hành Ticket. |
-| AC-TICKET-001 | Booking PAID có nhiều Booking Item | Hoàn tất xác nhận | Mỗi item có đúng một Ticket, không trùng. |
-| AC-TICKET-002 | Customer mở Ticket của mình | Hệ thống trả Ticket | Có đủ Trip, Passenger, ghế, điểm đón/trả, giá, trạng thái, QR và public code an toàn. |
+| AC-PAY-007 | Booking `PAY_LATER` `CONFIRMED` | Customer yêu cầu Refund nền tảng hoặc create Payment | Từ chối; không tạo Payment/Refund cổng. |
+| AC-PAY-008 | Payment `PREPAID` SUCCEEDED, org commission 10%, gross 100000 | Chốt settlement | commission 10000, operator_net 90000, collection `COLLECTED`. |
+| AC-PAY-009 | Refund `PREPAID` thành công một phần/toàn bộ | Cập nhật settlement | Đảo commission/payable tương ứng; không vượt số đã thu. |
+| AC-TICKET-001 | Booking `PAID` hoặc `CONFIRMED` có nhiều Booking Item | Hoàn tất xác nhận | Mỗi item có đúng một Ticket, không trùng; Ticket có `paymentChannel`. |
+| AC-TICKET-002 | Customer mở Ticket của mình | Hệ thống trả Ticket | Có đủ Trip, Passenger, ghế, điểm đón/trả, giá, kênh thanh toán, trạng thái, QR và public code an toàn. |
 | AC-CANCEL-001 | Ticket đủ điều kiện hủy | Customer yêu cầu preview | Response có policy version, fee và refund amount trước xác nhận. |
 | AC-CANCEL-002 | Cancellation đã tạo Refund | Gửi lại cùng command/key | Không tạo Refund thứ hai. |
 | AC-CANCEL-003 | Ticket CHECKED_IN/USED hoặc quá giờ hủy | Customer xác nhận hủy | Hệ thống từ chối và không thay đổi Ticket/Payment. |
@@ -73,7 +78,7 @@
 | AC-TICKET-003 | Driver được phân công; Ticket ISSUED đúng Trip | Scan QR | Ticket CHECKED_IN và audit có actor/time/Trip. |
 | AC-TICKET-004 | Ticket thuộc Trip A | Driver scan trong Trip B | Từ chối và không thay đổi Ticket. |
 | AC-TICKET-005 | Ticket đã CHECKED_IN | Quét lại | Trả trạng thái/thời điểm cũ và không tạo check-in thứ hai. |
-| AC-TRIP-001 | Trip có Ticket đã bán | Operator có quyền hủy | Trip CANCELLED, Ticket bị vô hiệu, Refund được yêu cầu và Customer được thông báo eventual. |
+| AC-TRIP-001 | Trip có Ticket đã bán | Operator có quyền hủy | Trip CANCELLED, Ticket bị vô hiệu; Refund cổng chỉ cho `PREPAID` đã thu; `PAY_LATER` hủy vé không hoàn cổng; Customer được thông báo eventual. |
 | AC-TRIP-002 | Cùng command hủy Trip được gửi lặp | Hệ thống xử lý | Chỉ một logical cancellation và không tạo Refund trùng. |
 
 ## 10.6. Promotion, Review và Notification
@@ -122,11 +127,10 @@
 | Hồ sơ | GOAL-001, 003 | BP-07 | UC-PROFILE-01 | FR-IAM-006 | AUTHZ-004 | AC-PROFILE-001 |
 | Tìm Trip | GOAL-001, 004, 005 | BP-01 | UC-SEARCH-01 | FR-SEARCH-001..007 | BR-TRIP-001 | AC-SEARCH-001..003 |
 | Giữ ghế | GOAL-001, 002 | BP-01 | UC-BOOK-01 | FR-BOOK-001..003 | BR-SEAT-* | AC-SEAT-001..003 |
-| Tạo/xem Booking | GOAL-001, 002 | BP-01 | UC-BOOK-01..02 | FR-BOOK-004..008 | BR-BOOK-* | AC-BOOK-001..005 |
-| Payment/phát hành Ticket | GOAL-001, 002, 006 | BP-01 | UC-PAY-01, UC-TICKET-01 | FR-PAY-001..007, FR-TICKET-001..003 | BR-PAY-*, BR-TICKET-001 | AC-PAY-001..006, AC-TICKET-001..002 |
-| Hủy/Refund | GOAL-001, 002, 007 | BP-02 | UC-CANCEL-01 | FR-BOOK-009, FR-PAY-008 | BR-CANCEL-*, BR-PAY-* | AC-CANCEL-001..004 |
-| Đổi vé | GOAL-001, 002 | BP-03 | UC-CHANGE-01 | FR-BOOK-010 | BR-CANCEL-006..007 | AC-CHANGE-001..002 |
-| Quản lý nhà xe | GOAL-001, 003 | BP-07 | UC-OPS-01..04 | FR-OPS-001..004, 009 | BR-TENANT-*, BR-DATA-* | AC-OPS-001..002 |
+| Tạo/xem Booking | GOAL-001, 002 | BP-01 | UC-BOOK-01..02 | FR-BOOK-004..008, 012 | BR-BOOK-* | AC-BOOK-001..007 |
+| Payment/phát hành Ticket | GOAL-001, 002, 006 | BP-01 | UC-PAY-01, UC-TICKET-01, UC-BOOK-01 | FR-PAY-001..007, 011..013, FR-TICKET-001..003 | BR-PAY-*, BR-TICKET-001 | AC-PAY-001..009, AC-TICKET-001..002 |
+| Hủy/Refund | GOAL-001, 002, 007 | BP-02 | UC-CANCEL-01 | FR-BOOK-009, FR-PAY-008, FR-PAY-011 | BR-CANCEL-*, BR-PAY-* | AC-CANCEL-001..004 |
+| Quản lý nhà xe | GOAL-001, 003 | BP-07 | UC-OPS-01..04 | FR-OPS-001..004, 009, 011 | BR-TENANT-*, BR-DATA-*, BR-TRIP-007 | AC-OPS-001..002 |
 | Publish/vận hành Trip | GOAL-001, 002 | BP-04..05 | UC-OPS-05..06 | FR-OPS-005..007, 010 | BR-TRIP-* | AC-OPS-003..006 |
 | Check-in | GOAL-001, 002, 003 | BP-05 | UC-DRIVER-01 | FR-TICKET-004..006 | BR-TICKET-* | AC-TICKET-003..005 |
 | Hủy Trip | GOAL-001, 002, 007 | BP-06 | UC-TRIP-01 | FR-OPS-008 | BR-TRIP-004..006, BR-CANCEL-008 | AC-TRIP-001..002 |

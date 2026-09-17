@@ -1,9 +1,10 @@
 # Báo cáo sẵn sàng triển khai code
 
-- Baseline: SRS 2.0
+- Baseline: SRS 2.0.1
 - Ngày đánh giá ban đầu: 2026-09-09
 - Cập nhật baseline runtime: 2026-09-10
 - Cập nhật toolchain: 2026-09-12
+- Cập nhật PAY_LATER và phí sàn: 2026-09-17
 - Kết luận: **READY có điều kiện về toolchain**
 
 ## 1. Kết luận chuyên môn
@@ -16,12 +17,12 @@ Workstation đã có thể scaffold project target `net8.0`: SDK `9.0.316` nhậ
 
 | Hạng mục | Baseline |
 |---|---:|
-| Functional Requirement | 66 |
-| MVP `MUST` | 56 |
+| Functional Requirement | 71 |
+| MVP `MUST` | 61 |
 | Backlog `SHOULD` | 10 |
 | `COULD` | 0 |
 | Non-functional Requirement | 59 |
-| Acceptance Criteria | 68 |
+| Acceptance Criteria | 73 |
 
 Mười requirement P1 không thuộc MVP: `FR-SEARCH-007`, `FR-BOOK-010`, `FR-PAY-010`, `FR-PROMO-001`, `FR-PROMO-002`, `FR-REVIEW-001`, `FR-REVIEW-002`, `FR-NOTIF-003`, `FR-ADMIN-003`, `FR-REPORT-003`.
 
@@ -29,9 +30,9 @@ Mười requirement P1 không thuộc MVP: `FR-SEARCH-007`, `FR-BOOK-010`, `FR-P
 
 | Artifact | Kết quả |
 |---|---|
-| SRS 2.0 | Quy tắc, trạng thái, priority và acceptance đã thống nhất |
+| SRS 2.0.1 | Quy tắc trả sau + phí sàn, trạng thái, priority và acceptance đã thống nhất |
 | ADR/System Design | Đã quyết định stack, service boundary, consistency, security và monorepo |
-| OpenAPI 3.1 | 74 operation active; `operationId` duy nhất; không lộ route P1 |
+| OpenAPI 3.1 | 77 operation active; `operationId` duy nhất; không lộ route P1 |
 | AsyncAPI 3.1 | 20 channel và 20 send operation active |
 | JSON Schema | 20 event active dùng chung envelope; 45 definition |
 | PostgreSQL baseline | Shared integration tables và initial schema cho 6 service |
@@ -47,7 +48,8 @@ Mười requirement P1 không thuộc MVP: `FR-SEARCH-007`, `FR-BOOK-010`, `FR-P
 - Dữ liệu/message: PostgreSQL, RabbitMQ; Redis chỉ là auxiliary store.
 - Thanh toán MVP: VNPay Sandbox và provider simulator cho test xác định.
 - Xác minh tài khoản: email; SMS OTP để sau MVP.
-- SeatHold và Booking payment window: cố định 10 phút, không gia hạn.
+- SeatHold và Booking payment window: cố định 10 phút cho chọn ghế/`PREPAID`, không gia hạn. `PAY_LATER` không dùng cửa sổ thanh toán cổng.
+- Phí sàn mặc định 10% snapshot trên Organization, chỉ trừ khi thu `PREPAID` qua cổng; `PAY_LATER` commission = 0.
 - Tồn kho ghế: khóa theo toàn bộ Trip trong MVP.
 - Tiền: số nguyên `int64` theo VND; ID/correlation dùng UUIDv7.
 - Mật khẩu: Argon2id qua adapter `IPasswordHasher`, có version và rehash policy.

@@ -8,11 +8,14 @@ create table organizations (
   support_email varchar(254),
   support_phone varchar(20),
   status varchar(30) not null,
+  allow_pay_later boolean not null default false,
+  commission_rate numeric(5,4) not null default 0.1000,
   created_at timestamptz not null,
   updated_at timestamptz not null,
   row_version bigint not null default 0,
   constraint uq_organizations_code unique (code),
-  constraint ck_organizations_status check (status in ('ACTIVE','SUSPENDED','INACTIVE'))
+  constraint ck_organizations_status check (status in ('ACTIVE','SUSPENDED','INACTIVE')),
+  constraint ck_organizations_commission check (commission_rate >= 0 and commission_rate <= 1)
 );
 
 create index ix_organizations_status on organizations (status, name);

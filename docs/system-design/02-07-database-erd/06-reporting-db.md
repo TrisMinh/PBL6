@@ -12,6 +12,7 @@ erDiagram
         uuid customer_id_external
         uuid trip_id_external
         varchar status
+        varchar payment_channel
         numeric total_amount
         char currency
         timestamptz booked_at
@@ -19,12 +20,13 @@ erDiagram
         bigint source_version
     }
     REVENUE_PROJECTIONS {
-        uuid id PK
         uuid organization_id_external
         date period_date
         char currency
         numeric gross_amount
         numeric refund_amount
+        numeric platform_commission
+        numeric operator_payable
         numeric net_amount
         timestamptz data_as_of
     }
@@ -73,6 +75,7 @@ erDiagram
 ## Constraints và index bắt buộc
 
 - `UNIQUE(organization_id_external, period_date, currency)` trên RevenueProjection.
+- `platform_commission` / `operator_payable` chỉ từ capture `PREPAID`; `PAY_LATER` không cộng gross sàn.
 - Source `aggregateVersion` không được đi lùi; gap được retry hoặc reconcile với owner API.
 - API report bắt buộc trả `generatedAt/dataAsOf`; projection không được dùng để update transaction nguồn.
 - Export file nằm ở Object Storage; database chỉ giữ object key, expiry và audit metadata.

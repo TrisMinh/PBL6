@@ -12,7 +12,7 @@ Tên trạng thái trong yêu cầu, API, dữ liệu, event và giao diện ph�
 |---|---|---|
 | AVAILABLE | HELD | SeatHold được tạo thành công cho toàn bộ ghế trong cùng yêu cầu. |
 | HELD | AVAILABLE | Hold hết hạn/release và Trip còn cho phép bán. |
-| HELD | BOOKED | Payment/Booking được xác nhận hợp lệ trong khi ghế vẫn thuộc hold/Booking đó. |
+| HELD | BOOKED | `PREPAID`: Payment/Booking `PAID` hợp lệ. `PAY_LATER`: Booking `CONFIRMED` và Ticket đã phát hành trong khi ghế vẫn thuộc hold/Booking đó. |
 | AVAILABLE | DISABLED | Operator vô hiệu ghế trước khi ghế bị giữ hoặc bán. |
 | DISABLED | AVAILABLE | Operator kích hoạt lại khi Trip còn cho phép. |
 | BOOKED | AVAILABLE | Chỉ sau khi Ticket bị hủy hợp lệ và Trip còn cho phép bán lại. |
@@ -44,19 +44,24 @@ Ràng buộc:
 
 | Từ | Đến | Trigger/điều kiện |
 |---|---|---|
-| PENDING_PAYMENT | PAID | Payment thành công đã xác minh; Booking, ghế và Ticket được cập nhật nhất quán. |
-| PENDING_PAYMENT | EXPIRED | Quá thời hạn chưa có Payment hợp lệ. |
-| PENDING_PAYMENT | CANCELLED | Customer/hệ thống hủy trước khi thanh toán. |
+| PENDING_PAYMENT | PAID | `PREPAID`: Payment thành công đã xác minh; Booking, ghế và Ticket được cập nhật nhất quán. |
+| PENDING_PAYMENT | EXPIRED | `PREPAID`: quá thời hạn chưa có Payment hợp lệ. |
+| PENDING_PAYMENT | CANCELLED | Customer/hệ thống hủy trước khi thanh toán cổng. |
+| — | CONFIRMED | Tạo Booking `PAY_LATER` thành công: ghế `BOOKED` và Ticket đã phát. |
 | PAID | COMPLETED | Trip hoàn thành và nghĩa vụ Ticket kết thúc theo policy. |
-| PAID | CANCELLED | Hủy hợp lệ hoặc Trip bị hủy. |
-| CANCELLED | REFUND_PENDING | Có khoản đã thanh toán cần hoàn. |
+| CONFIRMED | COMPLETED | Trip hoàn thành; không có Refund nền tảng. |
+| PAID | CANCELLED | Hủy hợp lệ hoặc Trip bị hủy (`PREPAID`). |
+| CONFIRMED | CANCELLED | Hủy/no-show `PAY_LATER`; không Refund cổng. |
+| CANCELLED | REFUND_PENDING | Chỉ khi có khoản `PREPAID` đã thu cần hoàn. |
 | REFUND_PENDING | REFUNDED | Tổng khoản Refund cần thiết đã thành công. |
 
 Ràng buộc:
 
 - Booking có thể chứa nhiều Ticket; khi hủy từng Ticket, trạng thái item và Refund là nguồn chi tiết.
-- Booking PAID không được sửa trực tiếp Passenger hoặc TripSeat.
-- Payment callback lặp không được tạo lại transition PAID.
+- Booking `PAID` hoặc `CONFIRMED` không được sửa trực tiếp Passenger hoặc TripSeat.
+- Payment callback lặp không được tạo lại transition `PAID`.
+- `PAY_LATER` không tạo Payment cổng và không vào `PAID`.
+- `REFUND_PENDING` không áp cho `PAY_LATER`.
 
 ## 6.4. Payment
 
@@ -94,6 +99,7 @@ Ràng buộc:
 - Ticket CHECKED_IN/USED không được Customer hủy bằng luồng thông thường.
 - Check-in lặp không tạo transition thứ hai.
 - Ticket CANCELLED/REFUNDED không còn quyền sử dụng QR.
+- `REFUNDED` chỉ khi có Refund cổng `PREPAID` thành công. Ticket `PAY_LATER` hủy xong dừng ở `CANCELLED`.
 
 ## 6.6. Refund
 
