@@ -5,7 +5,7 @@
 - Tenant A/B có Bus, Driver, Route, Stop, Trip và role/membership tách biệt.
 - Customer A/B, active/locked/unverified users và session/challenge fixtures.
 - Trip ở mọi state, TripSeat AVAILABLE/HELD/BOOKED/DISABLED, SeatHold active/expired.
-- Booking/Payment/Ticket/Refund ở mọi state hợp lệ; provider signed/invalid/duplicate/late fixtures.
+- Booking/Payment/Ticket/Refund ở mọi state hợp lệ, gồm `PAY_LATER` `CONFIRMED` và `PREPAID` settlement COLLECTED/REFUNDED; provider signed/invalid/duplicate/late fixtures.
 - Promotion near quota boundary, Ticket USED/reviewed, Notification retry, stale Reporting projection.
 - Performance dataset ≥100,000 Trip với phân bố ngày/route/operator/price/seat gần thực tế, không chỉ dữ liệu đồng đều.
 
@@ -36,8 +36,8 @@ Mỗi test case có: ID/version, requirement/AC links, risk/priority, preconditi
 
 ## Final acceptance checklist
 
-- 28/28 UC mapped; 66 FR and every NFR MUST covered by suite/query.
-- MUST acceptance criteria pass; SHOULD scope decision recorded.
+- 28/28 UC mapped; 71 FR and every NFR MUST covered by suite/query.
+- MUST acceptance criteria (73) pass; SHOULD scope decision recorded.
 - Migration upgrade/rollback compatibility and backup restore evidence present.
 - Error code/OpenAPI/event catalog versions match deployed artifact.
 - No unresolved trace gap, secret leak or unowned DLQ/manual case.

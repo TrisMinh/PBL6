@@ -31,11 +31,12 @@ Giúp Customer tìm được Trip phù hợp, giữ ghế, tạo Booking, thanh 
 | 1 | Guest/Customer | Nhập điểm đi, điểm đến, ngày đi và số hành khách để tìm kiếm. | Danh sách Trip còn khả năng bán được hiển thị. |
 | 2 | Customer | Chọn Trip, xem sơ đồ ghế và chọn một hoặc nhiều ghế. | Các ghế được chọn tại client để gửi yêu cầu giữ chỗ. |
 | 3 | Hệ thống | Kiểm tra lại khả năng bán và giữ toàn bộ ghế trong một thao tác nguyên tử. | SeatHold `ACTIVE` được tạo; các TripSeat chuyển sang `HELD`. |
-| 4 | Customer/Hệ thống | Nhập Passenger, điểm đón/trả và Promotion nếu có; hệ thống tính lại giá và tạo Booking. | Booking `PENDING_PAYMENT` có tổng tiền chính thức được tạo từ SeatHold. |
-| 5 | Customer/Payment Gateway | Customer chọn phương thức và thực hiện thanh toán. | Payment được tạo và kết quả được gửi về hệ thống. |
-| 6 | Hệ thống | Xác minh provider, chữ ký, transaction ID, amount và currency. | Payment hợp lệ được ghi nhận `SUCCEEDED`. |
-| 7 | Hệ thống | Cập nhật Booking, TripSeat và phát hành Ticket theo cơ chế idempotent. | Booking `PAID`, TripSeat `BOOKED` và mỗi Booking Item có một Ticket `ISSUED`. |
-| 8 | Hệ thống/Notification Provider | Tạo Notification và cung cấp Ticket QR trên Web/Mobile. | Customer nhận hoặc truy cập được vé điện tử. |
+| 4 | Customer/Hệ thống | Nhập Passenger, điểm đón/trả; chọn `PREPAID` hoặc `PAY_LATER` (chỉ khi nhà xe bật trả sau); hệ thống tính lại giá và tạo Booking. | Booking `PENDING_PAYMENT` (trả trước) hoặc `CONFIRMED` (trả sau) được tạo từ SeatHold. |
+| 5a | Customer/Payment Gateway | `PREPAID`: Customer thanh toán qua cổng. | Payment được tạo; kết quả gửi về hệ thống. |
+| 5b | Hệ thống | `PAY_LATER`: không tạo Payment cổng; phát hành Ticket ngay, ghi kênh trên vé. | TripSeat `BOOKED`, mỗi item một Ticket `ISSUED` với `PAY_LATER`. |
+| 6 | Hệ thống | `PREPAID`: xác minh provider, chữ ký, transaction ID, amount và currency. | Payment hợp lệ `SUCCEEDED`. |
+| 7 | Hệ thống | `PREPAID`: cập nhật Booking, ghế, Ticket và bút toán phí sàn. | Booking `PAID`, ghế `BOOKED`, Ticket `ISSUED` `PREPAID`; settlement `COLLECTED`. |
+| 8 | Hệ thống/Notification Provider | Tạo Notification và cung cấp Ticket QR. | Customer xem được vé; vé ghi rõ trả trước hoặc trả khi lên xe. |
 
 ### Ngoại lệ quan trọng
 
@@ -44,9 +45,11 @@ Giúp Customer tìm được Trip phù hợp, giữ ghế, tạo Booking, thanh 
 | 1 | Không có Trip phù hợp. | Trả danh sách rỗng; không coi là lỗi hệ thống. |
 | 2 | Ghế không còn `AVAILABLE` hoặc SeatHold đã hết hạn. | Từ chối toàn bộ thao tác liên quan và giải phóng ghế hợp lệ; không giữ một phần. |
 | 3 | Passenger, điểm đón/trả, Promotion hoặc idempotency key không hợp lệ. | Không tạo tác động mới; trả lỗi tương ứng và luôn dùng giá do server tính. |
-| 4 | Payment chưa có kết quả cuối, webhook lặp hoặc dữ liệu xác minh không hợp lệ. | Giữ trạng thái phù hợp để truy vấn/đối soát; không xác nhận Booking hoặc tạo Ticket lặp. |
-| 5 | Payment thành công trễ nhưng ghế đã thuộc Booking khác. | Không chiếm lại ghế; tạo Refund bù trừ hoặc hồ sơ xử lý thủ công. |
-| 6 | Notification Provider lỗi. | Không rollback giao dịch đã hoàn tất; retry Notification theo policy. |
+| 4 | Nhà xe không bật trả sau nhưng client gửi `PAY_LATER`. | Từ chối; không consume hold. |
+| 5 | Payment chưa có kết quả cuối, webhook lặp hoặc dữ liệu xác minh không hợp lệ. | Chỉ áp `PREPAID`; không xác nhận Booking hoặc tạo Ticket lặp. |
+| 6 | Payment thành công trễ nhưng ghế đã thuộc Booking khác. | Không chiếm lại ghế; tạo Refund bù trừ hoặc hồ sơ xử lý thủ công. |
+| 7 | `PAY_LATER`: khách không lên xe. | Hủy quyền vé/chỗ theo cutoff; **không** Refund nền tảng; nhà xe chịu ghế trống. |
+| 8 | Notification Provider lỗi. | Không rollback giao dịch đã hoàn tất; retry Notification theo policy. |
 
 **Tham chiếu:** `UC-SEARCH-01`, `UC-BOOK-01..02`, `UC-PROMO-01`, `UC-PAY-01`, `UC-TICKET-01` và `UC-NOTIF-01`. Quy tắc liên quan: `BR-SEAT-*`, `BR-BOOK-*`, `BR-PAY-*` và `BR-TICKET-001`.
 
@@ -61,10 +64,10 @@ Thu hồi quyền sử dụng Ticket đủ điều kiện và hoàn đúng số 
 | Bước | Tác nhân | Xử lý | Kết quả |
 |---:|---|---|---|
 | 1 | Customer | Chọn một hoặc nhiều Ticket/Booking Item muốn hủy. | Yêu cầu xem trước việc hủy được tạo. |
-| 2 | Hệ thống | Kiểm tra ownership, trạng thái, giờ khởi hành và policy snapshot; tính phí và số tiền hoàn. | Preview hủy vé được hiển thị mà chưa thay đổi trạng thái. |
+| 2 | Hệ thống | Kiểm tra ownership, trạng thái, giờ khởi hành, `paymentChannel` và policy snapshot; tính phí và số tiền hoàn. | Preview: `PREPAID` có thể có refund; `PAY_LATER` refund nền tảng = 0. |
 | 3 | Customer | Xác nhận preview còn hiệu lực bằng command có idempotency key. | Yêu cầu hủy chính thức được gửi. |
 | 4 | Hệ thống | Kiểm tra lại điều kiện, chuyển Ticket sang `CANCELLED` và mở lại ghế nếu Trip còn bán. | Quyền sử dụng Ticket bị thu hồi; TripSeat trở về `AVAILABLE` khi phù hợp. |
-| 5 | Hệ thống/Payment Gateway | Tạo và xử lý Refund nếu số tiền hoàn lớn hơn 0. | Refund được theo dõi đến trạng thái cuối hoặc trạng thái cần retry. |
+| 5 | Hệ thống/Payment Gateway | Chỉ tạo Refund cổng khi Booking/Ticket là `PREPAID` đã thu và số hoàn > 0. | `PAY_LATER`: hủy chỗ/vé, không hoàn qua nền tảng. |
 | 6 | Hệ thống/Notification Provider | Gửi trạng thái Ticket và Refund. | Customer được thông báo về kết quả xử lý. |
 
 ### Ngoại lệ quan trọng
@@ -76,6 +79,7 @@ Thu hồi quyền sử dụng Ticket đủ điều kiện và hoàn đúng số 
 | 3 | Payment Gateway timeout hoặc Refund `FAILED`. | Giữ Ticket `CANCELLED`; retry Refund hoặc chuyển xử lý thủ công. |
 | 4 | Command lặp hoặc tổng Refund có nguy cơ vượt Payment thành công. | Trả cùng kết quả đối với command lặp; từ chối khoản hoàn vượt mức và tạo cảnh báo đối soát. |
 | 5 | Notification Provider lỗi. | Không rollback việc hủy/hoàn tiền; retry thông báo độc lập. |
+| 6 | Ticket `PAY_LATER` được hủy hoặc no-show. | Không tạo Payment/Refund cổng; nhà xe chịu ghế trống. |
 
 **Tham chiếu:** `UC-CANCEL-01` và `UC-NOTIF-01`. Quy tắc liên quan: `BR-CANCEL-*` và `BR-PAY-007..010`.
 
@@ -261,21 +265,23 @@ Các nhóm bên dưới là những luồng quản lý độc lập thuộc cùn
 |---|---|
 | BR-BOOK-001 | Chỉ Customer đã xác thực mới tạo SeatHold và Booking. |
 | BR-BOOK-002 | Một SeatHold chỉ được consume bởi tối đa một Booking. |
-| BR-BOOK-003 | Mỗi ghế trong Booking có đúng một Passenger và sau thanh toán có đúng một Ticket. |
+| BR-BOOK-003 | Mỗi ghế trong Booking có đúng một Passenger. Ticket được phát hành khi `PREPAID` đã `PAID` hoặc ngay khi Booking `PAY_LATER` chuyển `CONFIRMED`. |
 | BR-BOOK-004 | Giá được tính tại server từ fare, fee, discount và policy snapshot; giá client chỉ mang tính tham khảo. |
-| BR-BOOK-005 | Booking lưu đầy đủ subtotal, discount, fee, total, currency và phiên bản policy tại thời điểm xác nhận. |
+| BR-BOOK-005 | Booking lưu đầy đủ subtotal, discount, fee, total, currency, `paymentChannel` và phiên bản policy tại thời điểm xác nhận. |
 | BR-BOOK-006 | Tiền VND dùng số nguyên đồng hoặc decimal chính xác; không dùng float/double. |
-| BR-BOOK-007 | Booking PENDING_PAYMENT quá `expiresAt` kế thừa từ SeatHold mà chưa có Payment hợp lệ chuyển EXPIRED; tạo Booking không gia hạn thời gian giữ ghế. |
-| BR-BOOK-008 | Booking PAID không sửa trực tiếp Passenger/TripSeat; thay đổi phải qua quy trình đổi vé. |
+| BR-BOOK-007 | Booking `PREPAID` ở `PENDING_PAYMENT` quá `expiresAt` kế thừa từ SeatHold mà chưa có Payment hợp lệ chuyển `EXPIRED`; tạo Booking không gia hạn window giữ ghế. `PAY_LATER` không dùng cửa sổ thanh toán cổng. |
+| BR-BOOK-008 | Booking `PAID` hoặc `CONFIRMED` không sửa trực tiếp Passenger/TripSeat; thay đổi phải qua quy trình đổi vé. |
 | BR-BOOK-009 | Không cho đặt Trip đã DEPARTED hoặc trạng thái sau đó. |
 | BR-BOOK-010 | Tạo Booking phải có idempotency key; cùng key và payload trả cùng Booking, khác payload trả conflict. |
+| BR-BOOK-011 | `paymentChannel` chỉ `PREPAID` hoặc `PAY_LATER`. `PAY_LATER` chỉ khi Organization đang bật cho phép trả sau. Đây là nhãn hợp đồng lúc đặt, không phải timestamp thu tiền mặt. |
+| BR-BOOK-012 | `PAY_LATER`: consume hold, ghế `BOOKED`, phát Ticket ngay, Booking `CONFIRMED`; không tạo Payment cổng. |
 
 ## 3.12. Quy tắc Payment và Refund
 
 | ID | Quy tắc |
 |---|---|
-| BR-PAY-001 | Chỉ miền Payment giao tiếp với Payment Gateway và sở hữu trạng thái Payment/Refund. |
-| BR-PAY-002 | Booking chỉ chuyển PAID sau kết quả Payment thành công đã được xác minh. |
+| BR-PAY-001 | Chỉ miền Payment giao tiếp với Payment Gateway và sở hữu trạng thái Payment/Refund cổng, settlement phí sàn và payout nhà xe. |
+| BR-PAY-002 | Booking chỉ chuyển `PAID` sau kết quả Payment cổng thành công đã được xác minh. `PAY_LATER` không đi qua trạng thái `PAID`. |
 | BR-PAY-003 | Provider transaction/event ID phải duy nhất; webhook lặp không tạo tác động lần hai. |
 | BR-PAY-004 | Amount và currency phải khớp Payment intent; mismatch không được xác nhận Booking. |
 | BR-PAY-005 | Callback không có chữ ký hợp lệ bị từ chối và ghi security log an toàn. |
@@ -284,6 +290,10 @@ Các nhóm bên dưới là những luồng quản lý độc lập thuộc cùn
 | BR-PAY-008 | Refund có reason, nguồn yêu cầu và idempotency key. |
 | BR-PAY-009 | Không lưu PAN/CVV; chỉ lưu token/mã tham chiếu cần thiết. |
 | BR-PAY-010 | Client redirect không phải bằng chứng thanh toán; webhook/reconciliation mới là nguồn xác nhận. |
+| BR-PAY-011 | Nền tảng chỉ tạo Refund cổng cho Booking/Ticket `PREPAID` đã thu. `PAY_LATER` không hoàn qua nền tảng. |
+| BR-PAY-012 | Phí sàn (mặc định 10%, snapshot theo Organization lúc thu) chỉ tính trên khoản `PREPAID` `SUCCEEDED`. Không suy phí từ tiền mặt trên xe. |
+| BR-PAY-013 | Sau khi thu `PREPAID`: `commission_amount + operator_net = gross`; công nợ nhà xe = `operator_net`. Hoàn tiền phải đảo commission và payable tương ứng. |
+| BR-PAY-014 | `PAY_LATER` no-show: không Refund, phí sàn = 0; nhà xe chịu chỗ trống. |
 
 ## 3.13. Quy tắc hủy và đổi vé
 
@@ -309,13 +319,13 @@ Policy fee cụ thể, quy tắc làm tròn và dữ liệu Passenger/Booking co
 | BR-TRIP-003 | Driver chỉ cập nhật Trip được phân công và theo chuyển trạng thái cho phép. |
 | BR-TRIP-004 | Trip có Booking/Ticket không được hard delete; chỉ được cancel. |
 | BR-TRIP-005 | Thay đổi lịch/điểm sau khi bán vé phải tạo thông báo cho Customer bị ảnh hưởng. |
-| BR-TRIP-006 | Trip cancellation phải idempotent và tạo đúng một logical cancellation. |
+| BR-TRIP-007 | Operator có permission được bật/tắt cho phép trả sau trên Organization của mình. Tỷ lệ phí sàn do nền tảng snapshot; Operator không tự hạ phí về 0 qua API tenant. |
 
 ## 3.15. Quy tắc Ticket, Review, Tenant, dữ liệu và audit
 
 | ID | Quy tắc |
 |---|---|
-| BR-TICKET-001 | Ticket có public code khó đoán và QR token có chữ ký hoặc đủ ngẫu nhiên. |
+| BR-TICKET-001 | Ticket có public code khó đoán và QR token có chữ ký hoặc đủ ngẫu nhiên; snapshot `paymentChannel` để in vé. |
 | BR-TICKET-002 | Check-in chỉ hợp lệ cho đúng Trip và Ticket ISSUED. |
 | BR-TICKET-003 | Scan lặp trả kết quả đã check-in, không tạo check-in thứ hai. |
 | BR-TICKET-004 | Ticket đã check-in chuyển USED khi Trip hoàn tất theo policy. |

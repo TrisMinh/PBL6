@@ -11,6 +11,8 @@ erDiagram
         varchar legal_name
         varchar contact_email
         varchar status
+        boolean allow_pay_later
+        numeric commission_rate
         bigint row_version
         timestamptz created_at
         timestamptz updated_at
@@ -117,3 +119,4 @@ erDiagram
 - `arrival_at > departure_at`, fare không âm và currency hợp lệ.
 - Exclusion/transaction check ngăn lịch Bus và Driver chồng lấn theo buffer cấu hình.
 - Index search Trip bắt đầu từ route/điểm/ngày/status/sellable; tenant index luôn dẫn bằng `organization_id` cho back-office.
+- `allow_pay_later` mặc định false. `commission_rate` mặc định 0.10, `0..1`; Operator không đổi qua API tenant.

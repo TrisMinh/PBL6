@@ -14,4 +14,4 @@ Thư mục `docs/` chứa SRS cùng toàn bộ tài liệu kỹ thuật phục v
 - [Executable Contracts](./contracts/README.md): OpenAPI, AsyncAPI và JSON Schema active của MVP.
 - [Database Migration Baseline](./database/README.md): schema PostgreSQL nghiệp vụ cho sáu service.
 
-[SRS 2.0](./srs/v2/README.md) là nguồn quyết định cho yêu cầu và quy tắc nghiệp vụ. System/Detailed Design quyết định cách triển khai nhưng không được tự tạo thêm hành vi. Diagram dùng để giải thích trực quan và phải truy vết về requirement ID tương ứng.
+[SRS 2.0.1](./srs/v2/README.md) là nguồn quyết định cho yêu cầu và quy tắc nghiệp vụ. System/Detailed Design quyết định cách triển khai nhưng không được tự tạo thêm hành vi. Diagram dùng để giải thích trực quan và phải truy vết về requirement ID tương ứng.

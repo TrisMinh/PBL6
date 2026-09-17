@@ -7,8 +7,8 @@ Logical DB/schema: `identity_db`; ERD: [Identity](../../system-design/02-07-data
 | Table | PK | Unique/constraint chính | Index/query chính |
 |---|---|---|---|
 | `users` | `id` | partial unique normalized email/phone; status allow-list | identity lookup, status |
-| `roles` | `id` | `code` unique; scope platform/tenant | code |
-| `permissions` | `id` | `(resource,action)` unique | resource/action |
+| `roles` | `id` | `code` unique; `scope` in `PLATFORM`/`TENANT`/`OWN`; `description` là nhãn đọc được, không có cột `name` | code |
+| `permissions` | `id` | `code` unique; `(scope,resource,action)` unique | resource/action |
 | `user_roles` | `id` | active `(user,role,organization)` unique; tenant scope requires org | user, org |
 | `role_permissions` | composite | `(role_id,permission_id)` | role |
 | `organization_memberships` | `id` | active `(user,organization_external)` unique | user/org + status |

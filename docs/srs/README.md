@@ -4,7 +4,7 @@ Thư mục `docs/srs/` dành riêng cho đặc tả yêu cầu và các bản ph
 
 ## Baseline
 
-- [SRS 2.0 — Active baseline](./v2/README.md): nguồn quyết định hiện hành cho phạm vi, nghiệp vụ, yêu cầu, trạng thái và tiêu chí nghiệm thu.
+- [SRS 2.0.1 — Active baseline](./v2/README.md): nguồn quyết định hiện hành cho phạm vi, nghiệp vụ, yêu cầu, trạng thái và tiêu chí nghiệm thu.
 - [SRS 1.0 — Historical baseline](./v1/README.md): giữ nguyên để truy vết; không dùng để quyết định hành vi mới khi khác SRS 2.0.
 - [Lịch sử phiên bản](./CHANGELOG.md): quan hệ giữa baseline nội dung và các bản Word phát hành.
 - [Word SRS](./word/README.md): release, nguồn, tài liệu tham chiếu và snapshot cũ.

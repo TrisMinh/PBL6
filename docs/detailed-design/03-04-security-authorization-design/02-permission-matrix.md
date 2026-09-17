@@ -14,7 +14,7 @@ Permission code có dạng `<scope>.<resource>.<action>`. `platform.*` áp toàn
 | Manifest | — | — | Assigned Trip | Tenant + permission | Platform support only when justified |
 | Organization/Bus/Driver/Route | — | — | Assignment read | Tenant + resource permission | Platform organization management |
 | Trip create/publish/operate/cancel | — | — | Assigned transition permission | Tenant + permission | Platform override where approved |
-| Payment/Refund intervention | — | Own status only | — | Finance read in tenant | Explicit finance/reconcile permission |
+| Payment/Refund intervention | — | Own status only | — | Finance read in tenant (settlement) | Explicit finance/reconcile/payout permission |
 | User/role/membership | — | — | — | Limited tenant membership if approved | Platform permission |
 | Report/export | — | — | — | Tenant finance/report permission | Platform/scoped report permission |
 | Audit/support case | — | — | — | Tenant support permission | Platform support/audit permission |
@@ -29,11 +29,11 @@ Mỗi code dưới đây là một permission nguyên tử; ký hiệu kiểu `r
 | Tenant schedule | `tenant.route.read`, `tenant.route.manage`, `tenant.trip.read`, `tenant.trip.manage`, `tenant.trip.publish`, `tenant.trip.operate`, `tenant.trip.cancel` |
 | Booking operations | `tenant.booking.read`, `tenant.manifest.read`, `tenant.ticket.validate`, `tenant.ticket.checkin` |
 | Content/support | `tenant.promotion.read`, `tenant.promotion.manage`, `tenant.review.moderate`, `tenant.support.read`, `tenant.support.manage` |
-| Tenant finance | `tenant.payment.read`, `tenant.refund.read`, `tenant.refund.request` |
+| Tenant finance | `tenant.payment.read` (kèm list settlement tenant), `tenant.refund.read`, `tenant.refund.request` |
 | Report | `report.revenue.read`, `report.revenue.export`, `report.booking.read`, `report.booking.export`, `report.occupancy.read`, `report.occupancy.export` |
 | Platform identity/organization | `platform.organization.read`, `platform.organization.manage`, `platform.user.read`, `platform.user.manage`, `platform.role.manage`, `platform.membership.read`, `platform.membership.manage` |
 | Platform content/support | `platform.review.moderate`, `platform.support.read`, `platform.support.manage` |
-| Platform finance | `platform.payment.read`, `platform.payment.manage`, `platform.refund.read`, `platform.refund.request`, `platform.payment.reconcile` |
+| Platform finance | `platform.payment.read`, `platform.payment.manage` (kèm payout), `platform.refund.read`, `platform.refund.request`, `platform.payment.reconcile` |
 | Platform security/operations | `platform.audit.read`, `platform.dlq.replay` |
 
 ## Separation of duties

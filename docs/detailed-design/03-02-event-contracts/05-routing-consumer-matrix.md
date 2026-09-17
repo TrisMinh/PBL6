@@ -7,7 +7,7 @@
 | Booking | `booking.trip-events.q` | events: `transport.trip.*.v1` |
 | Booking | `booking.payment-events.q` | events: `payment.payment.*.v1`, `payment.refund.*.v1` |
 | Transport | `transport.inventory-events.q` | events: `booking.trip-inventory.ready.v1` |
-| Payment | `payment.refund-requests.q` | events: `booking.booking.cancelled.v1`, `booking.refund.requested.v1`; commands: `booking.payment.compensation-requested.v1` |
+| Payment | `payment.refund-requests.q` | events: `booking.booking.created.v1`, `booking.booking.cancelled.v1`, `booking.refund.requested.v1`; commands: `booking.payment.compensation-requested.v1` |
 | Notification | `notification.integration-events.q` | explicit User/Trip/Booking/Ticket/Payment/Refund notification events |
 | Notification | `notification.commands.q` | commands: `notification.delivery.send.v1` |
 | Reporting | `reporting.integration-events.q` | explicit 20 message trong AsyncAPI MVP cần cho projection; không bind `#` |
@@ -23,8 +23,8 @@
 | TripCancelled | Close/cancel affected | — | — | Notify affected Customer | Cancellation projection |
 | TripInventoryReady | — | Mark sellable | — | — | Optional readiness metric |
 | SeatHoldCreated/Expired | — | — | — | — | Funnel/occupancy projection |
-| BookingCreated | — | — | Optional payment snapshot | — | Booking projection |
-| PaymentSucceeded | Confirm Booking/Ticket | — | — | — | Payment projection |
+| BookingCreated | — | — | Optional payment snapshot; `paymentChannel` | — | Booking projection; Payment tạo settlement `PAY_LATER` commission 0 |
+| PaymentSucceeded | Confirm Booking/Ticket | — | Accrue settlement commission/payable | — | Revenue projection (gross + commission) |
 | PaymentFailed | Keep non-PAID | — | — | Notify Customer | Payment projection |
 | BookingPaid | — | — | — | Confirmation | Revenue/booking projection |
 | TicketIssued/Changed | — | — | — | Deliver Ticket/change | Ticket projection |

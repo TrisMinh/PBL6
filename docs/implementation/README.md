@@ -1,6 +1,6 @@
 # Implementation Baseline
 
-Tài liệu này là cầu nối từ SRS/System Design/Detailed Design sang code. SRS 2.0 quyết định hành vi; ADR quyết định kiến trúc/công nghệ; contract và migration quyết định bề mặt tích hợp có thể kiểm thử.
+Tài liệu này là cầu nối từ SRS/System Design/Detailed Design sang code. SRS 2.0.1 quyết định hành vi; ADR quyết định kiến trúc/công nghệ; contract và migration quyết định bề mặt tích hợp có thể kiểm thử.
 
 ## Baseline
 
@@ -30,7 +30,7 @@ Tài liệu này là cầu nối từ SRS/System Design/Detailed Design sang cod
 
 ## Thứ tự ưu tiên khi có mâu thuẫn
 
-1. SRS 2.0 requirement/Business Rule/state/Acceptance Criteria.
+1. SRS 2.0.1 requirement/Business Rule/state/Acceptance Criteria.
 2. ADR `Accepted`.
 3. OpenAPI/JSON Schema và migration đã pass compatibility test.
 4. Detailed Design.

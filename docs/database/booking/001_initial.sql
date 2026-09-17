@@ -108,6 +108,7 @@ create table bookings (
   contact_name varchar(150) not null,
   contact_email varchar(254) not null,
   contact_phone varchar(20) not null,
+  payment_channel varchar(20) not null,
   status varchar(30) not null,
   subtotal_amount bigint not null check (subtotal_amount >= 0),
   discount_amount bigint not null default 0 check (discount_amount >= 0),
@@ -126,7 +127,8 @@ create table bookings (
   row_version bigint not null default 0,
   constraint uq_bookings_code unique (booking_code),
   constraint uq_bookings_hold unique (seat_hold_id),
-  constraint ck_bookings_status check (status in ('PENDING_PAYMENT','PAID','EXPIRED','CANCELLED','REFUND_PENDING','REFUNDED','COMPLETED')),
+  constraint ck_bookings_payment_channel check (payment_channel in ('PREPAID','PAY_LATER')),
+  constraint ck_bookings_status check (status in ('PENDING_PAYMENT','CONFIRMED','PAID','EXPIRED','CANCELLED','REFUND_PENDING','REFUNDED','COMPLETED')),
   constraint ck_bookings_currency check (currency ~ '^[A-Z]{3}$'),
   constraint ck_bookings_total check (
     discount_amount <= subtotal_amount
@@ -137,12 +139,17 @@ create table bookings (
     and coalesce(refund_amount, 0) <= total_amount
     and coalesce(cancellation_fee, 0) + coalesce(refund_amount, 0) <= total_amount
   ),
+  constraint ck_bookings_channel_status check (
+    (payment_channel = 'PREPAID' and status in ('PENDING_PAYMENT','PAID','EXPIRED','CANCELLED','REFUND_PENDING','REFUNDED','COMPLETED'))
+    or (payment_channel = 'PAY_LATER' and status in ('CONFIRMED','CANCELLED','COMPLETED'))
+  ),
   constraint ck_bookings_terminal_time check (
     (status = 'PAID' and paid_at is not null and cancelled_at is null) or
+    (status = 'CONFIRMED' and paid_at is null and cancelled_at is null) or
     (status = 'CANCELLED' and cancelled_at is not null) or
     (status = 'REFUND_PENDING' and paid_at is not null and cancelled_at is not null and refunded_at is null) or
     (status = 'REFUNDED' and paid_at is not null and cancelled_at is not null and refunded_at is not null) or
-    (status = 'COMPLETED' and paid_at is not null and completed_at is not null) or
+    (status = 'COMPLETED' and completed_at is not null) or
     (status in ('PENDING_PAYMENT','EXPIRED') and paid_at is null and cancelled_at is null)
   )
 );
@@ -197,6 +204,7 @@ create table tickets (
   booking_item_id uuid not null references booking_items(id),
   public_code varchar(32) not null,
   qr_token_hash varchar(128) not null,
+  payment_channel varchar(20) not null,
   status varchar(30) not null,
   issued_at timestamptz not null,
   checked_in_at timestamptz,
@@ -208,7 +216,11 @@ create table tickets (
   constraint uq_tickets_booking_item unique (booking_item_id),
   constraint uq_tickets_public_code unique (public_code),
   constraint uq_tickets_qr_hash unique (qr_token_hash),
+  constraint ck_tickets_payment_channel check (payment_channel in ('PREPAID','PAY_LATER')),
   constraint ck_tickets_status check (status in ('ISSUED','CHECKED_IN','USED','CANCELLED','REFUNDED')),
+  constraint ck_tickets_refund_channel check (
+    payment_channel = 'PREPAID' or status <> 'REFUNDED'
+  ),
   constraint ck_tickets_state_time check (
     (status = 'ISSUED' and checked_in_at is null and used_at is null and cancelled_at is null and refunded_at is null) or
     (status = 'CHECKED_IN' and checked_in_at is not null and used_at is null and cancelled_at is null and refunded_at is null) or

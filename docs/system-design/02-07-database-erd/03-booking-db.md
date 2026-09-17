@@ -57,6 +57,7 @@ erDiagram
         uuid customer_id_external
         uuid trip_id FK
         varchar status
+        varchar payment_channel
         numeric subtotal
         numeric discount
         numeric fee
@@ -91,6 +92,7 @@ erDiagram
         uuid booking_item_id FK,UK
         varchar public_code UK
         varchar qr_token_hash UK
+        varchar payment_channel
         varchar status
         timestamptz checked_in_at
         timestamptz issued_at
@@ -181,7 +183,7 @@ erDiagram
 - `UNIQUE(trip_id, source_seat_id_external)` và `UNIQUE(trip_id, seat_code)` cho TripSeat.
 - Partial unique/locking bảo đảm tối đa một hold ACTIVE hoặc một Ticket hiệu lực trên TripSeat; state transition vẫn phải nằm trong transaction.
 - `UNIQUE(seat_hold_id, trip_seat_id)` trên item; `BOOKINGS.seat_hold_id` unique bảo đảm một SeatHold chỉ tạo tối đa một Booking.
-- Booking Item, Passenger và Ticket có quan hệ 1–1 theo unique constraint; Booking `PAID` phải có đủ Ticket.
+- Booking Item, Passenger và Ticket có quan hệ 1–1 theo unique constraint; Booking `PAID` hoặc `CONFIRMED` phải có đủ Ticket.
 - `UNIQUE(scope, organization_id_external, code)` cho Promotion; redemption unique theo Promotion/Booking và quota được cập nhật có concurrency guard.
 - Check constraint: rating `1..5`, mọi money không âm và `total_amount = subtotal - discount + fee` theo quy tắc làm tròn đã cấu hình.
 - SupportCase đóng bắt buộc `resolution`; state/version guard áp dụng cho assign/transition và history append-only.

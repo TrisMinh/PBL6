@@ -38,35 +38,39 @@ Mỗi FR dưới đây mô tả một hành vi quan sát được. Luồng và n
 | FR-BOOK-002 | MUST | Customer có thể yêu cầu giữ một hoặc nhiều ghế; hệ thống phải giữ toàn bộ hoặc không giữ ghế nào, sau đó trả hold token, thời điểm hết hạn và giá snapshot. | UC-BOOK-01 |
 | FR-BOOK-003 | MUST | Hệ thống từ chối toàn bộ yêu cầu nếu bất kỳ ghế nào không còn khả dụng tại thời điểm commit. | UC-BOOK-01 |
 | FR-BOOK-004 | MUST | Customer nhập một Passenger cho mỗi ghế; các trường bắt buộc được kiểm tra theo policy của Trip. | UC-BOOK-01 |
-| FR-BOOK-005 | MUST | Customer có thể tạo đúng một Booking từ SeatHold còn hiệu lực; thao tác hỗ trợ idempotency. | UC-BOOK-01 |
+| FR-BOOK-005 | MUST | Customer có thể tạo đúng một Booking từ SeatHold còn hiệu lực, chọn `PREPAID` hoặc `PAY_LATER` khi nhà xe cho phép; thao tác hỗ trợ idempotency. | UC-BOOK-01 |
 | FR-BOOK-006 | MUST | Backend tự tính subtotal, discount, fee và total; client không được quyết định tổng tiền. | UC-BOOK-01 |
-| FR-BOOK-007 | MUST | SeatHold/Booking chưa thanh toán hết hạn được chuyển trạng thái và giải phóng ghế tự động. | UC-BOOK-01 |
+| FR-BOOK-007 | MUST | SeatHold/Booking `PREPAID` chưa thanh toán hết hạn được chuyển trạng thái và giải phóng ghế tự động. | UC-BOOK-01 |
 | FR-BOOK-008 | MUST | Customer có thể xem Booking/Ticket sắp đi, đã dùng, bị hủy hoặc hoàn tiền của chính mình. | UC-BOOK-02 |
-| FR-BOOK-009 | MUST | Customer có thể hủy toàn Booking hoặc Ticket đủ điều kiện; hệ thống hiển thị phí và số tiền hoàn trước khi xác nhận. | UC-CANCEL-01 |
+| FR-BOOK-009 | MUST | Customer có thể hủy toàn Booking hoặc Ticket đủ điều kiện; preview phải ghi rõ số hoàn (0 nếu `PAY_LATER`). | UC-CANCEL-01 |
 | FR-BOOK-010 | SHOULD | Customer có thể đổi ngày/Trip/ghế theo policy; hệ thống xử lý chênh lệch giá và không làm mất Ticket cũ trước khi giữ được ghế mới. | UC-CHANGE-01 |
 | FR-BOOK-011 | MUST | Operator có thể tra cứu Booking/manifest trong tenant và không được xem Booking của tenant khác. | UC-OPS-06 |
+| FR-BOOK-012 | MUST | Khi `PAY_LATER` hợp lệ, hệ thống phát hành Ticket ngay, ghế `BOOKED`, Booking `CONFIRMED`; không tạo Payment cổng. | UC-BOOK-01 |
 
 ## 5.4. Payment và Refund
 
 | ID | Mức | Yêu cầu | Use Case |
 |---|---|---|---|
-| FR-PAY-001 | MUST | Customer có thể tạo Payment intent cho Booking PENDING_PAYMENT còn hiệu lực. | UC-PAY-01 |
+| FR-PAY-001 | MUST | Customer có thể tạo Payment intent cho Booking `PREPAID` `PENDING_PAYMENT` còn hiệu lực. | UC-PAY-01 |
 | FR-PAY-002 | MUST | Hệ thống gửi request đến provider với mã tham chiếu duy nhất, amount, currency và callback URL. | UC-PAY-01 |
 | FR-PAY-003 | MUST | Hệ thống xác minh chữ ký, provider, transaction ID, amount và currency trước khi chấp nhận webhook. | UC-PAY-01 |
 | FR-PAY-004 | MUST | Webhook lặp không được tạo thêm Payment, Ticket hoặc thay đổi trạng thái lần thứ hai. | UC-PAY-01 |
 | FR-PAY-005 | MUST | Khi Payment hợp lệ thành công, hệ thống phải hội tụ Booking, ghế và Ticket nhất quán qua workflow bền vững; trong thời gian hội tụ client thấy trạng thái `CONFIRMING`, không thấy dữ liệu xác nhận một phần như Ticket thiếu hoặc ghế bị bán lại. | UC-PAY-01 |
 | FR-PAY-006 | MUST | Payment thất bại/hủy không được chuyển Booking sang PAID; ghế được giữ đến hết hạn hoặc giải phóng theo rule. | UC-PAY-01 |
 | FR-PAY-007 | MUST | Payment thành công trễ nhưng Booking không thể xác nhận phải tạo compensation Refund hoặc case xử lý thủ công. | UC-PAY-01 |
-| FR-PAY-008 | MUST | Hệ thống tạo và theo dõi Refund; refund request lặp phải idempotent. | UC-CANCEL-01 |
-| FR-PAY-009 | MUST | Admin/Operator Finance có thể tra cứu Payment/Refund theo phạm vi quyền và mã giao dịch. | UC-ADMIN-02 |
+| FR-PAY-008 | MUST | Hệ thống tạo và theo dõi Refund cổng; refund request lặp phải idempotent; từ chối Refund nếu không có Payment `SUCCEEDED`. | UC-CANCEL-01 |
+| FR-PAY-009 | MUST | Admin/Operator Finance có thể tra cứu Payment/Refund/settlement theo phạm vi quyền và mã giao dịch. | UC-ADMIN-02 |
 | FR-PAY-010 | SHOULD | Hệ thống hỗ trợ job đối soát transaction chưa có kết quả cuối. | UC-ADMIN-02 |
+| FR-PAY-011 | MUST | Nền tảng chỉ hoàn tiền các khoản đã thu `PREPAID`; `PAY_LATER` không hoàn qua cổng. | UC-CANCEL-01 |
+| FR-PAY-012 | MUST | Khi Payment `PREPAID` thành công, hệ thống chốt phí sàn (snapshot tỷ lệ Organization, mặc định 10%) và công nợ nhà xe = gross − commission. | UC-PAY-01, UC-REPORT-01 |
+| FR-PAY-013 | MUST | Operator Finance/Admin xem được settlement/payout; hoàn `PREPAID` đảo commission và payable. | UC-ADMIN-02, UC-REPORT-01 |
 
 ## 5.5. Ticket và check-in
 
 | ID | Mức | Yêu cầu | Use Case |
 |---|---|---|---|
-| FR-TICKET-001 | MUST | Mỗi Passenger/TripSeat của Booking PAID có đúng một Ticket được phát hành. | UC-PAY-01 |
-| FR-TICKET-002 | MUST | Ticket hiển thị mã vé, Passenger, nhà xe, Trip, điểm đón/trả, ghế, giá snapshot, trạng thái và QR. | UC-TICKET-01 |
+| FR-TICKET-001 | MUST | Mỗi Booking Item có đúng một Ticket khi Booking `PAID` (`PREPAID`) hoặc `CONFIRMED` (`PAY_LATER`). Vé hiển thị kênh thanh toán. | UC-PAY-01, UC-BOOK-01 |
+| FR-TICKET-002 | MUST | Ticket hiển thị mã vé, Passenger, nhà xe, Trip, điểm đón/trả, ghế, giá snapshot, `paymentChannel`, trạng thái và QR. | UC-TICKET-01 |
 | FR-TICKET-003 | MUST | QR chứa token đủ ngẫu nhiên hoặc có chữ ký; không chứa PII dạng rõ không cần thiết. | UC-TICKET-01 |
 | FR-TICKET-004 | MUST | Driver/Operator được phân quyền có thể scan hoặc nhập mã để kiểm tra Ticket. | UC-DRIVER-01 |
 | FR-TICKET-005 | MUST | Check-in là idempotent; Ticket đã hủy/refund/sai Trip phải bị từ chối với lý do rõ ràng. | UC-DRIVER-01 |
@@ -76,14 +80,15 @@ Mỗi FR dưới đây mô tả một hành vi quan sát được. Luồng và n
 
 | ID | Mức | Yêu cầu | Use Case |
 |---|---|---|---|
-| FR-OPS-001 | MUST | Operator Staff có permission phù hợp có thể cập nhật thông tin Organization của mình. | UC-OPS-01 |
+| FR-OPS-001 | MUST | Operator Staff có permission phù hợp có thể cập nhật thông tin Organization của mình, gồm bật/tắt cho phép trả sau. | UC-OPS-01 |
+| FR-OPS-011 | MUST | Tỷ lệ phí sàn thuộc nền tảng; Operator không đổi commission qua API tenant. | UC-OPS-01, UC-ADMIN-01 |
 | FR-OPS-002 | MUST | Operator có thể tạo/cập nhật/deactivate Bus và sơ đồ ghế; biển số duy nhất trong phạm vi phù hợp. | UC-OPS-02 |
 | FR-OPS-003 | MUST | Operator có thể tạo/cập nhật/deactivate DriverProfile và kiểm tra ngày hết hạn giấy phép. | UC-OPS-03 |
 | FR-OPS-004 | MUST | Operator có thể quản lý Route, Stop, thứ tự dừng và thời gian dự kiến. | UC-OPS-04 |
 | FR-OPS-005 | MUST | Operator có thể tạo draft Trip, phân Bus/Driver, định giá và publish. | UC-OPS-05 |
 | FR-OPS-006 | MUST | Khi publish, hệ thống kiểm tra xung đột lịch Bus/Driver và tạo snapshot ghế trước khi mở bán. | UC-OPS-05 |
 | FR-OPS-007 | MUST | Operator/Driver được phép có thể chuyển trạng thái Trip theo quy tắc chuyển trạng thái hợp lệ. | UC-OPS-06 |
-| FR-OPS-008 | MUST | Hủy Trip có Ticket đã bán phải khởi tạo xử lý hủy vé, Refund và Notification. | UC-TRIP-01 |
+| FR-OPS-008 | MUST | Hủy Trip có Ticket đã bán phải vô hiệu vé, thông báo khách, và chỉ tạo Refund cổng cho khoản `PREPAID` đã thu. | UC-TRIP-01 |
 | FR-OPS-009 | MUST | Dữ liệu Bus/Driver/Route đã được tham chiếu không được hard delete. | UC-OPS-02..04 |
 | FR-OPS-010 | MUST | Driver xem được assignment và manifest tối thiểu của Trip được phân công. | UC-OPS-06, UC-DRIVER-01 |
 
@@ -95,7 +100,7 @@ Mỗi FR dưới đây mô tả một hành vi quan sát được. Luồng và n
 | FR-PROMO-002 | SHOULD | Hệ thống kiểm tra Promotion ở server, ngăn vượt quota và lưu discount snapshot. | UC-PROMO-01 |
 | FR-REVIEW-001 | SHOULD | Customer chỉ có thể tạo một Review cho Ticket đã USED; có thể cập nhật trong thời hạn cấu hình. | UC-REVIEW-01 |
 | FR-REVIEW-002 | SHOULD | Admin/Operator có thể ẩn Review vi phạm và lưu reason/audit. | UC-REVIEW-02 |
-| FR-NOTIF-001 | MUST | Hệ thống tạo Notification cho Booking paid, Ticket issued/changed, Payment failed, Trip changed/cancelled, Booking cancelled và Refund completed. | UC-NOTIF-01 và UC phát sinh sự kiện |
+| FR-NOTIF-001 | MUST | Hệ thống tạo Notification cho Booking paid/`CONFIRMED`, Ticket issued/changed, Payment failed, Trip changed/cancelled, Booking cancelled và Refund completed. | UC-NOTIF-01 và UC phát sinh sự kiện |
 | FR-NOTIF-002 | MUST | Notification lỗi được retry có giới hạn và không làm rollback giao dịch đã commit. | UC-NOTIF-01 |
 | FR-NOTIF-003 | SHOULD | User có thể cấu hình kênh nhận thông báo không bắt buộc; thông báo giao dịch thiết yếu không được tắt hoàn toàn. | UC-NOTIF-01 |
 
@@ -106,12 +111,12 @@ Mỗi FR dưới đây mô tả một hành vi quan sát được. Luồng và n
 | FR-ADMIN-001 | MUST | Admin quản lý Organization, User, role, trạng thái tài khoản và tenant membership. | UC-ADMIN-01 |
 | FR-ADMIN-002 | MUST | Admin tra cứu Booking, Payment, Refund và audit bằng ID/mã giao dịch nhưng không được sửa lịch sử bất biến. | UC-ADMIN-02 |
 | FR-ADMIN-003 | SHOULD | Admin quản lý khiếu nại với trạng thái, người xử lý và kết quả. | UC-ADMIN-03 |
-| FR-REPORT-001 | MUST | Admin xem gross/net revenue, Booking, Refund và occupancy theo khoảng thời gian. | UC-REPORT-01 |
+| FR-REPORT-001 | MUST | Admin xem gross/net revenue, phí sàn, Booking, Refund và occupancy theo khoảng thời gian. Net nhà xe trên tiền `PREPAID` đã thu không gồm tiền mặt trả sau. | UC-REPORT-01 |
 | FR-REPORT-002 | MUST | Operator xem báo cáo giới hạn theo tenant; định nghĩa metric và timezone phải hiển thị. | UC-REPORT-01 |
 | FR-REPORT-003 | SHOULD | Người có quyền có thể export CSV; export lớn chạy bất đồng bộ. | UC-REPORT-01 |
 
 ## 5.9. Kiểm tra độ phủ
 
-Chương này có 66 FR: 56 `MUST` và 10 `SHOULD`. Mỗi nhóm đã có Use Case tương ứng; truy vết tới Business Rule và Acceptance Criteria được hoàn thiện tại [Chương 10](./10-nghiem-thu-va-truy-vet.md).
+Chương này có 71 FR: 61 `MUST` và 10 `SHOULD`. Mỗi nhóm đã có Use Case tương ứng; truy vết tới Business Rule và Acceptance Criteria được hoàn thiện tại [Chương 10](./10-nghiem-thu-va-truy-vet.md).
 
 [← Chương 4](./04-use-cases/README.md) · [Mục lục](./README.md) · [Chương 6 →](./06-yeu-cau-trang-thai.md)

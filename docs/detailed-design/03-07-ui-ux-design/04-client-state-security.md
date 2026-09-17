@@ -38,6 +38,7 @@
 ## Payment state projection
 
 ```text
+PAY_LATER Booking CONFIRMED + tickets complete → UI SUCCESS
 Payment PENDING/PROCESSING          → UI PROCESSING
 Payment SUCCEEDED + Booking pending → UI CONFIRMING
 Booking PAID + tickets complete     → UI SUCCESS
@@ -45,7 +46,7 @@ Payment final FAILED/CANCELLED      → UI FAILED/CANCELLED
 Convergence vượt p99/manual case    → UI NEEDS_SUPPORT
 ```
 
-Client chỉ hiển thị SUCCESS khi Booking `PAID` và ticket count khớp item count. Không hiển thị QR từ dữ liệu một phần.
+Client chỉ hiển thị SUCCESS khi Booking `PAID` hoặc `CONFIRMED` và ticket count khớp item count. Không hiển thị QR từ dữ liệu một phần.
 
 ## Offline/mobile
 

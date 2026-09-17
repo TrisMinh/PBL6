@@ -6,7 +6,7 @@
 |---|---|
 | Redirect/deep link | Không đổi final state; client GET Payment |
 | Provider request timeout | Giữ `PROCESSING`; chờ webhook/reconcile |
-| Verified success, amount/currency match | `SUCCEEDED` + Outbox once |
+| Verified success, amount/currency match | `SUCCEEDED` + Outbox once; chốt settlement `COLLECTED` (commission snapshot + operator payable) |
 | Verified final failure | `FAILED` nếu state permits |
 | Invalid signature/replay mismatch | Reject, metric/audit; không business success |
 | Duplicate verified event | Idempotent 2xx after persisted result lookup |

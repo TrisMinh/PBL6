@@ -35,4 +35,5 @@ flowchart TB
 - Preview không thay đổi trạng thái và phải được kiểm tra lại khi xác nhận.
 - Refund thất bại không khôi phục quyền sử dụng Ticket.
 - Tổng Refund thành công không vượt Payment đã thành công.
+- `PAY_LATER` và preview hoàn = 0 không tạo Refund cổng.
 

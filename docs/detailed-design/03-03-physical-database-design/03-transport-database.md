@@ -6,7 +6,7 @@ Logical DB/schema: `transport_db`; ERD: [Transport](../../system-design/02-07-da
 
 | Table | Unique/check chính | Index chính |
 |---|---|---|
-| `organizations` | code unique, status | status/code |
+| `organizations` | code unique, status; `allow_pay_later`; `commission_rate` 0..1 default 0.10 | status/code |
 | `buses` | active `(organization_id,normalized_plate_number)` | tenant/status |
 | `seats` | `(bus_id,code)`, coordinates/layout valid | bus/order |
 | `driver_profiles` | `(organization_id,license_number)`, expiry/status | tenant/user external/status |

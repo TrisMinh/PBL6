@@ -147,3 +147,81 @@ create unique index uq_reconciliation_open_discrepancy
   on reconciliation_cases (provider, discrepancy_key)
   where status in ('OPEN','INVESTIGATING');
 create index ix_reconciliation_cases_status on reconciliation_cases (status, opened_at, severity);
+
+create table booking_settlements (
+  id uuid primary key,
+  booking_id_external uuid not null,
+  organization_id_external uuid not null,
+  payment_id uuid references payments(id),
+  payment_channel varchar(20) not null,
+  gross_amount bigint not null check (gross_amount >= 0),
+  commission_rate numeric(5,4) not null,
+  commission_amount bigint not null check (commission_amount >= 0),
+  operator_net bigint not null,
+  currency char(3) not null,
+  collection_status varchar(30) not null,
+  created_at timestamptz not null,
+  updated_at timestamptz not null,
+  row_version bigint not null default 0,
+  constraint uq_settlement_booking unique (booking_id_external),
+  constraint ck_settlement_channel check (payment_channel in ('PREPAID','PAY_LATER')),
+  constraint ck_settlement_status check (collection_status in ('UNCOLLECTED','COLLECTED','REFUNDED','NOSHOW_WRITTEN_OFF')),
+  constraint ck_settlement_currency check (currency ~ '^[A-Z]{3}$'),
+  constraint ck_settlement_rate check (commission_rate >= 0 and commission_rate <= 1),
+  constraint ck_settlement_split check (commission_amount + operator_net = gross_amount),
+  constraint ck_settlement_channel_money check (
+    (payment_channel = 'PREPAID' and (
+      (collection_status = 'COLLECTED' and payment_id is not null)
+      or (collection_status = 'REFUNDED' and payment_id is not null)
+      or (collection_status = 'UNCOLLECTED' and payment_id is null and commission_amount = 0)
+    ))
+    or (payment_channel = 'PAY_LATER' and payment_id is null and commission_amount = 0
+        and collection_status in ('UNCOLLECTED','NOSHOW_WRITTEN_OFF'))
+  )
+);
+
+create index ix_settlements_org_status on booking_settlements (organization_id_external, collection_status, created_at desc);
+
+create table ledger_entries (
+  id uuid primary key,
+  settlement_id uuid not null references booking_settlements(id),
+  organization_id_external uuid not null,
+  booking_id_external uuid not null,
+  payment_id uuid references payments(id),
+  entry_type varchar(40) not null,
+  amount bigint not null,
+  currency char(3) not null,
+  correlation_id uuid not null,
+  occurred_at timestamptz not null,
+  constraint ck_ledger_currency check (currency ~ '^[A-Z]{3}$'),
+  constraint ck_ledger_type check (entry_type in (
+    'GATEWAY_CAPTURE','COMMISSION_ACCRUED','OPERATOR_PAYABLE',
+    'REFUND_CUSTOMER','COMMISSION_REVERSED','OPERATOR_PAYABLE_REVERSED',
+    'PAY_LATER_ISSUED','NOSHOW_WRITTEN_OFF'
+  ))
+);
+
+create index ix_ledger_org_time on ledger_entries (organization_id_external, occurred_at desc);
+create index ix_ledger_settlement on ledger_entries (settlement_id, occurred_at);
+
+create table operator_payouts (
+  id uuid primary key,
+  organization_id_external uuid not null,
+  period_start date not null,
+  period_end date not null,
+  currency char(3) not null,
+  payable_amount bigint not null,
+  status varchar(20) not null,
+  transferred_at timestamptz,
+  created_at timestamptz not null,
+  updated_at timestamptz not null,
+  row_version bigint not null default 0,
+  constraint ck_payout_currency check (currency ~ '^[A-Z]{3}$'),
+  constraint ck_payout_status check (status in ('PENDING','SENT','FAILED')),
+  constraint ck_payout_period check (period_end >= period_start),
+  constraint ck_payout_sent_time check (
+    (status = 'SENT' and transferred_at is not null) or (status <> 'SENT' and transferred_at is null)
+  )
+);
+
+create index ix_payouts_org_period on operator_payouts (organization_id_external, period_end desc);

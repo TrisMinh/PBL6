@@ -15,7 +15,7 @@
 | SCHEDULE_CONFLICT | 409 | Bus/Driver trùng lịch | Trả xung đột trong scope. |
 | SEAT_UNAVAILABLE | 409 | Ghế không còn AVAILABLE | Trả seat code bị ảnh hưởng. |
 | SEAT_HOLD_EXPIRED | 410 | SeatHold hết hạn | Yêu cầu giữ lại ghế. |
-| BOOKING_EXPIRED | 410 | Booking hết hạn thanh toán | Không tạo Payment mới. |
+| PAY_LATER_NOT_ALLOWED | 409 | Nhà xe không bật trả sau | Không tạo Booking `PAY_LATER`. |
 | PAYMENT_PROCESSING | 202 | Chưa có kết quả cuối | Client chờ/polling có backoff. |
 | PAYMENT_VERIFICATION_FAILED | 422 | Webhook không hợp lệ/mismatch | Không xác nhận Booking; tạo log/case. |
 | CANCELLATION_NOT_ALLOWED | 422 | Không thỏa policy | Trả lý do và policy snapshot. |
@@ -81,9 +81,9 @@ Các nội dung dưới đây hữu ích cho thiết kế nhưng không phải n
 | Backend | C# target .NET 8 (`net8.0`) cho toàn bộ API, Worker, Gateway, class library và test project; dùng ASP.NET Core Web API, EF Core và YARP Gateway. | Accepted, cập nhật 2026-09-10 |
 | Web | Customer Web và Back-office dùng React 19.2 + TypeScript/Vite trên Node.js 24 LTS và npm workspaces; tách application nhưng dùng chung package UI/tooling thuần kỹ thuật. | Accepted |
 | Mobile | React Native 0.87 stable + TypeScript; dùng cùng OpenAPI, error code và state semantics với Web. | Accepted |
-| Payment | Adapter port thống nhất; provider tích hợp MVP là VNPay Sandbox. CI/local dùng provider simulator có signed webhook deterministic. | Accepted |
+| Payment | Adapter port thống nhất; provider MVP là VNPay Sandbox cho `PREPAID`. `PAY_LATER` không đi qua cổng. Phí sàn mặc định 10% snapshot trên Organization, chỉ trừ khi thu `PREPAID`. | Accepted, cập nhật 2026-09-17 |
 | Notification | In-app và email là kênh MVP; email qua SMTP adapter, local dùng Mailpit. Push/SMS là backlog `SHOULD/COULD`. | Accepted |
-| SeatHold/payment window | Một transaction window dài 10 phút từ lúc tạo SeatHold; tạo Booking không gia hạn. Client luôn dùng `expiresAt/serverTime`. | Accepted |
+| SeatHold/payment window | Một transaction window 10 phút từ lúc tạo SeatHold cho chọn ghế/`PREPAID`. `PAY_LATER` không dùng cửa sổ thanh toán cổng. | Accepted, cập nhật 2026-09-17 |
 | Hủy/đổi | Hủy Ticket theo policy versioned tại mục 11.5.1. Đổi vé là `SHOULD`, không thuộc MVP 2.0. | Accepted |
 | Promotion/Review | Không thuộc MVP 2.0 vì là `SHOULD`; endpoint/UI/event liên quan mặc định tắt. | Accepted |
 | Retention | Dùng baseline tại Chương 8 cho môi trường đồ án; production thực tế cần legal review trước go-live. | Accepted cho đồ án |
@@ -104,8 +104,8 @@ Policy được cấu hình, có version và snapshot vào Booking/Ticket. Mốc
 | Từ 2 giờ đến dưới 6 giờ | 30% giá trị Ticket | Có |
 | Dưới 2 giờ hoặc sau giờ đi | Không áp dụng | Không |
 
-- Phí làm tròn đến đồng theo quy tắc half-up; số tiền hoàn bằng `paidAmount - cancellationFee`, không âm.
-- Nhà xe hủy Trip hoàn 100% phần tiền đã thu cho Ticket bị ảnh hưởng và không áp phí Customer.
+- Phí làm tròn đến đồng theo quy tắc half-up; số tiền hoàn `PREPAID` bằng `paidAmount - cancellationFee`, không âm. `PAY_LATER`: hoàn nền tảng = 0.
+- Nhà xe hủy Trip: hoàn 100% phần **đã thu `PREPAID`**; `PAY_LATER` hủy vé không hoàn cổng.
 - Ticket `CHECKED_IN`, `USED`, `CANCELLED` hoặc `REFUNDED` không được Customer hủy.
 - Policy riêng của Operator chỉ có hiệu lực sau khi được version hóa và snapshot vào Trip trước khi mở bán.
 

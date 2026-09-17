@@ -2,8 +2,9 @@
 
 ## Bản hiện hành
 
-- Tài liệu: [`releases/PBL6-SRS-v001.docx`](./releases/PBL6-SRS-v001.docx)
-- Phiên bản phát hành Word: `v001`
+- Tài liệu: [`releases/PBL6-SRS-v002.docx`](./releases/PBL6-SRS-v002.docx)
+- Phiên bản phát hành Word: `v002`
+- Baseline nội dung: SRS 2.0.1
 - Trạng thái: Current Word release
 - Nhật ký chi tiết: [`CHANGELOG.md`](./CHANGELOG.md)
 
@@ -13,10 +14,10 @@ Phiên bản nội dung và phiên bản file Word là hai trục độc lập:
 
 | Trục | Bản lịch sử | Bản hiện hành | Nguồn quyết định |
 |---|---|---|---|
-| Baseline nội dung SRS | [1.0.0](../v1/README.md) | [2.0.0](../v2/README.md) | Markdown trong `docs/srs/v2` |
-| Bản đóng gói Word | Snapshot `docsv1` trong `legacy/` | `PBL6-SRS-v001.docx` | File phát hành trong `releases/` |
+| Baseline nội dung SRS | [1.0.0](../v1/README.md), [2.0.0](../CHANGELOG.md) | [2.0.1](../v2/README.md) | Markdown trong `docs/srs/v2` |
+| Bản đóng gói Word | Snapshot `docsv1`; [`PBL6-SRS-v001.docx`](./releases/PBL6-SRS-v001.docx) | `PBL6-SRS-v002.docx` | File phát hành trong `releases/` |
 
-`v001` là số phát hành của file Word, không đồng nghĩa với phiên bản nội dung `1.0.0`. Xem [lịch sử baseline SRS](../CHANGELOG.md) để biết mốc nào đang active.
+`v002` là số phát hành của file Word, không đồng nghĩa với phiên bản nội dung `2.0.1`, nhưng bản này được đóng gói từ baseline 2.0.1. Xem [lịch sử baseline SRS](../CHANGELOG.md) để biết mốc nào đang active.
 
 ## Cấu trúc thư mục
 

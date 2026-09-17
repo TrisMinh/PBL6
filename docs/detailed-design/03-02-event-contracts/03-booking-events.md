@@ -6,9 +6,9 @@
 |---|---|---|
 | `SeatHoldCreated` | `booking.seat-hold.created.v1` | `holdId`, `tripId`, `organizationId`, `seatCount`, `expiresAt` |
 | `SeatHoldExpired` | `booking.seat-hold.expired.v1` | `holdId`, `tripId`, `organizationId`, `seatCount`, `expiredAt` |
-| `BookingCreated` | `booking.booking.created.v1` | `bookingId`, `customerId`, `tripId`, `organizationId`, `total`, `currency`, `paymentExpiresAt` |
+| `BookingCreated` | `booking.booking.created.v1` | `bookingId`, `customerId`, `tripId`, `organizationId`, `total`, `currency`, `paymentChannel`, `paymentExpiresAt` |
 | `BookingPaid` | `booking.booking.paid.v1` | `bookingId`, `customerId`, `tripId`, `organizationId`, `paymentId`, `total`, `currency`, `paidAt` |
-| `TicketIssued` | `booking.ticket.issued.v1` | `ticketId`, `bookingId`, `customerId`, `tripId`, `organizationId`, `issuedAt` |
+| `TicketIssued` | `booking.ticket.issued.v1` | `ticketId`, `bookingId`, `customerId`, `tripId`, `organizationId`, `paymentChannel`, `issuedAt` |
 | `BookingCancelled` | `booking.booking.cancelled.v1` | `bookingId`, `customerId`, `tripId`, `organizationId`, `ticketIds[]`, `refundAmount`, `currency`, `reasonCode`, `cancelledAt` |
 | `PassengerCheckedIn` | `booking.ticket.checked-in.v1` | `ticketId`, `tripId`, `organizationId`, `checkedInAt`, `checkedInByType` |
 
@@ -33,9 +33,9 @@ Money là integer 64-bit theo đơn vị nhỏ nhất; không gửi float. Event
 ## Atomic publish points
 
 - SeatHold state + corresponding Outbox cùng transaction.
-- Booking + items/passengers/redemption + `BookingCreated` Outbox cùng transaction.
-- Payment consume: Inbox + Booking `PAID` + TripSeat `BOOKED` + Ticket + `BookingPaid/TicketIssued` Outbox cùng transaction.
-- Cancellation: Ticket/Booking state + released seat + RefundRequested/notification events cùng transaction.
+- Booking + items/passengers/redemption + `BookingCreated` Outbox cùng transaction. `PAY_LATER`: thêm ghế `BOOKED`, Ticket và `TicketIssued` trong cùng transaction; không Payment cổng.
+- Payment consume `PREPAID`: Inbox + Booking `PAID` + TripSeat `BOOKED` + Ticket + `BookingPaid/TicketIssued` Outbox cùng transaction.
+- Cancellation: Ticket/Booking state + released seat + `RefundRequested` chỉ khi `PREPAID` đã thu và refundable > 0.
 - Check-in: Ticket transition + audit + PassengerCheckedIn Outbox cùng transaction.
 
 Event lặp không được tạo thêm Ticket, Promotion redemption, cancellation hoặc check-in.

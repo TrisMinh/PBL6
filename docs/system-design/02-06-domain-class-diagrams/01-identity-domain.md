@@ -38,6 +38,7 @@ classDiagram
         +UUID id
         +string code
         +RoleScope scope
+        +string description
         +grant(permission)
         +revoke(permission)
     }

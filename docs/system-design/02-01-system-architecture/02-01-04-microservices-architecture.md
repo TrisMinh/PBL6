@@ -52,22 +52,28 @@ Không giữ database transaction trong lúc gọi HTTP provider hoặc chờ me
 ### Payment confirmation saga
 
 ```text
-PaymentSucceeded
+PaymentSucceeded (PREPAID)
   → Booking kiểm tra booking/hold
   → [valid] Booking=PAID, TripSeat=BOOKED, Ticket=ISSUED
       → BookingPaid + TicketIssued
+      → Payment chốt settlement: commission 10% snapshot + operator payable 90%
   → [invalid/seat unavailable] PaymentCompensationRequested
       → Payment refund hoặc tạo reconciliation case
+
+PAY_LATER booking created
+  → Booking=CONFIRMED, TripSeat=BOOKED, Ticket=ISSUED (cùng transaction)
+  → Payment tạo settlement UNCOLLECTED, commission = 0 (không Payment cổng)
 ```
 
 ### Cancellation/refund saga
 
 ```text
 Booking/Ticket cancelled
-  → RefundRequested
-  → Payment gọi provider
-  → RefundSucceeded | RefundFailed
-  → Booking cập nhật trạng thái tổng hợp
+  → [PREPAID đã thu và refundable > 0] RefundRequested
+      → Payment gọi provider
+      → RefundSucceeded | RefundFailed
+      → Đảo commission/payable tương ứng
+  → [PAY_LATER hoặc refundable = 0] chỉ hủy vé/chỗ, không Refund cổng
   → Notification + Reporting cập nhật bất đồng bộ
 ```
 

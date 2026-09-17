@@ -29,3 +29,4 @@ flowchart LR
 - Duplicate webhook không tạo `PaymentSucceeded` lần hai; duplicate delivery không tạo Ticket lần hai.
 - Booking kiểm tra amount/currency/reference và state guard, không chỉ tin event name.
 - Nếu payment thành công trễ nhưng không thể cấp ghế, đi vào compensation/refund hoặc manual case.
+- `PAY_LATER` không đi qua flow này; vé phát lúc tạo Booking `CONFIRMED`. Phí sàn chỉ chốt trong Payment DB khi `PREPAID` `SUCCEEDED`.

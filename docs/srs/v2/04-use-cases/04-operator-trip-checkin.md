@@ -11,14 +11,14 @@
 | Tiền điều kiện | Actor đã xác thực, có membership active và permission phù hợp. |
 | Hậu điều kiện thành công | Thông tin được cập nhật và audit khi cần. |
 | Hậu điều kiện thất bại | Dữ liệu cũ được giữ nguyên; không tác động tenant khác. |
-| Liên kết | FR-OPS-001; BR-TENANT-*; AUTHZ-002..003 |
+| Liên kết | FR-OPS-001, FR-OPS-011; BR-TENANT-*; BR-TRIP-007; AUTHZ-002..003 |
 
 ### Luồng chính
 
 1. Actor mở hồ sơ nhà xe của mình.
 2. Hệ thống lấy organization ID từ identity context.
 3. Hệ thống trả các trường actor được phép xem/sửa.
-4. Actor cập nhật tên hiển thị, liên hệ, mô tả hoặc thuộc tính được phép.
+4. Actor cập nhật tên hiển thị, liên hệ, mô tả, **cho phép trả sau** hoặc thuộc tính được phép.
 5. Hệ thống kiểm tra dữ liệu và permission.
 6. Hệ thống lưu thay đổi, ghi version/audit và trả kết quả.
 
@@ -27,6 +27,7 @@
 - Actor gửi organization ID khác tenant: từ chối mà không tiết lộ dữ liệu.
 - Trường pháp lý cần quyền cao hơn: từ chối hoặc chuyển quy trình phê duyệt.
 - Version cũ: trả conflict và yêu cầu tải lại dữ liệu.
+- `commissionRate` trên PATCH tenant: bỏ qua; tỷ lệ phí sàn chỉ nền tảng đổi.
 
 ## UC-OPS-02 — Quản lý xe và sơ đồ ghế
 
@@ -211,11 +212,11 @@
 
 | Thuộc tính | Nội dung |
 |---|---|
-| Mục tiêu | Dừng Trip, vô hiệu Ticket liên quan và khởi tạo Refund an toàn. |
+| Mục tiêu | Dừng Trip, vô hiệu Ticket liên quan; hoàn cổng chỉ khoản `PREPAID` đã thu. |
 | Actor chính | Operator Operations, Admin |
 | Actor phụ | Payment Gateway, Notification Provider |
 | Tiền điều kiện | Actor có quyền; Trip chưa hoàn thành và transition hủy được policy cho phép. |
-| Hậu điều kiện thành công | Trip CANCELLED; Ticket không còn sử dụng; Refund được tạo theo policy. |
+| Hậu điều kiện thành công | Trip CANCELLED; Ticket không còn sử dụng; Refund cổng chỉ cho `PREPAID` đã thu; `PAY_LATER` hủy vé không hoàn cổng. |
 | Hậu điều kiện thất bại | Không hủy một phần âm thầm; lỗi được retry hoặc đưa vào manual case. |
 | Liên kết | FR-OPS-008; BR-TRIP-004..006; BR-CANCEL-008; AC-TRIP-001..002 |
 
@@ -227,7 +228,7 @@
 4. Hệ thống kiểm tra quyền, Trip state và version.
 5. Hệ thống chuyển Trip CANCELLED và ghi logical cancellation.
 6. Hệ thống xác định Booking/Ticket bị ảnh hưởng và vô hiệu quyền sử dụng.
-7. Hệ thống tạo Refund cho khoản đủ điều kiện theo policy nhà xe.
+7. Hệ thống tạo Refund cổng cho khoản `PREPAID` đã thu; `PAY_LATER` chỉ hủy vé/chỗ.
 8. Customer được thông báo; báo cáo/đối soát được cập nhật.
 
 ### Ngoại lệ và phục hồi

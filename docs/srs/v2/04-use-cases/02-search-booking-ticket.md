@@ -37,13 +37,13 @@
 
 | Thuộc tính | Nội dung |
 |---|---|
-| Mục tiêu | Giữ toàn bộ ghế đã chọn và tạo một Booking chờ thanh toán. |
+| Mục tiêu | Giữ toàn bộ ghế đã chọn và tạo một Booking trả trước hoặc trả sau. |
 | Actor chính | Customer |
 | Kích hoạt | Customer xác nhận các ghế đã chọn. |
 | Tiền điều kiện | Customer đã đăng nhập; Trip còn bán; TripSeat đang hiển thị là khả dụng. |
-| Hậu điều kiện thành công | Booking PENDING_PAYMENT; SeatHold/TripSeat được bảo toàn đến thời hạn thanh toán. |
+| Hậu điều kiện thành công | `PREPAID`: Booking `PENDING_PAYMENT`. `PAY_LATER` (nhà xe bật): Booking `CONFIRMED`, ghế `BOOKED`, mỗi item một Ticket ghi `PAY_LATER`. |
 | Hậu điều kiện thất bại | Không giữ thành công một phần và không tạo Booking ngoài ý muốn. |
-| Liên kết | FR-BOOK-001..007; BR-SEAT-*; BR-BOOK-*; AC-SEAT-*; AC-BOOK-* |
+| Liên kết | FR-BOOK-001..007, FR-BOOK-012; BR-SEAT-*; BR-BOOK-*; AC-SEAT-*; AC-BOOK-* |
 
 ### Luồng chính
 
@@ -57,8 +57,10 @@
 8. Client gửi yêu cầu tạo Booking từ hold còn hiệu lực kèm idempotency key.
 9. Hệ thống xác minh ownership, hold, số Passenger, stop và thời hạn.
 10. Hệ thống tính lại subtotal, discount, fee và total phía server.
-11. Hệ thống consume hold và tạo một Booking PENDING_PAYMENT.
-12. Hệ thống trả Booking summary, total chính thức và thời hạn thanh toán.
+11. Hệ thống kiểm tra `paymentChannel`. `PAY_LATER` khi org không bật: từ chối, không consume hold.
+12. `PREPAID`: consume hold, tạo Booking `PENDING_PAYMENT`, trả hạn thanh toán.
+13. `PAY_LATER`: consume hold, ghế `BOOKED`, Booking `CONFIRMED`, phát Ticket (in kênh trả sau), không tạo Payment cổng.
+14. Hệ thống trả Booking summary, total chính thức và Ticket nếu đã phát.
 
 ### Luồng thay thế và ngoại lệ
 
@@ -69,6 +71,7 @@
 - Idempotency key trùng cùng payload: trả SeatHold/Booking đã tạo.
 - Cùng key nhưng payload khác: trả `IDEMPOTENCY_CONFLICT`.
 - Client gửi total khác: bỏ qua total client và dùng kết quả server.
+- `PAY_LATER` khi nhà xe tắt: `PAY_LATER_NOT_ALLOWED`.
 
 ### Yêu cầu đồng thời
 

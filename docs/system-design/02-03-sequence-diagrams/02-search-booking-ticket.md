@@ -66,11 +66,15 @@ sequenceDiagram
         C->>GW: Create Booking + holdToken + Idempotency-Key
         GW->>BK: Booking command
         BK->>DB: Verify owner, hold, passengers, stops và expiry
-        alt Hold hết hạn hoặc request không hợp lệ
-            BK-->>C: SEAT_HOLD_EXPIRED hoặc validation error
-        else Hợp lệ
+        alt Hold hết hạn, PAY_LATER không được phép, hoặc request không hợp lệ
+            BK-->>C: SEAT_HOLD_EXPIRED, PAY_LATER_NOT_ALLOWED hoặc validation error
+        else PAY_LATER hợp lệ
+            BK->>DB: Recalculate total, consume hold, CONFIRMED + Tickets + Outbox
+            BK->>MQ: BookingCreated + TicketIssued paymentChannel=PAY_LATER
+            BK-->>C: Booking CONFIRMED và vé trả sau
+        else PREPAID hợp lệ
             BK->>DB: Recalculate total, consume hold, create PENDING_PAYMENT + Outbox
-            BK->>MQ: BookingCreated
+            BK->>MQ: BookingCreated paymentChannel=PREPAID
             BK-->>C: Booking summary + payment expiry
         end
     end

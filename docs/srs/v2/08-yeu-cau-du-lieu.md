@@ -30,7 +30,7 @@ Chương này mô tả dữ liệu nghiệp vụ và ràng buộc quan sát đư
 
 | Thực thể | Dữ liệu tối thiểu | Ràng buộc nghiệp vụ |
 |---|---|---|
-| Organization | ID, tên, pháp lý/liên hệ cần thiết, status | Là tenant root cho dữ liệu nhà xe. |
+| Organization | ID, tên, pháp lý/liên hệ cần thiết, status, cho phép trả sau, tỷ lệ phí sàn | Là tenant root. `allowPayLater` do Operator bật; `commissionRate` do nền tảng. |
 | Bus | ID, Organization ID, biển số, loại, seat template version, status | Biển số chuẩn hóa và duy nhất trong phạm vi được duyệt; soft delete. |
 | Seat | ID, Bus ID, code, tầng, hàng/cột, loại, enabled | Code duy nhất trong Bus. |
 | DriverProfile | ID, User ID, Organization ID, license number/expiry, status | Driver active/assignment phải thỏa license policy. |
@@ -47,10 +47,10 @@ Chương này mô tả dữ liệu nghiệp vụ và ràng buộc quan sát đư
 | TripSeat | ID, Trip ID, source Seat ID/code, status, base price, hold/Booking reference, version | Duy nhất theo Trip và ghế; chiếm quyền cho toàn bộ Trip trong MVP, không có segment inventory. |
 | SeatHold | ID/token hash, Customer ID, Trip ID, status, createdAt, expiresAt, idempotency key | Transaction window cố định 10 phút; một logical key cho cùng Customer/operation; chỉ consume một lần. |
 | SeatHoldItem | Hold ID, TripSeat ID, price snapshot | Không có cùng TripSeat trong hai hold ACTIVE. |
-| Booking | ID/code, Customer ID, Trip ID, status, contactName/email/phone, subtotal, discount, fee, total, currency, expiresAt | Code duy nhất; tiền chính xác; giữ policy snapshot; expiry không muộn hơn SeatHold ban đầu. |
+| Booking | ID/code, Customer ID, Trip ID, status, paymentChannel, contactName/email/phone, subtotal, discount, fee, total, currency, expiresAt | Code duy nhất; `paymentChannel` `PREPAID`/`PAY_LATER`; `PAY_LATER` chỉ khi org cho phép. |
 | Passenger | ID, Booking ID, fullName, document type/number khi policy yêu cầu, pickup/dropoff | Một Passenger cho mỗi Booking Item; MVP không thu thập ngày sinh/giới tính/CCCD nếu policy không yêu cầu. |
-| BookingItem | Booking ID, Passenger ID, TripSeat ID, giá/discount/total | Không sửa trực tiếp sau PAID. |
-| Ticket | ID/public code, Booking Item ID, QR token hash/signature, status, checkedInAt | Một Ticket có hiệu lực cho mỗi Booking Item/TripSeat. |
+| BookingItem | Booking ID, Passenger ID, TripSeat ID, giá/discount/total | Không sửa trực tiếp sau `PAID`/`CONFIRMED`. |
+| Ticket | ID/public code, Booking Item ID, QR token hash/signature, status, paymentChannel, checkedInAt | Một Ticket có hiệu lực cho mỗi Booking Item/TripSeat; in kênh thanh toán. |
 | Promotion | ID, scope/Organization ID, code, type/value, quota, thời hạn, status | Code duy nhất theo scope; không vượt quota. |
 | PromotionRedemption | Promotion, Booking, Customer, amount | Chống ghi nhận sử dụng trùng. |
 | Review | Ticket ID, Customer ID, rating, content, status | Tối đa một Review cho mỗi Ticket đủ điều kiện. |
@@ -59,11 +59,14 @@ Chương này mô tả dữ liệu nghiệp vụ và ràng buộc quan sát đư
 
 | Thực thể | Dữ liệu tối thiểu | Ràng buộc nghiệp vụ |
 |---|---|---|
-| Payment | ID, Booking ID, amount, currency, status, provider, idempotency key | Amount lấy từ nguồn tin cậy; MVP provider là VNPay Sandbox; một logical Payment có thể có nhiều attempt. |
+| Payment | ID, Booking ID, amount, currency, status, provider, idempotency key | Chỉ cho `PREPAID`. Amount từ Booking; một logical Payment có thể có nhiều attempt. |
 | PaymentAttempt | Payment ID, provider transaction ID, status, request reference, thời gian | Provider transaction ID duy nhất. |
 | WebhookReceipt | Provider, external event ID, payload hash/metadata an toàn, verified, processedAt | External event ID duy nhất; không lưu dữ liệu thẻ nhạy cảm. |
-| Refund | Payment/Booking ID, amount, reason, status, idempotency key | Tổng Refund thành công không vượt Payment thành công. |
-| ReconciliationCase | Payment/Refund ID, loại sai lệch, status, resolution | Dùng cho callback thiếu, sai, trễ hoặc kết quả mâu thuẫn. |
+| Refund | Payment/Booking ID, amount, reason, status, idempotency key | Chỉ khi có Payment thành công; tổng Refund không vượt Payment. |
+| BookingSettlement | Booking ID, Organization ID, paymentChannel, gross, commissionRate/amount, operatorNet, collectionStatus | `PREPAID` đã thu: commission + operatorNet = gross. `PAY_LATER`: commission = 0, không Payment cổng. |
+| LedgerEntry | Settlement/org, loại bút toán, amount, correlation | Append-only. |
+| OperatorPayout | Organization ID, kỳ, amount, status | Ghi nhận chuyển net cho nhà xe. |
+| ReconciliationCase | Payment/Refund ID, loại sai lệch, status, resolution | Callback thiếu, sai, trễ hoặc kết quả mâu thuẫn. |
 
 ## 8.6. Notification và báo cáo
 
@@ -87,14 +90,15 @@ Chương này mô tả dữ liệu nghiệp vụ và ràng buộc quan sát đư
 
 - SeatHold chỉ tạo tối đa một Booking.
 - Một Booking Item có đúng một Passenger.
-- Booking PAID có đúng một Ticket cho mỗi item.
+- Booking `PAID` (`PREPAID`) hoặc `CONFIRMED` (`PAY_LATER`) có đúng một Ticket cho mỗi item.
 - Không sửa dữ liệu lịch sử bằng cách cập nhật snapshot nguồn.
 
 ### 8.7.3. Payment và Refund
 
 - External event/transaction ID được deduplicate.
 - Payment amount/currency khớp Booking payment snapshot.
-- Tổng Refund thành công không vượt Payment amount.
+- Tổng Refund thành công không vượt Payment amount; không Refund nếu không có Payment `SUCCEEDED`.
+- Phí sàn chỉ trên `PREPAID` đã thu; hoàn tiền đảo commission/payable.
 - Gửi lặp command không tạo logical transaction mới.
 
 ### 8.7.4. Tenant

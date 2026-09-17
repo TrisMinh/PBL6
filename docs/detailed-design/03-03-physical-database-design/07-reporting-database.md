@@ -6,8 +6,8 @@ Logical DB/schema: `reporting_db`; ERD: [Reporting](../../system-design/02-07-da
 
 | Table | Grain/unique key | Event nguồn |
 |---|---|---|
-| `booking_projections` | `booking_id` | BookingCreated/Paid/Cancelled |
-| `revenue_projections` | `(organization,period_date,currency)` | BookingPaid, RefundSucceeded |
+| `booking_projections` | `booking_id` | BookingCreated/Paid/Cancelled; `payment_channel`; `CONFIRMED` |
+| `revenue_projections` | `(organization,period_date,currency)` | BookingPaid, RefundSucceeded; `platform_commission`, `operator_payable` |
 | `occupancy_projections` | `trip_id` | TripPublished, SeatHold, Booking, CheckIn |
 | `projection_checkpoints` | `projection_name` | projector progress |
 

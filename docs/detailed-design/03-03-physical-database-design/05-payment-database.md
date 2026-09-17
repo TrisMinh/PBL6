@@ -10,6 +10,9 @@ Logical DB/schema: `payment_db`; ERD: [Payment](../../system-design/02-07-databa
 | `payment_attempts` | `(provider,provider_transaction_id)` khi có | immutable attempt outcome |
 | `webhook_receipts` | `(provider,external_event_id)` | received → verified/processed/rejected |
 | `refunds` | logical reference/idempotency | Refund state machine |
+| `booking_settlements` | unique booking; PREPAID split vs PAY_LATER commission 0 | collection status |
+| `ledger_entries` | append-only | capture/commission/payable/refund reverse |
+| `operator_payouts` | org + period | PENDING/SENT/FAILED |
 | `reconciliation_cases` | open case uniqueness theo discrepancy policy | open → resolved |
 
 ## Provider dedupe
@@ -53,7 +56,12 @@ alter table payments add constraint ck_payment_currency check (currency ~ '^[A-Z
 - `payment_attempts(payment_id,created_at desc)`.
 - `webhook_receipts(provider,received_at desc)` và rejected/security investigation.
 - `refunds(payment_id,status,updated_at)` và `refunds(booking_id_external,created_at desc)`.
+- `booking_settlements(organization_id_external,collection_status,created_at desc)`.
+- `ledger_entries(organization_id_external,occurred_at desc)`.
+- `operator_payouts(organization_id_external,period_end desc)`.
 - `reconciliation_cases(status,opened_at)`.
+
+`PREPAID` `SUCCEEDED`: snapshot `commission_rate`, `commission_amount + operator_net = gross`, `COLLECTED`. `PAY_LATER`: `payment_id` null, commission 0, `UNCOLLECTED` hoặc `NOSHOW_WRITTEN_OFF`. Ledger append-only.
 
 Không lưu PAN/CVV. Raw payload chỉ lưu nếu provider/đối soát bắt buộc và đã mã hóa/retention/field redaction được phê duyệt; baseline ưu tiên payload hash + metadata allow-list.
 

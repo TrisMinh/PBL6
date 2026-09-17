@@ -70,7 +70,7 @@ AuthStack
 ├── Register / VerifyEmail / Login / ForgotPassword / ResetPassword
 
 MainTabs
-├── SearchStack: Search → Results → Trip → Seats → Passengers → Payment → PaymentStatus
+├── SearchStack: Search → Results → Trip → Seats → Passengers → (Payment nếu PREPAID) → Ticket/PaymentStatus
 ├── TripsStack: Bookings → BookingDetail → Ticket
 ├── Notifications
 └── Profile
@@ -88,6 +88,7 @@ MainTabs
 | SeatHold | Giữ ghế |
 | Booking | Đơn đặt vé |
 | Ticket | Vé điện tử |
+| Payment `PAY_LATER` | Trả sau |
 | Payment `PROCESSING` | Đang xử lý thanh toán |
 | UI aggregate `CONFIRMING` | Đang xác nhận vé |
 | Refund `PROCESSING` | Đang hoàn tiền |

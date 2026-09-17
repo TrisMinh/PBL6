@@ -6,7 +6,7 @@
 
 | Thuộc tính | Giá trị |
 |---|---|
-| Baseline | SRS 2.0 — 56 Functional Requirement `MUST` |
+| Baseline | SRS 2.0.1 — 61 Functional Requirement `MUST` |
 | Nhóm | 2 Backend, 1 Frontend Web, 1 Mobile |
 | Giai đoạn | `M0 — Foundation` |
 | Sprint hiện tại | `S0 — Foundation & Contract Gate` |
@@ -14,7 +14,7 @@
 | Trạng thái | `READY TO START` — đã gán 4 thành viên; chưa có card code ở `IN PROGRESS` |
 | Source | Chưa scaffold; `workspace/src/` đang rỗng |
 | Blocker đã biết | Docker CLI/Compose đã cài nhưng Docker Desktop engine chưa chạy; integration stack chưa dùng được |
-| Cập nhật gần nhất | 2026-09-12 |
+| Cập nhật gần nhất | 2026-09-17 |
 
 ## Mở nhanh
 
@@ -78,4 +78,4 @@ Thành viên làm việc hằng ngày từ `people/<tên>.md` và `board/README.
 - Milestone progress chỉ tính card `DONE`; không tính card đang review là hoàn thành.
 - Card thêm giữa sprint phải gắn `UNPLANNED`; card bị bỏ phải ghi lý do, không xóa khỏi lịch sử.
 
-Nguồn truy vết: [SRS 2.0](../docs/srs/v2/README.md), [MVP delivery plan](../docs/implementation/02-mvp-delivery-plan.md), [MVP traceability](../docs/implementation/04-mvp-traceability.md), [API/Event contracts](../docs/contracts/README.md) và [test design](../docs/detailed-design/03-06-test-design/README.md).
+Nguồn truy vết: [SRS 2.0.1](../docs/srs/v2/README.md), [MVP delivery plan](../docs/implementation/02-mvp-delivery-plan.md), [MVP traceability](../docs/implementation/04-mvp-traceability.md), [API/Event contracts](../docs/contracts/README.md) và [test design](../docs/detailed-design/03-06-test-design/README.md).
