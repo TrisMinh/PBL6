@@ -1,0 +1,54 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{D10499A4-6135-4DFF-831B-69EFB5AAF71C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "services", "services", "{F3284829-C371-427A-A927-6955014AFCB2}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "identity", "identity", "{3FD494B5-9FCE-447C-A9B2-610DA96719A8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BusTicketPlatform.Identity.Domain", "src\services\identity\BusTicketPlatform.Identity.Domain\BusTicketPlatform.Identity.Domain.csproj", "{7407C0E0-6543-4683-B7B1-AE3FC3B01F85}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BusTicketPlatform.Identity.Application", "src\services\identity\BusTicketPlatform.Identity.Application\BusTicketPlatform.Identity.Application.csproj", "{CEAC9E99-CF5D-4DD5-BAE5-8DCAB4F2F78A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BusTicketPlatform.Identity.Infrastructure", "src\services\identity\BusTicketPlatform.Identity.Infrastructure\BusTicketPlatform.Identity.Infrastructure.csproj", "{FF592951-6A18-4913-8071-1503DCFCB7EE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BusTicketPlatform.Identity.Api", "src\services\identity\BusTicketPlatform.Identity.Api\BusTicketPlatform.Identity.Api.csproj", "{D99AEEE6-BFE7-47DE-A1A6-BD12FE5F39C6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7407C0E0-6543-4683-B7B1-AE3FC3B01F85}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7407C0E0-6543-4683-B7B1-AE3FC3B01F85}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7407C0E0-6543-4683-B7B1-AE3FC3B01F85}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7407C0E0-6543-4683-B7B1-AE3FC3B01F85}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CEAC9E99-CF5D-4DD5-BAE5-8DCAB4F2F78A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CEAC9E99-CF5D-4DD5-BAE5-8DCAB4F2F78A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CEAC9E99-CF5D-4DD5-BAE5-8DCAB4F2F78A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CEAC9E99-CF5D-4DD5-BAE5-8DCAB4F2F78A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FF592951-6A18-4913-8071-1503DCFCB7EE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FF592951-6A18-4913-8071-1503DCFCB7EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FF592951-6A18-4913-8071-1503DCFCB7EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FF592951-6A18-4913-8071-1503DCFCB7EE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D99AEEE6-BFE7-47DE-A1A6-BD12FE5F39C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D99AEEE6-BFE7-47DE-A1A6-BD12FE5F39C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D99AEEE6-BFE7-47DE-A1A6-BD12FE5F39C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D99AEEE6-BFE7-47DE-A1A6-BD12FE5F39C6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{F3284829-C371-427A-A927-6955014AFCB2} = {D10499A4-6135-4DFF-831B-69EFB5AAF71C}
+		{3FD494B5-9FCE-447C-A9B2-610DA96719A8} = {F3284829-C371-427A-A927-6955014AFCB2}
+		{7407C0E0-6543-4683-B7B1-AE3FC3B01F85} = {3FD494B5-9FCE-447C-A9B2-610DA96719A8}
+		{CEAC9E99-CF5D-4DD5-BAE5-8DCAB4F2F78A} = {3FD494B5-9FCE-447C-A9B2-610DA96719A8}
+		{FF592951-6A18-4913-8071-1503DCFCB7EE} = {3FD494B5-9FCE-447C-A9B2-610DA96719A8}
+		{D99AEEE6-BFE7-47DE-A1A6-BD12FE5F39C6} = {3FD494B5-9FCE-447C-A9B2-610DA96719A8}
+	EndGlobalSection
+EndGlobal
