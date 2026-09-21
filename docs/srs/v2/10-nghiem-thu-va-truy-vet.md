@@ -104,6 +104,9 @@
 | AC-REPORT-001 | Operator Finance tenant A | Xem báo cáo | Chỉ có dữ liệu A; hiển thị metric, timezone và thời điểm dữ liệu. |
 | AC-REPORT-002 | Export lớn | Actor yêu cầu export | Tạo Export Job, thông báo khi sẵn sàng và kiểm tra lại quyền khi tải. |
 | AC-REPORT-003 | Projection chậm | Actor xem báo cáo | Hiển thị thời điểm dữ liệu gần nhất, không trình bày như realtime. |
+| AC-REPORT-004 | Power BI được bật; Operator Finance tenant A có permission | Mở dashboard Power BI | Chỉ dữ liệu tenant A được render; metric, timezone, source data as-of và semantic-model refresh time hiển thị rõ. |
+| AC-REPORT-005 | Actor không có permission, tenant/effective identity sai hoặc embed token hết hạn | Yêu cầu/mở dashboard Power BI | Hệ thống fail closed, không cấp quyền toàn nền tảng, không lộ report/credential/token/PII và ghi audit an toàn. |
+| AC-REPORT-006 | Power BI API, gateway hoặc semantic-model refresh tạm lỗi | Actor dùng hệ thống | Dashboard báo lỗi/freshness và cho phép retry/fallback phù hợp; Booking/Payment đã commit không bị ảnh hưởng. |
 
 ## 10.8. Chất lượng hệ thống
 
@@ -138,7 +141,7 @@
 | Review | GOAL-001, 003 | BP-05, BP-07 | UC-REVIEW-01..02 | FR-REVIEW-001..002 | BR-REVIEW-* | AC-REVIEW-001..003 |
 | Notification | GOAL-001, 005, 006 | BP-01..07 | UC-NOTIF-01 | FR-NOTIF-001..003 | Retry/consistency rules | AC-NOTIF-001..002 |
 | Admin/audit | GOAL-001, 003, 007 | BP-07 | UC-ADMIN-01..03 | FR-ADMIN-001..003, FR-PAY-009..010 | AUTHZ, BR-AUDIT-* | AC-ADMIN-001..004 |
-| Báo cáo | GOAL-001, 007 | BP-07 | UC-REPORT-01 | FR-REPORT-001..003 | BR-TENANT-* | AC-REPORT-001..003 |
+| Báo cáo | GOAL-001, 007 | BP-07 | UC-REPORT-01 | FR-REPORT-001..004 | BR-TENANT-* | AC-REPORT-001..006 |
 | Chất lượng | GOAL-005, 006 | Tất cả | Tất cả UC | NFR-* | Các bất biến liên quan | AC-NFR-*, AC-SEC-*, AC-UX-*, AC-OBS-* |
 
 ## 10.10. Definition of Done cho yêu cầu MUST

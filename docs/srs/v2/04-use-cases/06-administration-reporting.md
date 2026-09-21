@@ -101,7 +101,7 @@
 | Tiền điều kiện | Actor có permission; khoảng thời gian và bộ lọc hợp lệ. |
 | Hậu điều kiện thành công | Báo cáo hoặc Export Job được tạo trong scope. |
 | Hậu điều kiện thất bại | Không rò rỉ dữ liệu; độ trễ dữ liệu được trình bày rõ. |
-| Liên kết | FR-REPORT-001..003; GOAL-007 |
+| Liên kết | FR-REPORT-001..004; GOAL-007 |
 
 ### Luồng xem báo cáo
 
@@ -110,6 +110,15 @@
 3. Hệ thống trả gross/net trên tiền `PREPAID` đã thu, phí sàn, công nợ nhà xe, Booking, Refund và occupancy; không cộng tiền mặt `PAY_LATER`.
 4. Giao diện hiển thị đơn vị, timezone, thời điểm dữ liệu gần nhất và phạm vi lọc.
 5. Actor có thể drill-down/tra cứu giao dịch khi có permission.
+
+### Luồng phân tích Power BI (`SHOULD`)
+
+1. Actor mở dashboard Power BI từ Back-office khi feature đã được kích hoạt.
+2. Hệ thống xác thực actor, kiểm tra permission và suy ra tenant từ identity context; client không tự chọn tenant hoặc report ID ngoài allowlist.
+3. Hệ thống cấp cấu hình nhúng ngắn hạn, chỉ đọc và áp RLS theo tenant; platform Admin chỉ xem toàn nền tảng khi có permission tương ứng.
+4. Power BI đọc semantic model được dựng từ Reporting read model, không truy vấn trực tiếp database giao dịch.
+5. Dashboard hiển thị metric definition, timezone, phạm vi, thời điểm dữ liệu nguồn và thời điểm semantic model refresh gần nhất.
+6. Actor phân tích theo thời gian, nhà xe, tuyến, trạng thái, kênh thanh toán hoặc currency trong phạm vi mà grain dữ liệu cho phép.
 
 ### Luồng export
 
@@ -126,5 +135,7 @@
 - Export lỗi: job FAILED có lý do an toàn và khả năng retry.
 - Actor mất quyền trước khi tải: từ chối tải dù link còn thời hạn.
 - Operator cố xem tenant khác: từ chối.
+- Power BI/RLS/effective identity thiếu hoặc không hợp lệ: không tạo cấu hình nhúng và không fallback sang quyền xem toàn bộ.
+- Power BI/gateway/refresh tạm lỗi: hiển thị trạng thái/fallback báo cáo cơ bản; không ảnh hưởng Booking/Payment đã commit.
 
 [← Danh mục Use Case](./README.md)

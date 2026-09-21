@@ -16,6 +16,7 @@
 | UI-008 | Client không hiển thị chức năng ngoài quyền, nhưng server vẫn phải thực thi authorization độc lập. |
 | UI-009 | Trạng thái và thuật ngữ phải nhất quán giữa Web, Mobile và Back-office. |
 | UI-010 | Thao tác không thể hoàn tác phải có bước xác nhận và nêu rõ tác động. |
+| UI-011 | Dashboard Power BI nhúng phải có loading/error/retry/token-expired state, hiển thị timezone và độ mới dữ liệu; ẩn page/filter không được coi là biện pháp authorization. |
 
 ## 7.2. Web End-user
 
@@ -95,6 +96,7 @@
 - Tra cứu Booking, Payment, Refund và audit.
 - Review/khiếu nại.
 - Báo cáo và Export Job.
+- Power BI Analytics khi feature `SHOULD` được kích hoạt; report theo permission và tenant/RLS.
 - Hành động nhạy cảm phải yêu cầu xác nhận, reason và quyền phù hợp.
 
 ### 7.4.2. Operator Staff
@@ -186,7 +188,18 @@ Danh mục mã lỗi baseline nằm trong [Phụ lục](./11-phu-luc.md).
 - Notification không nằm trên critical path xác nhận Booking/Payment.
 - Template không được đưa secret, full token hoặc PII không cần thiết.
 
-## 7.10. Tương thích hợp đồng
+## 7.10. Power BI Service (`SHOULD`)
+
+- Back-office chỉ nhận embed URL/token ngắn hạn sau khi backend đã kiểm tra access token, permission và tenant scope.
+- Workspace/report/semantic-model ID phải lấy từ allowlist server; frontend không được yêu cầu tùy ý ID hoặc role.
+- Operator dùng RLS theo tenant; platform Admin chỉ dùng scope toàn nền tảng khi có permission được phê duyệt.
+- Power BI chỉ đọc Reporting read model/view được duyệt, không đọc trực tiếp database giao dịch và không ghi ngược dữ liệu nghiệp vụ.
+- Data-source credential, service-principal credential và embed token không được commit, log hoặc persist phía client.
+- Semantic model/report tách theo environment; refresh/gateway lỗi không được làm thất bại giao dịch đã commit.
+- Report filter, hidden page và URL parameter chỉ phục vụ trải nghiệm, không phải security boundary.
+- Tài liệu triển khai chi tiết nằm tại [Power BI Analytics](../../detailed-design/03-08-power-bi-analytics/README.md).
+
+## 7.11. Tương thích hợp đồng
 
 - Field mới trong cùng version phải optional hoặc có default tương thích.
 - Xóa/đổi nghĩa field bắt buộc phải tạo version mới hoặc kế hoạch migration.

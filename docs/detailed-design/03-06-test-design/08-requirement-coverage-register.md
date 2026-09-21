@@ -2,9 +2,9 @@
 
 Register này liệt kê từng requirement ID chính xác để CI/script phát hiện ID bị bỏ sót; range chỉ dùng trong văn bản giải thích, không dùng thay danh sách kiểm soát.
 
-Release gate MVP chỉ áp dụng 61 `MUST`. Mười `SHOULD` được giữ để truy vết P1, không được hiểu là test/runtime MVP: `FR-SEARCH-007`, `FR-BOOK-010`, `FR-PAY-010`, `FR-PROMO-001`, `FR-PROMO-002`, `FR-REVIEW-001`, `FR-REVIEW-002`, `FR-NOTIF-003`, `FR-ADMIN-003`, `FR-REPORT-003`.
+Release gate MVP chỉ áp dụng 61 `MUST`. Mười một `SHOULD` được giữ để truy vết P1, không được hiểu là test/runtime MVP: `FR-SEARCH-007`, `FR-BOOK-010`, `FR-PAY-010`, `FR-PROMO-001`, `FR-PROMO-002`, `FR-REVIEW-001`, `FR-REVIEW-002`, `FR-NOTIF-003`, `FR-ADMIN-003`, `FR-REPORT-003`, `FR-REPORT-004`.
 
-## Functional Requirements — 71/71
+## Functional Requirements — 72/72
 
 | Nhóm | Requirement IDs | Design/Test owner |
 |---|---|---|
@@ -15,7 +15,7 @@ Release gate MVP chỉ áp dụng 61 `MUST`. Mười `SHOULD` được giữ đ�
 | Ticket | `FR-TICKET-001`, `FR-TICKET-002`, `FR-TICKET-003`, `FR-TICKET-004`, `FR-TICKET-005`, `FR-TICKET-006` | Booking Ticket API/Security; TS-TICKET/CHECKIN |
 | Operations | `FR-OPS-001`, `FR-OPS-002`, `FR-OPS-003`, `FR-OPS-004`, `FR-OPS-005`, `FR-OPS-006`, `FR-OPS-007`, `FR-OPS-008`, `FR-OPS-009`, `FR-OPS-010`, `FR-OPS-011` | Transport/Booking; TS-OPS/TRIP |
 | Promotion/Review/Notification | `FR-PROMO-001`, `FR-PROMO-002`, `FR-REVIEW-001`, `FR-REVIEW-002`, `FR-NOTIF-001`, `FR-NOTIF-002`, `FR-NOTIF-003` | Booking/Notification; TS-PROMOTION/REVIEW/NOTIFICATION |
-| Admin/Reporting | `FR-ADMIN-001`, `FR-ADMIN-002`, `FR-ADMIN-003`, `FR-REPORT-001`, `FR-REPORT-002`, `FR-REPORT-003` | Identity/Booking/Reporting; TS-ADMIN/SUPPORT/REPORT |
+| Admin/Reporting | `FR-ADMIN-001`, `FR-ADMIN-002`, `FR-ADMIN-003`, `FR-REPORT-001`, `FR-REPORT-002`, `FR-REPORT-003`, `FR-REPORT-004` | Identity/Booking/Reporting/Power BI; TS-ADMIN/SUPPORT/REPORT/POWERBI |
 
 ## Non-functional Requirements — 59/59
 
@@ -31,7 +31,7 @@ Release gate MVP chỉ áp dụng 61 `MUST`. Mười `SHOULD` được giữ đ�
 | UX/accessibility | `NFR-UX-001`, `NFR-UX-002`, `NFR-UX-003`, `NFR-UX-004`, `NFR-UX-005`, `NFR-UX-006` | Browser/mobile/accessibility/localization |
 | Maintainability | `NFR-MAIN-001`, `NFR-MAIN-002`, `NFR-MAIN-003`, `NFR-MAIN-004`, `NFR-MAIN-005`, `NFR-MAIN-006` | Pipeline/contract/migration/rollback review |
 
-## Acceptance Criteria — 73/73
+## Acceptance Criteria — 76/76
 
 | Nhóm | Acceptance IDs |
 |---|---|
@@ -40,7 +40,7 @@ Release gate MVP chỉ áp dụng 61 `MUST`. Mười `SHOULD` được giữ đ�
 | Payment/Ticket/Cancel/Change | `AC-PAY-001`, `AC-PAY-002`, `AC-PAY-003`, `AC-PAY-004`, `AC-PAY-005`, `AC-PAY-006`, `AC-PAY-007`, `AC-PAY-008`, `AC-PAY-009`, `AC-TICKET-001`, `AC-TICKET-002`, `AC-TICKET-003`, `AC-TICKET-004`, `AC-TICKET-005`, `AC-CANCEL-001`, `AC-CANCEL-002`, `AC-CANCEL-003`, `AC-CANCEL-004`, `AC-CHANGE-001`, `AC-CHANGE-002` |
 | Operations/Trip | `AC-OPS-001`, `AC-OPS-002`, `AC-OPS-003`, `AC-OPS-004`, `AC-OPS-005`, `AC-OPS-006`, `AC-TRIP-001`, `AC-TRIP-002` |
 | Promotion/Review/Notification | `AC-PROMO-001`, `AC-PROMO-002`, `AC-REVIEW-001`, `AC-REVIEW-002`, `AC-REVIEW-003`, `AC-NOTIF-001`, `AC-NOTIF-002` |
-| Admin/Reporting | `AC-ADMIN-001`, `AC-ADMIN-002`, `AC-ADMIN-003`, `AC-ADMIN-004`, `AC-REPORT-001`, `AC-REPORT-002`, `AC-REPORT-003` |
+| Admin/Reporting | `AC-ADMIN-001`, `AC-ADMIN-002`, `AC-ADMIN-003`, `AC-ADMIN-004`, `AC-REPORT-001`, `AC-REPORT-002`, `AC-REPORT-003`, `AC-REPORT-004`, `AC-REPORT-005`, `AC-REPORT-006` |
 | System quality | `AC-NFR-001`, `AC-NFR-002`, `AC-NFR-003`, `AC-SEC-001`, `AC-SEC-002`, `AC-UX-001`, `AC-UX-002`, `AC-OBS-001` |
 
 Automation status và latest run ID sẽ được bổ sung khi repository có code/pipeline; requirement ID không được xóa khỏi register khi test chưa triển khai.

@@ -114,9 +114,10 @@ Mỗi FR dưới đây mô tả một hành vi quan sát được. Luồng và n
 | FR-REPORT-001 | MUST | Admin xem gross/net revenue, phí sàn, Booking, Refund và occupancy theo khoảng thời gian. Net nhà xe trên tiền `PREPAID` đã thu không gồm tiền mặt trả sau. | UC-REPORT-01 |
 | FR-REPORT-002 | MUST | Operator xem báo cáo giới hạn theo tenant; định nghĩa metric và timezone phải hiển thị. | UC-REPORT-01 |
 | FR-REPORT-003 | SHOULD | Người có quyền có thể export CSV; export lớn chạy bất đồng bộ. | UC-REPORT-01 |
+| FR-REPORT-004 | SHOULD | Admin/Operator Finance có quyền có thể xem dashboard đa chiều Power BI nhúng trong Back-office, chỉ từ Reporting read model; hệ thống phải áp permission và tenant/RLS, không lộ PII/credential, đồng thời hiển thị metric, timezone, phạm vi và độ mới dữ liệu. | UC-REPORT-01 |
 
 ## 5.9. Kiểm tra độ phủ
 
-Chương này có 71 FR: 61 `MUST` và 10 `SHOULD`. Mỗi nhóm đã có Use Case tương ứng; truy vết tới Business Rule và Acceptance Criteria được hoàn thiện tại [Chương 10](./10-nghiem-thu-va-truy-vet.md).
+Chương này có 72 FR: 61 `MUST` và 11 `SHOULD`. Mỗi nhóm đã có Use Case tương ứng; truy vết tới Business Rule và Acceptance Criteria được hoàn thiện tại [Chương 10](./10-nghiem-thu-va-truy-vet.md).
 
 [← Chương 4](./04-use-cases/README.md) · [Mục lục](./README.md) · [Chương 6 →](./06-yeu-cau-trang-thai.md)

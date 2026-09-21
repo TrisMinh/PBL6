@@ -67,6 +67,8 @@ Các giá trị dưới đây là baseline nghiệm thu cho môi trường test 
 | NFR-SEC-011 | PII nhạy cảm được mã hóa at rest khi phù hợp và mask trong log/UI. |
 | NFR-SEC-012 | Dependency/container image được scan trước release; lỗ hổng critical phải xử lý hoặc có phê duyệt rủi ro. |
 
+`NFR-REL-004`, `NFR-SEC-006`, `NFR-SEC-009` và `NFR-SEC-011` áp dụng cho Power BI Embedded: lỗi embed/refresh không ảnh hưởng giao dịch; tenant/RLS phải fail closed; credential/token không được commit, persist phía client hoặc ghi log; semantic model không chứa PII không cần thiết.
+
 ## 9.6. Quyền riêng tư
 
 | ID | Yêu cầu |

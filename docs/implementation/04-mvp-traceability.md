@@ -1,6 +1,6 @@
 # MVP Traceability — Requirement đến code boundary
 
-Register này là gate lập trình cho MVP 2.0.1. Có đúng **61 FR MUST active**. Một slice chỉ đạt Done khi endpoint/event/table/UI/test ở cùng hàng đã được triển khai và evidence được gắn vào requirement ID.
+Register này là gate lập trình cho MVP theo SRS 2.1.0. Có đúng **61 FR MUST active**; `FR-REPORT-004` Power BI là `SHOULD` hậu MVP. Một slice chỉ đạt Done khi endpoint/event/table/UI/test ở cùng hàng đã được triển khai và evidence được gắn vào requirement ID.
 
 | Scope | FR MUST active | OpenAPI operation | Event/message chính | Database owner | UI/test owner |
 |---|---|---|---|---|---|
@@ -14,9 +14,9 @@ Register này là gate lập trình cho MVP 2.0.1. Có đúng **61 FR MUST activ
 | Platform Admin | `FR-ADMIN-001`..`002` | Admin IAM + `searchBookingsForSupport`, `searchAdminPayments`, `searchAdminRefunds`, `listAdminSettlements`, `createOperatorPayout` | không thêm command sửa lịch sử | Identity/Booking/Payment audit và read model | Admin IAM/transaction trace; `TS-ADMIN-IAM`, `TS-ADMIN-TRACE` |
 | Reporting | `FR-REPORT-001`..`002` | `getRevenueReport`, `getBookingReport`, `getOccupancyReport` | consume Booking/Refund/Trip/Ticket events | Reporting projections/checkpoints | Admin/Finance reports; `TS-REPORT` |
 
-## P1 bị khóa khỏi runtime MVP — 10 FR SHOULD
+## P1 bị khóa khỏi runtime MVP — 11 FR SHOULD
 
-`FR-SEARCH-007`, `FR-BOOK-010`, `FR-PAY-010`, `FR-PROMO-001`, `FR-PROMO-002`, `FR-REVIEW-001`, `FR-REVIEW-002`, `FR-NOTIF-003`, `FR-ADMIN-003`, `FR-REPORT-003`.
+`FR-SEARCH-007`, `FR-BOOK-010`, `FR-PAY-010`, `FR-PROMO-001`, `FR-PROMO-002`, `FR-REVIEW-001`, `FR-REVIEW-002`, `FR-NOTIF-003`, `FR-ADMIN-003`, `FR-REPORT-003`, `FR-REPORT-004`.
 
 Không được tạo route, navigation, consumer binding hoặc table “để sẵn” cho các FR này. Thiết kế P1 vẫn được giữ để lưu quyết định, nhưng chỉ kích hoạt bằng release decision, contract/migration mới và test tương ứng.
 

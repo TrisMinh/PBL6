@@ -60,6 +60,7 @@ Các nội dung dưới đây hữu ích cho thiết kế nhưng không phải n
 - [Luồng event Payment](../../system-design/02-08-rabbitmq-event-flow/04-payment-booking-events.md)
 - [Luồng event cancellation](../../system-design/02-08-rabbitmq-event-flow/05-cancellation-refund-events.md)
 - [Luồng event Trip](../../system-design/02-08-rabbitmq-event-flow/03-trip-lifecycle-events.md)
+- [Power BI Analytics — thiết kế Embedded, semantic model, RLS và refresh](../../detailed-design/03-08-power-bi-analytics/README.md)
 
 ## 11.4. Phân tách tài liệu
 
@@ -92,6 +93,7 @@ Các nội dung dưới đây hữu ích cho thiết kế nhưng không phải n
 | Offline Ticket/QR | Customer có thể xem bản Ticket đã cache; check-in của Driver bắt buộc xác minh online trong MVP. | Accepted |
 | Seat inventory | Một TripSeat chiếm quyền cho toàn bộ Trip; chưa bán lại cùng ghế theo các chặng không giao nhau. | Accepted |
 | Xác minh tài khoản | Email và số điện thoại là dữ liệu đăng ký; MVP xác minh email. SMS OTP không thuộc MVP. | Accepted |
+| Power BI Analytics | Dashboard đa chiều Power BI Embedded là `SHOULD` hậu MVP, chỉ đọc Reporting read model, áp permission + tenant/RLS và công bố độ mới dữ liệu. | Proposed, bổ sung 2026-09-21 |
 
 ### 11.5.1. Policy hủy vé mặc định
 

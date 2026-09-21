@@ -102,6 +102,7 @@ Phạm vi: `FR-ADMIN-001..002`, `FR-REPORT-001..002`.
 - Automated reconciliation job/API.
 - SupportCase.
 - CSV export/Object Storage.
+- Power BI Embedded analytics (`FR-REPORT-004`).
 - GPS, AI recommendation, loyalty và dynamic pricing.
 
 ## Definition of Ready cho một slice

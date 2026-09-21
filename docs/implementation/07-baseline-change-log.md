@@ -10,6 +10,7 @@ Tài liệu này giữ lịch sử các quyết định công nghệ đã làm t
 | IBL-004 | 2026-09-12 | Tách SRS khỏi tài liệu kỹ thuật và loại bỏ artifact sinh tự động. | Superseded bởi IBL-005 | `srs/` giữ baseline và Word; `docs/` giữ tài liệu kỹ thuật; không lưu diagram HTML hoặc ảnh QA render trong repository. |
 | IBL-006 | 2026-09-17 | Bổ sung `PAY_LATER` (in vé, không đo tiền mặt, no-show do nhà xe) và phí sàn trên tiền `PREPAID` đã thu qua cổng. | Accepted, active | SRS 2.0.1; Booking/Payment/Transport/Reporting SQL; OpenAPI 77 operation; settlement/ledger/payout. |
 | IBL-007 | 2026-09-17 | Nâng backend Target Framework từ `net8.0` lên `.NET 10 LTS / net10.0`. | Accepted, active | Mọi API, Worker, Gateway, class library và test project target `net10.0`; SDK `10.0.401` được pin cho local/CI. Contract nghiệp vụ và database schema không đổi. |
+| IBL-008 | 2026-09-21 | Bổ sung Power BI Analytics đa chiều dưới dạng capability `SHOULD` hậu MVP. | Accepted, active | SRS 2.1.0; thêm `FR-REPORT-004`, `AC-REPORT-004..006`, UI/data/integration requirements, ADR-018 `Proposed` và Detailed Design 3.8. MVP vẫn có 61 FR `MUST`; chưa có runtime/PBIP artefact. |
 
 ## Ghi chú về SDK và Target Framework
 

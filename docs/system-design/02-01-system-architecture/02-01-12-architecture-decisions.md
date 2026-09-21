@@ -21,6 +21,7 @@
 | ADR-015 | MVP triển khai toàn bộ MUST, hoãn SHOULD/COULD | Accepted | Giảm rủi ro phạm vi và giữ tiêu chí nghiệm thu rõ |
 | ADR-016 | Monorepo với contract-first và deployable độc lập | Accepted | Nhóm nhỏ cần thay đổi đồng bộ nhưng service/app vẫn build, test và deploy độc lập |
 | ADR-017 | Nâng toàn bộ backend lên .NET 10 LTS | Accepted, 2026-09-17 | Tránh bắt đầu dự án mới trên dòng .NET 8/9 sắp hết hỗ trợ; thống nhất `net10.0` đến lần nâng major tiếp theo |
+| ADR-018 | Power BI Embedded đọc Reporting read model | Proposed, 2026-09-21 | Bổ sung analytics đa chiều nhưng giữ tenant isolation, data ownership và Booking/Payment ngoài critical path |
 
 ## 2. Chi tiết quyết định trọng yếu
 
@@ -134,6 +135,16 @@ Phần lựa chọn C#, ASP.NET Core và boundary client/backend của ADR-012 v
 
 **Verification:** `dotnet --version` từ `workspace/` resolve SDK đã pin; restore/build/test toàn solution thành công; CI và container target .NET 10; không còn project hoặc tài liệu baseline hiện hành nào yêu cầu Target Framework cũ.
 
+### ADR-018 — Power BI Embedded analytics
+
+**Context:** SRS 2.1.0 bổ sung `FR-REPORT-004` (`SHOULD`) cho dashboard đa chiều. Hệ thống đã có Reporting projection/eventual consistency, tenant permission và `dataAsOf`; Power BI không được tạo đường đọc chéo vào database giao dịch hoặc trở thành dependency của Booking/Payment.
+
+**Decision đề xuất:** dùng Power BI Embedded theo mô hình app-owns-data/service principal. Semantic model Import chỉ đọc BI views thuộc `reporting_db`/read replica; backend tạo embed token sau authorization và áp dynamic RLS theo tenant. Report công bố source freshness và semantic-model refresh time.
+
+**Consequences:** tái sử dụng Reporting read model, có trải nghiệm phân tích đa chiều và không yêu cầu người dùng ứng dụng có tài khoản Power BI riêng; đổi lại phát sinh license/capacity, Microsoft Entra, gateway/refresh, RLS test và vận hành artefact BI. Power BI vẫn là hậu MVP cho đến khi ADR được Accepted và các open decision được chốt.
+
+**Verification:** reconciliation measure với Reporting API/SQL fixture; cross-tenant negative test; fail-closed khi thiếu effective identity; secret/token scan; refresh/gateway failure không ảnh hưởng giao dịch. Chi tiết tại [Detailed Design 3.8](../../detailed-design/03-08-power-bi-analytics/README.md).
+
 ## 3. Rejected alternatives
 
 | Phương án | Vì sao chưa chọn |
@@ -145,6 +156,7 @@ Phần lựa chọn C#, ASP.NET Core và boundary client/backend của ADR-012 v
 | Event sourcing toàn hệ thống | Complexity cao, SRS không yêu cầu audit/replay ở mức aggregate history đầy đủ |
 | Kubernetes bắt buộc cho local | Quá nặng cho vòng lặp phát triển PBL6; Compose đủ baseline local |
 | Khóa cloud/payment vendor sớm | Chưa có dữ liệu budget, SLA, coverage và compliance để quyết định đúng |
+| Cho Power BI đọc trực tiếp database giao dịch | Phá data ownership, tăng tải/coupling và khó kiểm soát PII/tenant; Reporting read model đã là boundary phù hợp |
 
 ## 4. Open decisions
 
@@ -157,6 +169,7 @@ Các mục sau không chặn coding MVP; cần ADR riêng trước production ho
 5. PostgreSQL/RabbitMQ managed hay self-hosted.
 6. Retry, prefetch và capacity threshold cuối sau load test.
 7. Retention chi tiết theo pháp lý/nhà trường/nghiệp vụ khi có dữ liệu thật.
+8. Power BI license/capacity, Microsoft Entra tenant, gateway, data residency, refresh SLO và mức isolation theo tenant trước khi accept ADR-018.
 
 ## 5. Mẫu ADR cho thay đổi tiếp theo
 

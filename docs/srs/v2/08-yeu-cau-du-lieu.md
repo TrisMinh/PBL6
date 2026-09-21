@@ -77,6 +77,7 @@ Chương này mô tả dữ liệu nghiệp vụ và ràng buộc quan sát đư
 | UserPreference | User ID, channel/type, enabled | Không tắt thông báo thiết yếu ngoài policy. |
 | ReportProjection | Scope, metric, period, value, lastUpdatedAt | Không phải nguồn để cập nhật giao dịch; hiển thị độ trễ. |
 | ExportJob | Actor/scope, filter, status, file reference/expiry | Kiểm tra lại quyền khi tải; audit nếu chứa PII. |
+| BI Semantic Model | Fact/dimension/measure, tenant key, sourceDataAsOf, modelRefreshedAt | Chỉ là bản sao phân tích từ Reporting read model; không chứa PII không cần thiết, credential hoặc dữ liệu ngoài scope. |
 
 ## 8.7. Ràng buộc toàn vẹn quan trọng
 
@@ -106,6 +107,7 @@ Chương này mô tả dữ liệu nghiệp vụ và ràng buộc quan sát đư
 - Mọi dữ liệu Operator có organization ownership trực tiếp hoặc suy ra được bằng quan hệ đáng tin cậy.
 - Server lấy tenant từ identity context; không dùng body/query parameter làm nguồn quyền.
 - Export, Report và Audit cũng phải áp tenant scope.
+- Power BI semantic model/report phải áp tenant scope bằng RLS hoặc isolation tương đương; filter/slicer giao diện không được dùng làm ranh giới bảo mật.
 
 ## 8.8. Dữ liệu nhạy cảm
 

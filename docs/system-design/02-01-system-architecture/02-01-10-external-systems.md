@@ -8,6 +8,7 @@
 | Email/Push Provider | Notification Service | HTTPS provider API/webhook khi có | Recipient/token, template/rendered content, delivery result | Trung bình; ngoài booking critical path |
 | Object Storage | Reporting/Platform | Private HTTPS/S3-compatible API | Export file, object key, expiry metadata | Trung bình |
 | Client platforms | Gateway/Identity | HTTPS; push token registration | Request, auth/session metadata, device/app version | Cao cho trải nghiệm, không phải nguồn business state |
+| Power BI Service / Embedded | Reporting/Back-office | HTTPS REST API + embed client; gateway/refresh tới BI views | Semantic model/report chỉ đọc, embed config/token ngắn hạn, refresh metadata | Thấp; `SHOULD` hậu MVP và ngoài critical path |
 
 Payment provider và notification provider nằm ngoài system boundary. Object Storage có thể là managed platform component; dù cách mua dịch vụ khác nhau, code vẫn coi nó là dependency qua port/adapter.
 
@@ -58,7 +59,16 @@ Không đưa secret, full payment detail hoặc identity document vào template/
 - File có checksum, content type, size limit và lifecycle/retention policy.
 - Upload/download lỗi không làm thay đổi transaction nguồn; export job có `PENDING/RUNNING/SUCCEEDED/FAILED/EXPIRED`.
 
-## 5. Anti-corruption layer
+## 5. Power BI integration (`Proposed`, hậu MVP)
+
+- Power BI chỉ lấy dữ liệu từ Reporting read model/view được duyệt; không đọc database giao dịch và không ghi ngược business state.
+- Back-office dùng app-owns-data/service principal; backend kiểm tra permission/tenant rồi mới tạo embed config/token ngắn hạn.
+- Semantic model áp RLS hoặc workspace isolation tương đương; report filter/hidden page không phải security boundary.
+- PostgreSQL private dùng enterprise/VNet data gateway phù hợp topology; không public database để phục vụ refresh.
+- Lỗi Power BI API, gateway hoặc refresh chỉ làm giảm capability analytics, không ảnh hưởng Booking/Payment.
+- Thiết kế chi tiết: [Power BI Analytics](../../detailed-design/03-08-power-bi-analytics/README.md).
+
+## 6. Anti-corruption layer
 
 Mỗi external system có adapter nội bộ ánh xạ vendor DTO/error/status sang model ổn định:
 
@@ -74,7 +84,7 @@ Provider Adapter
 
 Thay provider chỉ thay adapter, config, migration/reconciliation plan và contract test; không làm vendor status lan vào Booking aggregate.
 
-## 6. Contract testing và sandbox
+## 7. Contract testing và sandbox
 
 - Có provider sandbox hoặc stub có khả năng mô phỏng timeout, duplicate, out-of-order và invalid signature.
 - Contract test pin các field/signature rule đang dùng, không pin toàn SDK response không liên quan.
@@ -82,6 +92,6 @@ Thay provider chỉ thay adapter, config, migration/reconciliation plan và cont
 - Secret/key rotation được kiểm thử trước production.
 - E2E staging dùng credential/provider environment riêng.
 
-## 7. Vendor chưa khóa
+## 8. Vendor chưa khóa
 
-Tên vendor payment, email/push, object storage và cloud chưa được khóa trong baseline. Việc chọn vendor cần ADR riêng dựa trên coverage Việt Nam, phí, sandbox/webhook, SLA, data residency, SDK quality và khả năng reconciliation.
+Tên vendor payment, email/push, object storage và cloud chưa được khóa trong baseline. Power BI đã được nêu đích danh theo `FR-REPORT-004`, nhưng license/capacity, gateway và data residency chưa khóa. Các lựa chọn cần ADR dựa trên coverage Việt Nam, phí, sandbox/webhook, SLA, data residency, SDK quality và khả năng reconciliation.

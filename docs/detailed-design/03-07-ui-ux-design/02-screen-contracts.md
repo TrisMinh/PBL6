@@ -34,6 +34,7 @@ Mỗi row là contract tối thiểu; thiết kế chi tiết có thể thay lay
 | User/role/membership | FR-IAM-008..009, FR-ADMIN-001 | status, roles, tenant membership | self-escalation/last-admin blocked, audit reason |
 | Transaction search | FR-PAY-009, FR-PAY-013, FR-ADMIN-002 | Booking/Payment/Refund/settlement/audit lookup | masked PII, cross-scope denial, no mutation |
 | Reports | FR-REPORT-001..002 | date/timezone/scope, dataAsOf, gross/commission/payable `PREPAID`, metric definitions | empty, projection lag, >10s bounded error/no export MVP |
+| Power BI Analytics (P1) | FR-REPORT-004 | report allowlist, permission, tenant/RLS, timezone, source/model freshness | disabled, loading, embed error, token expired/renew, stale projection, retry/fallback |
 
 ## Destructive/financial confirmation pattern
 

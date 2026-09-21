@@ -17,6 +17,7 @@ Baseline backend được cập nhật ngày 2026-09-17: mọi project target `.
 | API Gateway | ASP.NET Core + YARP | Accepted | Route precedence, auth filter, rate limit và correlation trong cùng hệ sinh thái .NET |
 | API style | REST/JSON + OpenAPI | Accepted | Phù hợp request/response và đã được SRS yêu cầu |
 | Event schema | JSON Schema + AsyncAPI catalog | Accepted | Contract review, versioning và CI compatibility check |
+| Business analytics | Power BI Embedded, Import semantic model trên Reporting read model | Proposed, hậu MVP | Thực hiện `FR-REPORT-004`; license/capacity/gateway/data residency còn phải chốt |
 
 Framework không phải ràng buộc nghiệp vụ. Nếu implementation chọn stack khác, phải tạo ADR supersede trước rồi đồng bộ file này và contract/tooling liên quan.
 

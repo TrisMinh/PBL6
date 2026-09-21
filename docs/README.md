@@ -7,6 +7,7 @@ Thư mục `docs/` chứa SRS cùng toàn bộ tài liệu kỹ thuật phục v
 - [Software Requirements Specification](./srs/README.md): baseline yêu cầu, lịch sử phiên bản và các bản phát hành Word.
 - [System Design](./system-design/README.md): thiết kế kiến trúc, giao tiếp dịch vụ, RabbitMQ, dữ liệu, bảo mật và triển khai.
 - [Detailed Design](./detailed-design/README.md): API, event contract, physical database, authorization, recovery và test design có thể triển khai.
+- [Power BI Analytics](./detailed-design/03-08-power-bi-analytics/README.md): kết quả kiểm tra hiện trạng và thiết kế tích hợp Power BI Embedded trên Reporting read model.
 - [Diagram](./diagrams/README.md): sơ đồ tổng hợp, các sơ đồ chuyên biệt và đặc tả đầu vào để vẽ.
 - [Implementation Baseline](./implementation/README.md): quyết định công nghệ, cấu trúc repository, thứ tự triển khai và Definition of Ready/Done.
 - [Task Tracking](../task-tracking/README.md): ownership nhóm 4 người, roadmap, backlog, Kanban Markdown và tracking tiến độ.
@@ -14,4 +15,4 @@ Thư mục `docs/` chứa SRS cùng toàn bộ tài liệu kỹ thuật phục v
 - [Executable Contracts](./contracts/README.md): OpenAPI, AsyncAPI và JSON Schema active của MVP.
 - [Database Migration Baseline](./database/README.md): schema PostgreSQL nghiệp vụ cho sáu service.
 
-[SRS 2.0.1](./srs/v2/README.md) là nguồn quyết định cho yêu cầu và quy tắc nghiệp vụ. System/Detailed Design quyết định cách triển khai nhưng không được tự tạo thêm hành vi. Diagram dùng để giải thích trực quan và phải truy vết về requirement ID tương ứng.
+[SRS 2.1.0](./srs/v2/README.md) là nguồn quyết định cho yêu cầu và quy tắc nghiệp vụ. System/Detailed Design quyết định cách triển khai nhưng không được tự tạo thêm hành vi. Diagram dùng để giải thích trực quan và phải truy vết về requirement ID tương ứng.

@@ -2,14 +2,37 @@
 
 Nhật ký này quản lý các file Word phát hành. Lịch sử phiên bản nội dung SRS được quản lý tại [`docs/srs/CHANGELOG.md`](../CHANGELOG.md).
 
+## PBL6 SRS v003
+
+- Ngày phát hành: 21/09/2026
+- Trạng thái: Bản hiện hành
+- File: `releases/PBL6-SRS-v003.docx`
+- Baseline nội dung: SRS 2.1.0
+- Kích thước: 7.684.369 byte
+- SHA-256: `0A45D2BBA462A55ACA95F0761B8599CBAD0559B8465A55FA1259DD07BB1BDD00`
+
+### Ghi chú phiên bản
+
+- Không ghi đè `v002`; sao chép bản hiện hành trước đó và đồng bộ capability Power BI của baseline 2.1.0.
+- Bổ sung `FR-REPORT-004` (`SHOULD`) cho Power BI Embedded đa chiều trong Back-office.
+- Bổ sung use-case flow, permission + tenant/RLS, freshness, semantic model read-only, UI/integration và `AC-REPORT-004..006`.
+- Giữ nguyên 61 FR `MUST` và phạm vi runtime MVP; chưa tuyên bố có Power BI runtime/PBIP artefact.
+- Đối chiếu lại file `v002` đang được Git theo dõi và sửa metadata kích thước/SHA-256 bị cũ trong log; không thay đổi binary `v002`.
+- Script đóng gói: [`build_v003.py`](./build_v003.py).
+
+### Nguồn sử dụng
+
+- Bản Word trước: `releases/PBL6-SRS-v002.docx`
+- Baseline Markdown: `docs/srs/v2` phiên bản 2.1.0
+
 ## PBL6 SRS v002
 
 - Ngày phát hành: 17/09/2026
-- Trạng thái: Bản hiện hành
+- Trạng thái: Đã thay thế bởi v003; file được giữ nguyên
 - File: `releases/PBL6-SRS-v002.docx`
 - Baseline nội dung: SRS 2.0.1
-- Kích thước: 7.681.549 byte
-- SHA-256: `571DA9175901E425C674BFF5A55A298908DAD68DA81D6A74E531B481D4CD529B`
+- Kích thước: 8.257.704 byte
+- SHA-256: `35EF0F9F5CCC1F9071FF4338D49992130B6A58FC4D4112241FB88C25174E9052`
 
 ### Ghi chú phiên bản
 

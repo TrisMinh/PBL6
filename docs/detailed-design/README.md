@@ -11,6 +11,7 @@ Chương này chuyển System Design thành contract và quy tắc triển khai 
 - [3.5 Error, Concurrency & Recovery](./03-05-error-concurrency-recovery/README.md)
 - [3.6 Test Design](./03-06-test-design/README.md)
 - [3.7 UI/UX Design](./03-07-ui-ux-design/README.md)
+- [3.8 Power BI Analytics](./03-08-power-bi-analytics/README.md) — thiết kế Proposed hậu MVP; trạng thái tích hợp, semantic model, Embedded, RLS và refresh
 
 ## Baseline và trạng thái
 

@@ -60,6 +60,9 @@ SRS không đặc tả chi tiết cấu trúc database vật lý, giao thức n�
 | Idempotency | Thuộc tính bảo đảm gửi lặp cùng yêu cầu không tạo thêm tác động nghiệp vụ. |
 | Compensation | Thao tác bù trừ khi quy trình nhiều bước chỉ hoàn thành một phần. |
 | Reconciliation | Đối soát dữ liệu nội bộ với dữ liệu nhà cung cấp để xác định trạng thái cuối. |
+| Power BI | Nền tảng phân tích và trực quan hóa dữ liệu dùng để cung cấp dashboard đa chiều từ Reporting read model. |
+| Semantic model | Mô hình dữ liệu phân tích gồm fact, dimension, relationship, measure và quy tắc bảo mật phục vụ báo cáo Power BI. |
+| Row-Level Security (RLS) | Cơ chế giới hạn row dữ liệu theo actor/tenant trong semantic model; filter giao diện không thay thế RLS. |
 
 ## 1.5. Quy ước yêu cầu
 
@@ -76,6 +79,7 @@ SRS không đặc tả chi tiết cấu trúc database vật lý, giao thức n�
 - Chính sách hủy, đổi vé và hoàn tiền được phê duyệt.
 - Hợp đồng API/webhook của Payment Gateway được lựa chọn.
 - Hợp đồng của Notification Provider.
+- Tài liệu Microsoft Power BI/Power BI Embedded tại thời điểm triển khai.
 - Tài liệu thiết kế kiến trúc, API, database và triển khai.
 - Test Plan và Test Case được sinh từ yêu cầu có mã.
 

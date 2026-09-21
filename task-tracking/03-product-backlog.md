@@ -186,5 +186,6 @@ Trace: [repository structure](../docs/implementation/01-repository-structure.md)
 | Push/SMS preference | `FR-NOTIF-003` |
 | SupportCase | `FR-ADMIN-003` |
 | CSV export | `FR-REPORT-003` |
+| Power BI Embedded analytics | `FR-REPORT-004`; thiết kế tại `docs/detailed-design/03-08-power-bi-analytics/` |
 
 Card P1 hậu MVP chỉ được đưa vào sprint khi tất cả P0 MVP của milestone hiện tại đã Done và scope change được ghi vào progress log.

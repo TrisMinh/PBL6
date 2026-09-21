@@ -36,8 +36,8 @@ Mỗi test case có: ID/version, requirement/AC links, risk/priority, preconditi
 
 ## Final acceptance checklist
 
-- 28/28 UC mapped; 71 FR and every NFR MUST covered by suite/query.
-- MUST acceptance criteria (73) pass; SHOULD scope decision recorded.
+- 28/28 UC mapped; 72 FR and every NFR MUST covered by suite/query.
+- 76 acceptance criteria mapped; acceptance thuộc release scope phải pass, còn `SHOULD` phải có scope decision/evidence khi được kích hoạt.
 - Migration upgrade/rollback compatibility and backup restore evidence present.
 - Error code/OpenAPI/event catalog versions match deployed artifact.
 - No unresolved trace gap, secret leak or unowned DLQ/manual case.

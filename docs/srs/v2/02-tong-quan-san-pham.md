@@ -54,6 +54,7 @@ Admin quản lý Organization, User, role, membership, review/khiếu nại, tra
 
 - Payment Gateway nhận yêu cầu thanh toán/refund và gửi webhook có chữ ký.
 - Notification Provider gửi email, SMS hoặc push; nhà cung cấp này không quyết định trạng thái nghiệp vụ.
+- Power BI Service nhận dữ liệu phân tích chỉ đọc từ Reporting read model và cung cấp báo cáo nhúng; không phải nguồn trạng thái giao dịch.
 
 ## 2.5. Phạm vi chức năng
 
@@ -83,6 +84,7 @@ Toàn bộ mục này được chuyển sang backlog sau MVP 2.0. Không triển
 - Promotion/voucher.
 - Review và kiểm duyệt Review.
 - Export báo cáo CSV.
+- Dashboard đa chiều nhúng bằng Power BI, giới hạn theo permission/tenant và hiển thị độ mới dữ liệu.
 - Push Notification.
 - Job đối soát Payment/Refund chưa có kết quả cuối.
 

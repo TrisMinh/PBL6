@@ -1,11 +1,12 @@
 # Báo cáo sẵn sàng triển khai code
 
-- Baseline: SRS 2.0.1
+- Baseline: SRS 2.1.0
 - Ngày đánh giá ban đầu: 2026-09-09
 - Cập nhật baseline runtime: 2026-09-10
 - Cập nhật toolchain: 2026-09-12
 - Cập nhật PAY_LATER và phí sàn: 2026-09-17
 - Cập nhật runtime .NET 10 LTS: 2026-09-17
+- Cập nhật Power BI Analytics `SHOULD`: 2026-09-21
 - Kết luận: **READY có điều kiện về toolchain**
 
 ## 1. Kết luận chuyên môn
@@ -18,20 +19,20 @@ Workstation đã có thể scaffold và build project target `net10.0` bằng SD
 
 | Hạng mục | Baseline |
 |---|---:|
-| Functional Requirement | 71 |
+| Functional Requirement | 72 |
 | MVP `MUST` | 61 |
-| Backlog `SHOULD` | 10 |
+| Backlog `SHOULD` | 11 |
 | `COULD` | 0 |
 | Non-functional Requirement | 59 |
-| Acceptance Criteria | 73 |
+| Acceptance Criteria | 76 |
 
-Mười requirement P1 không thuộc MVP: `FR-SEARCH-007`, `FR-BOOK-010`, `FR-PAY-010`, `FR-PROMO-001`, `FR-PROMO-002`, `FR-REVIEW-001`, `FR-REVIEW-002`, `FR-NOTIF-003`, `FR-ADMIN-003`, `FR-REPORT-003`.
+Mười một requirement P1 không thuộc MVP: `FR-SEARCH-007`, `FR-BOOK-010`, `FR-PAY-010`, `FR-PROMO-001`, `FR-PROMO-002`, `FR-REVIEW-001`, `FR-REVIEW-002`, `FR-NOTIF-003`, `FR-ADMIN-003`, `FR-REPORT-003`, `FR-REPORT-004`.
 
 ## 3. Artifact đã sẵn sàng cho implementation
 
 | Artifact | Kết quả |
 |---|---|
-| SRS 2.0.1 | Quy tắc trả sau + phí sàn, trạng thái, priority và acceptance đã thống nhất |
+| SRS 2.1.0 | Giữ 61 FR `MUST`; bổ sung Power BI Analytics `SHOULD`, tenant/RLS, freshness và acceptance |
 | ADR/System Design | Đã quyết định stack, service boundary, consistency, security và monorepo |
 | OpenAPI 3.1 | 77 operation active; `operationId` duy nhất; không lộ route P1 |
 | AsyncAPI 3.1 | 20 channel và 20 send operation active |

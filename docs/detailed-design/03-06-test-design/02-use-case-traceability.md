@@ -29,8 +29,8 @@
 | `UC-ADMIN-01` | `TS-ADMIN-IAM` | AC-ADMIN-001..002, AC-AUTH-002; FR-IAM-008..009, FR-ADMIN-001 |
 | `UC-ADMIN-02` | `TS-ADMIN-TRACE` | AC-ADMIN-003; FR-PAY-009..013, FR-ADMIN-002 |
 | `UC-ADMIN-03` | `TS-SUPPORT-CASE` | AC-ADMIN-004; FR-ADMIN-003 |
-| `UC-REPORT-01` | `TS-REPORT-EXPORT` | AC-REPORT-001..003; FR-REPORT-001..003 |
+| `UC-REPORT-01` | `TS-REPORT`, `TS-EXPORT`, `TS-POWERBI` | AC-REPORT-001..006; FR-REPORT-001..004 |
 
 Mỗi suite có positive, validation, permission/ownership, invalid state, version/idempotency khi mutation, và telemetry assertion phù hợp. Use Case `SHOULD` vẫn có test khi feature được bật; nếu scope lùi phải ghi product decision, không xóa trace.
 
-Trong MVP, `UC-CHANGE-01`, `UC-PROMO-01`, `UC-REVIEW-01`, `UC-REVIEW-02`, `UC-ADMIN-03` và phần preference/export/reconciliation job của các suite liên quan ở trạng thái P1, không chạy trong release gate. `UC-REPORT-01` tách `TS-REPORT` active khỏi `TS-EXPORT` P1; `UC-NOTIF-01` tách notification delivery active khỏi preference P1.
+Trong MVP, `UC-CHANGE-01`, `UC-PROMO-01`, `UC-REVIEW-01`, `UC-REVIEW-02`, `UC-ADMIN-03` và phần preference/export/reconciliation/Power BI của các suite liên quan ở trạng thái P1, không chạy trong release gate. `UC-REPORT-01` tách `TS-REPORT` active khỏi `TS-EXPORT` và `TS-POWERBI` P1; `UC-NOTIF-01` tách notification delivery active khỏi preference P1.
