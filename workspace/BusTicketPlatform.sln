@@ -17,6 +17,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BusTicketPlatform.Identity.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BusTicketPlatform.Identity.Api", "src\services\identity\BusTicketPlatform.Identity.Api\BusTicketPlatform.Identity.Api.csproj", "{D99AEEE6-BFE7-47DE-A1A6-BD12FE5F39C6}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "api-gateways", "api-gateways", "{B6DC58C7-0936-44A1-A3D1-69B5A2057D93}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BusTicketPlatform.ApiGateway", "src\api-gateways\BusTicketPlatform.ApiGateway\BusTicketPlatform.ApiGateway.csproj", "{482339A9-8B3D-402E-A09D-2795BDB01128}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -42,6 +46,10 @@ Global
 		{D99AEEE6-BFE7-47DE-A1A6-BD12FE5F39C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D99AEEE6-BFE7-47DE-A1A6-BD12FE5F39C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D99AEEE6-BFE7-47DE-A1A6-BD12FE5F39C6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{482339A9-8B3D-402E-A09D-2795BDB01128}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{482339A9-8B3D-402E-A09D-2795BDB01128}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{482339A9-8B3D-402E-A09D-2795BDB01128}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{482339A9-8B3D-402E-A09D-2795BDB01128}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{F3284829-C371-427A-A927-6955014AFCB2} = {D10499A4-6135-4DFF-831B-69EFB5AAF71C}
@@ -50,5 +58,7 @@ Global
 		{CEAC9E99-CF5D-4DD5-BAE5-8DCAB4F2F78A} = {3FD494B5-9FCE-447C-A9B2-610DA96719A8}
 		{FF592951-6A18-4913-8071-1503DCFCB7EE} = {3FD494B5-9FCE-447C-A9B2-610DA96719A8}
 		{D99AEEE6-BFE7-47DE-A1A6-BD12FE5F39C6} = {3FD494B5-9FCE-447C-A9B2-610DA96719A8}
+		{B6DC58C7-0936-44A1-A3D1-69B5A2057D93} = {D10499A4-6135-4DFF-831B-69EFB5AAF71C}
+		{482339A9-8B3D-402E-A09D-2795BDB01128} = {B6DC58C7-0936-44A1-A3D1-69B5A2057D93}
 	EndGlobalSection
 EndGlobal
