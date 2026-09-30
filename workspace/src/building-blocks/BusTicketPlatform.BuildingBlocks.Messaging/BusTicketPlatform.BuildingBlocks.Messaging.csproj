@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>BusTicketPlatform.BuildingBlocks.Messaging</RootNamespace>
+    <Description>Event envelope and RabbitMQ technical adapters. No domain entities.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="RabbitMQ.Client" />
+    <PackageReference Include="Npgsql" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\BusTicketPlatform.BuildingBlocks\BusTicketPlatform.BuildingBlocks.csproj" />
+  </ItemGroup>
+</Project>

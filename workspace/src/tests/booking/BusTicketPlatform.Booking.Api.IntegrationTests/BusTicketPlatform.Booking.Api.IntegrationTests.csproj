@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsTestProject>true</IsTestProject>
+    <RootNamespace>BusTicketPlatform.Booking.Api.IntegrationTests</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
+    <PackageReference Include="Testcontainers.PostgreSql" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\services\booking\BusTicketPlatform.Booking.Api\BusTicketPlatform.Booking.Api.csproj" />
+    <ProjectReference Include="..\..\..\services\booking\BusTicketPlatform.Booking.Application\BusTicketPlatform.Booking.Application.csproj" />
+    <ProjectReference Include="..\..\..\services\booking\BusTicketPlatform.Booking.Infrastructure\BusTicketPlatform.Booking.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>

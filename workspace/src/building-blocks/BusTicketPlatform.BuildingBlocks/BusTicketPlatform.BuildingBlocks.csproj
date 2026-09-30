@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>BusTicketPlatform.BuildingBlocks</RootNamespace>
+    <AssemblyName>BusTicketPlatform.BuildingBlocks</AssemblyName>
+    <Description>Technical primitives shared across services. No domain entities or business rules.</Description>
+  </PropertyGroup>
+</Project>

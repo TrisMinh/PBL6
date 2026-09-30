@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>BusTicketPlatform.Payment.Domain</RootNamespace>
+    <Description>Payment bounded-context domain. No ASP.NET, EF Core or provider SDKs.</Description>
+  </PropertyGroup>
+</Project>

@@ -1,0 +1,13 @@
+.git
+**/.git
+**/bin
+**/obj
+**/node_modules
+**/dist
+**/.vs
+**/.idea
+**/TestResults
+agent-transcripts
+**/*.user
+**/coverage
+workspace/src/apps/mobile/node_modules

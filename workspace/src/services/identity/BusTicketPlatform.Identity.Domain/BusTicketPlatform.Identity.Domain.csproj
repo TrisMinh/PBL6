@@ -1,9 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+    <RootNamespace>BusTicketPlatform.Identity.Domain</RootNamespace>
+    <Description>Identity bounded-context domain. No ASP.NET, EF Core or provider SDKs.</Description>
   </PropertyGroup>
-
 </Project>

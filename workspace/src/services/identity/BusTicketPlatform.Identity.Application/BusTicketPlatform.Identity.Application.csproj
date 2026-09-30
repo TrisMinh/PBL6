@@ -1,13 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
+  <PropertyGroup>
+    <RootNamespace>BusTicketPlatform.Identity.Application</RootNamespace>
+    <Description>Identity use cases and ports. No controllers or ORM mapping.</Description>
+  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\BusTicketPlatform.Identity.Domain\BusTicketPlatform.Identity.Domain.csproj" />
+    <ProjectReference Include="..\..\..\building-blocks\BusTicketPlatform.BuildingBlocks\BusTicketPlatform.BuildingBlocks.csproj" />
   </ItemGroup>
-
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
-
 </Project>

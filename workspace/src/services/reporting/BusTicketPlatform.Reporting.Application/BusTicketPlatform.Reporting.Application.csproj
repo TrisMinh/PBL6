@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>BusTicketPlatform.Reporting.Application</RootNamespace>
+    <Description>Reporting use cases and ports. No controllers or ORM mapping.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\BusTicketPlatform.Reporting.Domain\BusTicketPlatform.Reporting.Domain.csproj" />
+    <ProjectReference Include="..\..\..\building-blocks\BusTicketPlatform.BuildingBlocks\BusTicketPlatform.BuildingBlocks.csproj" />
+  </ItemGroup>
+</Project>

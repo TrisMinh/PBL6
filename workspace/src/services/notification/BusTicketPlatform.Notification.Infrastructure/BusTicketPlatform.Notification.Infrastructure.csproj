@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>BusTicketPlatform.Notification.Infrastructure</RootNamespace>
+    <Description>Notification persistence and adapters.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\BusTicketPlatform.Notification.Application\BusTicketPlatform.Notification.Application.csproj" />
+    <ProjectReference Include="..\..\..\building-blocks\BusTicketPlatform.BuildingBlocks.Messaging\BusTicketPlatform.BuildingBlocks.Messaging.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="Npgsql" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\..\..\..\docs\database\_shared\000_integration_tables.sql" LogicalName="sql.shared" />
+    <EmbeddedResource Include="..\..\..\..\..\docs\database\notification\001_initial.sql" LogicalName="sql.notification" />
+  </ItemGroup>
+</Project>

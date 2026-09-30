@@ -1,0 +1,52 @@
+@import "@busticket/ui/tokens.css";
+
+* { box-sizing: border-box; }
+html, body, #root { margin: 0; min-height: 100%; }
+body {
+  font-family: var(--font-sans);
+  color: var(--color-neutral-950);
+  background: var(--color-background);
+  line-height: 1.5;
+}
+a { color: var(--color-action-700); text-decoration: none; }
+.layout { display: grid; min-height: 100vh; grid-template-columns: 240px 1fr; }
+aside {
+  background: var(--color-brand-900);
+  color: #fff;
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+aside a { color: #fff; min-height: 44px; display: flex; align-items: center; }
+main { padding: var(--space-8); }
+h1 { font-size: 32px; line-height: 40px; margin: 0 0 var(--space-6); }
+label { display: flex; flex-direction: column; gap: var(--space-1); font-size: 14px; }
+input, button, select {
+  font: inherit;
+  min-height: 44px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-neutral-300);
+  padding: 0 var(--space-3);
+}
+button { background: var(--color-action-700); color: #fff; border: 0; cursor: pointer; font-weight: 700; transition: background 0.2s ease, transform 0.2s ease; }
+button:hover { background: var(--color-action-600); transform: translateY(-1px); }
+button.secondary { background: var(--color-neutral-100); color: var(--color-brand-900); }
+button.danger { background: var(--color-danger-700); }
+.card {
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-neutral-300);
+}
+.row { display: flex; gap: var(--space-3); flex-wrap: wrap; align-items: center; }
+form, .stack { display: grid; gap: var(--space-4); }
+.muted { color: var(--color-neutral-700); font-size: 14px; }
+.error { color: var(--color-danger-700); }
+table { width: 100%; border-collapse: collapse; background: var(--color-surface); }
+th, td { text-align: left; padding: var(--space-3); border-bottom: 1px solid var(--color-neutral-300); }
+@media (max-width: 800px) {
+  .layout { grid-template-columns: 1fr; }
+}
+:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 2px; }

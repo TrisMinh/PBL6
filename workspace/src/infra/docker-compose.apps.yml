@@ -1,0 +1,198 @@
+name: pbl6-local
+
+# Full platform on Docker. From workspace/src/infra:
+#   docker compose -f docker-compose.yml -f docker-compose.apps.yml up -d --build --wait
+
+x-api: &api
+  build:
+    context: ../../..
+    dockerfile: workspace/src/infra/docker/api.Dockerfile
+  depends_on:
+    postgres:
+      condition: service_healthy
+    db-bootstrap:
+      condition: service_healthy
+    rabbitmq:
+      condition: service_healthy
+  environment: &api-env
+    ASPNETCORE_ENVIRONMENT: Production
+    ASPNETCORE_URLS: http://+:8080
+    Authentication__Issuer: busticket-identity
+    Authentication__Audience: busticket
+    Authentication__SigningKey: ${JWT_SIGNING_KEY:-local-dev-only-change-me-32bytes-min}
+    Messaging__AmqpUri: amqp://platform:${RABBITMQ_PASSWORD:-guest}@rabbitmq:5672/bus-ticket
+  healthcheck:
+    test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8080/live"]
+    interval: 10s
+    timeout: 5s
+    retries: 20
+    start_period: 45s
+  networks: [platform]
+  restart: unless-stopped
+
+services:
+  identity:
+    <<: *api
+    build:
+      context: ../../..
+      dockerfile: workspace/src/infra/docker/api.Dockerfile
+      args:
+        PROJECT: src/services/identity/BusTicketPlatform.Identity.Api/BusTicketPlatform.Identity.Api.csproj
+    command: ["BusTicketPlatform.Identity.Api.dll"]
+    environment:
+      <<: *api-env
+      ConnectionStrings__Identity: Host=postgres;Port=5432;Database=identity;Username=platform;Password=${POSTGRES_PASSWORD:-postgres}
+      Smtp__Host: mailpit
+      Smtp__Port: "1025"
+      Smtp__From: noreply@example.test
+    ports:
+      - "5081:8080"
+
+  transport:
+    <<: *api
+    build:
+      context: ../../..
+      dockerfile: workspace/src/infra/docker/api.Dockerfile
+      args:
+        PROJECT: src/services/transport/BusTicketPlatform.Transport.Api/BusTicketPlatform.Transport.Api.csproj
+    command: ["BusTicketPlatform.Transport.Api.dll"]
+    environment:
+      <<: *api-env
+      ConnectionStrings__Transport: Host=postgres;Port=5432;Database=transport;Username=platform;Password=${POSTGRES_PASSWORD:-postgres}
+    ports:
+      - "5082:8080"
+
+  booking:
+    <<: *api
+    build:
+      context: ../../..
+      dockerfile: workspace/src/infra/docker/api.Dockerfile
+      args:
+        PROJECT: src/services/booking/BusTicketPlatform.Booking.Api/BusTicketPlatform.Booking.Api.csproj
+    command: ["BusTicketPlatform.Booking.Api.dll"]
+    environment:
+      <<: *api-env
+      ConnectionStrings__Booking: Host=postgres;Port=5432;Database=booking;Username=platform;Password=${POSTGRES_PASSWORD:-postgres}
+    ports:
+      - "5083:8080"
+
+  payment:
+    <<: *api
+    build:
+      context: ../../..
+      dockerfile: workspace/src/infra/docker/api.Dockerfile
+      args:
+        PROJECT: src/services/payment/BusTicketPlatform.Payment.Api/BusTicketPlatform.Payment.Api.csproj
+    command: ["BusTicketPlatform.Payment.Api.dll"]
+    environment:
+      <<: *api-env
+      ConnectionStrings__Payment: Host=postgres;Port=5432;Database=payment;Username=platform;Password=${POSTGRES_PASSWORD:-postgres}
+      Payment__CheckoutBaseUrl: http://localhost:8099/checkout
+      Payment__TmnCode: ${VNPAY_TMN_CODE:-LOCALDEV}
+      Payment__HashSecret: ${VNPAY_HASH_SECRET:-local-dev-only-vnpay-hash-secret-32b}
+    ports:
+      - "5084:8080"
+
+  notification:
+    <<: *api
+    build:
+      context: ../../..
+      dockerfile: workspace/src/infra/docker/api.Dockerfile
+      args:
+        PROJECT: src/services/notification/BusTicketPlatform.Notification.Api/BusTicketPlatform.Notification.Api.csproj
+    command: ["BusTicketPlatform.Notification.Api.dll"]
+    environment:
+      <<: *api-env
+      ConnectionStrings__Notification: Host=postgres;Port=5432;Database=notification;Username=platform;Password=${POSTGRES_PASSWORD:-postgres}
+    ports:
+      - "5085:8080"
+
+  reporting:
+    <<: *api
+    build:
+      context: ../../..
+      dockerfile: workspace/src/infra/docker/api.Dockerfile
+      args:
+        PROJECT: src/services/reporting/BusTicketPlatform.Reporting.Api/BusTicketPlatform.Reporting.Api.csproj
+    command: ["BusTicketPlatform.Reporting.Api.dll"]
+    environment:
+      <<: *api-env
+      ConnectionStrings__Reporting: Host=postgres;Port=5432;Database=reporting;Username=platform;Password=${POSTGRES_PASSWORD:-postgres}
+    ports:
+      - "5086:8080"
+
+  gateway:
+    <<: *api
+    build:
+      context: ../../..
+      dockerfile: workspace/src/infra/docker/api.Dockerfile
+      args:
+        PROJECT: src/gateway/BusTicketPlatform.Gateway/BusTicketPlatform.Gateway.csproj
+    command: ["BusTicketPlatform.Gateway.dll"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      db-bootstrap:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      identity:
+        condition: service_healthy
+      transport:
+        condition: service_healthy
+      booking:
+        condition: service_healthy
+      payment:
+        condition: service_healthy
+      notification:
+        condition: service_healthy
+      reporting:
+        condition: service_healthy
+    environment:
+      <<: *api-env
+      Cors__Origins__0: http://localhost:5173
+      Cors__Origins__1: http://localhost:5174
+      Cors__Origins__2: http://127.0.0.1:5173
+      Cors__Origins__3: http://127.0.0.1:5174
+      ReverseProxy__Clusters__identity__Destinations__identity-local__Address: http://identity:8080/
+      ReverseProxy__Clusters__transport__Destinations__transport-local__Address: http://transport:8080/
+      ReverseProxy__Clusters__booking__Destinations__booking-local__Address: http://booking:8080/
+      ReverseProxy__Clusters__payment__Destinations__payment-local__Address: http://payment:8080/
+      ReverseProxy__Clusters__notification__Destinations__notification-local__Address: http://notification:8080/
+      ReverseProxy__Clusters__reporting__Destinations__reporting-local__Address: http://reporting:8080/
+    ports:
+      - "5080:8080"
+
+  customer-web:
+    build:
+      context: ../../..
+      dockerfile: workspace/src/infra/docker/web.Dockerfile
+      args:
+        APP: customer-web
+    depends_on:
+      gateway:
+        condition: service_healthy
+    ports:
+      - "5173:80"
+    networks: [platform]
+    restart: unless-stopped
+
+  backoffice-web:
+    build:
+      context: ../../..
+      dockerfile: workspace/src/infra/docker/web.Dockerfile
+      args:
+        APP: backoffice-web
+    depends_on:
+      gateway:
+        condition: service_healthy
+    ports:
+      - "5174:80"
+    networks: [platform]
+    restart: unless-stopped
+
+  payment-simulator:
+    environment:
+      WEBHOOK_URL: http://gateway:8080/integrations/payments/vnpay-sandbox/webhooks
+      HASH_SECRET: ${VNPAY_HASH_SECRET:-local-dev-only-vnpay-hash-secret-32b}
+      TMN_CODE: ${VNPAY_TMN_CODE:-LOCALDEV}

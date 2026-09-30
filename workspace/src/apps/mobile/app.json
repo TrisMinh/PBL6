@@ -1,0 +1,24 @@
+{
+  "expo": {
+    "name": "BusTicket",
+    "slug": "busticket-mobile",
+    "scheme": "busticket",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "bundleIdentifier": "vn.busticket.customer",
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "vn.busticket.customer",
+      "adaptiveIcon": {
+        "backgroundColor": "#0b1f33"
+      }
+    },
+    "plugins": ["expo-secure-store"],
+    "extra": {
+      "gatewayUrl": "http://127.0.0.1:5080"
+    }
+  }
+}

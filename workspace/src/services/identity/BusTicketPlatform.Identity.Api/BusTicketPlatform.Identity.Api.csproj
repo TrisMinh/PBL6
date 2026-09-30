@@ -1,18 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
-
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>BusTicketPlatform.Identity.Api</RootNamespace>
+    <Description>Identity HTTP composition root.</Description>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
-  </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\BusTicketPlatform.Identity.Application\BusTicketPlatform.Identity.Application.csproj" />
     <ProjectReference Include="..\BusTicketPlatform.Identity.Infrastructure\BusTicketPlatform.Identity.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\building-blocks\BusTicketPlatform.BuildingBlocks.AspNetCore\BusTicketPlatform.BuildingBlocks.AspNetCore.csproj" />
   </ItemGroup>
-
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+  </ItemGroup>
 </Project>

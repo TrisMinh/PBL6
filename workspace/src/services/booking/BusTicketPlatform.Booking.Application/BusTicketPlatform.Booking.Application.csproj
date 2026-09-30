@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>BusTicketPlatform.Booking.Application</RootNamespace>
+    <Description>Booking use cases and ports. No controllers or ORM mapping.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\BusTicketPlatform.Booking.Domain\BusTicketPlatform.Booking.Domain.csproj" />
+    <ProjectReference Include="..\..\..\building-blocks\BusTicketPlatform.BuildingBlocks\BusTicketPlatform.BuildingBlocks.csproj" />
+  </ItemGroup>
+</Project>

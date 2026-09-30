@@ -169,7 +169,7 @@ create table booking_items (
   line_total bigint not null check (line_total >= 0),
   created_at timestamptz not null,
   constraint uq_booking_items_booking_seat unique (booking_id, trip_seat_id),
-  constraint uq_booking_items_trip_seat unique (trip_seat_id),
+  -- History rows stay after cancel; uniqueness is only among live seats via trip_seats.active_booking_item_id.
   constraint ck_booking_items_total check (
     discount_amount <= unit_price and line_total = unit_price - discount_amount
   )

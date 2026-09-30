@@ -1,14 +1,21 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
+  <PropertyGroup>
+    <RootNamespace>BusTicketPlatform.Identity.Infrastructure</RootNamespace>
+    <Description>Identity persistence and adapters.</Description>
+  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\BusTicketPlatform.Identity.Application\BusTicketPlatform.Identity.Application.csproj" />
-    <ProjectReference Include="..\BusTicketPlatform.Identity.Domain\BusTicketPlatform.Identity.Domain.csproj" />
+    <ProjectReference Include="..\..\..\building-blocks\BusTicketPlatform.BuildingBlocks.Messaging\BusTicketPlatform.BuildingBlocks.Messaging.csproj" />
   </ItemGroup>
-
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
-
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="Konscious.Security.Cryptography.Argon2" />
+    <PackageReference Include="Npgsql" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\..\..\..\docs\database\_shared\000_integration_tables.sql" LogicalName="sql.shared" />
+    <EmbeddedResource Include="..\..\..\..\..\docs\database\identity\001_initial.sql" LogicalName="sql.identity" />
+  </ItemGroup>
 </Project>

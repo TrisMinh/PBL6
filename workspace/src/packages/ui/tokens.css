@@ -1,0 +1,35 @@
+:root {
+  --color-brand-900: #0c2340;
+  --color-brand-700: #16375f;
+  --color-action-700: #ff6a00;
+  --color-action-600: #e85e00;
+  --color-action-100: #fff1e6;
+  --color-accent-700: #f5b942;
+  --color-success-700: #0f7a4a;
+  --color-warning-700: #9a6700;
+  --color-danger-700: #c4332a;
+  --color-neutral-950: #142033;
+  --color-neutral-700: #5b6b82;
+  --color-neutral-300: #d7dee8;
+  --color-neutral-100: #eef2f7;
+  --color-surface: #ffffff;
+  --color-background: #f4f6fb;
+  --focus-ring: #ff6a00;
+  --font-sans: "Be Vietnam Pro", "Segoe UI", Arial, sans-serif;
+  --shadow-sm: 0 1px 2px rgb(12 35 64 / 6%);
+  --shadow-md: 0 12px 32px rgb(12 35 64 / 12%);
+  --shadow-lg: 0 24px 48px rgb(12 35 64 / 16%);
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --z-dock: 20;
+  --z-sticky: 30;
+  --z-nav: 40;
+}

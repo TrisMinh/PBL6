@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>BusTicketPlatform.Notification.Domain</RootNamespace>
+    <Description>Notification bounded-context domain. No ASP.NET, EF Core or provider SDKs.</Description>
+  </PropertyGroup>
+</Project>

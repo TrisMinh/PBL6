@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <RootNamespace>BusTicketPlatform.Transport.Api</RootNamespace>
+    <Description>Transport HTTP composition root.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\BusTicketPlatform.Transport.Application\BusTicketPlatform.Transport.Application.csproj" />
+    <ProjectReference Include="..\BusTicketPlatform.Transport.Infrastructure\BusTicketPlatform.Transport.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\building-blocks\BusTicketPlatform.BuildingBlocks.AspNetCore\BusTicketPlatform.BuildingBlocks.AspNetCore.csproj" />
+  </ItemGroup>
+</Project>

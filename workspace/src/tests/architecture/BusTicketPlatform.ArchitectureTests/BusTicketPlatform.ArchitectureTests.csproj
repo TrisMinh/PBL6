@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsTestProject>true</IsTestProject>
+    <RootNamespace>BusTicketPlatform.ArchitectureTests</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="NetArchTest.Rules" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\building-blocks\BusTicketPlatform.BuildingBlocks\BusTicketPlatform.BuildingBlocks.csproj" />
+    <ProjectReference Include="..\..\..\gateway\BusTicketPlatform.Gateway\BusTicketPlatform.Gateway.csproj" />
+    <ProjectReference Include="..\..\..\services\identity\BusTicketPlatform.Identity.Api\BusTicketPlatform.Identity.Api.csproj" />
+    <ProjectReference Include="..\..\..\services\identity\BusTicketPlatform.Identity.Application\BusTicketPlatform.Identity.Application.csproj" />
+    <ProjectReference Include="..\..\..\services\identity\BusTicketPlatform.Identity.Domain\BusTicketPlatform.Identity.Domain.csproj" />
+    <ProjectReference Include="..\..\..\services\identity\BusTicketPlatform.Identity.Infrastructure\BusTicketPlatform.Identity.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\services\transport\BusTicketPlatform.Transport.Application\BusTicketPlatform.Transport.Application.csproj" />
+    <ProjectReference Include="..\..\..\services\transport\BusTicketPlatform.Transport.Domain\BusTicketPlatform.Transport.Domain.csproj" />
+    <ProjectReference Include="..\..\..\services\booking\BusTicketPlatform.Booking.Application\BusTicketPlatform.Booking.Application.csproj" />
+    <ProjectReference Include="..\..\..\services\booking\BusTicketPlatform.Booking.Domain\BusTicketPlatform.Booking.Domain.csproj" />
+    <ProjectReference Include="..\..\..\services\payment\BusTicketPlatform.Payment.Application\BusTicketPlatform.Payment.Application.csproj" />
+    <ProjectReference Include="..\..\..\services\payment\BusTicketPlatform.Payment.Domain\BusTicketPlatform.Payment.Domain.csproj" />
+    <ProjectReference Include="..\..\..\services\notification\BusTicketPlatform.Notification.Application\BusTicketPlatform.Notification.Application.csproj" />
+    <ProjectReference Include="..\..\..\services\notification\BusTicketPlatform.Notification.Domain\BusTicketPlatform.Notification.Domain.csproj" />
+    <ProjectReference Include="..\..\..\services\reporting\BusTicketPlatform.Reporting.Application\BusTicketPlatform.Reporting.Application.csproj" />
+    <ProjectReference Include="..\..\..\services\reporting\BusTicketPlatform.Reporting.Domain\BusTicketPlatform.Reporting.Domain.csproj" />
+  </ItemGroup>
+</Project>

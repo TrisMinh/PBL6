@@ -1,0 +1,15 @@
+{
+  "name": "busticket-platform",
+  "private": true,
+  "workspaces": [
+    "src/apps/*",
+    "src/packages/*"
+  ],
+  "scripts": {
+    "dev:customer": "npm run dev -w @busticket/customer-web",
+    "dev:backoffice": "npm run dev -w @busticket/backoffice-web",
+    "build:web": "npm run build -w @busticket/customer-web && npm run build -w @busticket/backoffice-web",
+    "dev:host": "powershell -File scripts/dev-host.ps1",
+    "dev:docker": "powershell -File scripts/dev-docker.ps1"
+  }
+}

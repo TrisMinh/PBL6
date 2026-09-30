@@ -1,0 +1,55 @@
+{
+  "vhosts": [
+    { "name": "bus-ticket" }
+  ],
+  "users": [
+    {
+      "name": "platform",
+      "password": "guest",
+      "tags": ["administrator"]
+    }
+  ],
+  "permissions": [
+    {
+      "user": "platform",
+      "vhost": "bus-ticket",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    }
+  ],
+  "exchanges": [
+    { "name": "platform.events", "vhost": "bus-ticket", "type": "topic", "durable": true, "auto_delete": false, "internal": false, "arguments": {} },
+    { "name": "platform.commands", "vhost": "bus-ticket", "type": "topic", "durable": true, "auto_delete": false, "internal": false, "arguments": {} },
+    { "name": "platform.retry", "vhost": "bus-ticket", "type": "topic", "durable": true, "auto_delete": false, "internal": false, "arguments": {} },
+    { "name": "platform.dlx", "vhost": "bus-ticket", "type": "topic", "durable": true, "auto_delete": false, "internal": false, "arguments": {} }
+  ],
+  "queues": [
+    { "name": "booking.trip-events.q", "vhost": "bus-ticket", "durable": true, "auto_delete": false, "arguments": { "x-dead-letter-exchange": "platform.dlx" } },
+    { "name": "booking.payment-events.q", "vhost": "bus-ticket", "durable": true, "auto_delete": false, "arguments": { "x-dead-letter-exchange": "platform.dlx" } },
+    { "name": "transport.inventory-events.q", "vhost": "bus-ticket", "durable": true, "auto_delete": false, "arguments": { "x-dead-letter-exchange": "platform.dlx" } },
+    { "name": "payment.refund-requests.q", "vhost": "bus-ticket", "durable": true, "auto_delete": false, "arguments": { "x-dead-letter-exchange": "platform.dlx" } },
+    { "name": "notification.integration-events.q", "vhost": "bus-ticket", "durable": true, "auto_delete": false, "arguments": { "x-dead-letter-exchange": "platform.dlx" } },
+    { "name": "notification.commands.q", "vhost": "bus-ticket", "durable": true, "auto_delete": false, "arguments": { "x-dead-letter-exchange": "platform.dlx" } },
+    { "name": "reporting.integration-events.q", "vhost": "bus-ticket", "durable": true, "auto_delete": false, "arguments": { "x-dead-letter-exchange": "platform.dlx" } },
+    { "name": "booking.trip-events.dlq", "vhost": "bus-ticket", "durable": true, "auto_delete": false, "arguments": {} }
+  ],
+  "bindings": [
+    { "source": "platform.events", "vhost": "bus-ticket", "destination": "booking.trip-events.q", "destination_type": "queue", "routing_key": "transport.trip.*.v1", "arguments": {} },
+    { "source": "platform.events", "vhost": "bus-ticket", "destination": "booking.payment-events.q", "destination_type": "queue", "routing_key": "payment.payment.*.v1", "arguments": {} },
+    { "source": "platform.events", "vhost": "bus-ticket", "destination": "booking.payment-events.q", "destination_type": "queue", "routing_key": "payment.refund.*.v1", "arguments": {} },
+    { "source": "platform.events", "vhost": "bus-ticket", "destination": "transport.inventory-events.q", "destination_type": "queue", "routing_key": "booking.trip-inventory.ready.v1", "arguments": {} },
+    { "source": "platform.events", "vhost": "bus-ticket", "destination": "payment.refund-requests.q", "destination_type": "queue", "routing_key": "booking.booking.created.v1", "arguments": {} },
+    { "source": "platform.events", "vhost": "bus-ticket", "destination": "payment.refund-requests.q", "destination_type": "queue", "routing_key": "booking.booking.cancelled.v1", "arguments": {} },
+    { "source": "platform.events", "vhost": "bus-ticket", "destination": "payment.refund-requests.q", "destination_type": "queue", "routing_key": "booking.refund.requested.v1", "arguments": {} },
+    { "source": "platform.commands", "vhost": "bus-ticket", "destination": "payment.refund-requests.q", "destination_type": "queue", "routing_key": "booking.payment.compensation-requested.v1", "arguments": {} },
+    { "source": "platform.events", "vhost": "bus-ticket", "destination": "notification.integration-events.q", "destination_type": "queue", "routing_key": "identity.user.registered.v1", "arguments": {} },
+    { "source": "platform.events", "vhost": "bus-ticket", "destination": "notification.integration-events.q", "destination_type": "queue", "routing_key": "booking.booking.*.v1", "arguments": {} },
+    { "source": "platform.events", "vhost": "bus-ticket", "destination": "notification.integration-events.q", "destination_type": "queue", "routing_key": "booking.ticket.issued.v1", "arguments": {} },
+    { "source": "platform.events", "vhost": "bus-ticket", "destination": "notification.integration-events.q", "destination_type": "queue", "routing_key": "payment.payment.succeeded.v1", "arguments": {} },
+    { "source": "platform.commands", "vhost": "bus-ticket", "destination": "notification.commands.q", "destination_type": "queue", "routing_key": "notification.delivery.send.v1", "arguments": {} },
+    { "source": "platform.events", "vhost": "bus-ticket", "destination": "reporting.integration-events.q", "destination_type": "queue", "routing_key": "booking.booking.*.v1", "arguments": {} },
+    { "source": "platform.events", "vhost": "bus-ticket", "destination": "reporting.integration-events.q", "destination_type": "queue", "routing_key": "payment.payment.*.v1", "arguments": {} },
+    { "source": "platform.dlx", "vhost": "bus-ticket", "destination": "booking.trip-events.dlq", "destination_type": "queue", "routing_key": "#", "arguments": {} }
+  ]
+}
