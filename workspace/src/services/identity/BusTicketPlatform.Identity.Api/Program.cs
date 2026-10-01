@@ -12,6 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddBuildingBlocks();
 builder.Services.AddIdentityInfrastructure(builder.Configuration);
+builder.Services.AddPlatformOpenApi();
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
     options.SerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
@@ -39,16 +40,19 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 builder.Services.AddAuthorization();
+builder.Services.AddPlatformSwaggerCors();
 builder.Services.AddHealthChecks()
     .AddCheck("self", () => HealthCheckResult.Healthy(), tags: ["live", "ready", "startup"])
     .AddIdentityDatabaseCheck();
 
 var app = builder.Build();
 
+app.UsePlatformSwaggerCors();
 app.UseBuildingBlocks();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapPlatformHealth();
+app.MapPlatformOpenApi();
 app.MapIdentityEndpoints();
 
 app.Run();

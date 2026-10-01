@@ -11,14 +11,18 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddBuildingBlocks();
 builder.Services.AddNotificationInfrastructure(builder.Configuration);
 builder.Services.AddPlatformJwt(builder.Configuration);
+builder.Services.AddPlatformOpenApi();
 builder.Services.AddHealthChecks()
     .AddCheck("self", () => HealthCheckResult.Healthy(), tags: ["live", "ready", "startup"])
     .AddNotificationDatabaseCheck();
+builder.Services.AddPlatformSwaggerCors();
 var app = builder.Build();
+app.UsePlatformSwaggerCors();
 app.UseBuildingBlocks();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapPlatformHealth();
+app.MapPlatformOpenApi();
 
 app.MapGet("/api/v1/notifications", async (HttpContext context, NotificationService service, string? cursor, int limit = 20) =>
 {

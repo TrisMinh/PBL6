@@ -11,14 +11,18 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddBuildingBlocks();
 builder.Services.AddReportingInfrastructure(builder.Configuration);
 builder.Services.AddPlatformJwt(builder.Configuration);
+builder.Services.AddPlatformOpenApi();
 builder.Services.AddHealthChecks()
     .AddCheck("self", () => HealthCheckResult.Healthy(), tags: ["live", "ready", "startup"])
     .AddReportingDatabaseCheck();
+builder.Services.AddPlatformSwaggerCors();
 var app = builder.Build();
+app.UsePlatformSwaggerCors();
 app.UseBuildingBlocks();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapPlatformHealth();
+app.MapPlatformOpenApi();
 
 Actor? ActorOf(HttpContext context)
 {
