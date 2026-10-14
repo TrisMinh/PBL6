@@ -1,0 +1,133 @@
+services:
+
+  # ==================================================
+  # SHARED INFRASTRUCTURE
+  # ==================================================
+
+  messagebroker:
+    image: rabbitmq:4-management
+    profiles: ["identity", "full"]
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    restart: always
+    ports:
+      - "${RABBITMQ_PORT}:5672"
+      - "${RABBITMQ_MANAGEMENT_PORT}:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend-network
+
+  redis:
+    image: redis:7-alpine
+    profiles: ["identity", "full"]
+    restart: always
+    ports:
+      - "${REDIS_PORT}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - backend-network
+
+  # ==================================================
+  # IDENTITY SERVICE
+  # ==================================================
+
+  identity-db:
+    image: postgres:18-alpine
+    profiles: ["identity", "full"]
+    environment:
+      POSTGRES_DB: ${IDENTITY_DB_NAME}
+      POSTGRES_USER: ${IDENTITY_DB_USER}
+      POSTGRES_PASSWORD: ${IDENTITY_DB_PASSWORD}
+    restart: always
+    ports:
+      - "${IDENTITY_DB_PORT}:5432"
+    volumes:
+      - identity_db_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${IDENTITY_DB_USER} -d ${IDENTITY_DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - backend-network
+
+  identity-api:
+    image: bus-ticket-platform/identity-api
+    profiles: ["identity", "full"]
+    build:
+      context: .
+      dockerfile: src/services/identity/BusTicketPlatform.Identity.Api/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
+      ASPNETCORE_HTTP_PORTS: 8080
+      DOTNET_gcServer: "0"
+
+      ConnectionStrings__IdentityDatabase: >-
+        Host=${IDENTITY_DB_HOST};
+        Port=5432;
+        Database=${IDENTITY_DB_NAME};
+        Username=${IDENTITY_DB_USER};
+        Password=${IDENTITY_DB_PASSWORD}
+
+      ConnectionStrings__Redis: ${REDIS_HOST}:6379
+
+      RabbitMQ__Host: ${RABBITMQ_HOST}
+      RabbitMQ__Username: ${RABBITMQ_USER}
+      RabbitMQ__Password: ${RABBITMQ_PASSWORD}
+    depends_on:
+      identity-db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      messagebroker:
+        condition: service_healthy
+    ports:
+      - "${IDENTITY_API_PORT}:8080"
+    networks:
+      - backend-network
+
+  # ==================================================
+  # API GATEWAY
+  # ==================================================
+
+  api-gateway:
+    image: bus-ticket-platform/api-gateway
+    profiles: ["identity", "full"]
+    build:
+      context: .
+      dockerfile: src/api-gateways/BusTicketPlatform.ApiGateway/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
+      ASPNETCORE_HTTP_PORTS: 8080
+      DOTNET_gcServer: "0"
+    ports:
+      - "${API_GATEWAY_PORT}:8080"
+    networks:
+      - frontend-network
+      - backend-network
+
+networks:
+  frontend-network:
+    driver: bridge
+
+  backend-network:
+    driver: bridge
+
+volumes:
+  identity_db_data:
+  rabbitmq_data:
+  redis_data:
