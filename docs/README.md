@@ -14,5 +14,6 @@ Thư mục `docs/` chứa SRS cùng toàn bộ tài liệu kỹ thuật phục v
 - [Báo cáo readiness](./implementation/06-document-readiness-report.md): kết luận có thể bắt đầu code, evidence đã kiểm tra và các điều kiện toolchain còn thiếu.
 - [Executable Contracts](./contracts/README.md): OpenAPI, AsyncAPI và JSON Schema active của MVP.
 - [Database Migration Baseline](./database/README.md): schema PostgreSQL nghiệp vụ cho sáu service.
+- [Hướng dẫn từ số 0 đến `fulltemplate`](./huong-dan-tu-zero-fulltemplate/README.md): quy trình cho người mới, đi từ `origin/develop` tới hệ thống hoàn chỉnh theo từng file, thư viện và checkpoint.
 
 [SRS 2.1.0](./srs/v2/README.md) là nguồn quyết định cho yêu cầu và quy tắc nghiệp vụ. System/Detailed Design quyết định cách triển khai nhưng không được tự tạo thêm hành vi. Diagram dùng để giải thích trực quan và phải truy vết về requirement ID tương ứng.
