@@ -14,6 +14,7 @@ public sealed record BookingFact(Guid BookingId, string BookingCode, Guid Organi
 public interface IReportingRepository
 {
     Task UpsertBookingAsync(BookingFact fact, CancellationToken cancellationToken);
+    Task ApplyRefundAsync(Guid bookingId, long amount, CancellationToken cancellationToken);
     Task<IReadOnlyList<IReadOnlyDictionary<string, object>>> RevenueAsync(Guid? orgId, DateTimeOffset from, DateTimeOffset to, CancellationToken cancellationToken);
     Task<IReadOnlyList<IReadOnlyDictionary<string, object>>> BookingsAsync(Guid? orgId, DateTimeOffset from, DateTimeOffset to, CancellationToken cancellationToken);
     Task<IReadOnlyList<IReadOnlyDictionary<string, object>>> OccupancyAsync(Guid? orgId, DateTimeOffset from, DateTimeOffset to, CancellationToken cancellationToken);
@@ -22,6 +23,9 @@ public interface IReportingRepository
 public sealed class ReportingService(IReportingRepository store)
 {
     public Task IngestAsync(BookingFact fact, CancellationToken cancellationToken) => store.UpsertBookingAsync(fact, cancellationToken);
+
+    public Task IngestRefundAsync(Guid bookingId, long amount, CancellationToken cancellationToken) =>
+        bookingId == Guid.Empty || amount <= 0 ? Task.CompletedTask : store.ApplyRefundAsync(bookingId, amount, cancellationToken);
 
     public async Task<Result<ReportDto>> RevenueAsync(Actor actor, DateTimeOffset from, DateTimeOffset to, string timezone, CancellationToken cancellationToken)
     {

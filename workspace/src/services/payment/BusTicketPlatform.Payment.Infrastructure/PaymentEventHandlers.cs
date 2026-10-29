@@ -28,6 +28,7 @@ public static class PaymentEventHandlers
         EventPayload.TryGuid(message.Payload, "organizationId", out var organizationId);
         var amount = 0L;
         decimal? commission = null;
+        DateTimeOffset? expiresAt = null;
         if (message.Payload.ValueKind == System.Text.Json.JsonValueKind.Object)
         {
             if (message.Payload.TryGetProperty("grossAmount", out var amountEl) && amountEl.TryGetInt64(out var parsed))
@@ -39,6 +40,11 @@ public static class PaymentEventHandlers
             {
                 commission = rate;
             }
+
+            if (message.Payload.TryGetProperty("expiresAt", out var expiresEl) && expiresEl.TryGetDateTimeOffset(out var parsedExpiry))
+            {
+                expiresAt = parsedExpiry;
+            }
         }
 
         return services.GetRequiredService<PaymentService>().IngestBookingCreatedAsync(
@@ -49,6 +55,7 @@ public static class PaymentEventHandlers
             EventPayload.String(message.Payload, "currency", "VND"),
             EventPayload.String(message.Payload, "paymentChannel"),
             commission,
+            expiresAt,
             cancellationToken);
     }
 

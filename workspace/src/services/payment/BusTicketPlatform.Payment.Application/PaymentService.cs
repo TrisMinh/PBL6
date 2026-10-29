@@ -1,6 +1,8 @@
 using BusTicketPlatform.BuildingBlocks.Errors;
 using BusTicketPlatform.BuildingBlocks.Ids;
 using BusTicketPlatform.BuildingBlocks.Results;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace BusTicketPlatform.Payment.Application;
 
@@ -16,7 +18,7 @@ public sealed record PaymentPageDto(int Page, int Size, long TotalElements, int 
 public sealed record CreateRefundRequest(string RefundReference, Guid PaymentId, Guid BookingId, long Amount, string Currency, string Reason);
 public sealed record RefundDto(Guid Id, string RefundReference, Guid PaymentId, Guid BookingId, long Amount, string Currency, string Status, string Reason);
 public sealed record RefundPageDto(int Page, int Size, long TotalElements, int TotalPages, IReadOnlyList<RefundDto> Items);
-public sealed record BookingQuote(Guid BookingId, Guid CustomerId, Guid OrganizationId, long Amount, string Currency, string PaymentChannel, decimal CommissionRate);
+public sealed record BookingQuote(Guid BookingId, Guid CustomerId, Guid OrganizationId, long Amount, string Currency, string PaymentChannel, decimal CommissionRate, DateTimeOffset? ExpiresAt = null);
 public sealed record BookingSettlementDto(Guid Id, Guid BookingId, Guid OrganizationId, Guid? PaymentId, string PaymentChannel, long GrossAmount, decimal CommissionRate, long CommissionAmount, long OperatorNet, string Currency, string CollectionStatus);
 public sealed record SettlementPageDto(int Page, int Size, long TotalElements, int TotalPages, IReadOnlyList<BookingSettlementDto> Items);
 public sealed record CreatePayoutRequest(Guid OrganizationId, DateOnly PeriodStart, DateOnly PeriodEnd, string Currency, long PayableAmount);
@@ -36,6 +38,9 @@ public interface IPaymentRepository
     Task<IReadOnlyList<PaymentRecord>> ListByBookingAsync(Guid bookingId, CancellationToken cancellationToken);
     Task<(IReadOnlyList<PaymentRecord> Items, long Total)> SearchPaymentsAsync(Guid? orgId, int page, int size, CancellationToken cancellationToken);
     Task InsertRefundAsync(RefundRecord refund, CancellationToken cancellationToken);
+    Task<RefundRecord?> GetRefundByReferenceAsync(Guid paymentId, string refundReference, CancellationToken cancellationToken);
+    Task<long> SumSucceededRefundsAsync(Guid paymentId, CancellationToken cancellationToken);
+    Task<bool> TryApplyRefundAsync(PaymentRecord payment, RefundRecord refund, decimal commissionRate, CancellationToken cancellationToken);
     Task<RefundRecord?> GetRefundAsync(Guid refundId, CancellationToken cancellationToken);
     Task<(IReadOnlyList<RefundRecord> Items, long Total)> SearchRefundsAsync(Guid? orgId, int page, int size, CancellationToken cancellationToken);
     Task InsertSettlementAsync(SettlementRecord settlement, CancellationToken cancellationToken);
@@ -67,6 +72,7 @@ public sealed class PaymentService(IPaymentRepository store, IPaymentEvents even
         string currency,
         string paymentChannel,
         decimal? commissionRate,
+        DateTimeOffset? expiresAt,
         CancellationToken cancellationToken)
     {
         if (bookingId == Guid.Empty || customerId == Guid.Empty || !string.Equals(paymentChannel, "PREPAID", StringComparison.OrdinalIgnoreCase) || amount <= 0)
@@ -82,7 +88,8 @@ public sealed class PaymentService(IPaymentRepository store, IPaymentEvents even
                 amount,
                 string.IsNullOrWhiteSpace(currency) ? "VND" : currency,
                 "PREPAID",
-                commissionRate is > 0 and <= 1 ? commissionRate.Value : vnpay.DefaultCommissionRate),
+                commissionRate is > 0 and <= 1 ? commissionRate.Value : vnpay.DefaultCommissionRate,
+                expiresAt),
             cancellationToken);
     }
 
@@ -130,7 +137,9 @@ public sealed class PaymentService(IPaymentRepository store, IPaymentEvents even
             quote.Amount,
             quote.Currency,
             "PROCESSING",
-            DateTimeOffset.UtcNow.AddMinutes(15),
+            quote.ExpiresAt is { } holdExpiry && holdExpiry > DateTimeOffset.UtcNow
+                ? holdExpiry
+                : DateTimeOffset.UtcNow.AddMinutes(15),
             0,
             request.ReturnUri);
         await store.InsertPaymentAsync(payment, cancellationToken);
@@ -141,7 +150,9 @@ public sealed class PaymentService(IPaymentRepository store, IPaymentEvents even
     public async Task<Result<IReadOnlyList<PaymentDto>>> ListBookingAsync(Actor actor, Guid bookingId, CancellationToken cancellationToken)
     {
         var items = await store.ListByBookingAsync(bookingId, cancellationToken);
-        if (items.Count > 0 && items[0].CustomerId != actor.UserId && !actor.Has("PLATFORM_ADMIN", "OPERATOR_FINANCE"))
+        if (items.Count > 0 && items[0].CustomerId != actor.UserId
+            && !actor.Has("PLATFORM_ADMIN", "PLATFORM_FINANCE")
+            && (!actor.Has("OPERATOR_FINANCE", "OPERATOR_ADMIN") || actor.OrganizationId != items[0].OrganizationId))
         {
             return Result<IReadOnlyList<PaymentDto>>.Failure(PlatformErrors.AccessDenied());
         }
@@ -152,7 +163,9 @@ public sealed class PaymentService(IPaymentRepository store, IPaymentEvents even
     public async Task<Result<PaymentDto>> GetAsync(Actor actor, Guid paymentId, CancellationToken cancellationToken)
     {
         var payment = await store.GetAsync(paymentId, cancellationToken);
-        if (payment is null || (payment.CustomerId != actor.UserId && !actor.Has("PLATFORM_ADMIN", "OPERATOR_FINANCE")))
+        if (payment is null || (payment.CustomerId != actor.UserId
+            && !actor.Has("PLATFORM_ADMIN", "PLATFORM_FINANCE")
+            && (!actor.Has("OPERATOR_FINANCE", "OPERATOR_ADMIN") || actor.OrganizationId != payment.OrganizationId)))
         {
             return Result<PaymentDto>.Failure(PlatformErrors.NotFound());
         }
@@ -184,29 +197,25 @@ public sealed class PaymentService(IPaymentRepository store, IPaymentEvents even
             return Result.Failure(PlatformErrors.WebhookInvalid());
         }
 
-        if (Read(body, "vnp_SecureHash") is { Length: > 0 } && !VnPayCheckout.Verify(vnpay.HashSecret, ToStringMap(body)))
+        var values = ToStringMap(body);
+        if (Read(body, "vnp_SecureHash") is not { Length: > 0 } || !VnPayCheckout.Verify(vnpay.HashSecret, values))
         {
             return Result.Failure(PlatformErrors.WebhookInvalid());
         }
 
         var tmn = Read(body, "vnp_TmnCode");
-        if (!string.IsNullOrWhiteSpace(tmn) && !string.Equals(tmn, vnpay.TmnCode, StringComparison.OrdinalIgnoreCase))
+        if (string.IsNullOrWhiteSpace(tmn) || !string.Equals(tmn, vnpay.TmnCode, StringComparison.OrdinalIgnoreCase))
         {
             return Result.Failure(PlatformErrors.WebhookInvalid());
         }
 
-        var eventId = Read(body, "externalEventId") ?? Read(body, "vnp_TransactionNo") ?? Read(body, "vnp_TxnRef") ?? Read(body, "txnRef") ?? Guid.CreateVersion7().ToString("N");
+        var payloadHash = PayloadHash(values);
+        var eventId = Read(body, "externalEventId") ?? Read(body, "vnp_TransactionNo") ?? payloadHash;
         var reference = Read(body, "logicalReference");
         if (string.IsNullOrWhiteSpace(reference) || reference.Equals("null", StringComparison.OrdinalIgnoreCase))
         {
             reference = Read(body, "vnp_TxnRef") ?? Read(body, "txnRef");
         }
-        var inserted = await store.TryInsertWebhookAsync("VNPAY_SANDBOX", eventId, eventId, cancellationToken);
-        if (!inserted)
-        {
-            return Result.Success();
-        }
-
         PaymentRecord? payment = null;
         if (Guid.TryParse(reference, out var paymentId))
         {
@@ -220,24 +229,46 @@ public sealed class PaymentService(IPaymentRepository store, IPaymentEvents even
         }
 
         var amountRaw = Read(body, "vnp_Amount");
-        if (long.TryParse(amountRaw, out var providerAmount) && providerAmount > 0 && providerAmount != payment.Amount * 100)
+        var currency = Read(body, "vnp_CurrCode");
+        if (!long.TryParse(amountRaw, out var providerAmount)
+            || providerAmount != payment.Amount * 100
+            || !string.Equals(currency, payment.Currency, StringComparison.OrdinalIgnoreCase))
         {
             return Result.Failure(PlatformErrors.WebhookInvalid());
         }
 
+        var inserted = await store.TryInsertWebhookAsync("VNPAY_SANDBOX", eventId, payloadHash, cancellationToken);
+        if (!inserted)
+        {
+            return Result.Success();
+        }
+
         var success = IsTruthy(Read(body, "success")) || Read(body, "vnp_ResponseCode") is "00";
-        if (success && payment.Status != "SUCCEEDED")
+        if (success && payment.Status is not ("SUCCEEDED" or "PARTIALLY_REFUNDED" or "REFUNDED"))
         {
             var updated = payment with { Status = "SUCCEEDED" };
             await store.UpdatePaymentAsync(updated, cancellationToken);
             var quote = await store.GetQuoteAsync(payment.BookingId, cancellationToken);
+            var rate = quote?.CommissionRate ?? vnpay.DefaultCommissionRate;
             if (quote is not null)
             {
-                var commission = (long)decimal.Round(payment.Amount * quote.CommissionRate, 0, MidpointRounding.AwayFromZero);
-                await store.InsertSettlementAsync(new SettlementRecord(ids.NewUuidV7(), payment.BookingId, payment.OrganizationId, payment.Id, "PREPAID", payment.Amount, quote.CommissionRate, commission, payment.Amount - commission, payment.Currency, "COLLECTED"), cancellationToken);
+                var commission = (long)decimal.Round(payment.Amount * rate, 0, MidpointRounding.AwayFromZero);
+                await store.InsertSettlementAsync(new SettlementRecord(ids.NewUuidV7(), payment.BookingId, payment.OrganizationId, payment.Id, "PREPAID", payment.Amount, rate, commission, payment.Amount - commission, payment.Currency, "COLLECTED"), cancellationToken);
             }
 
-            await events.PaymentSucceededAsync(updated, correlationId, cancellationToken);
+            if (DateTimeOffset.UtcNow >= payment.ExpiresAt || payment.Status is "CANCELLED" or "FAILED")
+            {
+                var refund = new RefundRecord(ids.NewUuidV7(), payment.Id, payment.BookingId, Guid.Empty,
+                    "LATE-" + eventId[..Math.Min(eventId.Length, 100)], payment.Amount, payment.Currency, "LATE_PROVIDER_SUCCESS", "SUCCEEDED");
+                if (await store.TryApplyRefundAsync(updated, refund, rate, cancellationToken))
+                {
+                    await events.RefundSucceededAsync(refund, correlationId, cancellationToken);
+                }
+            }
+            else
+            {
+                await events.PaymentSucceededAsync(updated, correlationId, cancellationToken);
+            }
         }
         else if (!success)
         {
@@ -250,21 +281,54 @@ public sealed class PaymentService(IPaymentRepository store, IPaymentEvents even
 
     public async Task<Result<OperationAccepted>> CreateRefundAsync(Actor actor, CreateRefundRequest request, CancellationToken cancellationToken)
     {
+        if (!actor.Has("PLATFORM_ADMIN", "PLATFORM_FINANCE", "OPERATOR_ADMIN", "OPERATOR_FINANCE"))
+        {
+            return Result<OperationAccepted>.Failure(PlatformErrors.AccessDenied());
+        }
+
         var payment = await store.GetAsync(request.PaymentId, cancellationToken);
-        if (payment is null)
+        if (payment is null || (actor.Has("OPERATOR_ADMIN", "OPERATOR_FINANCE") && !actor.Has("PLATFORM_ADMIN", "PLATFORM_FINANCE") && actor.OrganizationId != payment.OrganizationId))
         {
             return Result<OperationAccepted>.Failure(PlatformErrors.NotFound());
         }
 
+        if (request.BookingId != payment.BookingId || request.Amount <= 0
+            || !string.Equals(request.Currency, payment.Currency, StringComparison.OrdinalIgnoreCase)
+            || payment.Status is not ("SUCCEEDED" or "PARTIALLY_REFUNDED"))
+        {
+            return Result<OperationAccepted>.Failure(PlatformErrors.PaymentNotAllowed());
+        }
+
+        var existing = await store.GetRefundByReferenceAsync(payment.Id, request.RefundReference, cancellationToken);
+        if (existing is not null)
+        {
+            return Result<OperationAccepted>.Success(new OperationAccepted(existing.Id, "ACCEPTED"));
+        }
+
         var refund = new RefundRecord(ids.NewUuidV7(), request.PaymentId, request.BookingId, actor.UserId, request.RefundReference, request.Amount, request.Currency, request.Reason, "SUCCEEDED");
-        await store.InsertRefundAsync(refund, cancellationToken);
+        var quote = await store.GetQuoteAsync(payment.BookingId, cancellationToken);
+        if (!await store.TryApplyRefundAsync(payment, refund, quote?.CommissionRate ?? vnpay.DefaultCommissionRate, cancellationToken))
+        {
+            return Result<OperationAccepted>.Failure(PlatformErrors.ResourceConflict("The refund exceeds the remaining captured amount."));
+        }
+
+        await events.RefundSucceededAsync(refund, Guid.Empty, cancellationToken);
         return Result<OperationAccepted>.Success(new OperationAccepted(refund.Id, "ACCEPTED"));
     }
 
     public async Task<Result<RefundDto>> GetRefundAsync(Actor actor, Guid refundId, CancellationToken cancellationToken)
     {
         var refund = await store.GetRefundAsync(refundId, cancellationToken);
-        return refund is null ? Result<RefundDto>.Failure(PlatformErrors.NotFound()) : Result<RefundDto>.Success(Map(refund));
+        if (refund is null) return Result<RefundDto>.Failure(PlatformErrors.NotFound());
+        var payment = await store.GetAsync(refund.PaymentId, cancellationToken);
+        if (payment is null || (payment.CustomerId != actor.UserId
+            && !actor.Has("PLATFORM_ADMIN", "PLATFORM_FINANCE")
+            && (!actor.Has("OPERATOR_FINANCE", "OPERATOR_ADMIN") || actor.OrganizationId != payment.OrganizationId)))
+        {
+            return Result<RefundDto>.Failure(PlatformErrors.NotFound());
+        }
+
+        return Result<RefundDto>.Success(Map(refund));
     }
 
     public async Task<Result<PaymentPageDto>> SearchPaymentsAsync(Actor actor, int page, int size, CancellationToken cancellationToken)
@@ -273,6 +337,8 @@ public sealed class PaymentService(IPaymentRepository store, IPaymentEvents even
         {
             return Result<PaymentPageDto>.Failure(PlatformErrors.AccessDenied());
         }
+
+        if (page < 0 || size is < 1 or > 100) return Result<PaymentPageDto>.Failure(PlatformErrors.Validation("Page must be non-negative and size must be between 1 and 100."));
 
         var org = actor.Has("PLATFORM_ADMIN", "PLATFORM_FINANCE") ? (Guid?)null : actor.OrganizationId;
         var (items, total) = await store.SearchPaymentsAsync(org, page, size, cancellationToken);
@@ -286,6 +352,8 @@ public sealed class PaymentService(IPaymentRepository store, IPaymentEvents even
             return Result<RefundPageDto>.Failure(PlatformErrors.AccessDenied());
         }
 
+        if (page < 0 || size is < 1 or > 100) return Result<RefundPageDto>.Failure(PlatformErrors.Validation("Page must be non-negative and size must be between 1 and 100."));
+
         var org = actor.Has("PLATFORM_ADMIN", "PLATFORM_FINANCE") ? (Guid?)null : actor.OrganizationId;
         var (items, total) = await store.SearchRefundsAsync(org, page, size, cancellationToken);
         return Result<RefundPageDto>.Success(new RefundPageDto(page, size, total, Pages(total, size), items.Select(Map).ToArray()));
@@ -297,6 +365,9 @@ public sealed class PaymentService(IPaymentRepository store, IPaymentEvents even
         {
             return Result<SettlementPageDto>.Failure(PlatformErrors.AccessDenied());
         }
+
+        if (!platform && !actor.Has("OPERATOR_ADMIN", "OPERATOR_FINANCE")) return Result<SettlementPageDto>.Failure(PlatformErrors.AccessDenied());
+        if (page < 0 || size is < 1 or > 100) return Result<SettlementPageDto>.Failure(PlatformErrors.Validation("Page must be non-negative and size must be between 1 and 100."));
 
         var org = platform ? (Guid?)null : actor.OrganizationId;
         var (items, total) = await store.ListSettlementsAsync(org, page, size, cancellationToken);
@@ -314,12 +385,14 @@ public sealed class PaymentService(IPaymentRepository store, IPaymentEvents even
         var payment = paymentId != Guid.Empty
             ? await store.GetAsync(paymentId, cancellationToken)
             : await store.GetByBookingAsync(bookingId, cancellationToken);
-        if (payment is null || payment.Status != "SUCCEEDED")
+        if (payment is null || payment.Status is not ("SUCCEEDED" or "PARTIALLY_REFUNDED"))
         {
             return;
         }
 
-        var refundAmount = amount > 0 ? Math.Min(amount, payment.Amount) : payment.Amount;
+        var alreadyRefunded = await store.SumSucceededRefundsAsync(payment.Id, cancellationToken);
+        var remaining = payment.Amount - alreadyRefunded;
+        var refundAmount = amount > 0 ? Math.Min(amount, remaining) : remaining;
         if (refundAmount <= 0)
         {
             return;
@@ -335,11 +408,8 @@ public sealed class PaymentService(IPaymentRepository store, IPaymentEvents even
             string.IsNullOrWhiteSpace(currency) ? payment.Currency : currency,
             string.IsNullOrWhiteSpace(reason) ? "BOOKING_CANCELLED" : reason,
             "SUCCEEDED");
-        await store.InsertRefundAsync(refund, cancellationToken);
-        if (refundAmount >= payment.Amount)
-        {
-            await store.UpdatePaymentAsync(payment with { Status = "REFUNDED" }, cancellationToken);
-        }
+        var quote = await store.GetQuoteAsync(payment.BookingId, cancellationToken);
+        if (!await store.TryApplyRefundAsync(payment, refund, quote?.CommissionRate ?? vnpay.DefaultCommissionRate, cancellationToken)) return;
 
         await events.RefundSucceededAsync(refund, Guid.Empty, cancellationToken);
     }
@@ -429,6 +499,15 @@ public sealed class PaymentService(IPaymentRepository store, IPaymentEvents even
         }
 
         return map;
+    }
+
+    private static string PayloadHash(IReadOnlyDictionary<string, string> values)
+    {
+        var canonical = string.Join("&", values
+            .Where(pair => !pair.Key.Equals("vnp_SecureHash", StringComparison.OrdinalIgnoreCase))
+            .OrderBy(pair => pair.Key, StringComparer.Ordinal)
+            .Select(pair => pair.Key + "=" + pair.Value));
+        return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(canonical))).ToLowerInvariant();
     }
 
     private static int Pages(long total, int size) => size <= 0 ? 0 : (int)((total + size - 1) / size);

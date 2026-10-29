@@ -2,6 +2,7 @@ create table payments (
   id uuid primary key,
   booking_id_external uuid not null,
   customer_id_external uuid not null,
+  organization_id_external uuid not null,
   provider varchar(30) not null,
   logical_reference varchar(120) not null,
   amount bigint not null check (amount > 0),
@@ -35,6 +36,7 @@ create table payments (
 create index ix_payments_booking on payments (booking_id_external, created_at desc);
 create index ix_payments_status_worker on payments (status, updated_at, id);
 create index ix_payments_customer on payments (customer_id_external, created_at desc);
+create index ix_payments_organization on payments (organization_id_external, created_at desc);
 
 create table payment_attempts (
   id uuid primary key,

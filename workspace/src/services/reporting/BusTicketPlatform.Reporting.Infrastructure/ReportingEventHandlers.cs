@@ -8,6 +8,13 @@ public static class ReportingEventHandlers
 {
     public static Task HandleAsync(IServiceProvider services, EventMessage message, CancellationToken cancellationToken)
     {
+        if (message.EventType == "RefundSucceeded")
+        {
+            EventPayload.TryGuid(message.Payload, "bookingId", out var refundedBookingId);
+            return services.GetRequiredService<ReportingService>()
+                .IngestRefundAsync(refundedBookingId, ReadLong(message.Payload, "amount"), cancellationToken);
+        }
+
         if (message.EventType is not ("BookingCreated" or "BookingPaid" or "BookingCancelled"))
         {
             return Task.CompletedTask;

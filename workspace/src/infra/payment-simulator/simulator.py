@@ -115,6 +115,7 @@ button {{ padding: .6rem 1rem; margin-right: .5rem; }}
                 "vnp_TmnCode": TMN_CODE,
                 "vnp_TxnRef": txn,
                 "vnp_Amount": amount,
+                "vnp_CurrCode": "VND",
                 "vnp_ResponseCode": outcome,
                 "vnp_TransactionStatus": "00" if outcome == "00" else "02",
                 "vnp_OrderInfo": first(form.get("vnp_OrderInfo")),
