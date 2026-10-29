@@ -43,6 +43,7 @@ public static class TransportEndpoints
         op.MapPost("/trips/{tripId:guid}/publish", PublishTripAsync);
         op.MapPost("/trips/{tripId:guid}/cancel", CancelTripAsync);
         op.MapPost("/trips/{tripId:guid}/status-transitions", TransitionTripAsync);
+        op.MapDelete("/trips/{tripId:guid}", RejectHardDeleteAsync);
 
         endpoints.MapGet("/api/v1/driver/assignments", GetAssignmentsAsync).RequireAuthorization();
         endpoints.MapPost("/internal/trips/{tripId:guid}/inventory-ready", InventoryReadyAsync);
@@ -297,6 +298,19 @@ public static class TransportEndpoints
         }
 
         return await Mutate(context, store, "transition-trip", body, () => service.TransitionTripAsync(actor, tripId, body, context.CorrelationId(), context.RequestAborted), 200);
+    }
+
+    private static IResult RejectHardDeleteAsync(HttpContext context, Guid tripId)
+    {
+        _ = tripId;
+        var error = new AppError(
+            ErrorCodes.ValidationError,
+            "Hard deletion is not supported; cancel or deactivate the resource instead.",
+            Microsoft.AspNetCore.Http.StatusCodes.Status405MethodNotAllowed);
+        return Results.Json(
+            BusTicketPlatform.BuildingBlocks.Http.ErrorEnvelope.From(error, context.CorrelationId()),
+            PlatformHttp.Json,
+            statusCode: error.StatusCode);
     }
 
     private static async Task<IResult> GetAssignmentsAsync(HttpContext context, TransportService service)

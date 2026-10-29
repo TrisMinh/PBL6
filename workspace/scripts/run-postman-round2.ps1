@@ -80,10 +80,6 @@ function Invoke-CollectionSetup {
         return
     }
 
-    if ($Setup -ne 'expire-identity-challenge') {
-        throw "Unsupported collection setup action: $Setup"
-    }
-
     $containerIds = @(
         & docker ps `
             --filter "label=com.docker.compose.project=$ProjectName" `
@@ -94,10 +90,25 @@ function Invoke-CollectionSetup {
         throw "Expected exactly one running postgres container for Docker project '$ProjectName'."
     }
 
-    $sql = "UPDATE auth_challenges c SET expires_at = c.created_at + INTERVAL '1 millisecond' FROM users u WHERE c.user_id = u.id AND u.normalized_email = 'PBL6.R3.EXPIRY@EXAMPLE.TEST' AND c.status = 'ACTIVE';"
-    $output = @(& docker exec $containerIds[0] psql -U platform -d identity -v ON_ERROR_STOP=1 -c $sql 2>&1)
+    switch ($Setup) {
+        'expire-identity-challenge' {
+            $database = 'identity'
+            $sql = "UPDATE auth_challenges c SET expires_at = c.created_at + INTERVAL '1 millisecond' FROM users u WHERE c.user_id = u.id AND u.normalized_email = 'PBL6.R3.EXPIRY@EXAMPLE.TEST' AND c.status = 'ACTIVE';"
+            $failureMessage = 'Could not stage the identity expiry fixture'
+        }
+        'reset-transport-trip-state' {
+            $database = 'transport'
+            $sql = "UPDATE trips SET status = 'SCHEDULED', sellable = true, row_version = 0, updated_at = NOW() WHERE id = '01990a00-0000-7000-8000-000000000040';"
+            $failureMessage = 'Could not reset the transport trip-state fixture'
+        }
+        default {
+            throw "Unsupported collection setup action: $Setup"
+        }
+    }
+
+    $output = @(& docker exec $containerIds[0] psql -U platform -d $database -v ON_ERROR_STOP=1 -c $sql 2>&1)
     if ($LASTEXITCODE -ne 0 -or -not ($output -match 'UPDATE 1')) {
-        throw "Could not stage the identity expiry fixture: $($output -join [Environment]::NewLine)"
+        throw "${failureMessage}: $($output -join [Environment]::NewLine)"
     }
 }
 
@@ -117,7 +128,7 @@ if ($duplicates) {
     throw "Suite manifest contains duplicate collection paths: $($duplicates.Name -join ', ')"
 }
 
-$supportedSetups = @('expire-identity-challenge')
+$supportedSetups = @('expire-identity-challenge', 'reset-transport-trip-state')
 $unsupportedSetups = @($collections | Where-Object { $_.setup -and $_.setup -notin $supportedSetups })
 if ($unsupportedSetups.Count -gt 0) {
     throw "Unsupported collection setup action: $($unsupportedSetups[0].setup)"

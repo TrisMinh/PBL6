@@ -33,6 +33,12 @@ public static class PlatformErrors
     public static AppError ScheduleConflict() =>
         new(ErrorCodes.ScheduleConflict, "The bus or driver schedule overlaps another trip.", StatusCodes.Conflict);
 
+    public static AppError InvalidStateTransition() =>
+        new(ErrorCodes.InvalidStateTransition, "The requested state transition is not allowed.", StatusCodes.Conflict);
+
+    public static AppError ResourceConflict(string message) =>
+        new(ErrorCodes.ResourceConflict, message, StatusCodes.Conflict);
+
     public static AppError TripNotSellable() =>
         new(ErrorCodes.TripNotSellable, "The trip is not sellable.", StatusCodes.Unprocessable);
 

@@ -120,7 +120,15 @@ public sealed class TransportService(ITransportRepository store, ITransportEvent
             "ACTIVE",
             0,
             [seat]);
-        await store.InsertBusAsync(bus, bus.Seats, cancellationToken);
+        try
+        {
+            await store.InsertBusAsync(bus, bus.Seats, cancellationToken);
+        }
+        catch (InvalidOperationException exception) when (exception.Message == "DUPLICATE_BUS_PLATE")
+        {
+            return Fail<BusDto>(PlatformErrors.ResourceConflict("The bus plate number is already in use."));
+        }
+
         return Result<BusDto>.Success(Map(bus));
     }
 
@@ -231,7 +239,7 @@ public sealed class TransportService(ITransportRepository store, ITransportEvent
             "EMP-" + driverId.ToString("N")[^12..].ToUpperInvariant(),
             input.LicenseNumber.Trim(),
             input.LicenseExpiresOn,
-            "ACTIVE",
+            input.LicenseExpiresOn < DateOnly.FromDateTime(DateTime.UtcNow) ? "EXPIRED" : "ACTIVE",
             0);
         await store.InsertDriverAsync(driver, cancellationToken);
         return Result<DriverProfileDto>.Success(Map(driver));
@@ -260,6 +268,9 @@ public sealed class TransportService(ITransportRepository store, ITransportEvent
             UserId = input.UserId,
             LicenseNumber = input.LicenseNumber.Trim(),
             LicenseExpiresOn = input.LicenseExpiresOn,
+            Status = driver.Status == "INACTIVE"
+                ? driver.Status
+                : input.LicenseExpiresOn < DateOnly.FromDateTime(DateTime.UtcNow) ? "EXPIRED" : "ACTIVE",
             RowVersion = driver.RowVersion + 1
         };
         await store.UpdateDriverAsync(updated, cancellationToken);
@@ -378,7 +389,20 @@ public sealed class TransportService(ITransportRepository store, ITransportEvent
             return Fail<RouteDto>(PlatformErrors.NotFound());
         }
 
+        if (stops.Count < 2
+            || stops.Any(item => string.IsNullOrWhiteSpace(item.Name) || item.Sequence < 0 || item.OffsetMinutes < 0)
+            || stops.Select(item => item.Sequence).Distinct().Count() != stops.Count
+            || stops.Select(item => item.Name.Trim()).Distinct(StringComparer.OrdinalIgnoreCase).Count() != stops.Count)
+        {
+            return Fail<RouteDto>(PlatformErrors.Validation("Route stops must be unique and contain an origin and destination.", "stops"));
+        }
+
         var ordered = stops.OrderBy(item => item.Sequence).ToArray();
+        if (ordered.Select((item, index) => item.Sequence == index).Any(valid => !valid)
+            || ordered.Select((item, index) => index == 0 || item.OffsetMinutes >= ordered[index - 1].OffsetMinutes).Any(valid => !valid))
+        {
+            return Fail<RouteDto>(PlatformErrors.Validation("Route stop sequence and offsets must be contiguous and increasing.", "stops"));
+        }
         var records = new List<RouteStopRecord>();
         for (var i = 0; i < ordered.Length; i++)
         {
@@ -454,7 +478,14 @@ public sealed class TransportService(ITransportRepository store, ITransportEvent
         var route = await store.GetRouteAsync(orgId, input.RouteId, cancellationToken);
         var bus = await store.GetBusAsync(orgId, input.BusId, cancellationToken);
         var driver = await store.GetDriverAsync(orgId, input.DriverId, cancellationToken);
-        if (route is null || bus is null || driver is null || bus.Status != "ACTIVE" || driver.Status != "ACTIVE")
+        var tripServiceDate = DateOnly.FromDateTime(input.ArrivalAt.UtcDateTime);
+        if (route is null
+            || bus is null
+            || driver is null
+            || route.Status != "ACTIVE"
+            || bus.Status != "ACTIVE"
+            || driver.Status != "ACTIVE"
+            || driver.LicenseExpiresOn < tripServiceDate)
         {
             return Fail<TripDto>(PlatformErrors.Validation("Route, bus or driver is not usable."));
         }
@@ -521,18 +552,53 @@ public sealed class TransportService(ITransportRepository store, ITransportEvent
             return Fail<TripDto>(PlatformErrors.VersionConflict());
         }
 
+        if (input.Fare.Currency != "VND" || input.PolicyVersion != "cancel-mvp-v1" || input.ArrivalAt <= input.DepartureAt)
+        {
+            return Fail<TripDto>(PlatformErrors.Validation("Trip input is invalid."));
+        }
+
+        var route = await store.GetRouteAsync(orgId, input.RouteId, cancellationToken);
+        var bus = await store.GetBusAsync(orgId, input.BusId, cancellationToken);
+        var driver = await store.GetDriverAsync(orgId, input.DriverId, cancellationToken);
+        var tripServiceDate = DateOnly.FromDateTime(input.ArrivalAt.UtcDateTime);
+        if (route is null
+            || bus is null
+            || driver is null
+            || route.Status != "ACTIVE"
+            || bus.Status != "ACTIVE"
+            || driver.Status != "ACTIVE"
+            || driver.LicenseExpiresOn < tripServiceDate)
+        {
+            return Fail<TripDto>(PlatformErrors.Validation("Route, bus or driver is not usable."));
+        }
+
         var updated = trip with
         {
             RouteId = input.RouteId,
             BusId = input.BusId,
             DriverId = input.DriverId,
+            OriginStopId = route.OriginStopId,
+            DestinationStopId = route.DestinationStopId,
+            Origin = route.OriginName,
+            Destination = route.DestinationName,
             DepartureAt = input.DepartureAt,
             ArrivalAt = input.ArrivalAt,
             BaseFare = input.Fare.Amount,
             PolicyVersion = input.PolicyVersion,
+            BusType = bus.Type,
+            Amenities = bus.Amenities,
+            SeatCount = bus.SeatCount,
             RowVersion = trip.RowVersion + 1
         };
-        await store.UpdateTripAsync(updated, cancellationToken);
+        var assignment = new DriverAssignmentRecord(
+            ids.NewUuidV7(),
+            tripId,
+            driver.Id,
+            "PRIMARY",
+            input.DepartureAt.AddHours(-1),
+            input.ArrivalAt.AddHours(1),
+            actor.UserId);
+        await store.UpdateTripDraftAsync(updated, assignment, cancellationToken);
         return Result<TripDto>.Success(await MapTripAsync(updated, cancellationToken));
     }
 
@@ -578,7 +644,7 @@ public sealed class TransportService(ITransportRepository store, ITransportEvent
         };
         try
         {
-            await store.UpdateTripAsync(published, cancellationToken);
+            await store.PublishTripAsync(published, cancellationToken);
         }
         catch (InvalidOperationException exception) when (exception.Message == "SCHEDULE_CONFLICT")
         {
@@ -631,9 +697,15 @@ public sealed class TransportService(ITransportRepository store, ITransportEvent
             return Fail<TripDto>(PlatformErrors.VersionConflict());
         }
 
+        var driverOnly = actor.Has(Roles.Driver) && !actor.Has(Roles.OperatorAdmin, Roles.OperatorOperations);
+        if (driverOnly && !await store.IsDriverAssignedToTripAsync(actor.UserId, tripId, cancellationToken))
+        {
+            return Fail<TripDto>(PlatformErrors.AccessDenied());
+        }
+
         if (!IsAllowedTransition(trip.Status, request.TargetStatus))
         {
-            return Fail<TripDto>(PlatformErrors.Validation("The trip transition is not allowed.", "targetStatus"));
+            return Fail<TripDto>(PlatformErrors.InvalidStateTransition());
         }
 
         var sellable = request.TargetStatus is TripStatuses.Scheduled or TripStatuses.Boarding && trip.Sellable;
@@ -645,7 +717,10 @@ public sealed class TransportService(ITransportRepository store, ITransportEvent
 
     public async Task<Result<TripPageDto>> SearchAsync(TripSearchQuery query, CancellationToken cancellationToken)
     {
-        if (query.PassengerCount is < 1 or > 10 || string.IsNullOrWhiteSpace(query.Origin) || string.IsNullOrWhiteSpace(query.Destination))
+        if (query.PassengerCount is < 1 or > 10
+            || query.Page < 0
+            || string.IsNullOrWhiteSpace(query.Origin)
+            || string.IsNullOrWhiteSpace(query.Destination))
         {
             return Fail<TripPageDto>(PlatformErrors.Validation("Search query is invalid."));
         }
@@ -655,6 +730,7 @@ public sealed class TransportService(ITransportRepository store, ITransportEvent
             return Fail<TripPageDto>(PlatformErrors.Validation("Sort is not allowed.", "sort"));
         }
 
+        query = query with { Size = query.Size <= 0 ? 20 : Math.Min(query.Size, 100) };
         var (items, total) = await store.SearchSellableAsync(query, cancellationToken);
         var mapped = new List<TripDto>();
         foreach (var trip in items)

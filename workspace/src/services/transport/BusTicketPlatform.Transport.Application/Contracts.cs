@@ -84,6 +84,8 @@ public interface ITransportRepository
     Task UpdateRouteAsync(RouteRecord route, IReadOnlyList<RouteStopRecord>? stops, CancellationToken cancellationToken);
     Task<StopRecord> UpsertStopAsync(Guid organizationId, string name, string? address, CancellationToken cancellationToken);
     Task InsertTripAsync(TripRecord trip, DriverAssignmentRecord assignment, CancellationToken cancellationToken);
+    Task UpdateTripDraftAsync(TripRecord trip, DriverAssignmentRecord assignment, CancellationToken cancellationToken);
+    Task PublishTripAsync(TripRecord trip, CancellationToken cancellationToken);
     Task UpdateTripAsync(TripRecord trip, CancellationToken cancellationToken);
     Task<TripRecord?> GetTripAsync(Guid tripId, CancellationToken cancellationToken);
     Task<IReadOnlyList<TripRecord>> ListOperatorTripsAsync(Guid organizationId, int page, int size, CancellationToken cancellationToken);
@@ -91,6 +93,7 @@ public interface ITransportRepository
     Task<(IReadOnlyList<TripRecord> Items, long Total)> SearchSellableAsync(TripSearchQuery query, CancellationToken cancellationToken);
     Task<IReadOnlyList<TripStopDto>> GetTripStopsAsync(Guid tripId, CancellationToken cancellationToken);
     Task<IReadOnlyList<DriverAssignmentDto>> ListAssignmentsForDriverAsync(Guid driverUserId, CancellationToken cancellationToken);
+    Task<bool> IsDriverAssignedToTripAsync(Guid driverUserId, Guid tripId, CancellationToken cancellationToken);
     Task MarkSellableAsync(Guid tripId, bool sellable, CancellationToken cancellationToken);
 }
 

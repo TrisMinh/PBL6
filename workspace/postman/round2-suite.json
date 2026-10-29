@@ -77,7 +77,7 @@
     { "path": "postman/PBL6_R3_TripCancel.postman_collection.json" },
     { "path": "postman/PBL6_R3_TripReadback.postman_collection.json" },
     { "path": "postman/PBL6_R3_Trips.postman_collection.json" },
-    { "path": "postman/PBL6_R3_TripState.postman_collection.json" },
+    { "path": "postman/PBL6_R3_TripState.postman_collection.json", "setup": "reset-transport-trip-state" },
     { "path": "postman/PBL6_R3_UnknownTicket.postman_collection.json" },
     { "path": "postman/PBL6_REP02_ReadOnly_Smoke.postman_collection.json" },
     { "path": "postman/PBL6_SEC01_Protected_Endpoint_Matrix.postman_collection.json" },

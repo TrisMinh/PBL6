@@ -22,6 +22,8 @@ public static class ErrorCodes
     public const string IdempotencyConflict = "IDEMPOTENCY_CONFLICT";
     public const string IdempotencyInProgress = "IDEMPOTENCY_IN_PROGRESS";
     public const string ScheduleConflict = "SCHEDULE_CONFLICT";
+    public const string InvalidStateTransition = "INVALID_STATE_TRANSITION";
+    public const string ResourceConflict = "RESOURCE_CONFLICT";
     public const string TripNotSellable = "TRIP_NOT_SELLABLE";
     public const string SeatUnavailable = "SEAT_UNAVAILABLE";
     public const string SeatHoldExpired = "SEAT_HOLD_EXPIRED";

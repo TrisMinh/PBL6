@@ -97,7 +97,7 @@
       ]
     },
     {
-      "name": "OPS-08 Expired driver license is rejected",
+      "name": "OPS-08 Expired driver license is stored as unavailable",
       "request": {
         "method": "POST",
         "header": [
@@ -126,7 +126,7 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.test('Expired license must be rejected',()=>pm.expect([400,409,422]).to.include(pm.response.code));if(pm.response.code===201)pm.environment.set('expiredDriverId',pm.response.json().id);"
+              "pm.test('Expired profile is retained but unavailable for assignment',()=>{pm.response.to.have.status(201);pm.expect(pm.response.json().status).to.eql('EXPIRED');pm.environment.set('expiredDriverId',pm.response.json().id)});"
             ]
           }
         }

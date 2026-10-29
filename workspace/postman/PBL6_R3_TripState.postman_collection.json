@@ -47,14 +47,14 @@
           },
           {
             "key": "Idempotency-Key",
-            "value": "pbl6-r3-trip-invalid-transition-001"
+            "value": "pbl6-r3-trip-invalid-transition-{{$guid}}"
           },
           {
             "key": "Content-Type",
             "value": "application/json"
           }
         ],
-        "url": "http://localhost:5080/api/v1/operator/trips/01a1825d-b562-7b04-bab7-d50af84b5142/status-transitions",
+        "url": "http://localhost:5080/api/v1/operator/trips/01990a00-0000-7000-8000-000000000040/status-transitions",
         "body": {
           "mode": "raw",
           "raw": "{\"expectedVersion\":0,\"targetStatus\":\"ARRIVED\"}"
@@ -83,14 +83,14 @@
           },
           {
             "key": "Idempotency-Key",
-            "value": "pbl6-r3-trip-transition-boarding"
+            "value": "pbl6-r3-trip-transition-boarding-{{$guid}}"
           },
           {
             "key": "Content-Type",
             "value": "application/json"
           }
         ],
-        "url": "http://localhost:5080/api/v1/operator/trips/01a1825e-ce81-77ac-a288-7ec225093288/status-transitions",
+        "url": "http://localhost:5080/api/v1/operator/trips/01990a00-0000-7000-8000-000000000040/status-transitions",
         "body": {
           "mode": "raw",
           "raw": "{\"expectedVersion\":0,\"targetStatus\":\"BOARDING\"}"
@@ -119,14 +119,14 @@
           },
           {
             "key": "Idempotency-Key",
-            "value": "pbl6-r3-trip-transition-departed"
+            "value": "pbl6-r3-trip-transition-departed-{{$guid}}"
           },
           {
             "key": "Content-Type",
             "value": "application/json"
           }
         ],
-        "url": "http://localhost:5080/api/v1/operator/trips/01a1825e-ce81-77ac-a288-7ec225093288/status-transitions",
+        "url": "http://localhost:5080/api/v1/operator/trips/01990a00-0000-7000-8000-000000000040/status-transitions",
         "body": {
           "mode": "raw",
           "raw": "{\"expectedVersion\":1,\"targetStatus\":\"DEPARTED\"}"
@@ -155,14 +155,14 @@
           },
           {
             "key": "Idempotency-Key",
-            "value": "pbl6-r3-trip-transition-transit"
+            "value": "pbl6-r3-trip-transition-transit-{{$guid}}"
           },
           {
             "key": "Content-Type",
             "value": "application/json"
           }
         ],
-        "url": "http://localhost:5080/api/v1/operator/trips/01a1825e-ce81-77ac-a288-7ec225093288/status-transitions",
+        "url": "http://localhost:5080/api/v1/operator/trips/01990a00-0000-7000-8000-000000000040/status-transitions",
         "body": {
           "mode": "raw",
           "raw": "{\"expectedVersion\":2,\"targetStatus\":\"IN_TRANSIT\"}"
@@ -191,14 +191,14 @@
           },
           {
             "key": "Idempotency-Key",
-            "value": "pbl6-r3-trip-transition-arrived"
+            "value": "pbl6-r3-trip-transition-arrived-{{$guid}}"
           },
           {
             "key": "Content-Type",
             "value": "application/json"
           }
         ],
-        "url": "http://localhost:5080/api/v1/operator/trips/01a1825e-ce81-77ac-a288-7ec225093288/status-transitions",
+        "url": "http://localhost:5080/api/v1/operator/trips/01990a00-0000-7000-8000-000000000040/status-transitions",
         "body": {
           "mode": "raw",
           "raw": "{\"expectedVersion\":3,\"targetStatus\":\"ARRIVED\"}"
@@ -227,14 +227,14 @@
           },
           {
             "key": "Idempotency-Key",
-            "value": "pbl6-r3-trip-transition-completed"
+            "value": "pbl6-r3-trip-transition-completed-{{$guid}}"
           },
           {
             "key": "Content-Type",
             "value": "application/json"
           }
         ],
-        "url": "http://localhost:5080/api/v1/operator/trips/01a1825e-ce81-77ac-a288-7ec225093288/status-transitions",
+        "url": "http://localhost:5080/api/v1/operator/trips/01990a00-0000-7000-8000-000000000040/status-transitions",
         "body": {
           "mode": "raw",
           "raw": "{\"expectedVersion\":4,\"targetStatus\":\"COMPLETED\"}"
@@ -262,7 +262,7 @@
             "value": "Bearer {{accessToken}}"
           }
         ],
-        "url": "http://localhost:5080/api/v1/operator/trips/01a1825d-b562-7b04-bab7-d50af84b5142"
+        "url": "http://localhost:5080/api/v1/operator/trips/01990a00-0000-7000-8000-000000000040"
       },
       "event": [
         {
@@ -281,7 +281,7 @@
       "request": {
         "method": "GET",
         "header": [],
-        "url": "http://localhost:5080/api/v1/trips/01a1825d-b562-7b04-bab7-d50af84b5142"
+        "url": "http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000040"
       },
       "event": [
         {

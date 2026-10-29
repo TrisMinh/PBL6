@@ -3,6 +3,17 @@
     "name": "PBL6 Round 3 cross-tenant isolation check",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "if (!pm.collectionVariables.get('runId')) { pm.collectionVariables.set('runId', pm.variables.replaceIn('{{$guid}}').replace(/-/g, '').slice(0, 12).toUpperCase()); }"
+        ]
+      }
+    }
+  ],
   "item": [
     {
       "name": "Admin login",
@@ -33,6 +44,42 @@
       ]
     },
     {
+      "name": "Create isolated synthetic organization",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r2-cross-tenant-org-{{runId}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/admin/organizations",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"code\":\"CT{{runId}}\",\"name\":\"PBL6 Round 2 Isolated Operator {{runId}}\",\"contactEmail\":\"cross.tenant.{{runId}}@example.test\",\"contactPhone\":\"+849010009994\",\"allowPayLater\":false,\"expectedVersion\":0}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Isolated organization created',()=>{pm.response.to.have.status(201);pm.environment.set('orgBId',pm.response.json().id)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
       "name": "Find verified synthetic user",
       "request": {
         "method": "GET",
@@ -50,7 +97,7 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.test('Synthetic principal exists',()=>{pm.response.to.have.status(200);const u=pm.response.json().items.find(x=>x.email==='pbl6.postman.sync.01@example.test');pm.expect(u).to.exist;pm.environment.set('orgBUserId',u.id)});"
+              "pm.test('Synthetic principal exists',()=>{pm.response.to.have.status(200);const u=pm.response.json().items.find(x=>x.email==='pbl6.r3.customer.two@example.test');pm.expect(u).to.exist;pm.environment.set('orgBUserId',u.id)});"
             ]
           }
         }
@@ -67,14 +114,14 @@
           },
           {
             "key": "Idempotency-Key",
-            "value": "pbl6-r3-orgB-member-001"
+            "value": "pbl6-r3-orgB-member-{{runId}}"
           },
           {
             "key": "Content-Type",
             "value": "application/json"
           }
         ],
-        "url": "http://localhost:5080/api/v1/admin/organizations/01a18268-a46e-7e4e-8fd5-d662922496d5/members",
+        "url": "http://localhost:5080/api/v1/admin/organizations/{{orgBId}}/members",
         "body": {
           "mode": "raw",
           "raw": "{\"userId\":\"{{orgBUserId}}\",\"roleCodes\":[\"OPERATOR_ADMIN\"],\"status\":\"ACTIVE\",\"reason\":\"Round 3 cross-tenant test\",\"expectedVersion\":0}"
@@ -105,7 +152,7 @@
         "url": "http://localhost:5080/api/v1/auth/login",
         "body": {
           "mode": "raw",
-          "raw": "{\"identifier\":\"pbl6.postman.sync.01@example.test\",\"password\":\"CorrectHorse1\"}"
+          "raw": "{\"identifier\":\"pbl6.r3.customer.two@example.test\",\"password\":\"CorrectHorse1\"}"
         }
       },
       "event": [
@@ -190,7 +237,7 @@
             "value": "application/json"
           }
         ],
-        "url": "http://localhost:5080/api/v1/admin/organizations/01a18268-a46e-7e4e-8fd5-d662922496d5/members/{{orgBMembershipId}}",
+        "url": "http://localhost:5080/api/v1/admin/organizations/{{orgBId}}/members/{{orgBMembershipId}}",
         "body": {
           "mode": "raw",
           "raw": "{\"userId\":\"{{orgBUserId}}\",\"roleCodes\":[\"OPERATOR_ADMIN\"],\"status\":\"ENDED\",\"reason\":\"Round 3 membership cleanup\",\"expectedVersion\":0}"

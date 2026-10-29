@@ -156,6 +156,305 @@ public sealed class TransportFlowTests
         Assert.True(page.GetProperty("totalElements").GetInt64() >= 1);
     }
 
+    [Fact]
+    public async Task Search_caps_oversized_pages_and_rejects_negative_pages()
+    {
+        var client = _fixture.CreateClient();
+        var capped = await SendAsync(
+            client,
+            HttpMethod.Get,
+            "/api/v1/trips?origin=Nowhere&destination=Elsewhere&departureDate=2030-01-01&passengerCount=1&size=100000");
+        Assert.Equal(HttpStatusCode.OK, capped.Response.StatusCode);
+        Assert.Equal(100, capped.Body.GetProperty("size").GetInt32());
+
+        var negative = await SendAsync(
+            client,
+            HttpMethod.Get,
+            "/api/v1/trips?origin=Nowhere&destination=Elsewhere&departureDate=2030-01-01&passengerCount=1&page=-1");
+        Assert.Equal(HttpStatusCode.BadRequest, negative.Response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Route_rejects_duplicate_or_non_contiguous_stop_sequences()
+    {
+        var client = _fixture.CreateClient();
+        var fixture = await CreateResourcesAsync(client);
+
+        var duplicate = await SendAsync(
+            client,
+            HttpMethod.Put,
+            $"/api/v1/operator/routes/{fixture.RouteId}/stops",
+            new[]
+            {
+                new { name = "Origin", address = "A", sequence = 0, offsetMinutes = 0, pickupAllowed = true, dropoffAllowed = false },
+                new { name = "Destination", address = "B", sequence = 0, offsetMinutes = 60, pickupAllowed = false, dropoffAllowed = true }
+            },
+            fixture.OperatorToken);
+        Assert.Equal(HttpStatusCode.BadRequest, duplicate.Response.StatusCode);
+
+        var gap = await SendAsync(
+            client,
+            HttpMethod.Put,
+            $"/api/v1/operator/routes/{fixture.RouteId}/stops",
+            new[]
+            {
+                new { name = "Origin", address = "A", sequence = 0, offsetMinutes = 0, pickupAllowed = true, dropoffAllowed = false },
+                new { name = "Destination", address = "B", sequence = 2, offsetMinutes = 60, pickupAllowed = false, dropoffAllowed = true }
+            },
+            fixture.OperatorToken);
+        Assert.Equal(HttpStatusCode.BadRequest, gap.Response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Expired_driver_profile_is_saved_as_unavailable_and_cannot_be_assigned()
+    {
+        var client = _fixture.CreateClient();
+        var fixture = await CreateResourcesAsync(client, new DateOnly(2020, 1, 1));
+        Assert.Equal("EXPIRED", fixture.DriverStatus);
+
+        var draft = await CreateTripAsync(client, fixture, fixture.BusId, fixture.Departure);
+        Assert.Equal(HttpStatusCode.BadRequest, draft.Response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Overlapping_driver_drafts_are_allowed_but_second_publish_conflicts()
+    {
+        var client = _fixture.CreateClient();
+        var fixture = await CreateResourcesAsync(client, secondBus: true);
+        var first = await CreateTripAsync(client, fixture, fixture.BusId, fixture.Departure);
+        var second = await CreateTripAsync(client, fixture, fixture.SecondBusId!.Value, fixture.Departure.AddMinutes(15));
+        Assert.Equal(HttpStatusCode.Created, first.Response.StatusCode);
+        Assert.Equal(HttpStatusCode.Created, second.Response.StatusCode);
+
+        var firstPublish = await SendAsync(
+            client,
+            HttpMethod.Post,
+            $"/api/v1/operator/trips/{first.Body.GetProperty("id").GetGuid()}/publish",
+            new { expectedVersion = first.Body.GetProperty("rowVersion").GetInt64() },
+            fixture.OperatorToken,
+            Idempotency());
+        Assert.Equal(HttpStatusCode.Accepted, firstPublish.Response.StatusCode);
+
+        var secondPublish = await SendAsync(
+            client,
+            HttpMethod.Post,
+            $"/api/v1/operator/trips/{second.Body.GetProperty("id").GetGuid()}/publish",
+            new { expectedVersion = second.Body.GetProperty("rowVersion").GetInt64() },
+            fixture.OperatorToken,
+            Idempotency());
+        Assert.Equal(HttpStatusCode.Conflict, secondPublish.Response.StatusCode);
+        Assert.Equal("SCHEDULE_CONFLICT", secondPublish.Body.GetProperty("error").GetProperty("code").GetString());
+    }
+
+    [Fact]
+    public async Task Only_assigned_driver_can_follow_trip_lifecycle_and_hard_delete_is_unavailable()
+    {
+        var client = _fixture.CreateClient();
+        var fixture = await CreateResourcesAsync(client);
+        var draft = await CreateTripAsync(client, fixture, fixture.BusId, fixture.Departure);
+        Assert.Equal(HttpStatusCode.Created, draft.Response.StatusCode);
+        var tripId = draft.Body.GetProperty("id").GetGuid();
+        var version = draft.Body.GetProperty("rowVersion").GetInt64();
+        var published = await SendAsync(
+            client,
+            HttpMethod.Post,
+            $"/api/v1/operator/trips/{tripId}/publish",
+            new { expectedVersion = version },
+            fixture.OperatorToken,
+            Idempotency());
+        Assert.Equal(HttpStatusCode.Accepted, published.Response.StatusCode);
+
+        var invalid = await SendAsync(
+            client,
+            HttpMethod.Post,
+            $"/api/v1/operator/trips/{tripId}/status-transitions",
+            new { expectedVersion = version + 1, targetStatus = "ARRIVED", reason = "skip states" },
+            fixture.OperatorToken,
+            Idempotency());
+        Assert.Equal(HttpStatusCode.Conflict, invalid.Response.StatusCode);
+        Assert.Equal("INVALID_STATE_TRANSITION", invalid.Body.GetProperty("error").GetProperty("code").GetString());
+
+        var stranger = TestJwt.Mint(Guid.CreateVersion7(), [Roles.Driver], fixture.OrganizationId);
+        var denied = await SendAsync(
+            client,
+            HttpMethod.Post,
+            $"/api/v1/operator/trips/{tripId}/status-transitions",
+            new { expectedVersion = version + 1, targetStatus = "BOARDING", reason = "not assigned" },
+            stranger,
+            Idempotency());
+        Assert.Equal(HttpStatusCode.Forbidden, denied.Response.StatusCode);
+
+        var driverToken = TestJwt.Mint(fixture.DriverUserId, [Roles.Driver], fixture.OrganizationId);
+        foreach (var status in new[] { "BOARDING", "DEPARTED", "IN_TRANSIT", "ARRIVED", "COMPLETED" })
+        {
+            var transitioned = await SendAsync(
+                client,
+                HttpMethod.Post,
+                $"/api/v1/operator/trips/{tripId}/status-transitions",
+                new { expectedVersion = ++version, targetStatus = status, reason = "lifecycle test" },
+                driverToken,
+                Idempotency());
+            Assert.Equal(HttpStatusCode.OK, transitioned.Response.StatusCode);
+            Assert.Equal(status, transitioned.Body.GetProperty("status").GetString());
+        }
+
+        var deleted = await SendAsync(client, HttpMethod.Delete, $"/api/v1/operator/trips/{tripId}", bearer: fixture.OperatorToken);
+        Assert.True(
+            deleted.Response.StatusCode is HttpStatusCode.NotFound or HttpStatusCode.MethodNotAllowed,
+            deleted.Body.ToString());
+        var retained = await SendAsync(client, HttpMethod.Get, $"/api/v1/trips/{tripId}");
+        Assert.Equal(HttpStatusCode.OK, retained.Response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Tenant_cannot_mutate_another_tenants_bus()
+    {
+        var client = _fixture.CreateClient();
+        var owner = await CreateResourcesAsync(client);
+        var foreign = await CreateResourcesAsync(client);
+        var response = await SendAsync(
+            client,
+            HttpMethod.Patch,
+            $"/api/v1/operator/buses/{owner.BusId}",
+            new { plateNumber = "99Z-99999", type = "STANDARD", amenities = Array.Empty<string>(), expectedVersion = 0 },
+            foreign.OperatorToken);
+        Assert.Equal(HttpStatusCode.NotFound, response.Response.StatusCode);
+
+        var ownerDraft = await CreateTripAsync(client, owner, owner.BusId, owner.Departure);
+        Assert.Equal(HttpStatusCode.Created, ownerDraft.Response.StatusCode);
+        var crossTenantReferences = await SendAsync(
+            client,
+            HttpMethod.Patch,
+            $"/api/v1/operator/trips/{ownerDraft.Body.GetProperty("id").GetGuid()}",
+            new
+            {
+                routeId = foreign.RouteId,
+                busId = foreign.BusId,
+                driverId = foreign.DriverId,
+                departureAt = owner.Departure,
+                arrivalAt = owner.Departure.AddHours(2),
+                fare = new { amount = 150000, currency = "VND" },
+                policyVersion = "cancel-mvp-v1",
+                expectedVersion = 0
+            },
+            owner.OperatorToken);
+        Assert.Equal(HttpStatusCode.BadRequest, crossTenantReferences.Response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Duplicate_bus_plate_returns_conflict_instead_of_server_error()
+    {
+        var client = _fixture.CreateClient();
+        var fixture = await CreateResourcesAsync(client);
+        var listed = await SendAsync(client, HttpMethod.Get, "/api/v1/operator/buses", bearer: fixture.OperatorToken);
+        Assert.Equal(HttpStatusCode.OK, listed.Response.StatusCode);
+        var plate = listed.Body.EnumerateArray().Single(item => item.GetProperty("id").GetGuid() == fixture.BusId).GetProperty("plateNumber").GetString();
+
+        var duplicate = await SendAsync(client, HttpMethod.Post, "/api/v1/operator/buses", new
+        {
+            plateNumber = plate,
+            type = "STANDARD",
+            amenities = Array.Empty<string>(),
+            expectedVersion = 0
+        }, fixture.OperatorToken, Idempotency());
+        Assert.Equal(HttpStatusCode.Conflict, duplicate.Response.StatusCode);
+        Assert.Equal("RESOURCE_CONFLICT", duplicate.Body.GetProperty("error").GetProperty("code").GetString());
+    }
+
+    private async Task<ResourceFixture> CreateResourcesAsync(
+        HttpClient client,
+        DateOnly? licenseExpiresOn = null,
+        bool secondBus = false)
+    {
+        var admin = TestJwt.Mint(Guid.CreateVersion7(), [Roles.PlatformAdmin]);
+        var createdOrg = await SendAsync(client, HttpMethod.Post, "/api/v1/admin/organizations", new
+        {
+            code = "T" + Guid.NewGuid().ToString("N")[..10].ToUpperInvariant(),
+            name = "Test Operator " + Guid.NewGuid().ToString("N")[..6],
+            contactEmail = "ops@example.test",
+            contactPhone = "0900000000",
+            allowPayLater = true,
+            expectedVersion = 0
+        }, admin, Idempotency());
+        Assert.True(createdOrg.Response.StatusCode == HttpStatusCode.Created, createdOrg.Body.ToString());
+        var organizationId = createdOrg.Body.GetProperty("id").GetGuid();
+        var operatorToken = TestJwt.Mint(Guid.CreateVersion7(), [Roles.OperatorAdmin, Roles.OperatorScheduler, Roles.OperatorOperations], organizationId);
+
+        async Task<Guid> CreateBus(string prefix)
+        {
+            var response = await SendAsync(client, HttpMethod.Post, "/api/v1/operator/buses", new
+            {
+                plateNumber = prefix + Guid.NewGuid().ToString("N")[..7].ToUpperInvariant(),
+                type = "STANDARD",
+                amenities = new[] { "AC" },
+                expectedVersion = 0
+            }, operatorToken, Idempotency());
+            Assert.Equal(HttpStatusCode.Created, response.Response.StatusCode);
+            return response.Body.GetProperty("id").GetGuid();
+        }
+
+        var busId = await CreateBus("A");
+        var secondBusId = secondBus ? await CreateBus("B") : (Guid?)null;
+        var driverUserId = Guid.CreateVersion7();
+        var driver = await SendAsync(client, HttpMethod.Post, "/api/v1/operator/drivers", new
+        {
+            userId = driverUserId,
+            licenseNumber = "LIC-" + Guid.NewGuid().ToString("N")[..10],
+            licenseExpiresOn = (licenseExpiresOn ?? new DateOnly(2035, 1, 1)).ToString("yyyy-MM-dd"),
+            expectedVersion = 0
+        }, operatorToken, Idempotency());
+        Assert.Equal(HttpStatusCode.Created, driver.Response.StatusCode);
+
+        var route = await SendAsync(client, HttpMethod.Post, "/api/v1/operator/routes", new
+        {
+            name = "Origin - Destination " + Guid.NewGuid().ToString("N")[..6],
+            origin = "Origin " + Guid.NewGuid().ToString("N")[..6],
+            destination = "Destination " + Guid.NewGuid().ToString("N")[..6],
+            durationMinutes = 120,
+            expectedVersion = 0
+        }, operatorToken, Idempotency());
+        Assert.Equal(HttpStatusCode.Created, route.Response.StatusCode);
+
+        return new ResourceFixture(
+            organizationId,
+            operatorToken,
+            busId,
+            secondBusId,
+            driver.Body.GetProperty("id").GetGuid(),
+            driverUserId,
+            driver.Body.GetProperty("status").GetString()!,
+            route.Body.GetProperty("id").GetGuid(),
+            DateTimeOffset.UtcNow.AddDays(30));
+    }
+
+    private static Task<(HttpResponseMessage Response, JsonElement Body)> CreateTripAsync(
+        HttpClient client,
+        ResourceFixture fixture,
+        Guid busId,
+        DateTimeOffset departure) =>
+        SendAsync(client, HttpMethod.Post, "/api/v1/operator/trips", new
+        {
+            routeId = fixture.RouteId,
+            busId,
+            driverId = fixture.DriverId,
+            departureAt = departure,
+            arrivalAt = departure.AddHours(2),
+            fare = new { amount = 150000, currency = "VND" },
+            policyVersion = "cancel-mvp-v1",
+            expectedVersion = 0
+        }, fixture.OperatorToken, Idempotency());
+
+    private sealed record ResourceFixture(
+        Guid OrganizationId,
+        string OperatorToken,
+        Guid BusId,
+        Guid? SecondBusId,
+        Guid DriverId,
+        Guid DriverUserId,
+        string DriverStatus,
+        Guid RouteId,
+        DateTimeOffset Departure);
+
     private static string Idempotency() => Guid.CreateVersion7().ToString("N");
 
     private static async Task<(HttpResponseMessage Response, JsonElement Body)> SendAsync(
