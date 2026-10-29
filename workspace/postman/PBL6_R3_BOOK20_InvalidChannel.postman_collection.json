@@ -1,4 +1,4 @@
-﻿{
+{
     "info":  {
                  "name":  "PBL6 Round 3 invalid booking payment channel",
                  "schema":  "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -42,7 +42,7 @@
                                                         "value":  "Bearer {{t}}"
                                                     }
                                                 ],
-                                     "url":  "http://localhost:5080/api/v1/trips/01a1825e-ce81-77ac-a288-7ec225093288/seats"
+                                     "url":  "http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seats"
                                  },
                      "event":  [
                                    {
@@ -74,7 +74,7 @@
                                                         "value":  "application/json"
                                                     }
                                                 ],
-                                     "url":  "http://localhost:5080/api/v1/trips/01a1825e-ce81-77ac-a288-7ec225093288/seat-holds",
+                                     "url":  "http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seat-holds",
                                      "body":  {
                                                   "mode":  "raw",
                                                   "raw":  "{\"seatIds\":[\"{{seat}}\"],\"pickupStopId\":\"{{pickup}}\",\"dropoffStopId\":\"{{dropoff}}\"}"

@@ -16,6 +16,17 @@ public sealed class BookingService(IBookingRepository store, IBookingEvents even
         return Result<OperationAccepted>.Success(new OperationAccepted(message.TripId, "ACCEPTED"));
     }
 
+    public async Task<Result> ApplyTripStatusAsync(TripStatusChangedMessage message, CancellationToken cancellationToken)
+    {
+        if (message.TripId == Guid.Empty || message.Status is not ("SCHEDULED" or "BOARDING" or "DEPARTED" or "IN_TRANSIT" or "ARRIVED" or "COMPLETED" or "CANCELLED"))
+        {
+            return Result.Failure(PlatformErrors.Validation("Trip status update is invalid."));
+        }
+
+        await store.ApplyTripStatusAsync(message.TripId, message.Status, cancellationToken);
+        return Result.Success();
+    }
+
     public async Task<Result<TripSeatListDto>> GetSeatsAsync(Guid tripId, CancellationToken cancellationToken)
     {
         await store.ExpireHoldsAsync(cancellationToken);
@@ -36,6 +47,22 @@ public sealed class BookingService(IBookingRepository store, IBookingEvents even
 
     public async Task<Result<SeatHoldDto>> CreateHoldAsync(Actor actor, Guid tripId, CreateSeatHoldRequest request, string idempotencyKey, CancellationToken cancellationToken)
     {
+        if (!actor.Has("CUSTOMER"))
+        {
+            return Result<SeatHoldDto>.Failure(PlatformErrors.AccessDenied());
+        }
+
+        if (request.SeatIds is null
+            || request.SeatIds.Count is < 1 or > 10
+            || request.SeatIds.Any(id => id == Guid.Empty)
+            || request.SeatIds.Distinct().Count() != request.SeatIds.Count
+            || request.PickupStopId == Guid.Empty
+            || request.DropoffStopId == Guid.Empty
+            || request.PickupStopId == request.DropoffStopId)
+        {
+            return Result<SeatHoldDto>.Failure(PlatformErrors.Validation("Seat hold input is invalid."));
+        }
+
         await store.ExpireHoldsAsync(cancellationToken);
         var trip = await store.GetTripAsync(tripId, cancellationToken);
         if (trip is null || !trip.Sellable)
@@ -109,6 +136,41 @@ public sealed class BookingService(IBookingRepository store, IBookingEvents even
         if (hold.Status != "ACTIVE")
         {
             return Result<BookingDto>.Failure(PlatformErrors.SeatHoldExpired());
+        }
+
+        if (request.PaymentChannel is not ("PREPAID" or "PAY_LATER"))
+        {
+            return Result<BookingDto>.Failure(PlatformErrors.Validation("Payment channel must be PREPAID or PAY_LATER.", "paymentChannel"));
+        }
+
+        if (request.Contact is null
+            || string.IsNullOrWhiteSpace(request.Contact.FullName)
+            || string.IsNullOrWhiteSpace(request.Contact.Email)
+            || string.IsNullOrWhiteSpace(request.Contact.Phone))
+        {
+            return Result<BookingDto>.Failure(PlatformErrors.Validation("Booking contact is incomplete.", "contact"));
+        }
+
+        if (request.Passengers is null
+            || request.Passengers.Count != hold.Seats.Count
+            || request.Passengers.Select(passenger => passenger.SeatId).Distinct().Count() != hold.Seats.Count
+            || request.Passengers.Any(passenger =>
+                passenger.SeatId == Guid.Empty
+                || string.IsNullOrWhiteSpace(passenger.FullName)
+                || passenger.FullName.Length > 150
+                || passenger.PickupStopId == Guid.Empty
+                || passenger.DropoffStopId == Guid.Empty
+                || passenger.PickupStopId == passenger.DropoffStopId
+                || (!string.IsNullOrWhiteSpace(passenger.DocumentType) && string.IsNullOrWhiteSpace(passenger.DocumentNumber))
+                || (string.IsNullOrWhiteSpace(passenger.DocumentType) && !string.IsNullOrWhiteSpace(passenger.DocumentNumber))))
+        {
+            return Result<BookingDto>.Failure(PlatformErrors.Validation("Exactly one valid passenger is required for every held seat.", "passengers"));
+        }
+
+        var heldSeatIds = hold.Seats.Select(seat => seat.Id).ToHashSet();
+        if (request.Passengers.Any(passenger => !heldSeatIds.Contains(passenger.SeatId)))
+        {
+            return Result<BookingDto>.Failure(PlatformErrors.Validation("Passenger seat is not on the hold.", "passengers"));
         }
 
         if (request.ExpectedTotal != hold.TotalAmount || request.Currency != hold.Currency)
@@ -190,6 +252,7 @@ public sealed class BookingService(IBookingRepository store, IBookingEvents even
 
     public async Task<Result<BookingDto>> GetBookingAsync(Actor actor, Guid bookingId, CancellationToken cancellationToken)
     {
+        await store.ExpireHoldsAsync(cancellationToken);
         var booking = await store.GetBookingAsync(bookingId, cancellationToken);
         if (booking is null || !CanRead(actor, booking))
         {
@@ -201,7 +264,12 @@ public sealed class BookingService(IBookingRepository store, IBookingEvents even
 
     public async Task<Result<BookingPageDto>> ListMyBookingsAsync(Actor actor, int page, int size, CancellationToken cancellationToken)
     {
-        size = size is < 1 or > 100 ? 20 : size;
+        await store.ExpireHoldsAsync(cancellationToken);
+        if (page < 0 || size is < 1 or > 100)
+        {
+            return Result<BookingPageDto>.Failure(PlatformErrors.Validation("Page bounds are invalid."));
+        }
+
         var items = await store.ListBookingsForCustomerAsync(actor.UserId, page, size, cancellationToken);
         var total = await store.CountBookingsForCustomerAsync(actor.UserId, cancellationToken);
         return Result<BookingPageDto>.Success(new BookingPageDto(page, size, total, Pages(total, size), items.Select(MapBooking).ToArray()));
@@ -214,7 +282,12 @@ public sealed class BookingService(IBookingRepository store, IBookingEvents even
             return Result<BookingPageDto>.Failure(PlatformErrors.AccessDenied());
         }
 
-        size = size is < 1 or > 100 ? 20 : size;
+        await store.ExpireHoldsAsync(cancellationToken);
+        if (page < 0 || size is < 1 or > 100)
+        {
+            return Result<BookingPageDto>.Failure(PlatformErrors.Validation("Page bounds are invalid."));
+        }
+
         var org = actor.Has("PLATFORM_ADMIN", "PLATFORM_SUPPORT") ? (Guid?)null : actor.OrganizationId;
         var items = await store.SearchBookingsAsync(org, page, size, cancellationToken);
         var total = await store.CountBookingsAsync(org, cancellationToken);
@@ -229,6 +302,16 @@ public sealed class BookingService(IBookingRepository store, IBookingEvents even
             return Result<CancellationPreviewDto>.Failure(PlatformErrors.NotFound());
         }
 
+        if (booking.Status is not ("PAID" or "CONFIRMED"))
+        {
+            return Result<CancellationPreviewDto>.Failure(PlatformErrors.InvalidStateTransition());
+        }
+
+        if (request.TicketIds is null || request.TicketIds.Count == 0 || request.TicketIds.Distinct().Count() != request.TicketIds.Count)
+        {
+            return Result<CancellationPreviewDto>.Failure(PlatformErrors.Validation("At least one unique ticket is required.", "ticketIds"));
+        }
+
         var trip = await store.GetTripAsync(booking.TripId, cancellationToken);
         var (rate, allowed) = CancellationPolicy.For(trip!.DepartureAt, DateTimeOffset.UtcNow);
         if (!allowed)
@@ -240,15 +323,20 @@ public sealed class BookingService(IBookingRepository store, IBookingEvents even
         foreach (var ticketId in request.TicketIds)
         {
             var ticket = await store.GetTicketAsync(ticketId, cancellationToken);
-            if (ticket is null || ticket.BookingId != bookingId || ticket.Status is not "ISSUED")
+            if (ticket is null || ticket.BookingId != bookingId)
             {
                 return Result<CancellationPreviewDto>.Failure(PlatformErrors.Validation("A ticket cannot be cancelled.", "ticketIds"));
+            }
+
+            if (ticket.Status is not "ISSUED")
+            {
+                return Result<CancellationPreviewDto>.Failure(PlatformErrors.InvalidStateTransition());
             }
 
             tickets.Add(ticket);
         }
 
-        var eligible = booking.Total;
+        var eligible = tickets.Sum(ticket => ticket.UnitPrice);
         var fee = booking.PaymentChannel == "PREPAID" ? CancellationPolicy.HalfUp(eligible * rate) : 0;
         var refund = booking.PaymentChannel == "PREPAID" ? Math.Max(0, eligible - fee) : 0;
         eligible = fee + refund;
@@ -280,8 +368,17 @@ public sealed class BookingService(IBookingRepository store, IBookingEvents even
             return Result<OperationAccepted>.Failure(PlatformErrors.VersionConflict());
         }
 
+        if (booking.Status is not ("PAID" or "CONFIRMED"))
+        {
+            return Result<OperationAccepted>.Failure(PlatformErrors.InvalidStateTransition());
+        }
+
         var preview = await store.GetPreviewAsync(request.PreviewId, cancellationToken);
-        if (preview is null || preview.BookingId != bookingId || preview.ExpiresAt <= DateTimeOffset.UtcNow)
+        if (preview is null
+            || preview.BookingId != bookingId
+            || preview.RequestedBy != actor.UserId
+            || preview.ConsumedAt is not null
+            || preview.ExpiresAt <= DateTimeOffset.UtcNow)
         {
             return Result<OperationAccepted>.Failure(PlatformErrors.PreviewStale());
         }
@@ -317,7 +414,12 @@ public sealed class BookingService(IBookingRepository store, IBookingEvents even
 
     public async Task<Result<TicketPageDto>> ListTicketsAsync(Actor actor, int page, int size, CancellationToken cancellationToken)
     {
-        size = size is < 1 or > 100 ? 20 : size;
+        await store.ExpireHoldsAsync(cancellationToken);
+        if (page < 0 || size is < 1 or > 100)
+        {
+            return Result<TicketPageDto>.Failure(PlatformErrors.Validation("Page bounds are invalid."));
+        }
+
         var items = await store.ListTicketsForCustomerAsync(actor.UserId, page, size, cancellationToken);
         var total = await store.CountTicketsForCustomerAsync(actor.UserId, cancellationToken);
         return Result<TicketPageDto>.Success(new TicketPageDto(page, size, total, Pages(total, size), items.Select(item => MapTicket(item, includeQr: item.Status == "ISSUED")).ToArray()));
@@ -325,6 +427,7 @@ public sealed class BookingService(IBookingRepository store, IBookingEvents even
 
     public async Task<Result<TicketDto>> GetTicketAsync(Actor actor, Guid ticketId, CancellationToken cancellationToken)
     {
+        await store.ExpireHoldsAsync(cancellationToken);
         var ticket = await store.GetTicketAsync(ticketId, cancellationToken);
         if (ticket is null)
         {
@@ -350,7 +453,18 @@ public sealed class BookingService(IBookingRepository store, IBookingEvents even
         var ticket = await ResolveScannedAsync(request.ScannedToken, cancellationToken);
         if (ticket is null || ticket.TripId != request.TripId)
         {
-            return Result<TicketValidationDto>.Success(new TicketValidationDto(false, "TICKET_NOT_FOUND", null));
+            return Result<TicketValidationDto>.Failure(PlatformErrors.NotFound());
+        }
+
+        if (!await CanCheckInAsync(actor, ticket, cancellationToken))
+        {
+            return Result<TicketValidationDto>.Failure(PlatformErrors.AccessDenied());
+        }
+
+        var trip = await store.GetTripAsync(ticket.TripId, cancellationToken);
+        if (trip?.Status == "CANCELLED")
+        {
+            return Result<TicketValidationDto>.Success(new TicketValidationDto(false, "TRIP_CANCELLED", MapTicket(ticket)));
         }
 
         return Result<TicketValidationDto>.Success(new TicketValidationDto(ticket.Status == "ISSUED", ticket.Status == "ISSUED" ? null : ticket.Status, MapTicket(ticket)));
@@ -362,6 +476,17 @@ public sealed class BookingService(IBookingRepository store, IBookingEvents even
         if (ticket is null || ticket.Id != ticketId || ticket.TripId != request.TripId)
         {
             return Result<TicketDto>.Failure(PlatformErrors.NotFound());
+        }
+
+        if (!await CanCheckInAsync(actor, ticket, cancellationToken))
+        {
+            return Result<TicketDto>.Failure(PlatformErrors.AccessDenied());
+        }
+
+        var trip = await store.GetTripAsync(ticket.TripId, cancellationToken);
+        if (trip?.Status == "CANCELLED")
+        {
+            return Result<TicketDto>.Failure(PlatformErrors.InvalidStateTransition());
         }
 
         if (ticket.RowVersion != request.ExpectedVersion)
@@ -382,6 +507,19 @@ public sealed class BookingService(IBookingRepository store, IBookingEvents even
     public async Task<Result<ManifestDto>> ManifestAsync(Actor actor, Guid tripId, CancellationToken cancellationToken)
     {
         if (!actor.Has("OPERATOR_ADMIN", "OPERATOR_OPERATIONS", "DRIVER", "PLATFORM_ADMIN"))
+        {
+            return Result<ManifestDto>.Failure(PlatformErrors.AccessDenied());
+        }
+
+        var trip = await store.GetTripAsync(tripId, cancellationToken);
+        if (trip is null)
+        {
+            return Result<ManifestDto>.Failure(PlatformErrors.NotFound());
+        }
+
+        if (!actor.Has("PLATFORM_ADMIN")
+            && (actor.OrganizationId != trip.OrganizationId
+                || actor.Has("DRIVER") && !actor.Has("OPERATOR_ADMIN", "OPERATOR_OPERATIONS") && trip.DriverUserId != actor.UserId))
         {
             return Result<ManifestDto>.Failure(PlatformErrors.AccessDenied());
         }
@@ -479,6 +617,29 @@ public sealed class BookingService(IBookingRepository store, IBookingEvents even
             ?? await store.GetTicketByHashAsync(raw, cancellationToken)
             ?? await store.GetTicketByPublicCodeAsync(raw, cancellationToken)
             ?? await store.GetTicketAsync(ParseGuid(raw), cancellationToken);
+    }
+
+    private async Task<bool> CanCheckInAsync(Actor actor, TicketRecord ticket, CancellationToken cancellationToken)
+    {
+        if (!actor.Has("DRIVER", "OPERATOR_ADMIN", "OPERATOR_OPERATIONS", "PLATFORM_ADMIN"))
+        {
+            return false;
+        }
+
+        if (actor.Has("PLATFORM_ADMIN"))
+        {
+            return true;
+        }
+
+        var booking = await store.GetBookingAsync(ticket.BookingId, cancellationToken);
+        var trip = await store.GetTripAsync(ticket.TripId, cancellationToken);
+        if (booking is null || trip is null || actor.OrganizationId != booking.OrganizationId)
+        {
+            return false;
+        }
+
+        var driverOnly = actor.Has("DRIVER") && !actor.Has("OPERATOR_ADMIN", "OPERATOR_OPERATIONS");
+        return !driverOnly || trip.DriverUserId == actor.UserId;
     }
 
     private static string Hash(string value) => Convert.ToHexString(SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(value)));

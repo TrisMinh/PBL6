@@ -5,10 +5,14 @@ using BusTicketPlatform.Transport.Application;
 
 namespace BusTicketPlatform.Transport.Infrastructure;
 
-public sealed class TransportEvents(OutboxWriter outbox, IIdGenerator ids) : ITransportEvents
+public sealed class TransportEvents(OutboxWriter outbox, IIdGenerator ids, ITransportRepository store) : ITransportEvents
 {
-    public Task TripPublishedAsync(TripRecord trip, Guid correlationId, CancellationToken cancellationToken) =>
-        EnqueueAsync("TripPublished", Topology.TripPublishedRoutingKey, trip.Id, trip.OrganizationId, trip.PublishedVersion, correlationId, new
+    public async Task TripPublishedAsync(TripRecord trip, Guid correlationId, CancellationToken cancellationToken)
+    {
+        var driver = trip.DriverId is null
+            ? null
+            : await store.GetDriverAsync(trip.OrganizationId, trip.DriverId.Value, cancellationToken);
+        await EnqueueAsync("TripPublished", Topology.TripPublishedRoutingKey, trip.Id, trip.OrganizationId, trip.PublishedVersion, correlationId, new
         {
             tripId = trip.Id,
             organizationId = trip.OrganizationId,
@@ -23,8 +27,10 @@ public sealed class TransportEvents(OutboxWriter outbox, IIdGenerator ids) : ITr
             sourceTripVersion = trip.PublishedVersion ?? 1,
             routeSnapshot = trip.RouteSnapshot,
             busSnapshot = trip.BusSnapshot,
-            farePolicySnapshot = trip.FareSnapshot
+            farePolicySnapshot = trip.FareSnapshot,
+            driverUserId = driver?.UserId
         }, cancellationToken);
+    }
 
     public Task TripCancelledAsync(TripRecord trip, string reason, Guid correlationId, CancellationToken cancellationToken) =>
         EnqueueAsync("TripCancelled", Topology.TripCancelledRoutingKey, trip.Id, trip.OrganizationId, trip.RowVersion, correlationId, new

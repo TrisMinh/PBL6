@@ -1,4 +1,4 @@
-﻿{
+{
     "info":  {
                  "name":  "PBL6 Round 3 atomic multiseat hold on available synthetic trip",
                  "schema":  "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -42,7 +42,7 @@
                                                         "value":  "Bearer {{t}}"
                                                     }
                                                 ],
-                                     "url":  "http://localhost:5080/api/v1/trips/01a1825d-b562-7b04-bab7-d50af84b5142/seats"
+                                     "url":  "http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seats"
                                  },
                      "event":  [
                                    {
@@ -74,7 +74,7 @@
                                                         "value":  "application/json"
                                                     }
                                                 ],
-                                     "url":  "http://localhost:5080/api/v1/trips/01a1825d-b562-7b04-bab7-d50af84b5142/seat-holds",
+                                     "url":  "http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seat-holds",
                                      "body":  {
                                                   "mode":  "raw",
                                                   "raw":  "{\"seatIds\":[\"{{a}}\",\"00000000-0000-7000-8000-000000000099\"],\"pickupStopId\":\"{{p}}\",\"dropoffStopId\":\"{{d}}\"}"
@@ -102,7 +102,7 @@
                                                         "value":  "Bearer {{t}}"
                                                     }
                                                 ],
-                                     "url":  "http://localhost:5080/api/v1/trips/01a1825d-b562-7b04-bab7-d50af84b5142/seats"
+                                     "url":  "http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seats"
                                  },
                      "event":  [
                                    {
@@ -134,7 +134,7 @@
                                                         "value":  "application/json"
                                                     }
                                                 ],
-                                     "url":  "http://localhost:5080/api/v1/trips/01a1825d-b562-7b04-bab7-d50af84b5142/seat-holds",
+                                     "url":  "http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seat-holds",
                                      "body":  {
                                                   "mode":  "raw",
                                                   "raw":  "{\"seatIds\":[\"{{a}}\",\"{{b}}\"],\"pickupStopId\":\"{{p}}\",\"dropoffStopId\":\"{{d}}\"}"

@@ -50,10 +50,10 @@
             "value": "application/json"
           }
         ],
-        "url": "http://localhost:5080/api/v1/trips/01a1825d-b562-7b04-bab7-d50af84b5142/seat-holds",
+        "url": "http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seat-holds",
         "body": {
           "mode": "raw",
-          "raw": "{\"seatIds\":[\"01a1825d-bc18-750e-966b-103a0fff5855\"],\"pickupStopId\":\"01990a00-0000-7000-8000-000000000004\",\"dropoffStopId\":\"01990a00-0000-7000-8000-000000000005\"}"
+          "raw": "{\"seatIds\":[\"01990a00-0000-7000-8000-000000000043\"],\"pickupStopId\":\"01990a00-0000-7000-8000-000000000004\",\"dropoffStopId\":\"01990a00-0000-7000-8000-000000000005\"}"
         }
       },
       "event": [
@@ -150,10 +150,10 @@
             "value": "application/json"
           }
         ],
-        "url": "http://localhost:5080/api/v1/trips/01a1825d-b562-7b04-bab7-d50af84b5142/seat-holds",
+        "url": "http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seat-holds",
         "body": {
           "mode": "raw",
-          "raw": "{\"seatIds\":[\"01a1825d-bc18-780e-89f2-1e317f2dfc0e\"],\"pickupStopId\":\"01990a00-0000-7000-8000-000000000004\",\"dropoffStopId\":\"01990a00-0000-7000-8000-000000000005\"}"
+          "raw": "{\"seatIds\":[\"01990a00-0000-7000-8000-000000000044\"],\"pickupStopId\":\"01990a00-0000-7000-8000-000000000004\",\"dropoffStopId\":\"01990a00-0000-7000-8000-000000000005\"}"
         }
       },
       "event": [
@@ -189,7 +189,7 @@
         "url": "http://localhost:5080/api/v1/bookings",
         "body": {
           "mode": "raw",
-          "raw": "{\"holdToken\":\"{{hold15}}\",\"contact\":{\"fullName\":\"Postman Synthetic\",\"email\":\"seed.customer@example.test\",\"phone\":\"+840000000001\"},\"passengers\":[{\"seatId\":\"01a1825d-bc18-780e-89f2-1e317f2dfc0e\",\"fullName\":\"\",\"documentType\":null,\"documentNumber\":null,\"pickupStopId\":\"01990a00-0000-7000-8000-000000000004\",\"dropoffStopId\":\"01990a00-0000-7000-8000-000000000005\"}],\"expectedTotal\":150000,\"currency\":\"VND\",\"paymentChannel\":\"PREPAID\"}"
+          "raw": "{\"holdToken\":\"{{hold15}}\",\"contact\":{\"fullName\":\"Postman Synthetic\",\"email\":\"seed.customer@example.test\",\"phone\":\"+840000000001\"},\"passengers\":[{\"seatId\":\"01990a00-0000-7000-8000-000000000044\",\"fullName\":\"\",\"documentType\":null,\"documentNumber\":null,\"pickupStopId\":\"01990a00-0000-7000-8000-000000000004\",\"dropoffStopId\":\"01990a00-0000-7000-8000-000000000005\"}],\"expectedTotal\":150000,\"currency\":\"VND\",\"paymentChannel\":\"PREPAID\"}"
         }
       },
       "event": [
@@ -250,10 +250,10 @@
             "value": "application/json"
           }
         ],
-        "url": "http://localhost:5080/api/v1/trips/01a1825d-b562-7b04-bab7-d50af84b5142/seat-holds",
+        "url": "http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seat-holds",
         "body": {
           "mode": "raw",
-          "raw": "{\"seatIds\":[\"01a1825d-bc18-750e-966b-103a0fff5855\"],\"pickupStopId\":\"01990a00-0000-7000-8000-000000000004\",\"dropoffStopId\":\"01990a00-0000-7000-8000-000000000005\"}"
+          "raw": "{\"seatIds\":[\"01990a00-0000-7000-8000-000000000043\"],\"pickupStopId\":\"01990a00-0000-7000-8000-000000000004\",\"dropoffStopId\":\"01990a00-0000-7000-8000-000000000005\"}"
         }
       },
       "event": [
@@ -289,7 +289,7 @@
         "url": "http://localhost:5080/api/v1/bookings",
         "body": {
           "mode": "raw",
-          "raw": "{\"holdToken\":\"{{hold20}}\",\"contact\":{\"fullName\":\"Postman Synthetic\",\"email\":\"seed.customer@example.test\",\"phone\":\"+840000000001\"},\"passengers\":[{\"seatId\":\"01a1825d-bc18-750e-966b-103a0fff5855\",\"fullName\":\"Postman Passenger\",\"documentType\":null,\"documentNumber\":null,\"pickupStopId\":\"01990a00-0000-7000-8000-000000000004\",\"dropoffStopId\":\"01990a00-0000-7000-8000-000000000005\"}],\"expectedTotal\":150000,\"currency\":\"VND\",\"paymentChannel\":\"COD\"}"
+          "raw": "{\"holdToken\":\"{{hold20}}\",\"contact\":{\"fullName\":\"Postman Synthetic\",\"email\":\"seed.customer@example.test\",\"phone\":\"+840000000001\"},\"passengers\":[{\"seatId\":\"01990a00-0000-7000-8000-000000000043\",\"fullName\":\"Postman Passenger\",\"documentType\":null,\"documentNumber\":null,\"pickupStopId\":\"01990a00-0000-7000-8000-000000000004\",\"dropoffStopId\":\"01990a00-0000-7000-8000-000000000005\"}],\"expectedTotal\":150000,\"currency\":\"VND\",\"paymentChannel\":\"COD\"}"
         }
       },
       "event": [

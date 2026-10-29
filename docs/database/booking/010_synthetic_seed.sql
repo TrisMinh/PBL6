@@ -21,10 +21,11 @@ insert into trip_snapshots (
   1,
   '{}'::jsonb,
   '{"seats":[{"id":"01990a00-0000-7000-8000-000000000013","code":"1A","deck":1,"row":1,"column":1,"type":"STANDARD","active":true},{"id":"01990a00-0000-7000-8000-000000000014","code":"1B","deck":1,"row":1,"column":2,"type":"STANDARD","active":true}]}'::jsonb,
-  '{"baseFare":150000,"allowPayLater":true,"policyVersion":"cancel-mvp-v1"}'::jsonb,
+  '{"baseFare":150000,"allowPayLater":true,"policyVersion":"cancel-mvp-v1","driverUserId":"01990a00-0000-7000-8000-000000000023"}'::jsonb,
   timestamptz '2026-01-01 00:00:00+00',
   timestamptz '2026-01-01 00:00:00+00'
-) on conflict (trip_id) do nothing;
+) on conflict (trip_id) do update
+  set fare_policy_snapshot = excluded.fare_policy_snapshot;
 
 insert into trip_seats (
   id, trip_id, source_seat_id_external, seat_code, seat_type, deck, row_no, column_no,

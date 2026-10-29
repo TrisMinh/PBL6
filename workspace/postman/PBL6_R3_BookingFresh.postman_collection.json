@@ -43,7 +43,7 @@
           },
           {
             "key": "Idempotency-Key",
-            "value": "pbl6-r3-booking-trip-20261207"
+            "value": "pbl6-r3-booking-trip-20261207-{{$guid}}"
           },
           {
             "key": "Content-Type",
@@ -53,7 +53,7 @@
         "url": "http://localhost:5080/api/v1/operator/trips",
         "body": {
           "mode": "raw",
-          "raw": "{\"routeId\":\"01990a00-0000-7000-8000-000000000006\",\"busId\":\"01990a00-0000-7000-8000-000000000003\",\"driverId\":\"01990a00-0000-7000-8000-000000000035\",\"departureAt\":\"2026-12-07T06:00:00Z\",\"arrivalAt\":\"2026-12-07T10:00:00Z\",\"fare\":{\"amount\":150000,\"currency\":\"VND\"},\"policyVersion\":\"cancel-mvp-v1\",\"expectedVersion\":0}"
+          "raw": "{\"routeId\":\"01990a00-0000-7000-8000-000000000006\",\"busId\":\"01990a00-0000-7000-8000-000000000003\",\"driverId\":\"01990a00-0000-7000-8000-000000000035\",\"departureAt\":\"2027-01-07T06:00:00Z\",\"arrivalAt\":\"2027-01-07T10:00:00Z\",\"fare\":{\"amount\":150000,\"currency\":\"VND\"},\"policyVersion\":\"cancel-mvp-v1\",\"expectedVersion\":0}"
         }
       },
       "event": [
@@ -79,7 +79,7 @@
           },
           {
             "key": "Idempotency-Key",
-            "value": "pbl6-r3-booking-trip-publish-20261207"
+            "value": "pbl6-r3-booking-trip-publish-20261207-{{$guid}}"
           },
           {
             "key": "Content-Type",
@@ -126,7 +126,7 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.response.to.have.status(200);pm.environment.set('customerToken',pm.response.json().accessToken);"
+              "pm.response.to.have.status(200);pm.environment.set('customerToken',pm.response.json().accessToken);setTimeout(()=>{},1000);"
             ]
           }
         }
@@ -150,7 +150,7 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.test('Find available seat',()=>{pm.response.to.have.status(200);const b=pm.response.json();const s=b.seats.find(x=>x.status==='AVAILABLE');pm.expect(s).to.exist;pm.environment.set('bookingSeatId',s.id)});"
+              "let s=null;if(pm.response.code===200){s=pm.response.json().seats.find(x=>x.status==='AVAILABLE')}const a=Number(pm.collectionVariables.get('projectionAttempt')||0);if(!s&&a<20){pm.collectionVariables.set('projectionAttempt',a+1);pm.execution.setNextRequest(pm.info.requestName);setTimeout(()=>{},500)}else{pm.collectionVariables.unset('projectionAttempt');pm.test('Find available seat',()=>{pm.response.to.have.status(200);pm.expect(s).to.exist});if(s)pm.environment.set('bookingSeatId',s.id)}"
             ]
           }
         }
@@ -191,7 +191,7 @@
           },
           {
             "key": "Idempotency-Key",
-            "value": "pbl6-r3-booking-hold-20261207"
+            "value": "pbl6-r3-booking-hold-20261207-{{$guid}}"
           },
           {
             "key": "Content-Type",
@@ -227,7 +227,7 @@
           },
           {
             "key": "Idempotency-Key",
-            "value": "pbl6-r3-booking-prepaid-20261207"
+            "value": "pbl6-r3-booking-prepaid-20261207-{{$guid}}"
           },
           {
             "key": "Content-Type",

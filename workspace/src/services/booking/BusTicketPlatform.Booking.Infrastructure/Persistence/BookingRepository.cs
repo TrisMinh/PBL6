@@ -1,6 +1,7 @@
 using BusTicketPlatform.Booking.Application;
 using BusTicketPlatform.BuildingBlocks.Ids;
 using Npgsql;
+using System.Text.Json.Nodes;
 
 namespace BusTicketPlatform.Booking.Infrastructure.Persistence;
 
@@ -8,6 +9,9 @@ public sealed class BookingRepository(BookingDatabaseOptions options, IIdGenerat
 {
     public async Task ImportTripAsync(TripPublishedMessage message, IReadOnlyList<InventorySeat> seats, CancellationToken cancellationToken)
     {
+        var normalizedStatus = message.Status == "DRAFT" ? "SCHEDULED" : message.Status;
+        var sellable = normalizedStatus is "SCHEDULED" or "BOARDING";
+        var fareSnapshot = AddDriverAssignment(message.FarePolicySnapshot, message.DriverUserId);
         await using var connection = await OpenAsync(cancellationToken);
         await using var tx = await connection.BeginTransactionAsync(cancellationToken);
         await using (var upsert = new NpgsqlCommand("""
@@ -16,10 +20,14 @@ public sealed class BookingRepository(BookingDatabaseOptions options, IIdGenerat
               destination_stop_id_external, departure_at, arrival_at, currency, status, sellable, source_trip_version,
               route_snapshot, bus_snapshot, fare_policy_snapshot, created_at, updated_at)
             VALUES (
-              @id, @org, @route, @bus, @origin, @dest, @dep, @arr, @currency, @status, true, @version,
+              @id, @org, @route, @bus, @origin, @dest, @dep, @arr, @currency, @status, @sellable, @version,
               CAST(@routeSnap AS jsonb), CAST(@busSnap AS jsonb), CAST(@fareSnap AS jsonb), NOW(), NOW())
             ON CONFLICT (trip_id) DO UPDATE
-              SET status = EXCLUDED.status, sellable = true, updated_at = NOW();
+              SET status = EXCLUDED.status,
+                  sellable = EXCLUDED.sellable,
+                  source_trip_version = GREATEST(trip_snapshots.source_trip_version, EXCLUDED.source_trip_version),
+                  fare_policy_snapshot = EXCLUDED.fare_policy_snapshot,
+                  updated_at = NOW();
             """, connection, tx))
         {
             upsert.Parameters.AddWithValue("id", message.TripId);
@@ -31,11 +39,12 @@ public sealed class BookingRepository(BookingDatabaseOptions options, IIdGenerat
             upsert.Parameters.AddWithValue("dep", message.DepartureAt.UtcDateTime);
             upsert.Parameters.AddWithValue("arr", message.ArrivalAt.UtcDateTime);
             upsert.Parameters.AddWithValue("currency", message.Currency);
-            upsert.Parameters.AddWithValue("status", message.Status == "DRAFT" ? "SCHEDULED" : message.Status);
+            upsert.Parameters.AddWithValue("status", normalizedStatus);
+            upsert.Parameters.AddWithValue("sellable", sellable);
             upsert.Parameters.AddWithValue("version", message.SourceTripVersion);
             upsert.Parameters.AddWithValue("routeSnap", message.RouteSnapshot ?? "{}");
             upsert.Parameters.AddWithValue("busSnap", message.BusSnapshot ?? "{}");
-            upsert.Parameters.AddWithValue("fareSnap", message.FarePolicySnapshot ?? "{}");
+            upsert.Parameters.AddWithValue("fareSnap", fareSnapshot);
             await upsert.ExecuteNonQueryAsync(cancellationToken);
         }
 
@@ -63,22 +72,131 @@ public sealed class BookingRepository(BookingDatabaseOptions options, IIdGenerat
         await tx.CommitAsync(cancellationToken);
     }
 
+    public async Task ApplyTripStatusAsync(Guid tripId, string status, CancellationToken cancellationToken)
+    {
+        await using var connection = await OpenAsync(cancellationToken);
+        await using var tx = await connection.BeginTransactionAsync(cancellationToken);
+        await using (var trip = new NpgsqlCommand("""
+            UPDATE trip_snapshots
+            SET status = @status,
+                sellable = @status IN ('SCHEDULED', 'BOARDING'),
+                updated_at = NOW()
+            WHERE trip_id = @trip;
+            """, connection, tx))
+        {
+            trip.Parameters.AddWithValue("trip", tripId);
+            trip.Parameters.AddWithValue("status", status);
+            await trip.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        if (status is not ("SCHEDULED" or "BOARDING"))
+        {
+            await using var release = new NpgsqlCommand("""
+                WITH released_holds AS (
+                  UPDATE seat_holds
+                  SET status = 'RELEASED', released_at = NOW(), row_version = row_version + 1
+                  WHERE trip_id = @trip AND status = 'ACTIVE'
+                  RETURNING id
+                )
+                UPDATE trip_seats s
+                SET status = 'AVAILABLE', active_hold_id = NULL, updated_at = NOW(), row_version = row_version + 1
+                FROM released_holds h
+                WHERE s.active_hold_id = h.id;
+                """, connection, tx);
+            release.Parameters.AddWithValue("trip", tripId);
+            await release.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        if (status == "CANCELLED")
+        {
+            await using (var cancelTickets = new NpgsqlCommand("""
+                UPDATE tickets t
+                SET status = 'CANCELLED', cancelled_at = NOW(), row_version = t.row_version + 1
+                FROM bookings b
+                WHERE t.booking_id = b.id
+                  AND b.trip_id = @trip
+                  AND t.status IN ('ISSUED', 'CHECKED_IN');
+                """, connection, tx))
+            {
+                cancelTickets.Parameters.AddWithValue("trip", tripId);
+                await cancelTickets.ExecuteNonQueryAsync(cancellationToken);
+            }
+
+            await using (var releaseBookedSeats = new NpgsqlCommand("""
+                UPDATE trip_seats s
+                SET status = 'AVAILABLE', active_booking_item_id = NULL, updated_at = NOW(), row_version = s.row_version + 1
+                FROM booking_items i
+                JOIN bookings b ON b.id = i.booking_id
+                WHERE b.trip_id = @trip
+                  AND s.active_booking_item_id = i.id;
+                """, connection, tx))
+            {
+                releaseBookedSeats.Parameters.AddWithValue("trip", tripId);
+                await releaseBookedSeats.ExecuteNonQueryAsync(cancellationToken);
+            }
+
+            await using var cancelBookings = new NpgsqlCommand("""
+                UPDATE bookings
+                SET status = CASE
+                      WHEN payment_channel = 'PREPAID' AND status = 'PAID' THEN 'REFUND_PENDING'
+                      ELSE 'CANCELLED'
+                    END,
+                    cancelled_at = NOW(),
+                    cancellation_fee = 0,
+                    refund_amount = CASE WHEN payment_channel = 'PREPAID' AND status = 'PAID' THEN total_amount ELSE 0 END,
+                    updated_at = NOW(),
+                    row_version = row_version + 1
+                WHERE trip_id = @trip
+                  AND status IN ('PENDING_PAYMENT', 'CONFIRMED', 'PAID');
+                """, connection, tx);
+            cancelBookings.Parameters.AddWithValue("trip", tripId);
+            await cancelBookings.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        await tx.CommitAsync(cancellationToken);
+    }
+
     public async Task ExpireHoldsAsync(CancellationToken cancellationToken)
     {
         await using var connection = await OpenAsync(cancellationToken);
-        await using var command = new NpgsqlCommand("""
+        await using var tx = await connection.BeginTransactionAsync(cancellationToken);
+        await using (var bookings = new NpgsqlCommand("""
+            WITH expired_bookings AS (
+              UPDATE bookings
+              SET status = 'EXPIRED', updated_at = NOW(), row_version = row_version + 1
+              WHERE status = 'PENDING_PAYMENT' AND expires_at <= NOW()
+              RETURNING id
+            ), expired_items AS (
+              SELECT i.id
+              FROM booking_items i
+              JOIN expired_bookings b ON b.id = i.booking_id
+            )
+            UPDATE trip_seats s
+            SET status = 'AVAILABLE', active_booking_item_id = NULL, updated_at = NOW(), row_version = row_version + 1
+            FROM expired_items i
+            WHERE s.active_booking_item_id = i.id;
+            """, connection, tx))
+        {
+            await bookings.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        await using (var command = new NpgsqlCommand("""
             WITH expired AS (
               UPDATE seat_holds
-              SET status = 'EXPIRED', released_at = NOW()
+              SET status = 'EXPIRED', released_at = NOW(), row_version = row_version + 1
               WHERE status = 'ACTIVE' AND expires_at <= NOW()
               RETURNING id
             )
             UPDATE trip_seats s
-            SET status = 'AVAILABLE', active_hold_id = NULL, updated_at = NOW()
+            SET status = 'AVAILABLE', active_hold_id = NULL, updated_at = NOW(), row_version = row_version + 1
             FROM expired
             WHERE s.active_hold_id = expired.id;
-            """, connection);
-        await command.ExecuteNonQueryAsync(cancellationToken);
+            """, connection, tx))
+        {
+            await command.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        await tx.CommitAsync(cancellationToken);
     }
 
     public async Task<IReadOnlyList<InventorySeat>> ListSeatsAsync(Guid tripId, CancellationToken cancellationToken) =>
@@ -91,7 +209,8 @@ public sealed class BookingRepository(BookingDatabaseOptions options, IIdGenerat
             SELECT trip_id, organization_id_external, origin_stop_id_external, destination_stop_id_external, departure_at,
                    sellable, status, currency,
                    COALESCE(fare_policy_snapshot->>'allowPayLater', 'false') = 'true',
-                   COALESCE(fare_policy_snapshot->>'policyVersion', 'cancel-mvp-v1')
+                   COALESCE(fare_policy_snapshot->>'policyVersion', 'cancel-mvp-v1'),
+                   NULLIF(fare_policy_snapshot->>'driverUserId', '')::uuid
             FROM trip_snapshots WHERE trip_id = @id;
             """, connection);
         command.Parameters.AddWithValue("id", tripId);
@@ -111,7 +230,8 @@ public sealed class BookingRepository(BookingDatabaseOptions options, IIdGenerat
             reader.GetString(6),
             reader.GetString(7),
             reader.GetBoolean(8),
-            reader.GetString(9));
+            reader.GetString(9),
+            reader.IsDBNull(10) ? null : reader.GetGuid(10));
     }
 
     public async Task<SeatHoldRecord?> CreateHoldAsync(SeatHoldRecord hold, IReadOnlyList<Guid> seatIds, CancellationToken cancellationToken)
@@ -437,7 +557,7 @@ public sealed class BookingRepository(BookingDatabaseOptions options, IIdGenerat
         await using var connection = await OpenAsync(cancellationToken);
         await using var command = new NpgsqlCommand("""
             SELECT id, booking_id, requested_by_external, booking_item_ids, policy_version, eligible_amount, fee_rate,
-                   fee_amount, refund_amount, expires_at
+                   fee_amount, refund_amount, expires_at, consumed_at
             FROM cancellation_previews WHERE id = @id;
             """, connection);
         command.Parameters.AddWithValue("id", previewId);
@@ -458,7 +578,8 @@ public sealed class BookingRepository(BookingDatabaseOptions options, IIdGenerat
             reader.GetDecimal(6),
             reader.GetInt64(7),
             reader.GetInt64(8),
-            new DateTimeOffset(DateTime.SpecifyKind(reader.GetDateTime(9), DateTimeKind.Utc)));
+            new DateTimeOffset(DateTime.SpecifyKind(reader.GetDateTime(9), DateTimeKind.Utc)),
+            reader.IsDBNull(10) ? null : new DateTimeOffset(DateTime.SpecifyKind(reader.GetDateTime(10), DateTimeKind.Utc)));
     }
 
     public async Task CancelAsync(Guid bookingId, IReadOnlyList<Guid> ticketIds, long fee, long refund, CancellationToken cancellationToken)
@@ -706,7 +827,7 @@ public sealed class BookingRepository(BookingDatabaseOptions options, IIdGenerat
         await using var connection = await OpenAsync(cancellationToken);
         await using var command = new NpgsqlCommand("""
             SELECT t.id, t.booking_id, t.booking_item_id, b.trip_id, b.customer_id_external, t.public_code, t.qr_token_hash,
-                   t.payment_channel, t.status, p.full_name, i.seat_code, t.issued_at, t.checked_in_at, t.row_version
+                   t.payment_channel, t.status, p.full_name, i.seat_code, i.unit_price, t.issued_at, t.checked_in_at, t.row_version
             FROM tickets t
             JOIN bookings b ON b.id = t.booking_id
             JOIN booking_items i ON i.id = t.booking_item_id
@@ -734,9 +855,10 @@ public sealed class BookingRepository(BookingDatabaseOptions options, IIdGenerat
                 reader.GetString(8),
                 reader.GetString(9),
                 reader.GetString(10),
-                new DateTimeOffset(DateTime.SpecifyKind(reader.GetDateTime(11), DateTimeKind.Utc)),
-                reader.IsDBNull(12) ? null : new DateTimeOffset(DateTime.SpecifyKind(reader.GetDateTime(12), DateTimeKind.Utc)),
-                reader.GetInt64(13)));
+                reader.GetInt64(11),
+                new DateTimeOffset(DateTime.SpecifyKind(reader.GetDateTime(12), DateTimeKind.Utc)),
+                reader.IsDBNull(13) ? null : new DateTimeOffset(DateTime.SpecifyKind(reader.GetDateTime(13), DateTimeKind.Utc)),
+                reader.GetInt64(14)));
         }
 
         return items;
@@ -756,5 +878,17 @@ public sealed class BookingRepository(BookingDatabaseOptions options, IIdGenerat
         var connection = new NpgsqlConnection(options.ConnectionString);
         await connection.OpenAsync(cancellationToken);
         return connection;
+    }
+
+    private static string AddDriverAssignment(string? farePolicySnapshot, Guid? driverUserId)
+    {
+        var root = JsonNode.Parse(string.IsNullOrWhiteSpace(farePolicySnapshot) ? "{}" : farePolicySnapshot) as JsonObject
+            ?? new JsonObject();
+        if (driverUserId is not null)
+        {
+            root["driverUserId"] = driverUserId.Value.ToString();
+        }
+
+        return root.ToJsonString();
     }
 }
