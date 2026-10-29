@@ -1,0 +1,169 @@
+{
+  "info": {
+    "name": "PBL6 Round 3 Signed wrong amount webhook scenario",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Customer login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\":\"seed.customer@example.test\",\"password\":\"CustomerPass1\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.response.to.have.status(200);pm.environment.set('t',pm.response.json().accessToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Replay payment intent to obtain sandbox fields",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{t}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-payment-failed-intent"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/bookings/01a18266-208f-792d-bc90-9cc21db05a0e/payments",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"provider\":\"VNPAY_SANDBOX\",\"method\":\"VNPAY_QR\",\"returnUri\":\"http://localhost:5173/payment/result\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Read existing pending payment action',()=>{pm.response.to.have.status(201);const x=pm.response.json();pm.expect(x.id).to.eql('01a18266-2299-7269-b8a2-582347f101db');const u=new URL(x.providerAction.redirectUri);for(const k of ['vnp_TxnRef','vnp_Amount','vnp_ReturnUrl','vnp_OrderInfo'])pm.environment.set(k,u.searchParams.get(k));const wrong=String(Number(u.searchParams.get('vnp_Amount'))+100);pm.environment.set('wrongAmount',wrong)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Send success outcome with incorrect amount (simulator signs it)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "url": "http://localhost:8099/pay",
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "vnp_TxnRef",
+              "value": "{{vnp_TxnRef}}"
+            },
+            {
+              "key": "vnp_Amount",
+              "value": "{{wrongAmount}}"
+            },
+            {
+              "key": "vnp_ReturnUrl",
+              "value": "{{vnp_ReturnUrl}}"
+            },
+            {
+              "key": "vnp_OrderInfo",
+              "value": "{{vnp_OrderInfo}}"
+            },
+            {
+              "key": "outcome",
+              "value": "00"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Simulator completed tampered-amount signed attempt',()=>pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "PAY-08 Payment remains failed after amount mismatch",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{t}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/payments/01a18266-2299-7269-b8a2-582347f101db"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Signed mismatched-amount event does not succeed payment',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().status).to.eql('FAILED')});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "PAY-08 Booking remains unpaid after amount mismatch",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{t}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/bookings/01a18266-208f-792d-bc90-9cc21db05a0e"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Mismatched-amount event does not mark booking paid',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().status).not.to.eql('PAID')});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

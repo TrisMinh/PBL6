@@ -1,0 +1,7 @@
+{
+  "info": {"name":"PBL6 Round 3 operator reads trip manifest","schema":"https://schema.getpostman.com/json/collection/v2.1.0/collection.json"},
+  "item": [
+    {"name":"Operator login","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"url":"http://localhost:5080/api/v1/auth/login","body":{"mode":"raw","raw":"{\"identifier\":\"operator.seed@example.test\",\"password\":\"OperatorPass1\"}"}},"event":[{"listen":"test","script":{"type":"text/javascript","exec":["pm.response.to.have.status(200);pm.environment.set('t',pm.response.json().accessToken);"]}}]},
+    {"name":"TRIP-10 Read minimal passenger manifest","request":{"method":"GET","header":[{"key":"Authorization","value":"Bearer {{t}}"}],"url":"http://localhost:5080/api/v1/operator/trips/01a1825d-b562-7b04-bab7-d50af84b5142/manifest"},"event":[{"listen":"test","script":{"type":"text/javascript","exec":["console.log('MANIFEST '+pm.response.text());pm.test('Authorized manifest returns minimum passenger fields',function(){pm.response.to.have.status(200);var b=pm.response.json();pm.expect(b.passengers).to.be.an('array');if(b.passengers.length>0){var p=b.passengers[0];pm.expect(Object.keys(p).sort()).to.eql(['passengerName','pickupStopName','seatCode','status','ticketId'].sort());}});"]}}]}
+  ]
+}

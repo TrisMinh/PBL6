@@ -1,0 +1,91 @@
+{
+  "info": {
+    "name": "PBL6 Round 1 TRIP-06 inventory readiness check",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Operator login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\":\"operator.seed@example.test\",\"password\":\"OperatorPass1\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.response.to.have.status(200);pm.environment.set('op',pm.response.json().accessToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TRIP-06 Publish while booking inventory consumer is stopped",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{op}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-trip06-publish-r1"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/trips/01a182cd-774c-7c30-8931-2c12240bff41/publish",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"expectedVersion\":0}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Publish request accepted',()=>pm.expect(pm.response.code).to.be.oneOf([200,202]));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TRIP-06 Verify trip is not sellable before inventory is ready",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/trips/01a182cd-774c-7c30-8931-2c12240bff41"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "console.log('TRIP06_STATE '+pm.response.text());pm.test('Trip remains not sellable until inventory is ready',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().sellable).to.eql(false);});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

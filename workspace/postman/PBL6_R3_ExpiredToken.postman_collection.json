@@ -1,0 +1,32 @@
+{
+  "info": {
+    "name": "PBL6 Round 3 Expired token validation",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "AUTH-15 Expired signed access token is rejected",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{expiredToken}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/users/me"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Expired access token returns authentication error',()=>{pm.response.to.have.status(401);pm.expect(pm.response.json().error.code).to.eql('AUTHENTICATION_REQUIRED')});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

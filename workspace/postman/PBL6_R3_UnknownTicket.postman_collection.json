@@ -1,0 +1,68 @@
+{
+  "info": {
+    "name": "PBL6 Round 3 Unknown ticket scan",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Driver login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\":\"driver.seed@example.test\",\"password\":\"DriverPass1\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.response.to.have.status(200);pm.environment.set('t',pm.response.json().accessToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TKT-10 Unknown ticket scan code",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{t}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/tickets/validate",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"tripId\":\"01990a00-0000-7000-8000-000000000007\",\"scannedToken\":\"not-a-real-ticket-token\",\"expectedVersion\":0}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "console.log('UNKNOWN SCAN '+pm.response.text());pm.test('Unknown ticket code returns documented 404',()=>pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

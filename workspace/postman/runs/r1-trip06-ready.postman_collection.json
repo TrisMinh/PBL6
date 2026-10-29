@@ -1,0 +1,27 @@
+{
+  "info": {
+    "name": "PBL6 Round 1 TRIP-06 readiness after recovery",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "TRIP-06 Inventory ready after booking consumer recovers",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/trips/01a182cd-774c-7c30-8931-2c12240bff41"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Trip becomes sellable only after inventory is ready',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().sellable).to.eql(true);});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

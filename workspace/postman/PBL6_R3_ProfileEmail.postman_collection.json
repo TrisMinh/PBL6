@@ -1,0 +1,210 @@
+{
+  "info": {
+    "name": "PBL6 Round 3 Profile email verification",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Login seed customer",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\":\"seed.customer@example.test\",\"password\":\"CustomerPass1\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.response.to.have.status(200);pm.environment.set('accessToken',pm.response.json().accessToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Read profile before email change",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/users/me"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Profile read and version retained',()=>{pm.response.to.have.status(200);const p=pm.response.json();pm.environment.set('profileEmailBefore',p.email);pm.environment.set('profileVersion',p.rowVersion)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "PRF-03 Request pending email change",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/users/me",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"fullName\":null,\"email\":\"pbl6.r3.emailchange@example.test\",\"phone\":null,\"expectedVersion\":\"{{profileVersion}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Email change accepted for verification',()=>{pm.response.to.have.status(202);pm.environment.set('emailChangeChallengeResponse',pm.response.text())});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "PRF-03 Confirm email remains unchanged before verification",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/users/me"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Unverified email is not active',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().email).to.eql(pm.environment.get('profileEmailBefore'))});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Locate delivered email change OTP",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:8025/api/v1/messages"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Mailpit delivered email change verification',()=>{pm.response.to.have.status(200);const m=pm.response.json().messages.find(x=>x.To.some(y=>y.Address==='pbl6.r3.emailchange@example.test')&&x.Subject==='Verify your email');pm.expect(m).to.exist;pm.environment.set('emailChangeMessageId',m.ID)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Read actual email change challenge",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:8025/api/v1/message/{{emailChangeMessageId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Read challenge identifiers from actual email',()=>{pm.response.to.have.status(200);const t=pm.response.json().Text;const id=t.match(/challengeId=([0-9a-f-]+)/i);const code=t.match(/code=([0-9]{6})/i);pm.expect(id).to.exist;pm.expect(code).to.exist;pm.environment.set('emailChangeChallengeId',id[1]);pm.environment.set('emailChangeActualCode',code[1])});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "PRF-04 Reject incorrect email verification code",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-emailchange-wrong-code"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/verify",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"challengeId\":\"{{emailChangeChallengeId}}\",\"code\":\"000000\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Wrong email change code rejected',()=>pm.expect([400,401,422]).to.include(pm.response.code));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "PRF-04 Old email remains after failed verification",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/users/me"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Failed verification left account email unchanged',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().email).to.eql(pm.environment.get('profileEmailBefore'))});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1806 @@
+{
+  "info": {
+    "_postman_id": "8d1c3e52-385f-4d9d-917a-0e78e80ac2ed",
+    "name": "PBL6 SEC-01 Active Contract Auth Matrix",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Unauthenticated Postman sweep over protected operations in platform-mvp OpenAPI 2.0.1. Public auth, trip search/detail/stops, health, and provider webhook operations are excluded."
+  },
+  "item": [
+    {
+      "name": "SEC-01 Protected operation 01: POST /auth/logout",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/logout",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 02: GET /users/me",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/users/me"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 03: PATCH /users/me",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/users/me",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 04: GET /admin/users",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/admin/users"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 05: GET /admin/users/00000000-0000-7000-8000-000000000099",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/admin/users/00000000-0000-7000-8000-000000000099"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 06: PATCH /admin/users/00000000-0000-7000-8000-000000000099/status",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/admin/users/00000000-0000-7000-8000-000000000099/status",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 07: PUT /admin/users/00000000-0000-7000-8000-000000000099/roles",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/admin/users/00000000-0000-7000-8000-000000000099/roles",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 08: GET /admin/organizations/00000000-0000-7000-8000-000000000099/members",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/admin/organizations/00000000-0000-7000-8000-000000000099/members"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 09: POST /admin/organizations/00000000-0000-7000-8000-000000000099/members",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/admin/organizations/00000000-0000-7000-8000-000000000099/members",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 10: PATCH /admin/organizations/00000000-0000-7000-8000-000000000099/members/00000000-0000-7000-8000-000000000098",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/admin/organizations/00000000-0000-7000-8000-000000000099/members/00000000-0000-7000-8000-000000000098",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 11: GET /trips/01990a00-0000-7000-8000-000000000007/seats",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seats"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 12: POST /trips/01990a00-0000-7000-8000-000000000007/seat-holds",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seat-holds",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 13: GET /seat-holds/opaque-hold-token-that-is-long-enough-12345",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/seat-holds/opaque-hold-token-that-is-long-enough-12345"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 14: DELETE /seat-holds/opaque-hold-token-that-is-long-enough-12345",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/seat-holds/opaque-hold-token-that-is-long-enough-12345"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 15: GET /bookings",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/bookings"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 16: POST /bookings",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/bookings",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 17: GET /bookings/00000000-0000-7000-8000-000000000099",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/bookings/00000000-0000-7000-8000-000000000099"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 18: POST /bookings/00000000-0000-7000-8000-000000000099/cancellation-preview",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/bookings/00000000-0000-7000-8000-000000000099/cancellation-preview",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 19: POST /bookings/00000000-0000-7000-8000-000000000099/cancel",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/bookings/00000000-0000-7000-8000-000000000099/cancel",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 20: GET /bookings/00000000-0000-7000-8000-000000000099/payments",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/bookings/00000000-0000-7000-8000-000000000099/payments"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 21: POST /bookings/00000000-0000-7000-8000-000000000099/payments",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/bookings/00000000-0000-7000-8000-000000000099/payments",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 22: GET /payments/00000000-0000-7000-8000-000000000099",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/payments/00000000-0000-7000-8000-000000000099"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 23: POST /payments/00000000-0000-7000-8000-000000000099/cancel",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/payments/00000000-0000-7000-8000-000000000099/cancel",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 24: POST /refunds",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/refunds",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 25: GET /refunds/00000000-0000-7000-8000-000000000099",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/refunds/00000000-0000-7000-8000-000000000099"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 26: GET /tickets",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/tickets"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 27: GET /tickets/00000000-0000-7000-8000-000000000099",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/tickets/00000000-0000-7000-8000-000000000099"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 28: POST /tickets/validate",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/tickets/validate",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 29: POST /tickets/00000000-0000-7000-8000-000000000099/check-in",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/tickets/00000000-0000-7000-8000-000000000099/check-in",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 30: GET /operator/organization",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/operator/organization"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 31: PATCH /operator/organization",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/organization",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 32: GET /admin/organizations",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/admin/organizations"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 33: POST /admin/organizations",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/admin/organizations",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 34: GET /admin/organizations/00000000-0000-7000-8000-000000000099",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/admin/organizations/00000000-0000-7000-8000-000000000099"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 35: PATCH /admin/organizations/00000000-0000-7000-8000-000000000099",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/admin/organizations/00000000-0000-7000-8000-000000000099",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 36: GET /operator/buses",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/operator/buses"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 37: POST /operator/buses",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/buses",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 38: PATCH /operator/buses/00000000-0000-7000-8000-000000000099",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/buses/00000000-0000-7000-8000-000000000099",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 39: POST /operator/buses/00000000-0000-7000-8000-000000000099/deactivate",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/buses/00000000-0000-7000-8000-000000000099/deactivate",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 40: PUT /operator/buses/00000000-0000-7000-8000-000000000099/seats",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/buses/00000000-0000-7000-8000-000000000099/seats",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 41: GET /operator/drivers",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/operator/drivers"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 42: POST /operator/drivers",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/drivers",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 43: PATCH /operator/drivers/00000000-0000-7000-8000-000000000099",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/drivers/00000000-0000-7000-8000-000000000099",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 44: POST /operator/drivers/00000000-0000-7000-8000-000000000099/deactivate",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/drivers/00000000-0000-7000-8000-000000000099/deactivate",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 45: GET /operator/routes",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/operator/routes"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 46: POST /operator/routes",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/routes",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 47: PATCH /operator/routes/00000000-0000-7000-8000-000000000099",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/routes/00000000-0000-7000-8000-000000000099",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 48: PUT /operator/routes/00000000-0000-7000-8000-000000000099/stops",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/routes/00000000-0000-7000-8000-000000000099/stops",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 49: POST /operator/routes/00000000-0000-7000-8000-000000000099/deactivate",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/routes/00000000-0000-7000-8000-000000000099/deactivate",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 50: GET /operator/trips",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/operator/trips"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 51: POST /operator/trips",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/trips",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 52: PATCH /operator/trips/00000000-0000-7000-8000-000000000099",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/trips/00000000-0000-7000-8000-000000000099",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 53: POST /operator/trips/00000000-0000-7000-8000-000000000099/publish",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/trips/00000000-0000-7000-8000-000000000099/publish",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 54: POST /operator/trips/00000000-0000-7000-8000-000000000099/cancel",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/trips/00000000-0000-7000-8000-000000000099/cancel",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 55: POST /operator/trips/00000000-0000-7000-8000-000000000099/status-transitions",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/trips/00000000-0000-7000-8000-000000000099/status-transitions",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 56: GET /operator/trips/00000000-0000-7000-8000-000000000099/manifest",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/operator/trips/00000000-0000-7000-8000-000000000099/manifest"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 57: GET /driver/assignments",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/driver/assignments"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 58: GET /admin/bookings",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/admin/bookings"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 59: GET /admin/payments",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/admin/payments"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 60: GET /admin/refunds",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/admin/refunds"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 61: GET /operator/settlements",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/operator/settlements"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 62: GET /admin/settlements",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/admin/settlements"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 63: POST /admin/payouts",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/admin/payouts",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 64: GET /notifications",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/notifications"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 65: PATCH /notifications/00000000-0000-7000-8000-000000000099/read",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/notifications/00000000-0000-7000-8000-000000000099/read",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 66: GET /reports/revenue?from=2026-10-01T00%3A00%3A00Z&to=2026-10-31T23%3A59%3A59Z&timezone=Asia%2FHo_Chi_Minh",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/reports/revenue?from=2026-10-01T00%3A00%3A00Z&to=2026-10-31T23%3A59%3A59Z&timezone=Asia%2FHo_Chi_Minh"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 67: GET /reports/bookings?from=2026-10-01T00%3A00%3A00Z&to=2026-10-31T23%3A59%3A59Z&timezone=Asia%2FHo_Chi_Minh",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/reports/bookings?from=2026-10-01T00%3A00%3A00Z&to=2026-10-31T23%3A59%3A59Z&timezone=Asia%2FHo_Chi_Minh"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operation 68: GET /reports/occupancy?from=2026-10-01T00%3A00%3A00Z&to=2026-10-31T23%3A59%3A59Z&timezone=Asia%2FHo_Chi_Minh",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/reports/occupancy?from=2026-10-01T00%3A00%3A00Z&to=2026-10-31T23%3A59%3A59Z&timezone=Asia%2FHo_Chi_Minh"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,164 @@
+{
+  "info": {
+    "name": "PBL6 Round 3 Driver profiles and license checks",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Operator login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\":\"operator.seed@example.test\",\"password\":\"OperatorPass1\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.response.to.have.status(200);pm.environment.set('t',pm.response.json().accessToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "OPS-07 Create valid synthetic driver profile",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{t}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-valid-driver-001"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/drivers",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"userId\":\"01a1825a-c4f0-7950-b53b-da3bb219bbf3\",\"licenseNumber\":\"R3-VALID-DRIVER-001\",\"licenseExpiresOn\":\"2027-12-31\",\"expectedVersion\":0}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Valid driver profile created',()=>{pm.response.to.have.status(201);pm.environment.set('validDriverId',pm.response.json().id)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Deactivate synthetic valid driver",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{t}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-deactivate-valid-driver"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/drivers/{{validDriverId}}/deactivate"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Synthetic valid driver deactivated',()=>pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "OPS-08 Expired driver license is rejected",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{t}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-expired-driver-001"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/drivers",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"userId\":\"01990a00-0000-7000-8000-000000000022\",\"licenseNumber\":\"R3-EXPIRED-DRIVER-001\",\"licenseExpiresOn\":\"2020-01-01\",\"expectedVersion\":0}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Expired license must be rejected',()=>pm.expect([400,409,422]).to.include(pm.response.code));if(pm.response.code===201)pm.environment.set('expiredDriverId',pm.response.json().id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Clean up expired synthetic driver if API accepted it",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{t}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-clean-expired-driver"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/drivers/{{expiredDriverId}}/deactivate"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Expired driver fixture cleanup',()=>{if(pm.environment.get('expiredDriverId'))pm.response.to.have.status(200);else pm.expect([404,400]).to.include(pm.response.code)});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -32,6 +32,17 @@ Full Docker (infra + Gateway + 6 APIs + both web apps):
 ./scripts/dev-docker.ps1
 ```
 
+Local services without Docker:
+
+```powershell
+.\scripts\dev-local.ps1
+```
+
+The script installs missing PostgreSQL, Redis, Erlang/RabbitMQ dependencies through
+`winget` where available, creates the local databases and RabbitMQ permissions, starts
+the payment simulator, launches the Gateway and six APIs in separate terminals, and
+opens Swagger at `http://localhost:5080/swagger`.
+
 HTTP:
 
 - Customer web: `http://localhost:5173`

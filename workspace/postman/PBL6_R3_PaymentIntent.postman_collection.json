@@ -1,0 +1,72 @@
+{
+  "info": {
+    "name": "PBL6 Round 3 Payment intent",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Customer login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\":\"seed.customer@example.test\",\"password\":\"CustomerPass1\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.response.to.have.status(200);pm.environment.set('token',pm.response.json().accessToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "PAY-01 Create VNPAY sandbox payment intent",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-payment-intent-20261028-001"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/bookings/01a18263-9bb1-7393-9355-47d8efecdb8b/payments",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"provider\":\"VNPAY_SANDBOX\",\"method\":\"VNPAY_QR\",\"returnUri\":\"http://localhost:5173/payment/result\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "console.log('PAYMENT '+pm.response.text());pm.test('Payment intent created with local sandbox action',()=>{pm.response.to.have.status(201);const p=pm.response.json();pm.expect(p.bookingId).to.eql('01a18263-9bb1-7393-9355-47d8efecdb8b');pm.expect(p.amount).to.eql(150000);pm.expect(p.provider).to.eql('VNPAY_SANDBOX');pm.expect(p.status).to.be.oneOf(['PENDING','PROCESSING']);pm.environment.set('r3PaymentId',p.id)});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

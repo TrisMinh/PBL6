@@ -1,0 +1,11 @@
+import fs from 'node:fs/promises';
+const round=process.argv[2]??'r1';
+const payment='01a18263-e1eb-72e0-bf3f-21eb7d42c212';
+const booking='01a18263-9bb1-7393-9355-47d8efecdb8b';
+const base='http://localhost:5080/api/v1';
+const items=[
+ {name:'Customer login',request:{method:'POST',header:[{key:'Content-Type',value:'application/json'}],url:base+'/auth/login',body:{mode:'raw',raw:'{"identifier":"seed.customer@example.test","password":"CustomerPass1"}'}},event:[{listen:'test',script:{type:'text/javascript',exec:["pm.response.to.have.status(200);pm.environment.set('customerToken',pm.response.json().accessToken);"]}}]},
+ {name:'Read succeeded payment for over-refund check',request:{method:'GET',header:[{key:'Authorization',value:'Bearer {{customerToken}}'}],url:`${base}/payments/${payment}`},event:[{listen:'test',script:{type:'text/javascript',exec:["pm.test('Payment is paid before refund limit check',()=>{pm.response.to.have.status(200);const p=pm.response.json();pm.expect(p.status).to.eql('SUCCEEDED');pm.environment.set('paidAmount',String(p.amount));pm.environment.set('overRefundAmount',String(p.amount+1));pm.environment.set('refundRef','PBL6-'+pm.environment.get('round')+'-'+Date.now());});"]}}]},
+ {name:'CAN-08 Reject refund greater than amount received',request:{method:'POST',header:[{key:'Authorization',value:'Bearer {{customerToken}}'},{key:'Idempotency-Key',value:`pbl6-${round}-can08-over-refund`},{key:'Content-Type',value:'application/json'}],url:base+'/refunds',body:{mode:'raw',raw:`{"refundReference":"{{refundRef}}","paymentId":"${payment}","bookingId":"${booking}","amount":{{overRefundAmount}},"currency":"VND","reason":"CAN-08 test: over refund limit"}`}},event:[{listen:'test',script:{type:'text/javascript',exec:["console.log('CAN08 '+pm.response.code+' '+pm.response.text());pm.test('Refund above paid amount is rejected',()=>{pm.expect([400,409,422]).to.include(pm.response.code);});"]}}]}
+];
+await fs.writeFile(`C:/Users/minht/OneDrive/Desktop/PBL6/workspace/postman/runs/${round}-can08.postman_collection.json`,JSON.stringify({info:{name:`PBL6 ${round.toUpperCase()} CAN-08 over-refund limit`,schema:'https://schema.getpostman.com/json/collection/v2.1.0/collection.json'},item:items},null,2));

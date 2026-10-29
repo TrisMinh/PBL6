@@ -1,0 +1,140 @@
+{
+  "info": {
+    "name": "PBL6 Round 3 Organization and membership workflow",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Admin login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\":\"admin.seed@example.test\",\"password\":\"AdminPass1234\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.response.to.have.status(200);pm.environment.set('adminToken',pm.response.json().accessToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "ADM-03 Create synthetic organization",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-create-org-001"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/admin/organizations",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"code\":\"PBL6R3ORG01\",\"name\":\"PBL6 Round 3 Test Operator\",\"contactEmail\":\"pbl6.r3.operator@example.test\",\"contactPhone\":\"+849010009993\",\"allowPayLater\":false,\"expectedVersion\":0}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Synthetic org created',()=>{pm.response.to.have.status(201);pm.environment.set('testOrgId',pm.response.json().id)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "ADM-03 Add synthetic admin member",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-org-member-001"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/admin/organizations/{{testOrgId}}/members",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"userId\":\"01a1825a-c4f0-7950-b53b-da3bb219bbf3\",\"roleCodes\":[\"OPERATOR_ADMIN\"],\"status\":\"ACTIVE\",\"reason\":\"Round 3 membership test\",\"expectedVersion\":0}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Membership created for synthetic user',()=>{pm.response.to.have.status(201);pm.environment.set('testMembershipId',pm.response.json().id);pm.expect(pm.response.json().roleCodes).to.include('OPERATOR_ADMIN')});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Close synthetic test membership",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/admin/organizations/{{testOrgId}}/members/{{testMembershipId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"userId\":\"01a1825a-c4f0-7950-b53b-da3bb219bbf3\",\"roleCodes\":[\"OPERATOR_ADMIN\"],\"status\":\"ENDED\",\"reason\":\"Round 3 fixture cleanup\",\"expectedVersion\":0}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Synthetic membership ended after test',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().status).to.eql('ENDED')});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

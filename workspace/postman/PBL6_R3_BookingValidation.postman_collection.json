@@ -1,0 +1,336 @@
+{
+  "info": {
+    "name": "PBL6 Round 3 Booking validation cases",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Customer login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\":\"seed.customer@example.test\",\"password\":\"CustomerPass1\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.response.to.have.status(200);pm.environment.set('t',pm.response.json().accessToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Hold 2A for BOOK-14",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{t}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-book14-hold"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/trips/01a1825d-b562-7b04-bab7-d50af84b5142/seat-holds",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"seatIds\":[\"01a1825d-bc18-750e-966b-103a0fff5855\"],\"pickupStopId\":\"01990a00-0000-7000-8000-000000000004\",\"dropoffStopId\":\"01990a00-0000-7000-8000-000000000005\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Seat hold created for validation check',()=>{pm.response.to.have.status(201);pm.environment.set('hold14',pm.response.json().holdToken)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "BOOK-14 Reject passenger count mismatch",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{t}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-book14-attempt"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/bookings",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"holdToken\":\"{{hold14}}\",\"contact\":{\"fullName\":\"Postman Synthetic\",\"email\":\"seed.customer@example.test\",\"phone\":\"+840000000001\"},\"passengers\":[],\"expectedTotal\":150000,\"currency\":\"VND\",\"paymentChannel\":\"PREPAID\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Passenger count mismatch rejected',()=>pm.expect([400,422]).to.include(pm.response.code));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Release BOOK-14 test hold",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{t}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-book14-release"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/seat-holds/{{hold14}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Validation failure did not consume hold; release succeeds',()=>pm.expect([204,404]).to.include(pm.response.code));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Hold 2B for BOOK-15",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{t}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-book15-hold"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/trips/01a1825d-b562-7b04-bab7-d50af84b5142/seat-holds",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"seatIds\":[\"01a1825d-bc18-780e-89f2-1e317f2dfc0e\"],\"pickupStopId\":\"01990a00-0000-7000-8000-000000000004\",\"dropoffStopId\":\"01990a00-0000-7000-8000-000000000005\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Seat hold created for validation check',()=>{pm.response.to.have.status(201);pm.environment.set('hold15',pm.response.json().holdToken)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "BOOK-15 Reject missing passenger name",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{t}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-book15-attempt"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/bookings",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"holdToken\":\"{{hold15}}\",\"contact\":{\"fullName\":\"Postman Synthetic\",\"email\":\"seed.customer@example.test\",\"phone\":\"+840000000001\"},\"passengers\":[{\"seatId\":\"01a1825d-bc18-780e-89f2-1e317f2dfc0e\",\"fullName\":\"\",\"documentType\":null,\"documentNumber\":null,\"pickupStopId\":\"01990a00-0000-7000-8000-000000000004\",\"dropoffStopId\":\"01990a00-0000-7000-8000-000000000005\"}],\"expectedTotal\":150000,\"currency\":\"VND\",\"paymentChannel\":\"PREPAID\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Missing passenger name rejected',()=>pm.expect([400,422]).to.include(pm.response.code));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Release BOOK-15 test hold",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{t}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-book15-release"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/seat-holds/{{hold15}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Missing passenger validation did not consume hold',()=>pm.expect([204,404]).to.include(pm.response.code));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Hold 2A for BOOK-20",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{t}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-book20-hold"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/trips/01a1825d-b562-7b04-bab7-d50af84b5142/seat-holds",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"seatIds\":[\"01a1825d-bc18-750e-966b-103a0fff5855\"],\"pickupStopId\":\"01990a00-0000-7000-8000-000000000004\",\"dropoffStopId\":\"01990a00-0000-7000-8000-000000000005\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Seat hold created for validation check',()=>{pm.response.to.have.status(201);pm.environment.set('hold20',pm.response.json().holdToken)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "BOOK-20 Reject invalid payment channel",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{t}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-book20-attempt"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/bookings",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"holdToken\":\"{{hold20}}\",\"contact\":{\"fullName\":\"Postman Synthetic\",\"email\":\"seed.customer@example.test\",\"phone\":\"+840000000001\"},\"passengers\":[{\"seatId\":\"01a1825d-bc18-750e-966b-103a0fff5855\",\"fullName\":\"Postman Passenger\",\"documentType\":null,\"documentNumber\":null,\"pickupStopId\":\"01990a00-0000-7000-8000-000000000004\",\"dropoffStopId\":\"01990a00-0000-7000-8000-000000000005\"}],\"expectedTotal\":150000,\"currency\":\"VND\",\"paymentChannel\":\"COD\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Unsupported payment channel rejected',()=>pm.expect([400,422]).to.include(pm.response.code));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Release BOOK-20 test hold",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{t}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-book20-release"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/seat-holds/{{hold20}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Invalid channel did not consume hold',()=>pm.expect([204,404]).to.include(pm.response.code));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

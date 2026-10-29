@@ -1,0 +1,125 @@
+{
+  "info": {
+    "name": "PBL6 REP02 Read-only report smoke",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "REP-02 Login platform admin",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/auth/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "auth",
+            "login"
+          ]
+        },
+        "description": "Read-only live smoke test derived from active OpenAPI 2.0.1.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\": \"admin.seed@example.test\", \"password\": \"AdminPass1234\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Admin login returns access token',()=>{pm.response.to.have.status(200);pm.environment.set('adminAccessToken',pm.response.json().accessToken)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "REP-02 Booking report",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminAccessToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/reports/bookings?from=2026-10-01&to=2026-10-28&timezone=Asia%2FSaigon",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "reports",
+            "bookings?from=2026-10-01&to=2026-10-28&timezone=Asia%2FSaigon"
+          ]
+        },
+        "description": "Read-only live smoke test derived from active OpenAPI 2.0.1."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Live report endpoint returns contract response',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json()).to.be.an('object')});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "REP-02 Occupancy report",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminAccessToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/reports/occupancy?from=2026-10-01&to=2026-10-28&timezone=Asia%2FSaigon",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "reports",
+            "occupancy?from=2026-10-01&to=2026-10-28&timezone=Asia%2FSaigon"
+          ]
+        },
+        "description": "Read-only live smoke test derived from active OpenAPI 2.0.1."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Live report endpoint returns contract response',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json()).to.be.an('object')});"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5080/api/v1"
+    }
+  ]
+}

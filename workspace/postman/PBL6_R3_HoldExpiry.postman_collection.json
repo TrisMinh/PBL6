@@ -1,0 +1,84 @@
+{
+  "info": {
+    "name": "PBL6 Round 3 hold expiry check",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Customer login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\":\"seed.customer@example.test\",\"password\":\"CustomerPass1\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.response.to.have.status(200);pm.environment.set('t',pm.response.json().accessToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "BOOK-09 Check original hold expiration",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{t}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/seat-holds/_FCtHQBqTleeN5HEj5y2W_S25KLDXo_GM4XUBoDQVTE"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "console.log('EXPIRED HOLD '+pm.response.text());pm.test('Hold expired after its expiry time',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().status).to.eql('EXPIRED')});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Check seat 1A returned to available",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{t}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/trips/01a1825d-b562-7b04-bab7-d50af84b5142/seats"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Expired hold seat is released',()=>{pm.response.to.have.status(200);const s=pm.response.json().seats.find(x=>x.code==='1A');pm.expect(s.status).to.eql('AVAILABLE')});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

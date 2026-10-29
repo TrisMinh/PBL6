@@ -1,0 +1,216 @@
+﻿{
+    "info":  {
+                 "name":  "PBL6 Round 3 Seat Hold and Booking flow",
+                 "schema":  "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+             },
+    "item":  [
+                 {
+                     "name":  "Customer login",
+                     "request":  {
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "url":  "http://localhost:5080/api/v1/auth/login",
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\"identifier\":\"seed.customer@example.test\",\"password\":\"CustomerPass1\"}"
+                                              }
+                                 },
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "type":  "text/javascript",
+                                                      "exec":  [
+                                                                   "pm.response.to.have.status(200);pm.environment.set(\u0027customerToken\u0027,pm.response.json().accessToken);"
+                                                               ]
+                                                  }
+                                   }
+                               ]
+                 },
+                 {
+                     "name":  "BOOK-01 Read seats for synthetic published trip",
+                     "request":  {
+                                     "method":  "GET",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Authorization",
+                                                        "value":  "Bearer {{customerToken}}"
+                                                    }
+                                                ],
+                                     "url":  "http://localhost:5080/api/v1/trips/01a1825d-b562-7b04-bab7-d50af84b5142/seats"
+                                 },
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "type":  "text/javascript",
+                                                      "exec":  [
+                                                                   "pm.test(\u0027Seat availability has usable seats and timestamp\u0027,()=\u003e{pm.response.to.have.status(200);const b=pm.response.json();const s=b.seats.find(x=\u003ex.status===\u0027AVAILABLE\u0027);pm.expect(s,\u0027available synthetic seat\u0027).to.exist;pm.expect(b.availabilityAsOf).to.be.a(\u0027string\u0027);pm.environment.set(\u0027seatId\u0027,s.id)});"
+                                                               ]
+                                                  }
+                                   }
+                               ]
+                 },
+                 {
+                     "name":  "Read trip stops",
+                     "request":  {
+                                     "method":  "GET",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Authorization",
+                                                        "value":  "Bearer {{customerToken}}"
+                                                    }
+                                                ],
+                                     "url":  "http://localhost:5080/api/v1/trips/01a1825d-b562-7b04-bab7-d50af84b5142/stops"
+                                 },
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "type":  "text/javascript",
+                                                      "exec":  [
+                                                                   "pm.test(\u0027Trip has ordered pickup and dropoff stops\u0027,()=\u003e{pm.response.to.have.status(200);const s=pm.response.json();pm.expect(s.length).to.be.at.least(2);pm.environment.set(\u0027pickupId\u0027,s[0].id);pm.environment.set(\u0027dropoffId\u0027,s[s.length-1].id)});"
+                                                               ]
+                                                  }
+                                   }
+                               ]
+                 },
+                 {
+                     "name":  "BOOK-02 Hold one available seat",
+                     "request":  {
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Authorization",
+                                                        "value":  "Bearer {{customerToken}}"
+                                                    },
+                                                    {
+                                                        "key":  "Idempotency-Key",
+                                                        "value":  "pbl6-r3-seat-hold-one-001"
+                                                    },
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "url":  "http://localhost:5080/api/v1/trips/01a1825d-b562-7b04-bab7-d50af84b5142/seat-holds",
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\"seatIds\":[\"{{seatId}}\"],\"pickupStopId\":\"{{pickupId}}\",\"dropoffStopId\":\"{{dropoffId}}\"}"
+                                              }
+                                 },
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "type":  "text/javascript",
+                                                      "exec":  [
+                                                                   "pm.test(\u0027Seat hold created\u0027,()=\u003e{pm.response.to.have.status(201);const h=pm.response.json();pm.expect(h.status).to.eql(\u0027ACTIVE\u0027);pm.expect(h.holdToken).to.be.a(\u0027string\u0027);pm.environment.set(\u0027holdToken\u0027,h.holdToken);pm.environment.set(\u0027firstHoldToken\u0027,h.holdToken)});"
+                                                               ]
+                                                  }
+                                   }
+                               ]
+                 },
+                 {
+                     "name":  "BOOK-08 Replay hold with same idempotency key",
+                     "request":  {
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Authorization",
+                                                        "value":  "Bearer {{customerToken}}"
+                                                    },
+                                                    {
+                                                        "key":  "Idempotency-Key",
+                                                        "value":  "pbl6-r3-seat-hold-one-001"
+                                                    },
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "url":  "http://localhost:5080/api/v1/trips/01a1825d-b562-7b04-bab7-d50af84b5142/seat-holds",
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\"seatIds\":[\"{{seatId}}\"],\"pickupStopId\":\"{{pickupId}}\",\"dropoffStopId\":\"{{dropoffId}}\"}"
+                                              }
+                                 },
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "type":  "text/javascript",
+                                                      "exec":  [
+                                                                   "pm.test(\u0027Idempotent retry returns same active hold\u0027,()=\u003e{pm.expect(pm.response.code).to.be.oneOf([200,201]);pm.expect(pm.response.json().holdToken).to.eql(pm.environment.get(\u0027firstHoldToken\u0027))});"
+                                                               ]
+                                                  }
+                                   }
+                               ]
+                 },
+                 {
+                     "name":  "Read active seat hold",
+                     "request":  {
+                                     "method":  "GET",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Authorization",
+                                                        "value":  "Bearer {{customerToken}}"
+                                                    }
+                                                ],
+                                     "url":  "http://localhost:5080/api/v1/seat-holds/{{holdToken}}"
+                                 },
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "type":  "text/javascript",
+                                                      "exec":  [
+                                                                   "pm.test(\u0027Hold lookup returns active owned hold\u0027,()=\u003e{pm.response.to.have.status(200);pm.expect(pm.response.json().status).to.eql(\u0027ACTIVE\u0027)});"
+                                                               ]
+                                                  }
+                                   }
+                               ]
+                 },
+                 {
+                     "name":  "BOOK-10/11 Create booking and verify server total",
+                     "request":  {
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Authorization",
+                                                        "value":  "Bearer {{customerToken}}"
+                                                    },
+                                                    {
+                                                        "key":  "Idempotency-Key",
+                                                        "value":  "pbl6-r3-booking-prepaid-001"
+                                                    },
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "url":  "http://localhost:5080/api/v1/bookings",
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\"holdToken\":\"{{holdToken}}\",\"contact\":{\"fullName\":\"Postman Synthetic\",\"email\":\"seed.customer@example.test\",\"phone\":\"+840000000001\"},\"passengers\":[{\"seatId\":\"{{seatId}}\",\"fullName\":\"Postman Passenger\",\"documentType\":null,\"documentNumber\":null,\"pickupStopId\":\"{{pickupId}}\",\"dropoffStopId\":\"{{dropoffId}}\"}],\"expectedTotal\":0,\"currency\":\"VND\",\"paymentChannel\":\"PREPAID\"}"
+                                              }
+                                 },
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "type":  "text/javascript",
+                                                      "exec":  [
+                                                                   "console.log(\u0027BOOKING ERROR/RESPONSE \u0027+pm.response.text()); pm.test(\u0027Booking created and server calculates total\u0027,()=\u003e{pm.response.to.have.status(201);const b=pm.response.json();pm.expect(b.total).to.eql(150000);pm.expect(b.status).to.eql(\u0027PENDING_PAYMENT\u0027);pm.expect(b.items.length).to.eql(1);pm.environment.set(\u0027r3BookingId\u0027,b.id);pm.environment.set(\u0027r3BookingVersion\u0027,b.rowVersion)});"
+                                                               ]
+                                                  }
+                                   }
+                               ]
+                 }
+             ]
+}

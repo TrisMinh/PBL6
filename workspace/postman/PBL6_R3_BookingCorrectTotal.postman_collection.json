@@ -1,0 +1,112 @@
+{
+  "info": {
+    "name": "PBL6 Round 3 Booking correct-total attempt",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Customer login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\":\"seed.customer@example.test\",\"password\":\"CustomerPass1\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.response.to.have.status(200);pm.environment.set('token',pm.response.json().accessToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "BOOK-02 Hold next available seat",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-seat-hold-second-002"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/trips/01a1825d-b562-7b04-bab7-d50af84b5142/seat-holds",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"seatIds\":[\"01a1825d-bc18-7215-940d-10208bc93cd3\"],\"pickupStopId\":\"01990a00-0000-7000-8000-000000000004\",\"dropoffStopId\":\"01990a00-0000-7000-8000-000000000005\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Second available seat held',()=>{pm.response.to.have.status(201);pm.environment.set('bookingHold',pm.response.json().holdToken)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "BOOK-10 Create PREPAID booking with correct total",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-booking-prepaid-second-002"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/bookings",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"holdToken\":\"{{bookingHold}}\",\"contact\":{\"fullName\":\"Postman Synthetic\",\"email\":\"seed.customer@example.test\",\"phone\":\"+840000000001\"},\"passengers\":[{\"seatId\":\"01a1825d-bc18-7215-940d-10208bc93cd3\",\"fullName\":\"Postman Passenger\",\"documentType\":null,\"documentNumber\":null,\"pickupStopId\":\"01990a00-0000-7000-8000-000000000004\",\"dropoffStopId\":\"01990a00-0000-7000-8000-000000000005\"}],\"expectedTotal\":150000,\"currency\":\"VND\",\"paymentChannel\":\"PREPAID\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "console.log('BOOKING '+pm.response.text());pm.test('Valid PREPAID booking created',()=>{pm.response.to.have.status(201);const b=pm.response.json();pm.expect(b.status).to.eql('PENDING_PAYMENT');pm.expect(b.total).to.eql(150000);pm.expect(b.items.length).to.eql(1);pm.environment.set('r3BookingId',b.id)});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

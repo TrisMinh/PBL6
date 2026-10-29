@@ -1,0 +1,232 @@
+{
+  "info": {
+    "name": "PBL6 Round 3 Transport CRUD checks",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Login operator",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\":\"operator.seed@example.test\",\"password\":\"OperatorPass1\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Seed operator login',()=>{pm.response.to.have.status(200);pm.environment.set('accessToken',pm.response.json().accessToken)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "OPS-04 Create synthetic bus",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-create-bus-001"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/buses",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"plateNumber\":\"PBL6-R3-TEST-001\",\"type\":\"Test Coach\",\"amenities\":[\"WIFI\"],\"expectedVersion\":0}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Create synthetic bus accepted',()=>{pm.response.to.have.status(201);const b=pm.response.json();pm.expect(b.id).to.be.a('string');pm.environment.set('busId',b.id)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "OPS-05 Reject duplicate bus plate",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-create-bus-duplicate-001"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/buses",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"plateNumber\":\"PBL6-R3-TEST-001\",\"type\":\"Test Coach\",\"amenities\":[\"WIFI\"],\"expectedVersion\":0}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Duplicate plate rejected without server error',()=>pm.expect(pm.response.code).to.be.oneOf([400,409,422]));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "OPS-06 Deactivate synthetic bus",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-deactivate-bus-001"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/buses/{{busId}}/deactivate"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Synthetic bus deactivated',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().status).to.eql('INACTIVE')});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "OPS-09 Create synthetic route",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-create-route-001"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/routes",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\":\"PBL6 R3 synthetic route\",\"origin\":\"R3 Test Origin\",\"destination\":\"R3 Test Destination\",\"distanceKm\":88,\"durationMinutes\":120,\"expectedVersion\":0}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Create route accepted with two ordered stops',()=>{pm.response.to.have.status(201);const r=pm.response.json();pm.expect(r.stops.length).to.be.at.least(2);pm.expect(r.stops[0].sequence).to.eql(0);pm.expect(r.stops[r.stops.length-1].sequence).to.eql(1);pm.environment.set('routeId',r.id)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "OPS-10 Reject invalid stop sequence",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/routes/{{routeId}}/stops",
+        "body": {
+          "mode": "raw",
+          "raw": "[{\"name\":\"A\",\"sequence\":1,\"offsetMinutes\":0,\"pickupAllowed\":true,\"dropoffAllowed\":false},{\"name\":\"B\",\"sequence\":1,\"offsetMinutes\":60,\"pickupAllowed\":false,\"dropoffAllowed\":true}]"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Invalid duplicate stop sequence rejected',()=>pm.expect(pm.response.code).to.be.oneOf([400,409,422]));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "OPS-11 Deactivate synthetic route",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-deactivate-route-001"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/routes/{{routeId}}/deactivate"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Synthetic route deactivated',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().status).to.eql('INACTIVE')});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

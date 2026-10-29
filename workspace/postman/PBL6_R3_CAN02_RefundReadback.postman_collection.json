@@ -1,0 +1,184 @@
+﻿{
+    "info":  {
+                 "name":  "PBL6 Round 3 delayed prepaid refund readback",
+                 "schema":  "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+             },
+    "item":  [
+                 {
+                     "name":  "Customer login",
+                     "request":  {
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "url":  "http://localhost:5080/api/v1/auth/login",
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\"identifier\":\"seed.customer@example.test\",\"password\":\"CustomerPass1\"}"
+                                              }
+                                 },
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "type":  "text/javascript",
+                                                      "exec":  [
+                                                                   "pm.response.to.have.status(200);pm.environment.set(\u0027t\u0027,pm.response.json().accessToken)"
+                                                               ]
+                                                  }
+                                   }
+                               ]
+                 },
+                 {
+                     "name":  "Read paid booking after cancellation",
+                     "request":  {
+                                     "method":  "GET",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Authorization",
+                                                        "value":  "Bearer {{t}}"
+                                                    }
+                                                ],
+                                     "url":  "http://localhost:5080/api/v1/bookings/01a18282-b35b-706b-acb5-405d9939522a"
+                                 },
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "type":  "text/javascript",
+                                                      "exec":  [
+                                                                   "console.log(\u0027REFUND BOOKING \u0027+pm.response.text())"
+                                                               ]
+                                                  }
+                                   }
+                               ]
+                 },
+                 {
+                     "name":  "Read cancelled ticket",
+                     "request":  {
+                                     "method":  "GET",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Authorization",
+                                                        "value":  "Bearer {{t}}"
+                                                    }
+                                                ],
+                                     "url":  "http://localhost:5080/api/v1/tickets/01a18282-be35-79bf-b285-fca228ae91f8"
+                                 },
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "type":  "text/javascript",
+                                                      "exec":  [
+                                                                   "console.log(\u0027REFUND TICKET \u0027+pm.response.text())"
+                                                               ]
+                                                  }
+                                   }
+                               ]
+                 },
+                 {
+                     "request":  {
+                                     "method":  "GET",
+                                     "url":  "http://localhost:5080/api/v1/trips/01a1825e-ce81-77ac-a288-7ec225093288/seats",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Authorization",
+                                                        "value":  "Bearer {{t}}"
+                                                    }
+                                                ]
+                                 },
+                     "name":  "Read seat inventory after cancellation",
+                     "event":  [
+                                   {
+                                       "script":  {
+                                                      "exec":  [
+                                                                   "console.log(\u0027CAN02 SEAT AFTER \u0027+pm.response.text());pm.test(\u0027Cancelled PREPAID seat returns available\u0027,()=\u003e{pm.response.to.have.status(200);const x=pm.response.json().seats.find(s=\u003es.id===\u002701a1825e-d209-795c-b33c-34bcab4f25fc\u0027);pm.expect(x.status).to.eql(\u0027AVAILABLE\u0027)})"
+                                                               ],
+                                                      "type":  "text/javascript"
+                                                  },
+                                       "listen":  "test"
+                                   }
+                               ]
+                 },
+                 {
+                     "name":  "Admin login",
+                     "request":  {
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "url":  "http://localhost:5080/api/v1/auth/login",
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\"identifier\":\"admin.seed@example.test\",\"password\":\"AdminPass1234\"}"
+                                              }
+                                 },
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "type":  "text/javascript",
+                                                      "exec":  [
+                                                                   "pm.response.to.have.status(200);pm.environment.set(\u0027a\u0027,pm.response.json().accessToken)"
+                                                               ]
+                                                  }
+                                   }
+                               ]
+                 },
+                 {
+                     "name":  "Read refund records",
+                     "request":  {
+                                     "method":  "GET",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Authorization",
+                                                        "value":  "Bearer {{a}}"
+                                                    }
+                                                ],
+                                     "url":  "http://localhost:5080/api/v1/admin/refunds?page=0\u0026size=100"
+                                 },
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "type":  "text/javascript",
+                                                      "exec":  [
+                                                                   "console.log(\u0027REFUND RECORDS \u0027+pm.response.text())"
+                                                               ]
+                                                  }
+                                   }
+                               ]
+                 },
+                 {
+                     "request":  {
+                                     "method":  "GET",
+                                     "url":  "http://localhost:5080/api/v1/admin/settlements?page=0\u0026size=100",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Authorization",
+                                                        "value":  "Bearer {{a}}"
+                                                    }
+                                                ]
+                                 },
+                     "name":  "Read admin settlement after refund",
+                     "event":  [
+                                   {
+                                       "script":  {
+                                                      "exec":  [
+                                                                   "console.log(\u0027CAN02 SETTLEMENT AFTER \u0027+pm.response.text())"
+                                                               ],
+                                                      "type":  "text/javascript"
+                                                  },
+                                       "listen":  "test"
+                                   }
+                               ]
+                 }
+             ]
+}

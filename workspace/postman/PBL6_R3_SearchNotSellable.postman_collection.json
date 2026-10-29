@@ -1,0 +1,27 @@
+{
+  "info": {
+    "name": "PBL6 Round 3 Search excludes completed trip",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "SRCH-02 Completed trip excluded from sale search",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/trips?origin=Seed%20Origin%20Station&destination=Seed%20Destination%20Station&departureDate=2026-12-07&passengerCount=1"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Search succeeds and excludes completed synthetic trip',()=>{pm.response.to.have.status(200);const b=pm.response.json();pm.expect(b.items).to.be.an('array');pm.expect(b.items.some(x=>x.id==='01a1825e-ce81-77ac-a288-7ec225093288')).to.eql(false)});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

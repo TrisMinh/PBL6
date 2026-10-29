@@ -1,0 +1,112 @@
+{
+  "info": {
+    "name": "PBL6 Round 3 payment notification and settlement verification",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Customer login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\":\"seed.customer@example.test\",\"password\":\"CustomerPass1\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.response.to.have.status(200);pm.environment.set('customerToken',pm.response.json().accessToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "NOTIF-01 Verify payment notification references synthetic booking",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{customerToken}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/notifications"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "console.log('NOTIFS '+pm.response.text());pm.test('Payment notification created for owner',()=>{pm.response.to.have.status(200);const b=pm.response.json();const rows=Array.isArray(b)?b:(b.items||[]);const hit=rows.some(x=>JSON.stringify(x).includes('01a18263-9bb1-7393-9355-47d8efecdb8b')||JSON.stringify(x).includes('BK47D8EFECDB8B'));pm.expect(hit).to.eql(true)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Operator login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\":\"operator.seed@example.test\",\"password\":\"OperatorPass1\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.response.to.have.status(200);pm.environment.set('operatorToken',pm.response.json().accessToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "PAY-12 Verify settlement fee and net",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{operatorToken}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/settlements?page=0&size=100"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "console.log('SETTLEMENT '+pm.response.text());pm.test('Settlement reflects 10 percent commission',()=>{pm.response.to.have.status(200);const b=pm.response.json();const rows=Array.isArray(b)?b:(b.items||[]);const s=rows.find(x=>x.bookingId==='01a18263-9bb1-7393-9355-47d8efecdb8b');pm.expect(s,'settlement row for booking').to.exist;pm.expect(s.commissionRate).to.eql(0.1);pm.expect(s.commissionAmount).to.eql(15000);pm.expect(s.operatorNet).to.eql(135000);pm.expect(s.collectionStatus).to.eql('COLLECTED')});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,216 @@
+{
+  "info": {
+    "name": "PBL6 Round 3 Trip Draft and Conflict checks",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Operator login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\":\"operator.seed@example.test\",\"password\":\"OperatorPass1\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.response.to.have.status(200);pm.environment.set('accessToken',pm.response.json().accessToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TRIP-01 Create future synthetic draft",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-trip-create-20261205"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/trips",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"routeId\":\"01990a00-0000-7000-8000-000000000006\",\"busId\":\"01990a00-0000-7000-8000-000000000003\",\"driverId\":\"01990a00-0000-7000-8000-000000000035\",\"departureAt\":\"2026-12-05T06:00:00Z\",\"arrivalAt\":\"2026-12-05T10:00:00Z\",\"fare\":{\"amount\":150000,\"currency\":\"VND\"},\"policyVersion\":\"cancel-mvp-v1\",\"expectedVersion\":0}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Draft trip accepted',()=>{pm.response.to.have.status(201);const b=pm.response.json();pm.expect(b.status).to.eql('DRAFT');pm.environment.set('tripR3Id',b.id)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TRIP-03 Reject invalid trip input",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-trip-invalid-date"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/trips",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"routeId\":\"01990a00-0000-7000-8000-000000000006\",\"busId\":\"01990a00-0000-7000-8000-000000000003\",\"driverId\":\"01990a00-0000-7000-8000-000000000035\",\"departureAt\":\"not-a-date\",\"arrivalAt\":\"2026-12-05T10:00:00Z\",\"fare\":{\"amount\":150000,\"currency\":\"VND\"},\"policyVersion\":\"cancel-mvp-v1\",\"expectedVersion\":0}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Invalid trip input rejected as client error',()=>pm.expect(pm.response.code).to.be.oneOf([400,422]));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TRIP-02 Publish synthetic trip",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-trip-publish-20261205"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/trips/{{tripR3Id}}/publish",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"expectedVersion\":0}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Publish accepted for conflict-free future trip',()=>{pm.expect(pm.response.code).to.be.oneOf([200,202]);pm.environment.set('publishedR3',pm.response.code)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TRIP-04 Create overlapping draft on same bus and driver",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-trip-overlap-draft"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/trips",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"routeId\":\"01990a00-0000-7000-8000-000000000006\",\"busId\":\"01990a00-0000-7000-8000-000000000003\",\"driverId\":\"01990a00-0000-7000-8000-000000000035\",\"departureAt\":\"2026-12-05T06:30:00Z\",\"arrivalAt\":\"2026-12-05T10:30:00Z\",\"fare\":{\"amount\":150000,\"currency\":\"VND\"},\"policyVersion\":\"cancel-mvp-v1\",\"expectedVersion\":0}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Second draft accepted for publish conflict probe',()=>{pm.response.to.have.status(201);pm.environment.set('tripR3OverlapId',pm.response.json().id)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TRIP-04 Reject overlapping trip publish",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-trip-overlap-publish"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/trips/{{tripR3OverlapId}}/publish",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"expectedVersion\":0}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Resource conflict is rejected',()=>pm.expect(pm.response.code).to.be.oneOf([409,422]));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

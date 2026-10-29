@@ -1,0 +1,108 @@
+{
+  "info": {
+    "name": "PBL6 Round 3 reports reconciliation readback",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Admin login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\":\"admin.seed@example.test\",\"password\":\"AdminPass1234\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.response.to.have.status(200);pm.environment.set('adminToken',pm.response.json().accessToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Read report revenue",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/reports/revenue?from=2026-10-28T00:00:00Z&to=2026-10-29T00:00:00Z&timezone=Asia%2FHo_Chi_Minh"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "console.log('REPORT '+pm.info.requestName+' '+pm.response.text());pm.response.to.have.status(200);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Read report bookings",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/reports/bookings?from=2026-10-28T00:00:00Z&to=2026-10-29T00:00:00Z&timezone=Asia%2FHo_Chi_Minh"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "console.log('REPORT '+pm.info.requestName+' '+pm.response.text());pm.response.to.have.status(200);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Read report occupancy",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/reports/occupancy?from=2026-10-28T00:00:00Z&to=2026-10-29T00:00:00Z&timezone=Asia%2FHo_Chi_Minh"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "console.log('REPORT '+pm.info.requestName+' '+pm.response.text());pm.response.to.have.status(200);"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

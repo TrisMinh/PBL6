@@ -1,0 +1,112 @@
+﻿{
+    "info":  {
+                 "name":  "PBL6 Round 1 BOOK-11 client total tampering",
+                 "schema":  "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+             },
+    "item":  [
+                 {
+                     "name":  "Customer login",
+                     "request":  {
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Authorization",
+                                                        "value":  "Bearer {{token}}"
+                                                    },
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "url":  "http://localhost:5080/api/v1/auth/login",
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\"identifier\":\"seed.customer@example.test\",\"password\":\"CustomerPass1\"}"
+                                              }
+                                 },
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "type":  "text/javascript",
+                                                      "exec":  [
+                                                                   "pm.response.to.have.status(200);pm.environment.set(\u0027token\u0027,pm.response.json().accessToken);"
+                                                               ]
+                                                  }
+                                   }
+                               ]
+                 },
+                 {
+                     "name":  "BOOK-11 Hold a free seat",
+                     "request":  {
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Authorization",
+                                                        "value":  "Bearer {{token}}"
+                                                    },
+                                                    {
+                                                        "key":  "Idempotency-Key",
+                                                        "value":  "pbl6-r1-book11-hold-001"
+                                                    },
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "url":  "http://localhost:5080/api/v1/trips/01a1825d-b562-7b04-bab7-d50af84b5142/seat-holds",
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\"seatIds\":[\"01a1825d-d209-7449-b24a-a27b51970df8\"],\"pickupStopId\":\"01990a00-0000-7000-8000-000000000004\",\"dropoffStopId\":\"01990a00-0000-7000-8000-000000000005\"}"
+                                              }
+                                 },
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "type":  "text/javascript",
+                                                      "exec":  [
+                                                                   "pm.test(\u0027Second available seat held\u0027,()=\u003e{pm.response.to.have.status(201);pm.environment.set(\u0027bookingHold\u0027,pm.response.json().holdToken)});"
+                                                               ]
+                                                  }
+                                   }
+                               ]
+                 },
+                 {
+                     "name":  "BOOK-11 Tamper with expected total",
+                     "request":  {
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Authorization",
+                                                        "value":  "Bearer {{token}}"
+                                                    },
+                                                    {
+                                                        "key":  "Idempotency-Key",
+                                                        "value":  "pbl6-r1-book11-tamper-001"
+                                                    },
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "url":  "http://localhost:5080/api/v1/bookings",
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\"holdToken\":\"{{bookingHold}}\",\"contact\":{\"fullName\":\"Postman Synthetic\",\"email\":\"seed.customer@example.test\",\"phone\":\"+840000000001\"},\"passengers\":[{\"seatId\":\"01a1825d-d209-7449-b24a-a27b51970df8\",\"fullName\":\"Postman Passenger\",\"documentType\":null,\"documentNumber\":null,\"pickupStopId\":\"01990a00-0000-7000-8000-000000000004\",\"dropoffStopId\":\"01990a00-0000-7000-8000-000000000005\"}],\"expectedTotal\":1,\"currency\":\"VND\",\"paymentChannel\":\"PREPAID\"}"
+                                              }
+                                 },
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "type":  "text/javascript",
+                                                      "exec":  [
+                                                                   "console.log(\u0027BOOK11 \u0027+pm.response.text());pm.test(\u0027Server uses its own fare and ignores client total\u0027,()=\u003e{pm.response.to.have.status(201);const b=pm.response.json();pm.expect(b.total).to.eql(150000);});"
+                                                               ]
+                                                  }
+                                   }
+                               ]
+                 }
+             ]
+}

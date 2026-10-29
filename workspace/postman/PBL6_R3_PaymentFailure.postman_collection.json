@@ -1,0 +1,241 @@
+{
+  "info": {
+    "name": "PBL6 Round 3 VNPAY failure callback",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Customer login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\":\"seed.customer@example.test\",\"password\":\"CustomerPass1\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.response.to.have.status(200);pm.environment.set('token',pm.response.json().accessToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Hold seat 1C",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-seat-hold-1c"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/trips/01a1825d-b562-7b04-bab7-d50af84b5142/seat-holds",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"seatIds\":[\"01a1825d-bc18-73f5-9adb-6b94faff0a57\"],\"pickupStopId\":\"01990a00-0000-7000-8000-000000000004\",\"dropoffStopId\":\"01990a00-0000-7000-8000-000000000005\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Second synthetic seat held',()=>{pm.response.to.have.status(201);pm.environment.set('hold2',pm.response.json().holdToken)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create second PREPAID booking",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-booking-prepaid-second-seat"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/bookings",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"holdToken\":\"{{hold2}}\",\"contact\":{\"fullName\":\"Postman Synthetic\",\"email\":\"seed.customer@example.test\",\"phone\":\"+840000000001\"},\"passengers\":[{\"seatId\":\"01a1825d-bc18-73f5-9adb-6b94faff0a57\",\"fullName\":\"Postman Passenger Two\",\"documentType\":null,\"documentNumber\":null,\"pickupStopId\":\"01990a00-0000-7000-8000-000000000004\",\"dropoffStopId\":\"01990a00-0000-7000-8000-000000000005\"}],\"expectedTotal\":150000,\"currency\":\"VND\",\"paymentChannel\":\"PREPAID\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Second booking created at server amount',()=>{pm.response.to.have.status(201);pm.environment.set('booking2',pm.response.json().id);pm.expect(pm.response.json().total).to.eql(150000)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create second sandbox payment intent",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-payment-failed-intent"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/bookings/{{booking2}}/payments",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"provider\":\"VNPAY_SANDBOX\",\"method\":\"VNPAY_QR\",\"returnUri\":\"http://localhost:5173/payment/result\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Second payment intent is created without PAN or CVV',()=>{pm.response.to.have.status(201);const p=pm.response.json();pm.environment.set('payment2',p.id);pm.expect(JSON.stringify(p).toLowerCase()).not.to.include('cvv');pm.expect(JSON.stringify(p).toLowerCase()).not.to.include('pan');const u=new URL(p.providerAction.redirectUri);for(const k of ['vnp_TxnRef','vnp_Amount','vnp_ReturnUrl','vnp_OrderInfo'])pm.environment.set(k,u.searchParams.get(k))});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "PAY-09 Send local VNPAY failure callback",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "url": "http://localhost:8099/pay",
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "vnp_TxnRef",
+              "value": "{{vnp_TxnRef}}"
+            },
+            {
+              "key": "vnp_Amount",
+              "value": "{{vnp_Amount}}"
+            },
+            {
+              "key": "vnp_ReturnUrl",
+              "value": "{{vnp_ReturnUrl}}"
+            },
+            {
+              "key": "vnp_OrderInfo",
+              "value": "{{vnp_OrderInfo}}"
+            },
+            {
+              "key": "outcome",
+              "value": "24"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Sandbox failure returns to result page',()=>pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "PAY-09 Check failed payment remains non-success",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/payments/{{payment2}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Failure callback did not succeed payment',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().status).to.eql('FAILED')});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "PAY-09 Check booking is not paid",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/bookings/{{booking2}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Failed payment did not mark booking paid',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().status).not.to.eql('PAID')});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

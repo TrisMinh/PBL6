@@ -1,0 +1,88 @@
+{
+  "request": {
+    "url": "http://localhost:8025/api/v1/messages",
+    "header": [
+      {
+        "key": "User-Agent",
+        "value": "PostmanRuntime/7.56.2",
+        "system": true
+      },
+      {
+        "key": "Accept",
+        "value": "*/*",
+        "system": true
+      },
+      {
+        "key": "Cache-Control",
+        "value": "no-cache",
+        "system": true
+      },
+      {
+        "key": "Postman-Token",
+        "value": "f9f42650-d14f-41b2-bc40-946d9089f016",
+        "system": true
+      },
+      {
+        "key": "Host",
+        "value": "localhost:8025",
+        "system": true
+      },
+      {
+        "key": "Accept-Encoding",
+        "value": "gzip, deflate, br",
+        "system": true
+      },
+      {
+        "key": "Connection",
+        "value": "keep-alive",
+        "system": true
+      }
+    ],
+    "method": "GET",
+    "body": ""
+  },
+  "response": {
+    "id": "54475b73-f4fa-45c6-9ec6-61ebbf36e8f6",
+    "status": "OK",
+    "code": 200,
+    "header": [
+      {
+        "key": "Content-Encoding",
+        "value": "gzip"
+      },
+      {
+        "key": "Content-Security-Policy",
+        "value": "default-src 'self'; script-src 'nonce-6XwzM48eHW4adK5HbCLoLk'; style-src * 'unsafe-inline'; frame-src 'self'; img-src * data: blob:; font-src * data:; media-src 'self'; connect-src 'self' ws: wss:; object-src 'none'; base-uri 'self';"
+      },
+      {
+        "key": "Content-Type",
+        "value": "application/json"
+      },
+      {
+        "key": "Referrer-Policy",
+        "value": "no-referrer"
+      },
+      {
+        "key": "Date",
+        "value": "Wed, 28 Oct 2026 11:15:51 GMT"
+      },
+      {
+        "key": "Content-Length",
+        "value": "497"
+      }
+    ],
+    "cookie": [],
+    "responseTime": 17,
+    "responseSize": 965,
+    "downloadedBytes": 497,
+    "body": "{\"total\":2,\"unread\":2,\"count\":2,\"messages_count\":2,\"messages_unread\":2,\"start\":0,\"tags\":[],\"messages\":[{\"ID\":\"ZzDp7X27NFrQfdgSEkHwZ6\",\"MessageID\":\"KXhr8YATb2rCmCBigSFehY@mailpit\",\"Read\":false,\"From\":{\"Name\":\"\",\"Address\":\"noreply@example.test\"},\"To\":[{\"Name\":\"\",\"Address\":\"seed.customer@example.test\"}],\"Cc\":null,\"Bcc\":null,\"ReplyTo\":[],\"Subject\":\"Reset your password\",\"Created\":\"2026-10-28T11:15:42.531Z\",\"Username\":\"\",\"Tags\":[],\"Size\":600,\"Attachments\":0,\"Snippet\":\"challengeId=01a18239-1912-76f3-8115-31d1630e6b21; code=451815\"},{\"ID\":\"VRRSseoLnPGqVxThVBrCT5\",\"MessageID\":\"EzctHnfkJi8yjZjQy97DpG@mailpit\",\"Read\":false,\"From\":{\"Name\":\"\",\"Address\":\"noreply@example.test\"},\"To\":[{\"Name\":\"\",\"Address\":\"pbl6.postman.sync.01@example.test\"}],\"Cc\":null,\"Bcc\":null,\"ReplyTo\":[],\"Subject\":\"Verify your email\",\"Created\":\"2026-10-28T11:15:41.19Z\",\"Username\":\"\",\"Tags\":[],\"Size\":612,\"Attachments\":0,\"Snippet\":\"challengeId=01a18239-1393-70fa-b978-6d218b81ebbb; code=107790\"}]}\n"
+  },
+  "timestamp": "2026-10-28T11:15:51.545Z",
+  "tests": {
+    "total": 0,
+    "passed": 0,
+    "failed": 0,
+    "results": []
+  },
+  "scriptLogs": []
+}

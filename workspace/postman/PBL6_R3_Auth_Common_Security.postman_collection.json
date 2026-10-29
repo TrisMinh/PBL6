@@ -1,0 +1,1293 @@
+{
+  "info": {
+    "name": "PBL6 Round 3 Auth Common Security Completion",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Login platform admin",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\": \"admin.seed@example.test\", \"password\": \"AdminPass1234\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Admin login succeeds',()=>{pm.response.to.have.status(200);pm.environment.set('adminToken',pm.response.json().accessToken)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Login seed customer",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\": \"seed.customer@example.test\", \"password\": \"CustomerPass1\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Customer login succeeds',()=>{pm.response.to.have.status(200);pm.environment.set('customerToken',pm.response.json().accessToken)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-02 customer is denied admin user listing",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{customerToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/admin/users?page=0&size=20"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Customer cannot access admin user list',()=>{pm.response.to.have.status(403);pm.expect(pm.response.json().error.code).to.eql('ACCESS_DENIED')});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-03 tampered token rejected",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{tamperedToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/users/me"
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const p=pm.environment.get('customerToken').split('.'); p[1]=Buffer.from(JSON.stringify({sub:'00000000-0000-7000-8000-000000000001',role:'PLATFORM_ADMIN'})).toString('base64url'); pm.environment.set('tamperedToken',p.join('.'));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Modified JWT signature is rejected',()=>{pm.response.to.have.status(401)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-02 duplicate active email",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/register",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"fullName\": \"Duplicate Email Probe\", \"email\": \"seed.customer@example.test\", \"phone\": \"+849000000201\", \"password\": \"CorrectHorse1\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Duplicate email is rejected with 4xx',()=>pm.expect(pm.response.code).to.be.within(400,499));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-03 duplicate active phone",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/register",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"fullName\": \"Duplicate Phone Probe\", \"email\": \"pbl6.r3.duplicate.phone@example.test\", \"phone\": \"+840000000001\", \"password\": \"CorrectHorse1\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Duplicate phone is rejected with 4xx',()=>pm.expect(pm.response.code).to.be.within(400,499));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-06 register pending verification probe",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/register",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"fullName\": \"R3 OTP Probe\", \"email\": \"pbl6.r3.otp@example.test\", \"phone\": \"+849000000202\", \"password\": \"CorrectHorse1\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Pending account registration accepted',()=>{pm.response.to.have.status(202);pm.environment.set('otpChallengeId',pm.response.json().operationId)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-06 get OTP email",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:8025/api/v1/messages"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Mailpit contains OTP probe message',()=>{pm.response.to.have.status(200);const m=pm.response.json().messages.find(x=>x.To.some(y=>y.Address==='pbl6.r3.otp@example.test')&&x.Subject==='Verify your email');pm.expect(m).to.exist;pm.environment.set('otpMailId',m.ID)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-06 read OTP email",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:8025/api/v1/message/{{otpMailId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('OTP challenge captured from delivered email',()=>{pm.response.to.have.status(200);const t=pm.response.json().Text;const id=t.match(/challengeId=([0-9a-f-]+)/i);const code=t.match(/code=([0-9]{6})/i);pm.expect(id).to.exist;pm.expect(code).to.exist;pm.environment.set('otpChallengeId',id[1]);pm.environment.set('otpCode',code[1])});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-06 incorrect OTP is rejected",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-otp-wrong-0001"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/verify",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"challengeId\": \"{{otpChallengeId}}\", \"code\": \"000000\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const c=pm.environment.get('otpCode');pm.request.body.update(JSON.stringify({challengeId:pm.environment.get('otpChallengeId'),code:c==='000000'?'111111':'000000'}));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Wrong OTP is rejected',()=>{pm.expect(pm.response.code).to.be.within(400,499);pm.expect(pm.response.json().error).to.have.property('code')});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-11 pending account cannot login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\": \"pbl6.r3.otp@example.test\", \"password\": \"CorrectHorse1\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Unverified account receives no session',()=>{pm.expect(pm.response.code).to.be.within(400,499);pm.expect(pm.response.text()).not.to.include('accessToken')});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-07 register resend-limit probe",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/register",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"fullName\": \"R3 Resend Probe\", \"email\": \"pbl6.r3.resend@example.test\", \"phone\": \"+849000000203\", \"password\": \"CorrectHorse1\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Resend probe registration accepted',()=>pm.response.to.have.status(202));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-07 resend verification attempt 1",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-resend-01"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/resend-verification",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"pbl6.r3.resend@example.test\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Resend attempt 1 follows rate limit expectation',()=>{pm.response.to.have.status(202); if(pm.response.code===429)pm.expect(pm.response.headers.get('Retry-After')).to.exist});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-07 resend verification attempt 2",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-resend-02"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/resend-verification",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"pbl6.r3.resend@example.test\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Resend attempt 2 follows rate limit expectation',()=>{pm.response.to.have.status(202); if(pm.response.code===429)pm.expect(pm.response.headers.get('Retry-After')).to.exist});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-07 resend verification attempt 3",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-resend-03"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/resend-verification",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"pbl6.r3.resend@example.test\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Resend attempt 3 follows rate limit expectation',()=>{pm.response.to.have.status(202); if(pm.response.code===429)pm.expect(pm.response.headers.get('Retry-After')).to.exist});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-07 resend verification attempt 4",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-resend-04"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/resend-verification",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"pbl6.r3.resend@example.test\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Resend attempt 4 follows rate limit expectation',()=>{pm.response.to.have.status(202); if(pm.response.code===429)pm.expect(pm.response.headers.get('Retry-After')).to.exist});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-07 resend verification attempt 5",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-resend-05"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/resend-verification",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"pbl6.r3.resend@example.test\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Resend attempt 5 follows rate limit expectation',()=>{pm.response.to.have.status(202); if(pm.response.code===429)pm.expect(pm.response.headers.get('Retry-After')).to.exist});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-07 resend verification attempt 6",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-resend-06"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/resend-verification",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"pbl6.r3.resend@example.test\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Resend attempt 6 follows rate limit expectation',()=>{pm.response.to.have.status(429); if(pm.response.code===429)pm.expect(pm.response.headers.get('Retry-After')).to.exist});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-06 register challenge for expiry test",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/register",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"fullName\": \"R3 Expiry Probe\", \"email\": \"pbl6.r3.expiry@example.test\", \"phone\": \"+849000000204\", \"password\": \"CorrectHorse1\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Expiry probe registration accepted',()=>{pm.response.to.have.status(202);const id=pm.response.json().operationId;pm.environment.set('expiryChallengeId',id);console.log('EXPIRY_CHALLENGE_ID',id)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-12 register lockout probe",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/register",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"fullName\": \"R3 Lockout Probe\", \"email\": \"pbl6.r3.lockout@example.test\", \"phone\": \"+849000000205\", \"password\": \"CorrectHorse1\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Lockout probe registration accepted',()=>pm.response.to.have.status(202));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-12 find lockout verification email",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:8025/api/v1/messages"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Lockout probe email found',()=>{pm.response.to.have.status(200);const m=pm.response.json().messages.find(x=>x.To.some(y=>y.Address==='pbl6.r3.lockout@example.test')&&x.Subject==='Verify your email');pm.expect(m).to.exist;pm.environment.set('lockMailId',m.ID)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-12 read lockout verification code",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:8025/api/v1/message/{{lockMailId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Lockout challenge read',()=>{pm.response.to.have.status(200);const t=pm.response.json().Text;const id=t.match(/challengeId=([0-9a-f-]+)/i),code=t.match(/code=([0-9]{6})/i);pm.expect(id).to.exist;pm.expect(code).to.exist;pm.environment.set('lockChallengeId',id[1]);pm.environment.set('lockCode',code[1])});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-12 verify lockout synthetic user",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-lock-verify-001"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/verify",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"challengeId\": \"{{lockChallengeId}}\", \"code\": \"000000\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.body.update(JSON.stringify({challengeId:pm.environment.get('lockChallengeId'),code:pm.environment.get('lockCode')}));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Lockout test account verified',()=>{pm.response.to.have.status(200);pm.environment.set('lockToken',pm.response.json().accessToken)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "ADM-01 get test user id",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{lockToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/users/me"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Get synthetic user identity',()=>{pm.response.to.have.status(200);pm.environment.set('lockUserId',pm.response.json().id);pm.environment.set('lockUserVersion',pm.response.json().rowVersion)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "ADM-01 admin manually locks synthetic user",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/admin/users/{{lockUserId}}/status",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\": \"LOCKED\", \"reason\": \"Postman Round 3 lock/unlock verification\", \"expectedVersion\": 0}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.body.update(JSON.stringify({status:'LOCKED',reason:'Postman Round 3 lock/unlock verification',expectedVersion:Number(pm.environment.get('lockUserVersion'))}));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Admin lock changes synthetic user status',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().status).to.eql('LOCKED');pm.environment.set('lockedVersion',pm.response.json().rowVersion)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "ADM-01 locked user cannot use existing session",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{lockToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/users/me"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Locked account session is revoked',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "ADM-01 admin unlocks synthetic user",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/admin/users/{{lockUserId}}/status",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\": \"ACTIVE\", \"reason\": \"Restore synthetic test account after status test\", \"expectedVersion\": 0}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.body.update(JSON.stringify({status:'ACTIVE',reason:'Restore synthetic test account after status test',expectedVersion:Number(pm.environment.get('lockedVersion'))}));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Admin restores synthetic user',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().status).to.eql('ACTIVE');pm.environment.set('activeVersion',pm.response.json().rowVersion)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "ADM-01 unlocked user can login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\": \"pbl6.r3.lockout@example.test\", \"password\": \"CorrectHorse1\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Unblocked user login succeeds',()=>{pm.response.to.have.status(200);pm.environment.set('lockToken',pm.response.json().accessToken)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-12 wrong password attempt 1",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\": \"pbl6.r3.lockout@example.test\", \"password\": \"WrongPassword-01\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Lockout attempt 1',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-12 wrong password attempt 2",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\": \"pbl6.r3.lockout@example.test\", \"password\": \"WrongPassword-01\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Lockout attempt 2',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-12 wrong password attempt 3",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\": \"pbl6.r3.lockout@example.test\", \"password\": \"WrongPassword-01\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Lockout attempt 3',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-12 wrong password attempt 4",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\": \"pbl6.r3.lockout@example.test\", \"password\": \"WrongPassword-01\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Lockout attempt 4',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-12 wrong password attempt 5",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\": \"pbl6.r3.lockout@example.test\", \"password\": \"WrongPassword-01\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Lockout attempt 5',()=>pm.response.to.have.status(423));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-12 correct password rejected while locked",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\": \"pbl6.r3.lockout@example.test\", \"password\": \"CorrectHorse1\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Correct password cannot bypass active lockout',()=>pm.response.to.have.status(423));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-12 inspect locked test account",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/admin/users/{{lockUserId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Read auto-locked user version',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().status).to.eql('LOCKED');pm.environment.set('autoLockedVersion',pm.response.json().rowVersion)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-12 restore lockout test account",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/admin/users/{{lockUserId}}/status",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\": \"ACTIVE\", \"reason\": \"Cleanup after synthetic lockout test\", \"expectedVersion\": 0}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.body.update(JSON.stringify({status:'ACTIVE',reason:'Cleanup after synthetic lockout test',expectedVersion:Number(pm.environment.get('autoLockedVersion'))}));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Synthetic lockout account restored',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().status).to.eql('ACTIVE')});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-12 confirm test account restored",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\": \"pbl6.r3.lockout@example.test\", \"password\": \"CorrectHorse1\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Restored synthetic account signs in',()=>pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "CMN-01 unknown booking error envelope",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{customerToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/bookings/00000000-0000-7000-8000-000000000099"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Not-found error envelope is safe and correlated',()=>{pm.response.to.have.status(404);const e=pm.response.json().error;pm.expect(e.code).to.be.a('string');pm.expect(e.message).to.be.a('string');pm.expect(e.correlationId).to.be.a('string');pm.expect(pm.response.text()).not.to.match(/stack trace|SELECT |FROM /i)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "CMN-04 missing idempotency key is rejected",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{customerToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/trips/01990a00-0000-7000-8000-000000000007/seat-holds",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"seatIds\": [\"00000000-0000-7000-8000-000000000001\"], \"pickupStopId\": \"00000000-0000-7000-8000-000000000001\", \"dropoffStopId\": \"00000000-0000-7000-8000-000000000002\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Mutation without Idempotency-Key is rejected',()=>pm.expect(pm.response.code).to.be.within(400,499));"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5080/api/v1"
+    }
+  ]
+}

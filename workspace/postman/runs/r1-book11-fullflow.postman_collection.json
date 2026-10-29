@@ -1,0 +1,256 @@
+{
+  "info": {
+    "name": "PBL6 Round 1 BOOK-11 Client total tampering",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Login operator",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\":\"operator.seed@example.test\",\"password\":\"OperatorPass1\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.response.to.have.status(200);pm.environment.set('operatorToken',pm.response.json().accessToken);pm.environment.set('customerToken',pm.response.json().accessToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create booking test trip",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{operatorToken}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r1-book11-ogze40f2zf-261207"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/trips",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"routeId\":\"01990a00-0000-7000-8000-000000000006\",\"busId\":\"01990a00-0000-7000-8000-000000000003\",\"driverId\":\"01990a00-0000-7000-8000-000000000035\",\"departureAt\":\"2027-01-06T06:00:00Z\",\"arrivalAt\":\"2027-01-06T10:00:00Z\",\"fare\":{\"amount\":150000,\"currency\":\"VND\"},\"policyVersion\":\"cancel-mvp-v1\",\"expectedVersion\":0}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Trip draft created',()=>{pm.response.to.have.status(201);pm.environment.set('bookingTripId',pm.response.json().id)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Publish booking test trip",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{operatorToken}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r1-book11-fecb61qnwr-261207"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/trips/{{bookingTripId}}/publish",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"expectedVersion\":0}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Trip publish accepted',()=>pm.expect(pm.response.code).to.be.oneOf([200,202]));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Customer login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\":\"seed.customer@example.test\",\"password\":\"CustomerPass1\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.response.to.have.status(200);pm.environment.set('customerToken',pm.response.json().accessToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Read available seats",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{customerToken}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/trips/{{bookingTripId}}/seats"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Find available seat',()=>{pm.response.to.have.status(200);const b=pm.response.json();const s=b.seats.find(x=>x.status==='AVAILABLE');pm.expect(s).to.exist;pm.environment.set('bookingSeatId',s.id)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Read stops",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{customerToken}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/trips/{{bookingTripId}}/stops"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Find ordered stops',()=>{pm.response.to.have.status(200);const s=pm.response.json();pm.environment.set('pickupStop',s[0].id);pm.environment.set('dropoffStop',s[s.length-1].id)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create hold",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{customerToken}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r1-book11-r9o1qf9qzv-261207"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/trips/{{bookingTripId}}/seat-holds",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"seatIds\":[\"{{bookingSeatId}}\"],\"pickupStopId\":\"{{pickupStop}}\",\"dropoffStopId\":\"{{dropoffStop}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Hold created',()=>{pm.response.to.have.status(201);pm.environment.set('bookingHold',pm.response.json().holdToken)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "BOOK-11 Create booking with tampered expectedTotal",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{customerToken}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r1-book11-spb0vzhtas-261207"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/bookings",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"holdToken\":\"{{bookingHold}}\",\"contact\":{\"fullName\":\"Postman Synthetic\",\"email\":\"seed.customer@example.test\",\"phone\":\"+840000000001\"},\"passengers\":[{\"seatId\":\"{{bookingSeatId}}\",\"fullName\":\"Postman Passenger\",\"documentType\":null,\"documentNumber\":null,\"pickupStopId\":\"{{pickupStop}}\",\"dropoffStopId\":\"{{dropoffStop}}\"}],\"expectedTotal\":1,\"currency\":\"VND\",\"paymentChannel\":\"PREPAID\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "console.log('BOOK11 '+pm.response.text());pm.test('Server calculates the fare and ignores client total',()=>{pm.response.to.have.status(201);pm.expect(pm.response.json().total).to.eql(150000);});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

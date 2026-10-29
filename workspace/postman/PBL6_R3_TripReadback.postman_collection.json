@@ -1,0 +1,27 @@
+{
+  "info": {
+    "name": "PBL6 trip readback",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Inspect synthetic trip state",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/trips/01a1825e-ce81-77ac-a288-7ec225093288"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "console.log('TRIP STATE '+pm.response.text());pm.response.to.have.status(200);"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

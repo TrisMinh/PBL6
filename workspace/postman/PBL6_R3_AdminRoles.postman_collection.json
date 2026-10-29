@@ -1,0 +1,148 @@
+{
+  "info": {
+    "name": "PBL6 Round 3 Admin role replacement and restore",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Admin login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\":\"admin.seed@example.test\",\"password\":\"AdminPass1234\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.response.to.have.status(200);pm.environment.set('adminToken',pm.response.json().accessToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Find synthetic role test user",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/admin/users?page=0&size=100"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Find synthetic account and save version',()=>{pm.response.to.have.status(200);const u=pm.response.json().items.find(x=>x.email==='pbl6.r3.lockout@example.test');pm.expect(u).to.exist;pm.environment.set('roleTestUserId',u.id);pm.environment.set('roleTestVersion',u.rowVersion)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "ADM-02 Remove customer role on synthetic user",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/admin/users/{{roleTestUserId}}/roles",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"roleCodes\":[],\"reason\":\"Round 3 role replacement test\",\"expectedVersion\":\"{{roleTestVersion}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Role replacement removes role from synthetic user',()=>{pm.response.to.have.status(200);const u=pm.response.json();pm.expect(u.roles).to.eql([]);pm.environment.set('roleRestoreVersion',u.rowVersion)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "ADM-02 Restore customer role on synthetic user",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/admin/users/{{roleTestUserId}}/roles",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"roleCodes\":[\"CUSTOMER\"],\"reason\":\"Restore synthetic test user role\",\"expectedVersion\":\"{{roleRestoreVersion}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Synthetic user role restored',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().roles).to.include('CUSTOMER')});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Verify synthetic account remains active",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/admin/users/{{roleTestUserId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Synthetic user profile retained after role restore',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().status).to.eql('ACTIVE');pm.expect(pm.response.json().roles).to.include('CUSTOMER')});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

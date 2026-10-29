@@ -1,0 +1,7 @@
+{
+  "info": {"name":"PBL6 Round 3 customer cannot check in a ticket","schema":"https://schema.getpostman.com/json/collection/v2.1.0/collection.json"},
+  "item": [
+    {"name":"Customer login","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"url":"http://localhost:5080/api/v1/auth/login","body":{"mode":"raw","raw":"{\"identifier\":\"seed.customer@example.test\",\"password\":\"CustomerPass1\"}"}},"event":[{"listen":"test","script":{"type":"text/javascript","exec":["pm.response.to.have.status(200);pm.environment.set('t',pm.response.json().accessToken);"]}}]},
+    {"name":"TKT-09 Customer cannot check in ticket","request":{"method":"POST","header":[{"key":"Authorization","value":"Bearer {{t}}"},{"key":"Idempotency-Key","value":"pbl6-r3-customer-checkin-ticket"},{"key":"Content-Type","value":"application/json"}],"url":"http://localhost:5080/api/v1/tickets/01a18264-d050-7859-87c9-ac97499370e4/check-in","body":{"mode":"raw","raw":"{\"tripId\":\"01a1825d-b562-7b04-bab7-d50af84b5142\",\"scannedToken\":\"synthetic-ticket-scan\",\"expectedVersion\":1}"}},"event":[{"listen":"test","script":{"type":"text/javascript","exec":["console.log('CUSTOMER CHECKIN '+pm.response.text());pm.test('Customer is denied or ticket is concealed',()=>pm.expect([403,404]).to.include(pm.response.code));"]}}]}
+  ]
+}

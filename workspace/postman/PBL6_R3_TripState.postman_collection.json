@@ -1,0 +1,299 @@
+{
+  "info": {
+    "name": "PBL6 Round 3 Trip state machine checks",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Login operator",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\":\"operator.seed@example.test\",\"password\":\"OperatorPass1\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.response.to.have.status(200);pm.environment.set('accessToken',pm.response.json().accessToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TRIP-08 Reject scheduled directly to arrived",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-trip-invalid-transition-001"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/trips/01a1825d-b562-7b04-bab7-d50af84b5142/status-transitions",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"expectedVersion\":0,\"targetStatus\":\"ARRIVED\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Invalid transition rejected with baseline conflict status',()=>pm.response.to.have.status(409));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TRIP-07 Transition synthetic trip to BOARDING",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-trip-transition-boarding"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/trips/01a1825e-ce81-77ac-a288-7ec225093288/status-transitions",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"expectedVersion\":0,\"targetStatus\":\"BOARDING\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Scheduled to boarding',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().status).to.eql('BOARDING')});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TRIP-07 Transition synthetic trip to DEPARTED",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-trip-transition-departed"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/trips/01a1825e-ce81-77ac-a288-7ec225093288/status-transitions",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"expectedVersion\":1,\"targetStatus\":\"DEPARTED\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Boarding to departed',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().status).to.eql('DEPARTED')});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TRIP-07 Transition synthetic trip to IN_TRANSIT",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-trip-transition-transit"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/trips/01a1825e-ce81-77ac-a288-7ec225093288/status-transitions",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"expectedVersion\":2,\"targetStatus\":\"IN_TRANSIT\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Departed to in transit',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().status).to.eql('IN_TRANSIT')});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TRIP-07 Transition synthetic trip to ARRIVED",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-trip-transition-arrived"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/trips/01a1825e-ce81-77ac-a288-7ec225093288/status-transitions",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"expectedVersion\":3,\"targetStatus\":\"ARRIVED\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('In transit to arrived',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().status).to.eql('ARRIVED')});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TRIP-07 Transition synthetic trip to COMPLETED",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-trip-transition-completed"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/trips/01a1825e-ce81-77ac-a288-7ec225093288/status-transitions",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"expectedVersion\":4,\"targetStatus\":\"COMPLETED\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Arrived to completed',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().status).to.eql('COMPLETED')});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TRIP-14 Hard delete is not available",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/trips/01a1825d-b562-7b04-bab7-d50af84b5142"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Hard deletion is rejected',()=>pm.expect([404,405]).to.include(pm.response.code));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TRIP-14 Verify trip still exists after delete attempt",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/trips/01a1825d-b562-7b04-bab7-d50af84b5142"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Trip remains after unsupported hard delete',()=>pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,140 @@
+{
+  "info": {
+    "name": "PBL6 Round 3 Payment retry and simulator diagnostic",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\":\"seed.customer@example.test\",\"password\":\"CustomerPass1\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.response.to.have.status(200);pm.environment.set('token',pm.response.json().accessToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Get original payment checkout data",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-payment-intent-20261028-001"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/bookings/01a18263-9bb1-7393-9355-47d8efecdb8b/payments",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"provider\":\"VNPAY_SANDBOX\",\"method\":\"VNPAY_QR\",\"returnUri\":\"http://localhost:5173/payment/result\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Same idempotency key replays payment intent',()=>{pm.response.to.have.status(201);const p=pm.response.json();pm.expect(p.id).to.eql('01a18263-e1eb-72e0-bf3f-21eb7d42c212');const u=new URL(p.providerAction.redirectUri);for(const k of ['vnp_TxnRef','vnp_Amount','vnp_ReturnUrl','vnp_OrderInfo'])pm.environment.set(k,u.searchParams.get(k));});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Check local simulator",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:8099/live"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "console.log('SIM LIVE '+pm.response.text());pm.response.to.have.status(200);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Try local simulator payment POST",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "url": "http://localhost:8099/pay",
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "vnp_TxnRef",
+              "value": "{{vnp_TxnRef}}"
+            },
+            {
+              "key": "vnp_Amount",
+              "value": "{{vnp_Amount}}"
+            },
+            {
+              "key": "vnp_ReturnUrl",
+              "value": "{{vnp_ReturnUrl}}"
+            },
+            {
+              "key": "vnp_OrderInfo",
+              "value": "{{vnp_OrderInfo}}"
+            },
+            {
+              "key": "outcome",
+              "value": "00"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "console.log('SIM PAYMENT '+pm.response.code+' '+pm.response.text());console.log('SIM LOCATION '+pm.response.headers.get('Location'));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

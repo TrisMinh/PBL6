@@ -1,0 +1,520 @@
+{
+  "info": {
+    "name": "PBL6 Round 3 Rate limit and input safety probes",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "SEC-04 resend burst 1",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-rate-resend-1"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/resend-verification",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\":\"pbl6.r3.nonexistent-rate@example.test\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Resend burst response 1',()=>{if(1===7){pm.expect(pm.response.code).to.eql(429);pm.expect(pm.response.headers.get('Retry-After')).to.exist}else pm.expect(pm.response.code).to.be.oneOf([200,202,429])});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-04 resend burst 2",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-rate-resend-2"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/resend-verification",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\":\"pbl6.r3.nonexistent-rate@example.test\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Resend burst response 2',()=>{if(2===7){pm.expect(pm.response.code).to.eql(429);pm.expect(pm.response.headers.get('Retry-After')).to.exist}else pm.expect(pm.response.code).to.be.oneOf([200,202,429])});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-04 resend burst 3",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-rate-resend-3"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/resend-verification",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\":\"pbl6.r3.nonexistent-rate@example.test\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Resend burst response 3',()=>{if(3===7){pm.expect(pm.response.code).to.eql(429);pm.expect(pm.response.headers.get('Retry-After')).to.exist}else pm.expect(pm.response.code).to.be.oneOf([200,202,429])});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-04 resend burst 4",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-rate-resend-4"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/resend-verification",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\":\"pbl6.r3.nonexistent-rate@example.test\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Resend burst response 4',()=>{if(4===7){pm.expect(pm.response.code).to.eql(429);pm.expect(pm.response.headers.get('Retry-After')).to.exist}else pm.expect(pm.response.code).to.be.oneOf([200,202,429])});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-04 resend burst 5",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-rate-resend-5"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/resend-verification",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\":\"pbl6.r3.nonexistent-rate@example.test\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Resend burst response 5',()=>{if(5===7){pm.expect(pm.response.code).to.eql(429);pm.expect(pm.response.headers.get('Retry-After')).to.exist}else pm.expect(pm.response.code).to.be.oneOf([200,202,429])});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-04 resend burst 6",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-rate-resend-6"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/resend-verification",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\":\"pbl6.r3.nonexistent-rate@example.test\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Resend burst response 6',()=>{if(6===7){pm.expect(pm.response.code).to.eql(429);pm.expect(pm.response.headers.get('Retry-After')).to.exist}else pm.expect(pm.response.code).to.be.oneOf([200,202,429])});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-04 resend burst 7",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-rate-resend-7"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/resend-verification",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\":\"pbl6.r3.nonexistent-rate@example.test\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Resend burst response 7',()=>{if(7===7){pm.expect(pm.response.code).to.eql(429);pm.expect(pm.response.headers.get('Retry-After')).to.exist}else pm.expect(pm.response.code).to.be.oneOf([200,202,429])});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-04 forgot burst 1",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-rate-forgot-1"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/forgot-password",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\":\"pbl6.r3.nonexistent-rate@example.test\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Forgot burst response 1',()=>{if(1===7){pm.expect(pm.response.code).to.eql(429);pm.expect(pm.response.headers.get('Retry-After')).to.exist}else pm.expect(pm.response.code).to.be.oneOf([200,202,429])});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-04 forgot burst 2",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-rate-forgot-2"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/forgot-password",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\":\"pbl6.r3.nonexistent-rate@example.test\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Forgot burst response 2',()=>{if(2===7){pm.expect(pm.response.code).to.eql(429);pm.expect(pm.response.headers.get('Retry-After')).to.exist}else pm.expect(pm.response.code).to.be.oneOf([200,202,429])});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-04 forgot burst 3",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-rate-forgot-3"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/forgot-password",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\":\"pbl6.r3.nonexistent-rate@example.test\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Forgot burst response 3',()=>{if(3===7){pm.expect(pm.response.code).to.eql(429);pm.expect(pm.response.headers.get('Retry-After')).to.exist}else pm.expect(pm.response.code).to.be.oneOf([200,202,429])});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-04 forgot burst 4",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-rate-forgot-4"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/forgot-password",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\":\"pbl6.r3.nonexistent-rate@example.test\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Forgot burst response 4',()=>{if(4===7){pm.expect(pm.response.code).to.eql(429);pm.expect(pm.response.headers.get('Retry-After')).to.exist}else pm.expect(pm.response.code).to.be.oneOf([200,202,429])});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-04 forgot burst 5",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-rate-forgot-5"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/forgot-password",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\":\"pbl6.r3.nonexistent-rate@example.test\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Forgot burst response 5',()=>{if(5===7){pm.expect(pm.response.code).to.eql(429);pm.expect(pm.response.headers.get('Retry-After')).to.exist}else pm.expect(pm.response.code).to.be.oneOf([200,202,429])});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-04 forgot burst 6",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-rate-forgot-6"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/forgot-password",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\":\"pbl6.r3.nonexistent-rate@example.test\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Forgot burst response 6',()=>{if(6===7){pm.expect(pm.response.code).to.eql(429);pm.expect(pm.response.headers.get('Retry-After')).to.exist}else pm.expect(pm.response.code).to.be.oneOf([200,202,429])});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-04 forgot burst 7",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-rate-forgot-7"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/forgot-password",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\":\"pbl6.r3.nonexistent-rate@example.test\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Forgot burst response 7',()=>{if(7===7){pm.expect(pm.response.code).to.eql(429);pm.expect(pm.response.headers.get('Retry-After')).to.exist}else pm.expect(pm.response.code).to.be.oneOf([200,202,429])});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-05 SQL-like fullName registration",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-injection-sql"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/register",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"fullName\":\"' OR 1=1--\",\"email\":\"pbl6.r3.sql@example.test\",\"phone\":\"+849010009991\",\"password\":\"CorrectHorse1\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('SQL-like text does not cause server error or leak internals',()=>{pm.expect(pm.response.code).not.to.eql(500);const t=pm.response.text().toLowerCase();pm.expect(t).not.to.include('sql exception');pm.expect(t).not.to.include('stack trace')});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-05 XSS-like fullName registration",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-injection-xss"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/register",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"fullName\":\"<script>alert(1)</script>\",\"email\":\"pbl6.r3.xss@example.test\",\"phone\":\"+849010009992\",\"password\":\"CorrectHorse1\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('XSS-like text does not cause server error or leak internals',()=>{pm.expect(pm.response.code).not.to.eql(500);const t=pm.response.text().toLowerCase();pm.expect(t).not.to.include('stack trace')});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

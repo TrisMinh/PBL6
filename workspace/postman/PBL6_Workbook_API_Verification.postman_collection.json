@@ -1,0 +1,2680 @@
+{
+  "info": {
+    "_postman_id": "b2f6bcb9-59df-45f8-99fa-45ac0b020026",
+    "name": "PBL6 Workbook API Verification (Local)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Live local API checks mapped to Test_Report_API_Postman.xlsx. Uses seeded synthetic data and the active OpenAPI v2.0.1 paths."
+  },
+  "item": [
+    {
+      "name": "AUTH-01 Register a valid synthetic customer",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/register",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"fullName\":\"Postman API Test\",\"email\":\"pbl6.postman.sync.01@example.test\",\"phone\":\"+849000000021\",\"password\":\"CorrectHorse1\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Valid registration is accepted',()=>pm.response.to.have.status(202)); pm.test('Accepted operation response returned',()=>{const b=pm.response.json();pm.expect(b.status).to.eql('ACCEPTED')});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-05 Locate verification message in local Mailpit",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:8025/api/v1/messages"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Verification email was delivered to the registered test address',()=>{pm.response.to.have.status(200);const m=pm.response.json().messages.find(x=>x.To.some(y=>y.Address==='pbl6.postman.sync.01@example.test')&&x.Subject==='Verify your email');pm.expect(m,'verification mail').to.exist;pm.environment.set('verificationMessageId',m.ID)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-05 Read verification code from Mailpit",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:8025/api/v1/message/{{verificationMessageId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Extract actual challenge and one-time code from delivered email',()=>{pm.response.to.have.status(200);const t=pm.response.json().Text;const id=t.match(/challengeId=([0-9a-f-]+)/i);const code=t.match(/code=([0-9]{6})/i);pm.expect(id).to.exist;pm.expect(code).to.exist;pm.environment.set('verificationChallengeId',id[1]);pm.environment.set('verificationCode',code[1])});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-05 Verify registered email with delivered code",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-verify-{{verificationChallengeId}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/verify",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"challengeId\":\"{{verificationChallengeId}}\",\"code\":\"{{verificationCode}}\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Delivered verification challenge activates account and returns session',()=>{pm.response.to.have.status(200);const b=pm.response.json();pm.expect(b.accessToken).to.be.a('string');pm.expect(b.refreshToken).to.be.a('string');pm.environment.set('registeredAccessToken',b.accessToken)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-05 Login after successful verification",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\":\"pbl6.postman.sync.01@example.test\",\"password\":\"CorrectHorse1\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Verified account can log in',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().accessToken).to.be.a('string')});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-04 Reject invalid email",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/register",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"fullName\":\"Postman API Test\",\"email\":\"not-an-email\",\"phone\":\"+849000000022\",\"password\":\"CorrectHorse1\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Invalid email rejected',()=>pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-04 Reject invalid phone",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/register",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"fullName\":\"Postman API Test\",\"email\":\"invalid-phone@example.test\",\"phone\":\"0901234567\",\"password\":\"CorrectHorse1\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Invalid phone rejected',()=>pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-04 Reject weak password",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/register",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"fullName\":\"Postman API Test\",\"email\":\"weak-password@example.test\",\"phone\":\"+849000000023\",\"password\":\"short\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Weak password rejected with 422',()=>pm.response.to.have.status(422));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-04 Reject blank required name",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/register",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"fullName\":\"\",\"email\":\"blank-name@example.test\",\"phone\":\"+849000000024\",\"password\":\"CorrectHorse1\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Blank full name rejected',()=>pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-08 Login with valid seeded customer",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\":\"seed.customer@example.test\",\"password\":\"CustomerPass1\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Expected 200 session',()=>pm.response.to.have.status(200)); pm.test('Session tokens returned',()=>{const b=pm.response.json();pm.expect(b.accessToken).to.be.a('string');pm.expect(b.refreshToken).to.be.a('string');pm.environment.set('accessToken',b.accessToken);pm.environment.set('initialRefreshToken',b.refreshToken)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-09 Login with valid seeded phone",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\":\"+840000000001\",\"password\":\"CustomerPass1\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Phone login returns 200 session',()=>pm.response.to.have.status(200)); pm.test('Access token returned',()=>pm.expect(pm.response.json().accessToken).to.be.a('string'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-10 Login with wrong password",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\":\"seed.customer@example.test\",\"password\":\"DefinitelyWrong-01\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Expected 401 invalid credentials',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-13 Rotate refresh token and reject replay",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-refresh-rotation-001"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/refresh",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"refreshToken\":\"{{initialRefreshToken}}\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Refresh rotates the session',()=>{pm.response.to.have.status(200);const b=pm.response.json();pm.expect(b.accessToken).to.be.a('string');pm.expect(b.refreshToken).to.be.a('string').and.not.eql(pm.environment.get('initialRefreshToken'));pm.environment.set('rotatedRefreshToken',b.refreshToken)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-13 Reuse rotated-out refresh token",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-refresh-replay-001"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/refresh",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"refreshToken\":\"{{initialRefreshToken}}\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Replayed old refresh token is rejected',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-14 Login fresh session for logout test",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\":\"seed.customer@example.test\",\"password\":\"CustomerPass1\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Fresh login for logout',()=>{pm.response.to.have.status(200);const b=pm.response.json();pm.environment.set('logoutAccessToken',b.accessToken);pm.environment.set('logoutRefreshToken',b.refreshToken)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-14 Logout revokes current session",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{logoutAccessToken}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-logout-session-0001"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/logout"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Logout returns 204',()=>pm.response.to.have.status(204));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-14 Refresh after logout is rejected",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-logout-refresh-0001"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/refresh",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"refreshToken\":\"{{logoutRefreshToken}}\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Revoked refresh token is rejected',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-16 Forgot password for existing account",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-forgot-known-0001"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/forgot-password",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\":\"seed.customer@example.test\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Known account receives generic 202',()=>{pm.response.to.have.status(202);pm.environment.set('forgotKnownStatus',pm.response.code)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-16 Forgot password for unknown account",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-forgot-unknown-0001"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/forgot-password",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\":\"no.such.user.pbl6@example.test\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Unknown account receives same generic 202',()=>{pm.response.to.have.status(202);pm.expect(pm.response.code).to.eql(Number(pm.environment.get('forgotKnownStatus')))});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-17 Request password reset for verified synthetic user",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-reset-{{resetRun}}-1"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/forgot-password",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\":\"pbl6.postman.sync.01@example.test\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.environment.set('resetRun',pm.variables.replaceIn('{{$guid}}'))"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Reset request for test account is accepted',()=>pm.response.to.have.status(202));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-17 Locate first reset email",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:8025/api/v1/messages"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('First reset challenge email delivered',()=>{pm.response.to.have.status(200);const m=pm.response.json().messages.find(x=>x.To.some(y=>y.Address==='pbl6.postman.sync.01@example.test')&&x.Subject==='Reset your password');pm.expect(m).to.exist;pm.environment.set('firstResetMessageId',m.ID)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-17 Read first reset code",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:8025/api/v1/message/{{firstResetMessageId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Extract first reset challenge',()=>{pm.response.to.have.status(200);const t=pm.response.json().Text;pm.environment.set('firstResetChallengeId',t.match(/challengeId=([0-9a-f-]+)/i)[1]);pm.environment.set('firstResetCode',t.match(/code=([0-9]{6})/i)[1])});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-18 Reject wrong password reset code",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-reset-wrong-{{resetRun}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/reset-password",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"challengeId\":\"{{firstResetChallengeId}}\",\"code\":\"{{invalidResetCode}}\",\"newPassword\":\"TemporaryReset2\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const real=pm.environment.get('firstResetCode');pm.environment.set('invalidResetCode',real==='000000'?'999999':'000000')"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Wrong reset code is rejected',()=>pm.expect([400,401,422]).to.include(pm.response.code));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-17 Reset verified test user to temporary password",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-reset-temp-{{resetRun}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/reset-password",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"challengeId\":\"{{firstResetChallengeId}}\",\"code\":\"{{firstResetCode}}\",\"newPassword\":\"TemporaryReset2\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Valid reset code changes password',()=>pm.response.to.have.status(204));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-17 Login with temporary password",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\":\"pbl6.postman.sync.01@example.test\",\"password\":\"TemporaryReset2\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Temporary password works after reset',()=>pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-17 Request reset to restore original test password",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-restore-{{resetRun}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/forgot-password",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\":\"pbl6.postman.sync.01@example.test\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Restore reset request accepted',()=>pm.response.to.have.status(202));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-17 Locate restore password email",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:8025/api/v1/messages"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Restore reset email delivered',()=>{pm.response.to.have.status(200);const m=pm.response.json().messages.find(x=>x.To.some(y=>y.Address==='pbl6.postman.sync.01@example.test')&&x.Subject==='Reset your password');pm.expect(m).to.exist;pm.environment.set('restoreResetMessageId',m.ID)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-17 Read restore password code",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:8025/api/v1/message/{{restoreResetMessageId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Extract restore reset challenge',()=>{pm.response.to.have.status(200);const t=pm.response.json().Text;pm.environment.set('restoreChallengeId',t.match(/challengeId=([0-9a-f-]+)/i)[1]);pm.environment.set('restoreCode',t.match(/code=([0-9]{6})/i)[1])});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-17 Restore original test password",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-reset-restore-{{resetRun}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/reset-password",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"challengeId\":\"{{restoreChallengeId}}\",\"code\":\"{{restoreCode}}\",\"newPassword\":\"CorrectHorse1\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Restore reset completes',()=>pm.response.to.have.status(204));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-17 Verify original test password restored",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\":\"pbl6.postman.sync.01@example.test\",\"password\":\"CorrectHorse1\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Original synthetic password works again',()=>pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "ADM-05 Login seeded operator",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\":\"operator.seed@example.test\",\"password\":\"OperatorPass1\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Operator seed login',()=>{pm.response.to.have.status(200);pm.environment.set('operatorAccessToken',pm.response.json().accessToken)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "OPS-01 Read own operator organization",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{operatorAccessToken}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/organization"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Operator can read own organization',()=>{pm.response.to.have.status(200);const b=pm.response.json();pm.expect(b.id).to.be.a('string');pm.environment.set('orgName',b.name);pm.environment.set('orgContactEmail',b.contactEmail);pm.environment.set('orgContactPhone',b.contactPhone);pm.environment.set('orgAllowPayLater',String(b.allowPayLater));pm.environment.set('orgVersion',b.rowVersion);pm.environment.set('orgCommissionRate',b.commissionRate);console.log('ORG_STATE',JSON.stringify({allowPayLater:b.allowPayLater,rowVersion:b.rowVersion,commissionRate:b.commissionRate}))});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "OPS-01 Toggle Pay Later for own organization",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{operatorAccessToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/organization",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.body.update(JSON.stringify({name:pm.environment.get('orgName'),contactEmail:pm.environment.get('orgContactEmail'),contactPhone:pm.environment.get('orgContactPhone'),allowPayLater:pm.environment.get('orgAllowPayLater')!=='true',expectedVersion:Number(pm.environment.get('orgVersion'))}))"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Pay Later toggle updates organization',()=>{pm.response.to.have.status(200);const b=pm.response.json();pm.expect(b.allowPayLater).to.eql(pm.environment.get('orgAllowPayLater')!=='true');pm.environment.set('orgToggledVersion',b.rowVersion)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "OPS-01 Restore original Pay Later setting",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{operatorAccessToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/organization",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.body.update(JSON.stringify({name:pm.environment.get('orgName'),contactEmail:pm.environment.get('orgContactEmail'),contactPhone:pm.environment.get('orgContactPhone'),allowPayLater:pm.environment.get('orgAllowPayLater')==='true',expectedVersion:Number(pm.environment.get('orgToggledVersion'))}))"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Original Pay Later setting restored',()=>{pm.response.to.have.status(200);const b=pm.response.json();pm.expect(String(b.allowPayLater)).to.eql(pm.environment.get('orgAllowPayLater'));pm.environment.set('orgRestoredVersion',b.rowVersion)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "OPS-02 Operator cannot change platform commission rate",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{operatorAccessToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/organization",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.body.update(JSON.stringify({name:pm.environment.get('orgName'),contactEmail:pm.environment.get('orgContactEmail'),contactPhone:pm.environment.get('orgContactPhone'),allowPayLater:pm.environment.get('orgAllowPayLater')==='true',commissionRate:0,expectedVersion:Number(pm.environment.get('orgRestoredVersion'))}))"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Platform-owned commission rate is unchanged',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().commissionRate).to.eql(Number(pm.environment.get('orgCommissionRate')))});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "OPS-04/05/06 Read operator buses",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{operatorAccessToken}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/buses"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Operator bus list returns array',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json()).to.be.an('array')});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "OPS-07/08 Read operator drivers",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{operatorAccessToken}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/drivers"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Operator driver list returns array',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json()).to.be.an('array')});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "OPS-09/10/11 Read operator routes",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{operatorAccessToken}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/routes"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Operator route list returns array',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json()).to.be.an('array')});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TRIP-01/02/03/04/05/06/12 Read operator trips",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{operatorAccessToken}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/trips?page=0&size=10"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Operator trip page returned',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().items).to.be.an('array')});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "ADM-05 Customer denied operator administration",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/admin/users/01990a00-0000-7000-8000-000000000021/status",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Customer is denied on admin user-status endpoint',()=>pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "REP-01 Login seeded platform admin",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\":\"admin.seed@example.test\",\"password\":\"AdminPass1234\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Admin seed login',()=>{pm.response.to.have.status(200);pm.environment.set('adminAccessToken',pm.response.json().accessToken)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "REP-01 Read revenue report through active endpoint",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminAccessToken}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/reports/revenue?from=2026-10-01T00%3A00%3A00Z&to=2026-10-31T23%3A59%3A59Z&timezone=Asia%2FHo_Chi_Minh"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Authorized revenue report returns JSON',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json()).to.be.an('object')});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "ADM-06 Read admin booking listing",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminAccessToken}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/admin/bookings?page=0&size=10"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Admin booking search returns page',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().items).to.be.an('array')});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "REP-04 Invalid report period",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminAccessToken}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/reports/revenue?from=2026-10-30T00%3A00%3A00Z&to=2026-10-01T00%3A00%3A00Z&timezone=Asia%2FHo_Chi_Minh"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Reversed report range is rejected',()=>pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "PAY-07 Reject webhook with invalid signature",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/integrations/payments/vnpay-sandbox/webhooks",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"vnp_SecureHash\":\"invalid-signature\",\"vnp_TxnRef\":\"unknown-payment-reference\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Invalid provider signature is rejected as bad request',()=>{pm.response.to.have.status(400);pm.expect(pm.response.json().error.code).to.eql('WEBHOOK_INVALID')});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TRIP-11 Login seeded driver",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\":\"driver.seed@example.test\",\"password\":\"DriverPass1\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Driver seed account login',()=>{pm.response.to.have.status(200);pm.environment.set('driverAccessToken',pm.response.json().accessToken)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected current user without token",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/users/me"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Unauthenticated request rejected with 401',()=>pm.response.to.have.status(401)); pm.test('Authentication error code returned',()=>pm.expect(pm.response.json().error.code).to.eql('AUTHENTICATION_REQUIRED')); pm.test('Correlation ID returned',()=>pm.expect(pm.response.headers.get('X-Correlation-Id')).to.be.a('string').and.not.empty);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected bookings endpoint without token",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/bookings"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Bookings require authentication',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected ticket endpoint without token",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/tickets"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Tickets require authentication',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected notifications endpoint without token",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/notifications"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Notifications require authentication',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected operator endpoint without token",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/operator/trips"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Operator trips require authentication',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected driver endpoint without token",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/driver/assignments"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Driver assignments require authentication',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SEC-01 Protected reporting endpoint without token",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/reports/revenue?from=2026-10-01T00%3A00%3A00Z&to=2026-10-31T23%3A59%3A59Z&timezone=Asia%2FHo_Chi_Minh"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Reports require authentication',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "PRF-01 Read own authenticated profile",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/users/me"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Authenticated current-user profile returns 200',()=>pm.response.to.have.status(200)); pm.test('Profile identifies the seed customer',()=>{const b=pm.response.json();pm.expect(b.email).to.eql('seed.customer@example.test');pm.environment.set('profileFullName',b.fullName);pm.environment.set('profileVersion',b.rowVersion);console.log('PROFILE_STATE',JSON.stringify({fullName:b.fullName,rowVersion:b.rowVersion}))});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "PRF-02 Update own full name temporarily",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/users/me",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.body.update(JSON.stringify({fullName:'Postman Profile Temp',expectedVersion:Number(pm.environment.get('profileVersion'))}));console.log('UPDATE_REQUEST',pm.request.body.raw)"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Profile name updates at expected version',()=>{console.log('UPDATE_RESPONSE',pm.response.text());pm.response.to.have.status(200);const b=pm.response.json();pm.expect(b.fullName).to.eql('Postman Profile Temp');pm.environment.set('profileChangedVersion',b.rowVersion)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "PRF-02 Restore original profile name",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/users/me",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.body.update(JSON.stringify({fullName:pm.environment.get('profileFullName'),expectedVersion:Number(pm.environment.get('profileChangedVersion'))}))"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Original profile name restored',()=>{pm.response.to.have.status(200);const b=pm.response.json();pm.expect(b.fullName).to.eql(pm.environment.get('profileFullName'));pm.environment.set('profileRestoredVersion',b.rowVersion)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "CMN-03 Correlation ID with caller supplied value",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          },
+          {
+            "key": "X-Correlation-Id",
+            "value": "pbl6-correlation-check-001"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/users/me"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Correlation ID returned in header and error/data envelope',()=>{pm.response.to.have.status(200);pm.expect(pm.response.headers.get('X-Correlation-Id')).to.be.a('string').and.not.empty});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SRCH-01 Public search for seeded sellable trip",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/trips?origin=Seed%20Origin%20Station&destination=Seed%20Destination%20Station&departureDate=2026-12-01&passengerCount=1"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Search returns 200',()=>pm.response.to.have.status(200)); pm.test('Seed result is present and sellable',()=>{const b=pm.response.json();pm.expect(b.items).to.be.an('array').that.is.not.empty;pm.expect(b.items[0].sellable).to.eql(true)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SRCH-03 Search with no matching trips",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/trips?origin=NoSuchOriginPBL6&destination=NoSuchDestinationPBL6&departureDate=2026-12-01&passengerCount=1"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('No-result search returns 200',()=>pm.response.to.have.status(200)); pm.test('No matching trip is returned',()=>pm.expect(pm.response.json().items).to.be.an('array').that.is.empty);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SRCH-04 Missing required origin",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/trips?destination=Seed%20Destination%20Station&departureDate=2026-12-01&passengerCount=1"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Missing origin rejected',()=>pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SRCH-04 Missing required destination",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/trips?origin=Seed%20Origin%20Station&departureDate=2026-12-01&passengerCount=1"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Missing destination rejected',()=>pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SRCH-04 Invalid date format",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/trips?origin=Seed%20Origin%20Station&destination=Seed%20Destination%20Station&departureDate=not-a-date&passengerCount=1"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Invalid date rejected',()=>pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SRCH-04 Passenger count zero",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/trips?origin=Seed%20Origin%20Station&destination=Seed%20Destination%20Station&departureDate=2026-12-01&passengerCount=0"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Passenger count below one rejected',()=>pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SRCH-05 Minimum price filter",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/trips?origin=Seed%20Origin%20Station&destination=Seed%20Destination%20Station&departureDate=2026-12-01&passengerCount=1&minPrice=160000"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Minimum price filter returns matching page',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().items.every(x=>x.fare.amount>=160000)).to.eql(true)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SRCH-05 Price range filter",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/trips?origin=Seed%20Origin%20Station&destination=Seed%20Destination%20Station&departureDate=2026-12-01&passengerCount=1&minPrice=140000&maxPrice=160000"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Price range includes only matching fares',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().items.every(x=>x.fare.amount>=140000&&x.fare.amount<=160000)).to.eql(true)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SRCH-05 Departure time filter",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/trips?origin=Seed%20Origin%20Station&destination=Seed%20Destination%20Station&departureDate=2026-12-01&passengerCount=1&departureTimeFrom=00%3A00%3A00&departureTimeTo=03%3A00%3A00"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Departure time range filters returned trips',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().items.every(x=>{const h=new Date(x.departureAt).getUTCHours();return h>=0&&h<=3})).to.eql(true)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SRCH-05 Organization filter",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/trips?origin=Seed%20Origin%20Station&destination=Seed%20Destination%20Station&departureDate=2026-12-01&passengerCount=1&organizationId=01990a00-0000-7000-8000-000000000001"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Organization filter returns scoped trip',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().items.every(x=>x.organizationId==='01990a00-0000-7000-8000-000000000001')).to.eql(true)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SRCH-05 Pickup and drop-off filter",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/trips?origin=Seed%20Origin%20Station&destination=Seed%20Destination%20Station&departureDate=2026-12-01&passengerCount=1&pickupStopId=01990a00-0000-7000-8000-000000000004&dropoffStopId=01990a00-0000-7000-8000-000000000005"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Stop filter returns compatible trip',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().items).to.be.an('array')});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SRCH-05 Amenities filter",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/trips?origin=Seed%20Origin%20Station&destination=Seed%20Destination%20Station&departureDate=2026-12-01&passengerCount=1&amenities=WIFI"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Amenities filter returns matching page',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().items.every(x=>x.amenities.includes('WIFI'))).to.eql(true)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SRCH-05 Bus type filter",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/trips?origin=Seed%20Origin%20Station&destination=Seed%20Destination%20Station&departureDate=2026-12-01&passengerCount=1&busType=VIP"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Bus type filter returns matching page',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().items.every(x=>x.busType==='VIP')).to.eql(true)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SRCH-06 Sort by price ascending",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/trips?origin=Seed%20Origin%20Station&destination=Seed%20Destination%20Station&departureDate=2026-12-01&passengerCount=1&sort=PRICE_ASC"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Price ascending sort response is ordered',()=>{pm.response.to.have.status(200);const a=pm.response.json().items.map(x=>x.fare.amount);pm.expect(a).to.eql([...a].sort((x,y)=>x-y))});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SRCH-06 Sort by price descending",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/trips?origin=Seed%20Origin%20Station&destination=Seed%20Destination%20Station&departureDate=2026-12-01&passengerCount=1&sort=PRICE_DESC"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Price descending sort response is ordered',()=>{pm.response.to.have.status(200);const a=pm.response.json().items.map(x=>x.fare.amount);pm.expect(a).to.eql([...a].sort((x,y)=>y-x))});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SRCH-06 Sort by departure ascending",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/trips?origin=Seed%20Origin%20Station&destination=Seed%20Destination%20Station&departureDate=2026-12-01&passengerCount=1&sort=DEPARTURE_ASC"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Departure ascending sort response is ordered',()=>{pm.response.to.have.status(200);const a=pm.response.json().items.map(x=>Date.parse(x.departureAt));pm.expect(a).to.eql([...a].sort((x,y)=>x-y))});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SRCH-06 Sort by departure descending",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/trips?origin=Seed%20Origin%20Station&destination=Seed%20Destination%20Station&departureDate=2026-12-01&passengerCount=1&sort=DEPARTURE_DESC"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Departure descending sort response is ordered',()=>{pm.response.to.have.status(200);const a=pm.response.json().items.map(x=>Date.parse(x.departureAt));pm.expect(a).to.eql([...a].sort((x,y)=>y-x))});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SRCH-06 Sort by duration ascending",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/trips?origin=Seed%20Origin%20Station&destination=Seed%20Destination%20Station&departureDate=2026-12-01&passengerCount=1&sort=DURATION_ASC"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Duration ascending sort response is ordered',()=>{pm.response.to.have.status(200);const a=pm.response.json().items.map(x=>Date.parse(x.arrivalAt)-Date.parse(x.departureAt));pm.expect(a).to.eql([...a].sort((x,y)=>x-y))});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SRCH-06 Sort by duration descending",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/trips?origin=Seed%20Origin%20Station&destination=Seed%20Destination%20Station&departureDate=2026-12-01&passengerCount=1&sort=DURATION_DESC"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Duration descending sort response is ordered',()=>{pm.response.to.have.status(200);const a=pm.response.json().items.map(x=>Date.parse(x.arrivalAt)-Date.parse(x.departureAt));pm.expect(a).to.eql([...a].sort((x,y)=>y-x))});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SRCH-07 First page of seeded trips",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/trips?origin=Seed%20Origin%20Station&destination=Seed%20Destination%20Station&departureDate=2026-12-01&passengerCount=1&page=0&size=1"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('First page metadata and item count',()=>{pm.response.to.have.status(200);const b=pm.response.json();pm.expect(b.page).to.eql(0);pm.expect(b.size).to.eql(1);pm.expect(b.items.length).to.be.at.most(1);pm.environment.set('firstPageIds',JSON.stringify(b.items.map(x=>x.id)));pm.environment.set('firstPageTotal',b.totalElements)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SRCH-07 Second page of seeded trips",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/trips?origin=Seed%20Origin%20Station&destination=Seed%20Destination%20Station&departureDate=2026-12-01&passengerCount=1&page=1&size=1"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Second page does not duplicate first page',()=>{pm.response.to.have.status(200);const b=pm.response.json();pm.expect(b.page).to.eql(1);const prev=JSON.parse(pm.environment.get('firstPageIds'));pm.expect(b.items.some(x=>prev.includes(x.id))).to.eql(false);pm.expect(b.totalElements).to.eql(Number(pm.environment.get('firstPageTotal')))});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SRCH-12 SQL injection search input",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/trips?origin=%27%20OR%201%3D1--&destination=Seed%20Destination%20Station&departureDate=2026-12-01&passengerCount=1"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('SQL-like input is handled without server error or reflected query',()=>{pm.response.to.have.status(200);pm.expect(pm.response.text()).not.to.include(\"' OR 1=1--\")});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SRCH-12 XSS search input",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/trips?origin=%3Cscript%3Ealert(1)%3C%2Fscript%3E&destination=Seed%20Destination%20Station&departureDate=2026-12-01&passengerCount=1"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('XSS-like input is handled without server error or reflected markup',()=>{pm.response.to.have.status(200);pm.expect(pm.response.text().toLowerCase()).not.to.include('<script>')});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SRCH-08 Search size above contract limit",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/trips?origin=Seed%20Origin%20Station&destination=Seed%20Destination%20Station&departureDate=2026-12-01&passengerCount=1&size=100000"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Oversized page rejected with validation error',()=>{pm.response.to.have.status(400);pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR')});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SRCH-09 Read seeded trip details",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Trip detail returns 200',()=>pm.response.to.have.status(200)); pm.test('Trip id matches requested seed',()=>pm.expect(pm.response.json().id).to.eql('01990a00-0000-7000-8000-000000000007'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SRCH-10 Read unknown trip",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/trips/00000000-0000-7000-8000-000000000099"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Unknown trip returns 404',()=>pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SRCH-11 Read seeded trip seat availability",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seats"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Seat list returns 200',()=>pm.response.to.have.status(200)); pm.test('Availability timestamp is present',()=>{const b=pm.response.json();pm.expect(b.availabilityAsOf).to.be.a('string').and.not.empty;console.log('SEAT_BODY',JSON.stringify(b))});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "BOOK-22 List own bookings",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/bookings"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Authenticated bookings list returns 200',()=>pm.response.to.have.status(200)); pm.test('Booking page shape returned',()=>{const b=pm.response.json();pm.expect(b.items).to.be.an('array');pm.expect(b).to.have.property('totalElements');pm.environment.set('seedBookingId',b.items[0].id);const payLater=b.items.find(x=>x.paymentChannel==='PAY_LATER'&&x.status==='CONFIRMED');if(payLater)pm.environment.set('payLaterBookingId',payLater.id);const pending=b.items.find(x=>x.paymentChannel==='PREPAID'&&x.status==='PENDING_PAYMENT');if(pending)pm.environment.set('pendingBookingId',pending.id)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "BOOK-23 Different customer cannot read seed booking",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{registeredAccessToken}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/bookings/{{seedBookingId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Other customer booking is concealed',()=>pm.expect([403,404]).to.include(pm.response.code));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "BOOK-24 Unknown booking returns not found",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/bookings/00000000-0000-7000-8000-000000000099"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Unknown booking returns 404',()=>pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TKT-01 List own tickets and retain a real ticket id",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/tickets"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Own ticket page returns 200',()=>{pm.response.to.have.status(200);const b=pm.response.json();pm.expect(b.items).to.be.an('array');if(b.items.length>0)pm.environment.set('seedTicketId',b.items[0].id);else console.log('NO_SEED_TICKETS')});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TKT-01 Read own ticket",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/tickets/{{seedTicketId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Own ticket returns identifying fields and opaque QR',()=>{pm.response.to.have.status(200);const b=pm.response.json();pm.expect(b.id).to.eql(pm.environment.get('seedTicketId'));pm.expect(b.qrPayload).to.be.a('string').and.not.empty});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TKT-03 QR contains no clear customer PII",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/tickets/{{seedTicketId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('QR payload does not contain seed customer name/email/phone',()=>{pm.response.to.have.status(200);const q=pm.response.json().qrPayload;pm.expect(q).not.to.include('Seed Customer');pm.expect(q).not.to.include('seed.customer@example.test');pm.expect(q).not.to.include('+840000000001')});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TKT-04 Different customer cannot read seed ticket",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{registeredAccessToken}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/tickets/{{seedTicketId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Other customer ticket is concealed',()=>pm.expect([403,404]).to.include(pm.response.code));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TKT-09 Customer cannot check in ticket",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-customer-checkin-0001"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/tickets/{{seedTicketId}}/check-in",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"tripId\":\"01990a00-0000-7000-8000-000000000007\",\"scannedToken\":\"fake-ticket-scan-token\",\"expectedVersion\":0}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Customer is denied or ticket is concealed',()=>pm.expect([403,404]).to.include(pm.response.code));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "PAY-02 Payment rejected for PAY_LATER booking",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-paylater-reject-0001"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/bookings/{{payLaterBookingId}}/payments",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"provider\":\"VNPAY_SANDBOX\",\"method\":\"VNPAY_QR\",\"returnUri\":\"http://localhost:5173/payment/return\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('PAY_LATER booking cannot start gateway payment',()=>pm.expect(pm.response.code).to.be.within(400,499));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "PAY-03 Payment rejected for expired pending booking",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-expired-payment-0001"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/bookings/{{pendingBookingId}}/payments",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"provider\":\"VNPAY_SANDBOX\",\"method\":\"VNPAY_QR\",\"returnUri\":\"http://localhost:5173/payment/return\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Expired booking returns 410 BOOKING_EXPIRED',()=>{if(pm.response.code===201)pm.environment.set('unexpectedPaymentId',pm.response.json().id);pm.response.to.have.status(410);pm.expect(pm.response.json().error.code).to.eql('BOOKING_EXPIRED')});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "PAY-04 Other customer cannot create payment for seed booking",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{registeredAccessToken}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-foreign-payment-0001"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/bookings/{{pendingBookingId}}/payments",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"provider\":\"VNPAY_SANDBOX\",\"method\":\"VNPAY_QR\",\"returnUri\":\"http://localhost:5173/payment/return\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Foreign booking is concealed',()=>pm.expect([403,404]).to.include(pm.response.code));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TRIP-11 Driver reads assigned trips",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{driverAccessToken}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/driver/assignments"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Assigned driver receives at least one assignment',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json()).to.be.an('array').that.is.not.empty});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "BOOK-06 Create seat hold without authentication",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-unauth-hold-001"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seat-holds",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"seatIds\":[\"A1\"]}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Seat hold requires authentication',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

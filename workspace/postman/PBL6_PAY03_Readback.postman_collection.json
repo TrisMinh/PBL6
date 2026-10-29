@@ -1,0 +1,66 @@
+{
+  "info": {
+    "name": "PBL6 PAY03 Safe Payment Readback",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "PAY-03 Login seed customer for payment readback",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\": \"seed.customer@example.test\", \"password\": \"CustomerPass1\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Login and retain token',()=>{pm.response.to.have.status(200);pm.environment.set('accessToken',pm.response.json().accessToken)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "PAY-03 Read back sandbox payment created by prior test",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/payments/01a18231-5200-79a4-98c5-7f4e79db8eb8"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Payment readback returns its actual state',()=>{pm.response.to.have.status(200);const b=pm.response.json();pm.expect(b.id).to.eql('01a18231-5200-79a4-98c5-7f4e79db8eb8');console.log('PAYMENT_READBACK',JSON.stringify(b))});"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5080/api/v1"
+    }
+  ]
+}

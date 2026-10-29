@@ -1,0 +1,88 @@
+{
+  "request": {
+    "url": "http://localhost:8025/api/v1/message/VRRSseoLnPGqVxThVBrCT5",
+    "header": [
+      {
+        "key": "User-Agent",
+        "value": "PostmanRuntime/7.56.2",
+        "system": true
+      },
+      {
+        "key": "Accept",
+        "value": "*/*",
+        "system": true
+      },
+      {
+        "key": "Cache-Control",
+        "value": "no-cache",
+        "system": true
+      },
+      {
+        "key": "Postman-Token",
+        "value": "4746826d-a0d9-4873-bcd6-029f61d8b0f2",
+        "system": true
+      },
+      {
+        "key": "Host",
+        "value": "localhost:8025",
+        "system": true
+      },
+      {
+        "key": "Accept-Encoding",
+        "value": "gzip, deflate, br",
+        "system": true
+      },
+      {
+        "key": "Connection",
+        "value": "keep-alive",
+        "system": true
+      }
+    ],
+    "method": "GET",
+    "body": ""
+  },
+  "response": {
+    "id": "f5253a57-030d-4c88-b685-e7e719fada3f",
+    "status": "OK",
+    "code": 200,
+    "header": [
+      {
+        "key": "Content-Encoding",
+        "value": "gzip"
+      },
+      {
+        "key": "Content-Security-Policy",
+        "value": "default-src 'self'; script-src 'nonce-2ZpRRhBLRKLXJkgqH48Tn8'; style-src * 'unsafe-inline'; frame-src 'self'; img-src * data: blob:; font-src * data:; media-src 'self'; connect-src 'self' ws: wss:; object-src 'none'; base-uri 'self';"
+      },
+      {
+        "key": "Content-Type",
+        "value": "application/json"
+      },
+      {
+        "key": "Referrer-Policy",
+        "value": "no-referrer"
+      },
+      {
+        "key": "Date",
+        "value": "Wed, 28 Oct 2026 11:15:55 GMT"
+      },
+      {
+        "key": "Content-Length",
+        "value": "389"
+      }
+    ],
+    "cookie": [],
+    "responseTime": 20,
+    "responseSize": 544,
+    "downloadedBytes": 389,
+    "body": "{\"ID\":\"VRRSseoLnPGqVxThVBrCT5\",\"MessageID\":\"EzctHnfkJi8yjZjQy97DpG@mailpit\",\"From\":{\"Name\":\"\",\"Address\":\"noreply@example.test\"},\"To\":[{\"Name\":\"\",\"Address\":\"pbl6.postman.sync.01@example.test\"}],\"Cc\":[],\"Bcc\":[],\"ReplyTo\":[],\"ReturnPath\":\"noreply@example.test\",\"Subject\":\"Verify your email\",\"ListUnsubscribe\":{\"Header\":\"\",\"Links\":[],\"Errors\":\"\",\"HeaderPost\":\"\"},\"Date\":\"2026-10-28T11:15:41Z\",\"Tags\":[],\"Username\":\"\",\"Text\":\"challengeId=01a18239-1393-70fa-b978-6d218b81ebbb; code=107790\\r\\n\\r\\n\",\"HTML\":\"\",\"Size\":612,\"Inline\":[],\"Attachments\":[]}\n"
+  },
+  "timestamp": "2026-10-28T11:15:55.889Z",
+  "tests": {
+    "total": 0,
+    "passed": 0,
+    "failed": 0,
+    "results": []
+  },
+  "scriptLogs": []
+}

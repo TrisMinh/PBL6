@@ -1,0 +1,45 @@
+﻿{
+    "info":  {
+                 "name":  "PBL6 Round 3 Payment amount integrity probe",
+                 "schema":  "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+             },
+    "item":  [
+                 {
+                     "name":  "PAY-08 Wrong amount in otherwise valid signed webhook",
+                     "request":  {
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "url":  "http://localhost:5080/integrations/payments/vnpay-sandbox/webhooks",
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\"vnp_TmnCode\":\"LOCALDEV\",\"vnp_TxnRef\":\"01a18263-e1eb-72e0-bf3f-21eb7d42c212\",\"vnp_Amount\":\"15000100\",\"vnp_ResponseCode\":\"00\",\"externalEventId\":\"pbl6-r3-wrong-amount-unique\",\"success\":true,\"vnp_SecureHash\":\"{{signature}}\"}"
+                                              }
+                                 },
+                     "event":  [
+                                   {
+                                       "listen":  "prerequest",
+                                       "script":  {
+                                                      "type":  "text/javascript",
+                                                      "exec":  [
+                                                                   "const fields={vnp_Amount:\u002715000100\u0027,vnp_ResponseCode:\u002700\u0027,vnp_TmnCode:\u0027LOCALDEV\u0027,vnp_TxnRef:\u002701a18263-e1eb-72e0-bf3f-21eb7d42c212\u0027};const data=Object.keys(fields).sort().map(k=\u003ek+\u0027=\u0027+encodeURIComponent(fields[k]).replace(/%20/g,\u0027+\u0027)).join(\u0027\u0026\u0027);pm.environment.set(\u0027signature\u0027,CryptoJS.HmacSHA512(data,\u0027local-dev-only-vnpay-hash-secret-32b\u0027).toString(CryptoJS.enc.Hex));"
+                                                               ]
+                                                  }
+                                   },
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "type":  "text/javascript",
+                                                      "exec":  [
+                                                                   "console.log(\u0027WRONG AMOUNT WEBHOOK \u0027+pm.response.text());pm.test(\u0027Mismatched amount returns PAYMENT_VERIFICATION_FAILED 422\u0027,()=\u003e{pm.response.to.have.status(422);pm.expect(pm.response.json().error.code).to.eql(\u0027PAYMENT_VERIFICATION_FAILED\u0027)});"
+                                                               ]
+                                                  }
+                                   }
+                               ]
+                 }
+             ]
+}

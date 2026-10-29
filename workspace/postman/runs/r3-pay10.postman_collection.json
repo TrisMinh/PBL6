@@ -1,0 +1,184 @@
+{
+  "info": {
+    "name": "PBL6 R3 PAY-10 late webhook after seat resale",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Customer login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\":\"seed.customer@example.test\",\"password\":\"CustomerPass1\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.response.to.have.status(200);pm.environment.set('token',pm.response.json().accessToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reserve the seat for another booking",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-pay10-new-hold"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/trips/01a1825e-ce81-77ac-a288-7ec225093288/seat-holds",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"seatIds\":[\"01a1825e-d209-7449-b24a-a27b51970df8\"],\"pickupStopId\":\"01990a00-0000-7000-8000-000000000004\",\"dropoffStopId\":\"01990a00-0000-7000-8000-000000000005\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Other booking holds the released seat',()=>{pm.response.to.have.status(201);pm.environment.set('newHold',pm.response.json().holdToken);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create the replacement booking for that seat",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-pay10-new-booking"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/bookings",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"holdToken\":\"{{newHold}}\",\"contact\":{\"fullName\":\"PAY10 replacement\",\"email\":\"seed.customer@example.test\",\"phone\":\"+840000000001\"},\"passengers\":[{\"seatId\":\"01a1825e-d209-7449-b24a-a27b51970df8\",\"fullName\":\"PAY10 replacement\",\"pickupStopId\":\"01990a00-0000-7000-8000-000000000004\",\"dropoffStopId\":\"01990a00-0000-7000-8000-000000000005\"}],\"expectedTotal\":150000,\"currency\":\"VND\",\"paymentChannel\":\"PREPAID\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Replacement booking created',()=>{pm.response.to.have.status(201);pm.environment.set('replacementBooking',pm.response.json().id);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "PAY-10 Deliver late success webhook for expired booking",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/integrations/payments/vnpay-sandbox/webhooks",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"externalEventId\":\"PBL6-R3-PAY10-LATE\",\"logicalReference\":\"01a182bb-c125-7958-8fe2-b84d2c765b6f\",\"success\":true,\"vnp_Amount\":\"15000000\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "console.log('PAY10 WEBHOOK '+pm.response.code+' '+pm.response.text());pm.response.to.have.status(204);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Check expired booking after late webhook",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/bookings/01a182b8-d213-7058-8fb6-fdea51d8011a"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "console.log('PAY10 OLD BOOKING '+pm.response.text());pm.test('Expired booking is not paid after late webhook',()=>{pm.response.to.have.status(200);pm.expect(['EXPIRED','REFUND_PENDING','REFUNDED']).to.include(pm.response.json().status);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Check no ticket was issued to expired booking",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/tickets"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('No second active ticket is issued for the expired booking',()=>{pm.response.to.have.status(200);const items=pm.response.json().items||[];pm.expect(items.filter(t=>t.bookingId==='01a182b8-d213-7058-8fb6-fdea51d8011a')).to.have.length(0);});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

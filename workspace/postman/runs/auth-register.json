@@ -1,0 +1,98 @@
+{
+  "request": {
+    "url": "http://localhost:5080/api/v1/auth/register",
+    "header": [
+      {
+        "disabled": false,
+        "description": {
+          "content": "Auto-detected JSON content type",
+          "type": "text/plain"
+        },
+        "key": "Content-Type",
+        "value": "application/json"
+      },
+      {
+        "key": "User-Agent",
+        "value": "PostmanRuntime/7.56.2",
+        "system": true
+      },
+      {
+        "key": "Accept",
+        "value": "*/*",
+        "system": true
+      },
+      {
+        "key": "Cache-Control",
+        "value": "no-cache",
+        "system": true
+      },
+      {
+        "key": "Postman-Token",
+        "value": "d22ef5cc-5751-404c-b81f-2f4186e3b359",
+        "system": true
+      },
+      {
+        "key": "Host",
+        "value": "localhost:5080",
+        "system": true
+      },
+      {
+        "key": "Accept-Encoding",
+        "value": "gzip, deflate, br",
+        "system": true
+      },
+      {
+        "key": "Connection",
+        "value": "keep-alive",
+        "system": true
+      },
+      {
+        "key": "Content-Length",
+        "value": "126",
+        "system": true
+      }
+    ],
+    "method": "POST",
+    "body": "{email:postman.pbl6.20261028.c5de06826e@example.test,fullName:Postman API Test,password:PostmanStrongPass1,phone:+84987123456}"
+  },
+  "response": {
+    "id": "bbf9d9bd-5635-458e-9696-832e86fabe5c",
+    "status": "Bad Request",
+    "code": 400,
+    "header": [
+      {
+        "key": "Content-Type",
+        "value": "application/json; charset=utf-8"
+      },
+      {
+        "key": "Date",
+        "value": "Wed, 28 Oct 2026 11:12:54 GMT"
+      },
+      {
+        "key": "Server",
+        "value": "Kestrel"
+      },
+      {
+        "key": "Transfer-Encoding",
+        "value": "chunked"
+      },
+      {
+        "key": "X-Correlation-Id",
+        "value": "01a18236-8c73-7835-9758-a02f5d4f7ff6"
+      }
+    ],
+    "cookie": [],
+    "responseTime": 16,
+    "responseSize": 128,
+    "downloadedBytes": 128,
+    "body": "{\"error\":{\"code\":\"VALIDATION_ERROR\",\"message\":\"The request is invalid.\",\"correlationId\":\"01a18236-8c75-76fc-9342-28d2ad358808\"}}"
+  },
+  "timestamp": "2026-10-28T11:12:55.448Z",
+  "tests": {
+    "total": 0,
+    "passed": 0,
+    "failed": 0,
+    "results": []
+  },
+  "scriptLogs": []
+}

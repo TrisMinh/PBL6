@@ -1,0 +1,60 @@
+{
+  "info": {
+    "name": "PBL6 Round 3 unpaid booking expiry",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Customer login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\":\"seed.customer@example.test\",\"password\":\"CustomerPass1\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.response.to.have.status(200);pm.environment.set('t',pm.response.json().accessToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "BOOK-21 Read expired synthetic prepaid booking",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{t}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/bookings/01a18266-208f-792d-bc90-9cc21db05a0e"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "console.log('BOOKING EXPIRY '+pm.response.text());pm.test('Unpaid PREPAID booking expires and releases inventory',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().status).to.eql('EXPIRED')});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

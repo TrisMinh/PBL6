@@ -1,0 +1,232 @@
+{
+  "info": {
+    "name": "PBL6 R1 TRIP-09 unassigned driver access 2027-01-23",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Operator login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\":\"operator.seed@example.test\",\"password\":\"OperatorPass1\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.response.to.have.status(200);pm.environment.set('op',pm.response.json().accessToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create second driver profile for a trip not assigned to driver.seed",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{op}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-trip09-driver-2027-01-23"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/drivers",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"userId\":\"01a182d0-0000-7000-8000-202701230000\",\"licenseNumber\":\"R1-TRIP09-2027-01-23\",\"licenseExpiresOn\":\"2028-12-31\",\"expectedVersion\":0}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Second driver profile created',()=>{pm.response.to.have.status(201);pm.environment.set('otherDriver',pm.response.json().id);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create trip assigned to the other driver",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{op}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-trip09-trip-2027-01-23"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/trips",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"routeId\":\"01990a00-0000-7000-8000-000000000006\",\"busId\":\"01990a00-0000-7000-8000-000000000003\",\"driverId\":\"{{otherDriver}}\",\"departureAt\":\"2027-01-23T06:00:00Z\",\"arrivalAt\":\"2027-01-23T10:00:00Z\",\"fare\":{\"amount\":150000,\"currency\":\"VND\"},\"policyVersion\":\"cancel-mvp-v1\",\"expectedVersion\":0}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Trip draft created with second driver',()=>{pm.response.to.have.status(201);pm.environment.set('trip09',pm.response.json().id);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Publish trip assigned to other driver",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{op}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-trip09-publish-2027-01-23"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/trips/{{trip09}}/publish",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"expectedVersion\":0}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.expect(pm.response.code).to.be.oneOf([200,202]);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Driver login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\":\"driver.seed@example.test\",\"password\":\"DriverPass1\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.response.to.have.status(200);pm.environment.set('driver',pm.response.json().accessToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TRIP-09 Unassigned driver cannot change trip status",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{driver}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-trip09-transition-2027-01-23"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/trips/{{trip09}}/status-transitions",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"targetStatus\":\"BOARDING\",\"expectedVersion\":1}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "console.log('TRIP09 TRANSITION '+pm.response.code+' '+pm.response.text());pm.test('Unassigned driver is denied status change',()=>pm.expect(pm.response.code).to.be.oneOf([403,404]));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TRIP-09 Unassigned driver cannot read passenger manifest",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{driver}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/trips/{{trip09}}/manifest"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "console.log('TRIP09 MANIFEST '+pm.response.code+' '+pm.response.text());pm.test('Unassigned driver is denied manifest access',()=>pm.expect(pm.response.code).to.be.oneOf([403,404]));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

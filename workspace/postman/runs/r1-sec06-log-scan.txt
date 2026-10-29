@@ -1,0 +1,5 @@
+﻿Round 1 – SEC-06 log review
+Date: 2026-10-28
+Sources: local Docker Compose logs, last 4 hours (925,287 bytes).
+Checks: test password, JSON password values, OTP values, refresh tokens, bearer tokens, PAN/CVV/card number fields, document number fields.
+Matches found: 0 for each check.

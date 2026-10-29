@@ -1,0 +1,205 @@
+{
+  "info": {
+    "name": "PBL6 Round 3 VNPAY sandbox completion",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Customer login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\":\"seed.customer@example.test\",\"password\":\"CustomerPass1\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.response.to.have.status(200);pm.environment.set('token',pm.response.json().accessToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "PAY-13 Read payment and prepare local sandbox form",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/payments/01a18263-e1eb-72e0-bf3f-21eb7d42c212"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Payment response contains no PAN or CVV and redirect action',()=>{pm.response.to.have.status(200);const p=pm.response.json();pm.expect(JSON.stringify(p).toLowerCase()).not.to.include('cvv');pm.expect(JSON.stringify(p).toLowerCase()).not.to.include('pan');const u=new URL(p.providerAction.redirectUri);for(const k of ['vnp_TxnRef','vnp_Amount','vnp_ReturnUrl','vnp_OrderInfo'])pm.environment.set(k,u.searchParams.get(k));pm.environment.set('paymentId',p.id)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "PAY-05 Complete a sandbox VNPAY checkout",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "url": "http://localhost:8099/pay",
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "vnp_TxnRef",
+              "value": "{{vnp_TxnRef}}"
+            },
+            {
+              "key": "vnp_Amount",
+              "value": "{{vnp_Amount}}"
+            },
+            {
+              "key": "vnp_ReturnUrl",
+              "value": "{{vnp_ReturnUrl}}"
+            },
+            {
+              "key": "vnp_OrderInfo",
+              "value": "{{vnp_OrderInfo}}"
+            },
+            {
+              "key": "outcome",
+              "value": "00"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Local sandbox accepted the signed success callback and returned redirect',()=>pm.response.to.have.status(302));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "PAY-05 Verify payment succeeded after webhook",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/payments/01a18263-e1eb-72e0-bf3f-21eb7d42c212"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Payment is SUCCEEDED after the signed local webhook',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().status).to.eql('SUCCEEDED')});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "PAY-05 Verify booking PAID",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/bookings/01a18263-9bb1-7393-9355-47d8efecdb8b"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Booking moved to PAID',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().status).to.eql('PAID')});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TKT-02 Verify ticket issued for booking item",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/tickets"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Ticket exists for the paid booking seat',()=>{pm.response.to.have.status(200);const b=pm.response.json();const rows=Array.isArray(b)?b:(b.items||[]);pm.expect(rows.length).to.be.at.least(1);pm.environment.set('ticketId',rows[0].id)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "NOTIF-01 Read notifications after payment",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/notifications"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Notification endpoint returns owned notification page',()=>pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

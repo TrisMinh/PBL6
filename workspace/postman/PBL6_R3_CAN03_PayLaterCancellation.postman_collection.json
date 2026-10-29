@@ -1,0 +1,176 @@
+﻿{
+    "info":  {
+                 "name":  "PBL6 Round 3 cancel PAY_LATER booking without gateway refund",
+                 "schema":  "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+             },
+    "item":  [
+                 {
+                     "name":  "Customer login",
+                     "request":  {
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "url":  "http://localhost:5080/api/v1/auth/login",
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\"identifier\":\"seed.customer@example.test\",\"password\":\"CustomerPass1\"}"
+                                              }
+                                 },
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "type":  "text/javascript",
+                                                      "exec":  [
+                                                                   "pm.response.to.have.status(200);pm.environment.set(\u0027t\u0027,pm.response.json().accessToken)"
+                                                               ]
+                                                  }
+                                   }
+                               ]
+                 },
+                 {
+                     "request":  {
+                                     "method":  "GET",
+                                     "url":  "http://localhost:5080/api/v1/bookings/01a1827d-848f-738f-b02e-eacd3c4401b2",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Authorization",
+                                                        "value":  "Bearer {{t}}"
+                                                    }
+                                                ]
+                                 },
+                     "name":  "Read PAY_LATER booking version",
+                     "event":  [
+                                   {
+                                       "script":  {
+                                                      "exec":  [
+                                                                   "console.log(\u0027PAYLATER VERSION \u0027+pm.response.text());pm.response.to.have.status(200);pm.environment.set(\u0027bookingVersion\u0027,pm.response.json().rowVersion)"
+                                                               ],
+                                                      "type":  "text/javascript"
+                                                  },
+                                       "listen":  "test"
+                                   }
+                               ]
+                 },
+                 {
+                     "name":  "Read ticket issued for PAY_LATER booking",
+                     "request":  {
+                                     "method":  "GET",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Authorization",
+                                                        "value":  "Bearer {{t}}"
+                                                    }
+                                                ],
+                                     "url":  "http://localhost:5080/api/v1/tickets"
+                                 },
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "type":  "text/javascript",
+                                                      "exec":  [
+                                                                   "console.log(\u0027PAYLATER TICKETS \u0027+pm.response.text());pm.test(\u0027Find ticket for synthetic PAY_LATER booking\u0027,()=\u003e{pm.response.to.have.status(200);const b=pm.response.json();const rows=Array.isArray(b)?b:(b.items||[]);const t=rows.find(x=\u003ex.bookingId===\u002701a1827d-848f-738f-b02e-eacd3c4401b2\u0027);pm.expect(t).to.exist;pm.environment.set(\u0027ticket\u0027,t.id)})"
+                                                               ]
+                                                  }
+                                   }
+                               ]
+                 },
+                 {
+                     "name":  "Preview PAY_LATER cancellation",
+                     "request":  {
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Authorization",
+                                                        "value":  "Bearer {{t}}"
+                                                    },
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "url":  "http://localhost:5080/api/v1/bookings/01a1827d-848f-738f-b02e-eacd3c4401b2/cancellation-preview",
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\"ticketIds\":[\"{{ticket}}\"]}"
+                                              }
+                                 },
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "type":  "text/javascript",
+                                                      "exec":  [
+                                                                   "console.log(\u0027PAYLATER PREVIEW \u0027+pm.response.text());pm.test(\u0027PAY_LATER preview has no gateway refund\u0027,()=\u003e{pm.response.to.have.status(200);const b=pm.response.json();pm.expect(b.refundAmount).to.eql(0);pm.environment.set(\u0027preview\u0027,b.previewId)})"
+                                                               ]
+                                                  }
+                                   }
+                               ]
+                 },
+                 {
+                     "name":  "CAN-03 Cancel PAY_LATER booking",
+                     "request":  {
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Authorization",
+                                                        "value":  "Bearer {{t}}"
+                                                    },
+                                                    {
+                                                        "key":  "Idempotency-Key",
+                                                        "value":  "pbl6-r3-can03-paylater-cancel-retry"
+                                                    },
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "url":  "http://localhost:5080/api/v1/bookings/01a1827d-848f-738f-b02e-eacd3c4401b2/cancel",
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\"previewId\":\"{{preview}}\",\"reason\":\"Round 3 PAY_LATER cancellation test\",\"expectedVersion\":{{bookingVersion}}}"
+                                              }
+                                 },
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "type":  "text/javascript",
+                                                      "exec":  [
+                                                                   "console.log(\u0027PAYLATER CANCEL \u0027+pm.response.text());pm.test(\u0027PAY_LATER cancellation accepted without payment gateway\u0027,()=\u003epm.response.to.have.status(202))"
+                                                               ]
+                                                  }
+                                   }
+                               ]
+                 },
+                 {
+                     "name":  "Read PAY_LATER booking cancellation state",
+                     "request":  {
+                                     "method":  "GET",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Authorization",
+                                                        "value":  "Bearer {{t}}"
+                                                    }
+                                                ],
+                                     "url":  "http://localhost:5080/api/v1/bookings/01a1827d-848f-738f-b02e-eacd3c4401b2"
+                                 },
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "type":  "text/javascript",
+                                                      "exec":  [
+                                                                   "console.log(\u0027PAYLATER CANCELLATION READBACK \u0027+pm.response.text())"
+                                                               ]
+                                                  }
+                                   }
+                               ]
+                 }
+             ]
+}

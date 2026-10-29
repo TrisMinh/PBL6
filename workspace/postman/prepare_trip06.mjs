@@ -1,0 +1,8 @@
+import fs from 'node:fs/promises';
+const date=process.argv[2]??'2027-01-20';
+const out='C:/Users/minht/OneDrive/Desktop/PBL6/workspace/postman/runs';
+const base='http://localhost:5080/api/v1';
+const login={name:'Operator login',request:{method:'POST',header:[{key:'Content-Type',value:'application/json'}],url:base+'/auth/login',body:{mode:'raw',raw:'{"identifier":"operator.seed@example.test","password":"OperatorPass1"}'}},event:[{listen:'test',script:{type:'text/javascript',exec:["pm.response.to.have.status(200);pm.environment.set('op',pm.response.json().accessToken);"]}}]};
+const draft={name:'TRIP-06 Create draft for inventory readiness check',request:{method:'POST',header:[{key:'Authorization',value:'Bearer {{op}}'},{key:'Idempotency-Key',value:'pbl6-trip06-draft-'+date},{key:'Content-Type',value:'application/json'}],url:base+'/operator/trips',body:{mode:'raw',raw:JSON.stringify({routeId:'01990a00-0000-7000-8000-000000000006',busId:'01990a00-0000-7000-8000-000000000003',driverId:'01990a00-0000-7000-8000-000000000035',departureAt:`${date}T06:00:00Z`,arrivalAt:`${date}T10:00:00Z`,fare:{amount:150000,currency:'VND'},policyVersion:'cancel-mvp-v1',expectedVersion:0})}},event:[{listen:'test',script:{type:'text/javascript',exec:["pm.test('Draft trip created',()=>{pm.response.to.have.status(201);const t=pm.response.json();pm.environment.set('trip06',t.id);console.log('TRIP06_ID '+t.id)});"]}}]};
+const c={info:{name:'PBL6 Round 1 TRIP-06 draft setup',schema:'https://schema.getpostman.com/json/collection/v2.1.0/collection.json'},item:[login,draft]};
+await fs.writeFile(out+'/r1-trip06-draft.postman_collection.json',JSON.stringify(c,null,2));

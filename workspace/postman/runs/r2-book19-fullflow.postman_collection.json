@@ -1,0 +1,348 @@
+{
+  "info": {
+    "name": "PBL6 R2-BOOK19-FULLFLOW BOOK-19 pay later disabled",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Login operator",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\":\"operator.seed@example.test\",\"password\":\"OperatorPass1\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.response.to.have.status(200);pm.environment.set('operatorToken',pm.response.json().accessToken);pm.environment.set('customerToken',pm.response.json().accessToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Read organization current settings",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{operatorToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/organization"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Read current organization settings',()=>{pm.response.to.have.status(200);const o=pm.response.json();pm.environment.set('orgName',o.name);pm.environment.set('orgEmail',o.contactEmail);pm.environment.set('orgPhone',o.contactPhone);pm.environment.set('orgOriginalPayLater',String(o.allowPayLater));pm.environment.set('orgVersion',String(o.rowVersion));});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Disable PAY_LATER temporarily",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{operatorToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/organization",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\":\"{{orgName}}\",\"contactEmail\":\"{{orgEmail}}\",\"contactPhone\":\"{{orgPhone}}\",\"allowPayLater\":false,\"expectedVersion\":{{orgVersion}}}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Disable PAY_LATER setting',()=>{pm.response.to.have.status(200);const o=pm.response.json();pm.expect(o.allowPayLater).to.eql(false);pm.environment.set('orgVersion',String(o.rowVersion));});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create booking test trip",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{operatorToken}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-book19-b4t9y9bd-61207"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/trips",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"routeId\":\"01990a00-0000-7000-8000-000000000006\",\"busId\":\"01990a00-0000-7000-8000-000000000003\",\"driverId\":\"01990a00-0000-7000-8000-000000000035\",\"departureAt\":\"2027-01-11T06:00:00Z\",\"arrivalAt\":\"2027-01-11T10:00:00Z\",\"fare\":{\"amount\":150000,\"currency\":\"VND\"},\"policyVersion\":\"cancel-mvp-v1\",\"expectedVersion\":0}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Trip draft created',()=>{pm.response.to.have.status(201);pm.environment.set('bookingTripId',pm.response.json().id)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Publish booking test trip",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{operatorToken}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-book19-nmqes9ku-61207"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/trips/{{bookingTripId}}/publish",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"expectedVersion\":0}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Trip publish accepted',()=>pm.expect(pm.response.code).to.be.oneOf([200,202]));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Customer login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\":\"seed.customer@example.test\",\"password\":\"CustomerPass1\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.response.to.have.status(200);pm.environment.set('customerToken',pm.response.json().accessToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Read available seats",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{customerToken}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/trips/{{bookingTripId}}/seats"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Find available seat',()=>{pm.response.to.have.status(200);const b=pm.response.json();const s=b.seats.find(x=>x.status==='AVAILABLE');pm.expect(s).to.exist;pm.environment.set('bookingSeatId',s.id)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Read stops",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{customerToken}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/trips/{{bookingTripId}}/stops"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Find ordered stops',()=>{pm.response.to.have.status(200);const s=pm.response.json();pm.environment.set('pickupStop',s[0].id);pm.environment.set('dropoffStop',s[s.length-1].id)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create hold",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{customerToken}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-book19-845n877t-61207"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/trips/{{bookingTripId}}/seat-holds",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"seatIds\":[\"{{bookingSeatId}}\"],\"pickupStopId\":\"{{pickupStop}}\",\"dropoffStopId\":\"{{dropoffStop}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Hold created',()=>{pm.response.to.have.status(201);pm.environment.set('bookingHold',pm.response.json().holdToken)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "BOOK-19 Reject PAY_LATER booking when operator disabled it",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{customerToken}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-book19-zzxoe3ts-61207"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/bookings",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"holdToken\":\"{{bookingHold}}\",\"contact\":{\"fullName\":\"Postman Synthetic\",\"email\":\"seed.customer@example.test\",\"phone\":\"+840000000001\"},\"passengers\":[{\"seatId\":\"{{bookingSeatId}}\",\"fullName\":\"Postman Passenger\",\"documentType\":null,\"documentNumber\":null,\"pickupStopId\":\"{{pickupStop}}\",\"dropoffStopId\":\"{{dropoffStop}}\"}],\"expectedTotal\":150000,\"currency\":\"VND\",\"paymentChannel\":\"PAY_LATER\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "console.log('BOOK19 '+pm.response.text());pm.test('Disabled PAY_LATER is rejected without creating booking',()=>{pm.response.to.have.status(409);pm.expect(pm.response.json().error.code).to.eql('PAY_LATER_NOT_ALLOWED');});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Restore original PAY_LATER setting",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{operatorToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/organization",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\":\"{{orgName}}\",\"contactEmail\":\"{{orgEmail}}\",\"contactPhone\":\"{{orgPhone}}\",\"allowPayLater\":{{orgOriginalPayLater}},\"expectedVersion\":{{orgVersion}}}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Restore PAY_LATER setting',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().allowPayLater).to.eql(pm.environment.get('orgOriginalPayLater')==='true');});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

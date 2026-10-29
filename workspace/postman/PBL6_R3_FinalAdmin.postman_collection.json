@@ -1,0 +1,116 @@
+{
+  "info": {
+    "name": "PBL6 Round 3 Protect final admin",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Admin login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\":\"admin.seed@example.test\",\"password\":\"AdminPass1234\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.response.to.have.status(200);pm.environment.set('token',pm.response.json().accessToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Read admin identity",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/users/me"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.response.to.have.status(200);pm.environment.set('adminId',pm.response.json().id);pm.environment.set('adminVersion',pm.response.json().rowVersion);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "ADM-04 Prevent removing own platform admin role",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/admin/users/{{adminId}}/roles",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"roleCodes\":[],\"reason\":\"Round 3 final admin guard check\",\"expectedVersion\":\"{{adminVersion}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Sole admin self-role removal is denied',()=>pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "ADM-04 Verify admin role retained",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/admin/users/{{adminId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Platform admin role remains after denied change',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().roles).to.include('PLATFORM_ADMIN')});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

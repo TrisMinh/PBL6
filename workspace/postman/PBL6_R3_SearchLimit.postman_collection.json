@@ -1,0 +1,27 @@
+{
+  "info": {
+    "name": "PBL6 Round 3 Search limit verification",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "SRCH-08 Verify server caps oversized page",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:5080/api/v1/trips?origin=Seed%20Origin%20Station&destination=Seed%20Destination%20Station&departureDate=2026-12-01&passengerCount=1&size=100000"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "console.log('SEARCH LIMIT '+pm.response.text());pm.test('Oversized page is rejected or capped at documented maximum',()=>{if(pm.response.code===400)return;pm.response.to.have.status(200);const b=pm.response.json();pm.expect(b.size).to.be.at.most(100);pm.expect(b.items.length).to.be.at.most(100)});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

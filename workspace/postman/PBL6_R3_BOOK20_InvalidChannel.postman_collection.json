@@ -1,0 +1,160 @@
+﻿{
+    "info":  {
+                 "name":  "PBL6 Round 3 invalid booking payment channel",
+                 "schema":  "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+             },
+    "item":  [
+                 {
+                     "name":  "Customer login",
+                     "request":  {
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "url":  "http://localhost:5080/api/v1/auth/login",
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\"identifier\":\"seed.customer@example.test\",\"password\":\"CustomerPass1\"}"
+                                              }
+                                 },
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "type":  "text/javascript",
+                                                      "exec":  [
+                                                                   "pm.response.to.have.status(200);pm.environment.set(\u0027t\u0027,pm.response.json().accessToken)"
+                                                               ]
+                                                  }
+                                   }
+                               ]
+                 },
+                 {
+                     "name":  "Choose an available seat",
+                     "request":  {
+                                     "method":  "GET",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Authorization",
+                                                        "value":  "Bearer {{t}}"
+                                                    }
+                                                ],
+                                     "url":  "http://localhost:5080/api/v1/trips/01a1825e-ce81-77ac-a288-7ec225093288/seats"
+                                 },
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "type":  "text/javascript",
+                                                      "exec":  [
+                                                                   "pm.test(\u0027Live seat inventory available\u0027,()=\u003e{pm.response.to.have.status(200);const s=pm.response.json().seats.find(x=\u003ex.status===\u0027AVAILABLE\u0027);pm.expect(s).to.exist;pm.environment.set(\u0027seat\u0027,s.id)});pm.environment.set(\u0027pickup\u0027,\u002701990a00-0000-7000-8000-000000000004\u0027);pm.environment.set(\u0027dropoff\u0027,\u002701990a00-0000-7000-8000-000000000005\u0027)"
+                                                               ]
+                                                  }
+                                   }
+                               ]
+                 },
+                 {
+                     "name":  "Hold selected seat",
+                     "request":  {
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Authorization",
+                                                        "value":  "Bearer {{t}}"
+                                                    },
+                                                    {
+                                                        "key":  "Idempotency-Key",
+                                                        "value":  "pbl6-r3-book20-hold-final-trip7"
+                                                    },
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "url":  "http://localhost:5080/api/v1/trips/01a1825e-ce81-77ac-a288-7ec225093288/seat-holds",
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\"seatIds\":[\"{{seat}}\"],\"pickupStopId\":\"{{pickup}}\",\"dropoffStopId\":\"{{dropoff}}\"}"
+                                              }
+                                 },
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "type":  "text/javascript",
+                                                      "exec":  [
+                                                                   "console.log(\u0027BOOK20 HOLD \u0027+pm.response.text());pm.response.to.have.status(201);pm.environment.set(\u0027hold\u0027,pm.response.json().holdToken)"
+                                                               ]
+                                                  }
+                                   }
+                               ]
+                 },
+                 {
+                     "name":  "BOOK-20 Reject unsupported paymentChannel",
+                     "request":  {
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Authorization",
+                                                        "value":  "Bearer {{t}}"
+                                                    },
+                                                    {
+                                                        "key":  "Idempotency-Key",
+                                                        "value":  "pbl6-r3-book20-booking-final-trip7"
+                                                    },
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "url":  "http://localhost:5080/api/v1/bookings",
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\"holdToken\":\"{{hold}}\",\"contact\":{\"fullName\":\"Postman Synthetic\",\"email\":\"seed.customer@example.test\",\"phone\":\"+840000000001\"},\"passengers\":[{\"seatId\":\"{{seat}}\",\"fullName\":\"Postman Passenger\",\"pickupStopId\":\"{{pickup}}\",\"dropoffStopId\":\"{{dropoff}}\"}],\"expectedTotal\":150000,\"currency\":\"VND\",\"paymentChannel\":\"COD\"}"
+                                              }
+                                 },
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "type":  "text/javascript",
+                                                      "exec":  [
+                                                                   "console.log(\u0027INVALID CHANNEL \u0027+pm.response.text());pm.test(\u0027Unsupported paymentChannel is rejected as client error\u0027,()=\u003epm.expect(pm.response.code).to.be.within(400,422));"
+                                                               ]
+                                                  }
+                                   }
+                               ]
+                 },
+                 {
+                     "name":  "Release test hold",
+                     "request":  {
+                                     "method":  "DELETE",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Authorization",
+                                                        "value":  "Bearer {{t}}"
+                                                    },
+                                                    {
+                                                        "key":  "Idempotency-Key",
+                                                        "value":  "pbl6-r3-book20-release-trip7"
+                                                    }
+                                                ],
+                                     "url":  "http://localhost:5080/api/v1/seat-holds/{{hold}}"
+                                 },
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "type":  "text/javascript",
+                                                      "exec":  [
+                                                                   "pm.test(\u0027Test hold released\u0027,()=\u003epm.response.to.have.status(204))"
+                                                               ]
+                                                  }
+                                   }
+                               ]
+                 }
+             ]
+}

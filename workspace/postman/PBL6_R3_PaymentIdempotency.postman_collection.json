@@ -1,0 +1,193 @@
+{
+  "info": {
+    "name": "PBL6 Round 3 Verified sandbox payment and duplicate webhook",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Customer login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\":\"seed.customer@example.test\",\"password\":\"CustomerPass1\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.response.to.have.status(200);pm.environment.set('token',pm.response.json().accessToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Read/replay original payment intent",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-payment-intent-20261028-001"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/bookings/01a18263-9bb1-7393-9355-47d8efecdb8b/payments",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"provider\":\"VNPAY_SANDBOX\",\"method\":\"VNPAY_QR\",\"returnUri\":\"http://localhost:5173/payment/result\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Payment intent response has no card data and stable id',()=>{pm.response.to.have.status(201);const p=pm.response.json();pm.expect(p.id).to.eql('01a18263-e1eb-72e0-bf3f-21eb7d42c212');const text=JSON.stringify(p).toLowerCase();pm.expect(text).not.to.include('cvv');pm.expect(text).not.to.include('pan');const u=new URL(p.providerAction.redirectUri);for(const k of ['vnp_TxnRef','vnp_Amount','vnp_ReturnUrl','vnp_OrderInfo'])pm.environment.set(k,u.searchParams.get(k));});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Replay VNPAY sandbox success (duplicate event)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "url": "http://localhost:8099/pay",
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "vnp_TxnRef",
+              "value": "{{vnp_TxnRef}}"
+            },
+            {
+              "key": "vnp_Amount",
+              "value": "{{vnp_Amount}}"
+            },
+            {
+              "key": "vnp_ReturnUrl",
+              "value": "{{vnp_ReturnUrl}}"
+            },
+            {
+              "key": "vnp_OrderInfo",
+              "value": "{{vnp_OrderInfo}}"
+            },
+            {
+              "key": "outcome",
+              "value": "00"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Local simulator completed duplicate callback',()=>pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "PAY-05/06 Verify payment state is idempotently SUCCEEDED",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/payments/01a18263-e1eb-72e0-bf3f-21eb7d42c212"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Duplicate success webhook leaves one succeeded payment',()=>{pm.response.to.have.status(200);const p=pm.response.json();pm.expect(p.status).to.eql('SUCCEEDED');pm.expect(p.rowVersion).to.eql(1)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "PAY-05 Verify booking PAID after payment",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/bookings/01a18263-9bb1-7393-9355-47d8efecdb8b"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Booking remains PAID',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().status).to.eql('PAID')});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TKT-02 Verify one ticket is issued for paid booking",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/tickets"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Exactly one ticket belongs to this booking',()=>{pm.response.to.have.status(200);const b=pm.response.json();const rows=Array.isArray(b)?b:(b.items||[]);const mine=rows.filter(x=>x.bookingId==='01a18263-9bb1-7393-9355-47d8efecdb8b');pm.expect(mine.length).to.eql(1)});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

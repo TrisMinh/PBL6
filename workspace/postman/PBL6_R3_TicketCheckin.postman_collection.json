@@ -1,0 +1,216 @@
+{
+  "info": {
+    "name": "PBL6 Round 3 ticket scan and check-in workflow",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Customer login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\":\"seed.customer@example.test\",\"password\":\"CustomerPass1\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.response.to.have.status(200);pm.environment.set('token',pm.response.json().accessToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Read ticket from paid synthetic booking",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/tickets"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Save synthetic ticket details',()=>{pm.response.to.have.status(200);const b=pm.response.json();const rows=Array.isArray(b)?b:(b.items||[]);const t=rows.find(x=>x.bookingId==='01a18263-9bb1-7393-9355-47d8efecdb8b');pm.expect(t).to.exist;pm.environment.set('ticketId',t.id);pm.environment.set('ticketQr',t.qrPayload);pm.environment.set('ticketTripId',t.tripId);pm.environment.set('ticketVersion',t.rowVersion)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TKT-06 Validate ticket using wrong trip",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/tickets/validate",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"tripId\":\"01a1825e-ce81-77ac-a288-7ec225093288\",\"scannedToken\":\"{{ticketQr}}\",\"expectedVersion\":\"{{ticketVersion}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "console.log('WRONG TRIP '+pm.response.text());pm.test('Ticket from another trip is rejected with expected business code',()=>{pm.expect(pm.response.code).to.eql(422);pm.expect(pm.response.json().error.code).to.eql('TICKET_NOT_VALID_FOR_TRIP')});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Assigned driver login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\":\"driver.seed@example.test\",\"password\":\"DriverPass1\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.response.to.have.status(200);pm.environment.set('token',pm.response.json().accessToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TKT-05 Assigned driver checks in own trip ticket",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-checkin-ticket-001"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/tickets/{{ticketId}}/check-in",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"tripId\":\"{{ticketTripId}}\",\"scannedToken\":\"{{ticketQr}}\",\"expectedVersion\":\"{{ticketVersion}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Assigned driver checks in issued ticket',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().status).to.eql('CHECKED_IN');pm.environment.set('checkedInVersion',pm.response.json().rowVersion)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TKT-07 Repeat check-in same ticket",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-checkin-ticket-002"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/tickets/{{ticketId}}/check-in",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"tripId\":\"{{ticketTripId}}\",\"scannedToken\":\"{{ticketQr}}\",\"expectedVersion\":\"{{checkedInVersion}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Repeated scan reports already checked in',()=>pm.expect([409,422]).to.include(pm.response.code));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Verify ticket remains checked-in",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/tickets/{{ticketId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Ticket remains checked in after repeated scan',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().status).to.eql('CHECKED_IN')});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

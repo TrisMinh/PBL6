@@ -1,0 +1,212 @@
+{
+  "info": {
+    "name": "PBL6 Round 3 cross-tenant isolation check",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Admin login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\":\"admin.seed@example.test\",\"password\":\"AdminPass1234\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.response.to.have.status(200);pm.environment.set('adminToken',pm.response.json().accessToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Find verified synthetic user",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/admin/users?page=0&size=100"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Synthetic principal exists',()=>{pm.response.to.have.status(200);const u=pm.response.json().items.find(x=>x.email==='pbl6.postman.sync.01@example.test');pm.expect(u).to.exist;pm.environment.set('orgBUserId',u.id)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create active operator membership in synthetic org",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "pbl6-r3-orgB-member-001"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/admin/organizations/01a18268-a46e-7e4e-8fd5-d662922496d5/members",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"userId\":\"{{orgBUserId}}\",\"roleCodes\":[\"OPERATOR_ADMIN\"],\"status\":\"ACTIVE\",\"reason\":\"Round 3 cross-tenant test\",\"expectedVersion\":0}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Synthetic operator membership created',()=>{pm.response.to.have.status(201);pm.environment.set('orgBMembershipId',pm.response.json().id)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Login synthetic org B operator",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\":\"pbl6.postman.sync.01@example.test\",\"password\":\"CorrectHorse1\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.response.to.have.status(200);pm.environment.set('orgBToken',pm.response.json().accessToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "OPS-03 Read synthetic org bus list",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{orgBToken}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/buses"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Synthetic org does not see seed operator buses',()=>{pm.response.to.have.status(200);const a=pm.response.json();pm.expect(a).to.be.an('array');pm.expect(a.some(x=>x.id==='01990a00-0000-7000-8000-000000000003')).to.eql(false)});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "OPS-03 Attempt cross-org bus update",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{orgBToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/operator/buses/01990a00-0000-7000-8000-000000000003",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"plateNumber\":\"PBL6-IDOR-ATTEMPT\",\"type\":\"Test Coach\",\"amenities\":[],\"expectedVersion\":0}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Cross-tenant update is concealed',()=>pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "End synthetic org membership",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/admin/organizations/01a18268-a46e-7e4e-8fd5-d662922496d5/members/{{orgBMembershipId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"userId\":\"{{orgBUserId}}\",\"roleCodes\":[\"OPERATOR_ADMIN\"],\"status\":\"ENDED\",\"reason\":\"Round 3 membership cleanup\",\"expectedVersion\":0}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Synthetic membership ended for cleanup',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().status).to.eql('ENDED')});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
