@@ -1,4 +1,5 @@
 using System.Net;
+using Npgsql;
 using System.Net.Http.Json;
 using BusTicketPlatform.Identity.Domain;
 
@@ -101,7 +102,7 @@ public sealed class AuthFlowTests
     }
 
     [Fact]
-    public async Task Register_is_enumeration_safe_and_rejects_weak_passwords()
+    public async Task Register_rejects_duplicate_active_identity_and_weak_passwords()
     {
         var client = _fixture.CreateClient();
         var (email, phone, password, name) = IdentityTestData.NewUser();
@@ -112,15 +113,35 @@ public sealed class AuthFlowTests
             phone,
             password
         });
-        var duplicate = await IdentityTestData.SendAsync(client, HttpMethod.Post, "/api/v1/auth/register", new
+        var notice = _fixture.Mailbox.LastFor(email)!;
+        var verified = await IdentityTestData.SendAsync(
+            client,
+            HttpMethod.Post,
+            "/api/v1/auth/verify",
+            new { challengeId = notice.ChallengeId, code = notice.Code },
+            idempotency: IdentityTestData.IdempotencyKey());
+        Assert.Equal(HttpStatusCode.OK, verified.Response.StatusCode);
+
+        var differentIdentity = IdentityTestData.NewUser();
+        var duplicateEmail = await IdentityTestData.SendAsync(client, HttpMethod.Post, "/api/v1/auth/register", new
         {
             fullName = name,
             email,
+            phone = differentIdentity.Phone,
+            password
+        });
+        var duplicatePhone = await IdentityTestData.SendAsync(client, HttpMethod.Post, "/api/v1/auth/register", new
+        {
+            fullName = name,
+            email = differentIdentity.Email,
             phone,
             password
         });
         Assert.Equal(HttpStatusCode.Accepted, first.Response.StatusCode);
-        Assert.Equal(HttpStatusCode.Accepted, duplicate.Response.StatusCode);
+        Assert.Equal(HttpStatusCode.Conflict, duplicateEmail.Response.StatusCode);
+        Assert.Equal("IDENTITY_ALREADY_USED", duplicateEmail.Body.GetProperty("error").GetProperty("code").GetString());
+        Assert.Equal(HttpStatusCode.Conflict, duplicatePhone.Response.StatusCode);
+        Assert.Equal("IDENTITY_ALREADY_USED", duplicatePhone.Body.GetProperty("error").GetProperty("code").GetString());
 
         var weakUser = IdentityTestData.NewUser();
         var weak = await IdentityTestData.SendAsync(client, HttpMethod.Post, "/api/v1/auth/register", new
@@ -132,6 +153,105 @@ public sealed class AuthFlowTests
         });
         Assert.Equal(HttpStatusCode.UnprocessableEntity, weak.Response.StatusCode);
         Assert.Equal("PASSWORD_POLICY_VIOLATION", weak.Body.GetProperty("error").GetProperty("code").GetString());
+    }
+
+    [Fact]
+    public async Task Expired_verification_challenge_is_rejected_and_account_stays_pending()
+    {
+        var client = _fixture.CreateClient();
+        var pending = IdentityTestData.NewUser();
+        var registered = await IdentityTestData.SendAsync(client, HttpMethod.Post, "/api/v1/auth/register", new
+        {
+            fullName = pending.Name,
+            email = pending.Email,
+            phone = pending.Phone,
+            password = pending.Password
+        });
+        Assert.Equal(HttpStatusCode.Accepted, registered.Response.StatusCode);
+        var notice = _fixture.Mailbox.LastFor(pending.Email);
+        Assert.NotNull(notice);
+
+        await using (var connection = new NpgsqlConnection(_fixture.Container.GetConnectionString()))
+        {
+            await connection.OpenAsync();
+            await using var expire = new NpgsqlCommand(
+                "UPDATE auth_challenges SET expires_at = created_at + INTERVAL '1 millisecond' WHERE id = @id",
+                connection);
+            expire.Parameters.AddWithValue("id", notice.ChallengeId);
+            Assert.Equal(1, await expire.ExecuteNonQueryAsync());
+        }
+
+        var verified = await IdentityTestData.SendAsync(
+            client,
+            HttpMethod.Post,
+            "/api/v1/auth/verify",
+            new { challengeId = notice.ChallengeId, code = notice.Code },
+            idempotency: IdentityTestData.IdempotencyKey());
+        Assert.Equal(HttpStatusCode.Gone, verified.Response.StatusCode);
+        Assert.Equal("VERIFICATION_EXPIRED", verified.Body.GetProperty("error").GetProperty("code").GetString());
+
+        var login = await IdentityTestData.SendAsync(client, HttpMethod.Post, "/api/v1/auth/login", new
+        {
+            identifier = pending.Email,
+            password = pending.Password
+        });
+        Assert.Equal(HttpStatusCode.Unauthorized, login.Response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Resend_and_forgot_password_are_rate_limited_per_identity()
+    {
+        var client = _fixture.CreateClient();
+        var pending = IdentityTestData.NewUser();
+        var registered = await IdentityTestData.SendAsync(client, HttpMethod.Post, "/api/v1/auth/register", new
+        {
+            fullName = pending.Name,
+            email = pending.Email,
+            phone = pending.Phone,
+            password = pending.Password
+        });
+        Assert.Equal(HttpStatusCode.Accepted, registered.Response.StatusCode);
+
+        HttpResponseMessage? resendResponse = null;
+        System.Text.Json.JsonElement resendBody = default;
+        for (var attempt = 1; attempt <= 6; attempt++)
+        {
+            var resend = await IdentityTestData.SendAsync(
+                client,
+                HttpMethod.Post,
+                "/api/v1/auth/resend-verification",
+                new { email = pending.Email },
+                idempotency: IdentityTestData.IdempotencyKey());
+            resendResponse = resend.Response;
+            resendBody = resend.Body;
+        }
+
+        Assert.NotNull(resendResponse);
+        Assert.Equal(HttpStatusCode.TooManyRequests, resendResponse.StatusCode);
+        Assert.True(resendResponse.Headers.TryGetValues("Retry-After", out var resendRetry));
+        Assert.Equal("900", Assert.Single(resendRetry));
+        Assert.Equal("RATE_LIMITED", resendBody.GetProperty("error").GetProperty("code").GetString());
+
+        var unknownEmail = $"missing.{Guid.CreateVersion7():N}@example.test";
+        HttpResponseMessage? forgotResponse = null;
+        System.Text.Json.JsonElement forgotBody = default;
+        for (var attempt = 1; attempt <= 6; attempt++)
+        {
+            var forgot = await IdentityTestData.SendAsync(
+                client,
+                HttpMethod.Post,
+                "/api/v1/auth/forgot-password",
+                new { email = unknownEmail },
+                idempotency: IdentityTestData.IdempotencyKey());
+            forgotResponse = forgot.Response;
+            forgotBody = forgot.Body;
+        }
+
+        Assert.NotNull(forgotResponse);
+        Assert.Equal(HttpStatusCode.TooManyRequests, forgotResponse.StatusCode);
+        Assert.True(forgotResponse.Headers.TryGetValues("Retry-After", out var forgotRetry));
+        Assert.Equal("900", Assert.Single(forgotRetry));
+        Assert.Equal("RATE_LIMITED", forgotBody.GetProperty("error").GetProperty("code").GetString());
     }
 
     [Fact]

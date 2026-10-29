@@ -90,6 +90,11 @@ public interface IIdentityRepository
         string? reasonCode,
         Guid correlationId,
         CancellationToken cancellationToken);
+    Task<int> CountRecentAuditsAsync(
+        string action,
+        string reasonCode,
+        DateTimeOffset since,
+        CancellationToken cancellationToken);
     Task<(IReadOnlyList<UserRecord> Items, long Total)> ListUsersAsync(int page, int size, CancellationToken cancellationToken);
     Task<IReadOnlyList<MembershipRecord>> GetMembershipsForUserAsync(Guid userId, CancellationToken cancellationToken);
     Task<IReadOnlyList<MembershipRecord>> ListMembershipsAsync(Guid organizationId, CancellationToken cancellationToken);

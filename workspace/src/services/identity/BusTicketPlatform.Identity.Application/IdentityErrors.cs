@@ -27,6 +27,9 @@ public static class IdentityErrors
     public static AppError AccountLocked() =>
         new(ErrorCodes.AccountLocked, "The account is temporarily locked.", StatusCodes.Locked);
 
+    public static AppError RateLimited() =>
+        new(ErrorCodes.RateLimited, "Too many requests.", StatusCodes.TooManyRequests);
+
     public static AppError InvalidCredentials() =>
         new(ErrorCodes.InvalidCredentials, "The credentials are not valid.", StatusCodes.Unauthorized);
 

@@ -119,7 +119,7 @@ public sealed class IdentityRepository(IdentityDatabaseOptions options, IIdGener
         await using var command = new NpgsqlCommand("""
             SELECT r.code FROM user_roles ur
             JOIN roles r ON r.id = ur.role_id
-            WHERE ur.user_id = @userId AND ur.active;
+            WHERE ur.user_id = @userId AND ur.active AND ur.organization_id_external IS NULL;
             """, connection);
         command.Parameters.AddWithValue("userId", userId);
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
@@ -324,6 +324,25 @@ public sealed class IdentityRepository(IdentityDatabaseOptions options, IIdGener
         command.Parameters.AddWithValue("reason", (object?)reasonCode ?? DBNull.Value);
         command.Parameters.AddWithValue("correlation", correlationId);
         await command.ExecuteNonQueryAsync(cancellationToken);
+    }
+
+    public async Task<int> CountRecentAuditsAsync(
+        string action,
+        string reasonCode,
+        DateTimeOffset since,
+        CancellationToken cancellationToken)
+    {
+        await using var connection = await OpenAsync(cancellationToken);
+        await using var command = new NpgsqlCommand("""
+            SELECT COUNT(*)
+            FROM security_audits
+            WHERE action = @action AND reason_code = @reason AND occurred_at >= @since;
+            """, connection);
+        command.Parameters.AddWithValue("action", action);
+        command.Parameters.AddWithValue("reason", reasonCode);
+        command.Parameters.AddWithValue("since", since.UtcDateTime);
+        var result = await command.ExecuteScalarAsync(cancellationToken);
+        return Convert.ToInt32(result);
     }
 
     public async Task<(IReadOnlyList<UserRecord> Items, long Total)> ListUsersAsync(int page, int size, CancellationToken cancellationToken)

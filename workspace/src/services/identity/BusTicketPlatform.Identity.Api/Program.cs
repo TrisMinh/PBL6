@@ -1,7 +1,10 @@
 using System.Text;
+using System.Security.Claims;
 using BusTicketPlatform.BuildingBlocks.AspNetCore;
 using BusTicketPlatform.BuildingBlocks.AspNetCore.Health;
 using BusTicketPlatform.Identity.Api;
+using BusTicketPlatform.Identity.Application;
+using BusTicketPlatform.Identity.Domain;
 using BusTicketPlatform.Identity.Infrastructure;
 using BusTicketPlatform.Identity.Infrastructure.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -37,6 +40,30 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ClockSkew = TimeSpan.FromSeconds(30),
             RoleClaimType = System.Security.Claims.ClaimTypes.Role,
             NameClaimType = "sub"
+        };
+        options.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = async context =>
+            {
+                var subject = context.Principal?.FindFirstValue("sub")
+                    ?? context.Principal?.FindFirstValue(ClaimTypes.NameIdentifier);
+                var versionValue = context.Principal?.FindFirstValue("ver");
+                if (!Guid.TryParse(subject, out var userId)
+                    || !long.TryParse(versionValue, out var tokenVersion))
+                {
+                    context.Fail("The access token is missing required identity claims.");
+                    return;
+                }
+
+                var repository = context.HttpContext.RequestServices.GetRequiredService<IIdentityRepository>();
+                var user = await repository.FindByIdAsync(userId, context.HttpContext.RequestAborted);
+                if (user is null
+                    || user.Status != UserStatuses.Active
+                    || user.AuthorizationVersion != tokenVersion)
+                {
+                    context.Fail("The access token has been revoked.");
+                }
+            }
         };
     });
 builder.Services.AddAuthorization();

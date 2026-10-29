@@ -117,6 +117,22 @@ public sealed class SecurityAndAdminTests
         Assert.Equal(HttpStatusCode.OK, locked.Response.StatusCode);
         Assert.Equal("LOCKED", locked.Body.GetProperty("status").GetString());
 
+        var revokedSession = await IdentityTestData.SendAsync(
+            client,
+            HttpMethod.Get,
+            "/api/v1/users/me",
+            bearer: customerAccess);
+        Assert.Equal(HttpStatusCode.Unauthorized, revokedSession.Response.StatusCode);
+
+        var unlocked = await IdentityTestData.SendAsync(
+            client,
+            HttpMethod.Patch,
+            $"/api/v1/admin/users/{customerId}/status",
+            new { status = "ACTIVE", reason = "review complete", expectedVersion = 2 },
+            bearer: adminAccess);
+        Assert.Equal(HttpStatusCode.OK, unlocked.Response.StatusCode);
+        Assert.Equal("ACTIVE", unlocked.Body.GetProperty("status").GetString());
+
         var self = await IdentityTestData.SendAsync(
             client,
             HttpMethod.Patch,
@@ -141,5 +157,17 @@ public sealed class SecurityAndAdminTests
             bearer: adminAccess,
             idempotency: IdentityTestData.IdempotencyKey());
         Assert.Equal(HttpStatusCode.Created, member.Response.StatusCode);
+
+        var roles = await IdentityTestData.SendAsync(
+            client,
+            HttpMethod.Put,
+            $"/api/v1/admin/users/{customerId}/roles",
+            new { roleCodes = Array.Empty<string>(), reason = "remove global role", expectedVersion = 3 },
+            bearer: adminAccess);
+        Assert.Equal(HttpStatusCode.OK, roles.Response.StatusCode);
+        Assert.Empty(roles.Body.GetProperty("roles").EnumerateArray());
+        Assert.Contains(
+            "OPERATOR_ADMIN",
+            roles.Body.GetProperty("organizationMemberships")[0].GetProperty("roleCodes").EnumerateArray().Select(x => x.GetString()));
     }
 }

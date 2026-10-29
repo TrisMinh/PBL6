@@ -3,6 +3,7 @@ param(
     [string]$SuitePath,
     [string]$EnvironmentPath,
     [string]$OutputDirectory,
+    [string]$DockerProjectName = 'pbl6-r2',
     [switch]$DryRun
 )
 
@@ -69,6 +70,37 @@ function Get-PortablePath {
     return [System.IO.Path]::GetFileName($fullPath)
 }
 
+function Invoke-CollectionSetup {
+    param(
+        [AllowNull()] [string]$Setup,
+        [Parameter(Mandatory)] [string]$ProjectName
+    )
+
+    if (-not $Setup) {
+        return
+    }
+
+    if ($Setup -ne 'expire-identity-challenge') {
+        throw "Unsupported collection setup action: $Setup"
+    }
+
+    $containerIds = @(
+        & docker ps `
+            --filter "label=com.docker.compose.project=$ProjectName" `
+            --filter 'label=com.docker.compose.service=postgres' `
+            --format '{{.ID}}'
+    ) | Where-Object { $_ }
+    if ($LASTEXITCODE -ne 0 -or $containerIds.Count -ne 1) {
+        throw "Expected exactly one running postgres container for Docker project '$ProjectName'."
+    }
+
+    $sql = "UPDATE auth_challenges c SET expires_at = c.created_at + INTERVAL '1 millisecond' FROM users u WHERE c.user_id = u.id AND u.normalized_email = 'PBL6.R3.EXPIRY@EXAMPLE.TEST' AND c.status = 'ACTIVE';"
+    $output = @(& docker exec $containerIds[0] psql -U platform -d identity -v ON_ERROR_STOP=1 -c $sql 2>&1)
+    if ($LASTEXITCODE -ne 0 -or -not ($output -match 'UPDATE 1')) {
+        throw "Could not stage the identity expiry fixture: $($output -join [Environment]::NewLine)"
+    }
+}
+
 $resolvedSuitePath = Resolve-ExistingFile -Path $SuitePath -Label 'Suite manifest'
 $resolvedEnvironmentPath = Resolve-ExistingFile -Path $EnvironmentPath -Label 'Postman environment'
 $suite = Get-Content -LiteralPath $resolvedSuitePath -Raw | ConvertFrom-Json
@@ -85,12 +117,19 @@ if ($duplicates) {
     throw "Suite manifest contains duplicate collection paths: $($duplicates.Name -join ', ')"
 }
 
+$supportedSetups = @('expire-identity-challenge')
+$unsupportedSetups = @($collections | Where-Object { $_.setup -and $_.setup -notin $supportedSetups })
+if ($unsupportedSetups.Count -gt 0) {
+    throw "Unsupported collection setup action: $($unsupportedSetups[0].setup)"
+}
+
 $resolvedCollections = foreach ($collection in $collections) {
     $collectionPath = Resolve-ExistingFile -Path $collection.path -Label 'Postman collection'
     [pscustomobject]@{
         Name = [System.IO.Path]::GetFileNameWithoutExtension($collectionPath)
         RelativePath = $collection.path
         Path = $collectionPath
+        Setup = $collection.setup
     }
 }
 
@@ -124,6 +163,7 @@ foreach ($collection in $resolvedCollections) {
     $safeName = $collection.Name -replace '[^A-Za-z0-9_.-]', '_'
     $logPath = Join-Path $OutputDirectory "$safeName.log"
     Write-Host "Running $($collection.RelativePath)"
+    Invoke-CollectionSetup -Setup $collection.Setup -ProjectName $DockerProjectName
 
     $output = @(
         & postman collection run $collection.Path `

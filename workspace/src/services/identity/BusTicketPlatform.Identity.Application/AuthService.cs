@@ -20,6 +20,8 @@ public sealed class AuthService(
     public const int ChallengeMinutes = 30;
     public const int RefreshDays = 14;
     public const int ChallengeAttemptLimit = 5;
+    public const int SensitiveRequestLimit = 5;
+    public const int SensitiveRequestWindowMinutes = 15;
 
     public async Task<Result<AcceptedResponse>> RegisterAsync(RegisterCommand command, Guid correlationId, CancellationToken cancellationToken)
     {
@@ -56,8 +58,8 @@ public sealed class AuthService(
                 return await IssueChallengeAsync(pending, ChallengeTypes.EmailVerification, command.Email.Trim(), correlationId, cancellationToken);
             }
 
-            await users.InsertAuditAsync(null, existingEmail?.Id ?? existingPhone?.Id, "REGISTER_REJECTED", "IGNORED", "IDENTITY_IN_USE", correlationId, cancellationToken);
-            return Result<AcceptedResponse>.Success(new AcceptedResponse(ids.NewUuidV7(), "ACCEPTED"));
+            await users.InsertAuditAsync(null, existingEmail?.Id ?? existingPhone?.Id, "REGISTER_REJECTED", "DENIED", "IDENTITY_IN_USE", correlationId, cancellationToken);
+            return Result<AcceptedResponse>.Failure(IdentityErrors.IdentityAlreadyUsed());
         }
 
         var now = clock.UtcNow;
@@ -122,7 +124,13 @@ public sealed class AuthService(
             return Result<AcceptedResponse>.Failure(IdentityErrors.Validation("Email is invalid.", "email"));
         }
 
-        var user = await users.FindByNormalizedEmailAsync(IdentityNormalizer.NormalizeEmail(command.Email), cancellationToken);
+        var normalizedEmail = IdentityNormalizer.NormalizeEmail(command.Email);
+        if (!await AllowSensitiveRequestAsync("RESEND_VERIFICATION_REQUESTED", normalizedEmail, correlationId, cancellationToken))
+        {
+            return Result<AcceptedResponse>.Failure(IdentityErrors.RateLimited());
+        }
+
+        var user = await users.FindByNormalizedEmailAsync(normalizedEmail, cancellationToken);
         if (user is { Status: UserStatuses.PendingVerification })
         {
             return await IssueChallengeAsync(user, ChallengeTypes.EmailVerification, command.Email.Trim(), correlationId, cancellationToken);
@@ -240,7 +248,13 @@ public sealed class AuthService(
             return Result<AcceptedResponse>.Failure(IdentityErrors.Validation("Email is invalid.", "email"));
         }
 
-        var user = await users.FindByNormalizedEmailAsync(IdentityNormalizer.NormalizeEmail(command.Email), cancellationToken);
+        var normalizedEmail = IdentityNormalizer.NormalizeEmail(command.Email);
+        if (!await AllowSensitiveRequestAsync("FORGOT_PASSWORD_REQUESTED", normalizedEmail, correlationId, cancellationToken))
+        {
+            return Result<AcceptedResponse>.Failure(IdentityErrors.RateLimited());
+        }
+
+        var user = await users.FindByNormalizedEmailAsync(normalizedEmail, cancellationToken);
         if (user is { Status: UserStatuses.Active or UserStatuses.Locked })
         {
             return await IssueChallengeAsync(user, ChallengeTypes.PasswordReset, command.Email.Trim(), correlationId, cancellationToken);
@@ -308,6 +322,27 @@ public sealed class AuthService(
         await notifier.NotifyAsync(email, type, challengeId, code, cancellationToken);
         await users.InsertAuditAsync(user.Id, user.Id, type, "SUCCEEDED", "CHALLENGE_ISSUED", correlationId, cancellationToken);
         return Result<AcceptedResponse>.Success(new AcceptedResponse(challengeId, "ACCEPTED"));
+    }
+
+    private async Task<bool> AllowSensitiveRequestAsync(
+        string action,
+        string normalizedIdentifier,
+        Guid correlationId,
+        CancellationToken cancellationToken)
+    {
+        var fingerprint = HashSecret(normalizedIdentifier);
+        var since = clock.UtcNow.AddMinutes(-SensitiveRequestWindowMinutes);
+        var count = await users.CountRecentAuditsAsync(action, fingerprint, since, cancellationToken);
+        var allowed = count < SensitiveRequestLimit;
+        await users.InsertAuditAsync(
+            null,
+            null,
+            action,
+            allowed ? "ALLOWED" : "DENIED",
+            fingerprint,
+            correlationId,
+            cancellationToken);
+        return allowed;
     }
 
     private async Task<Result> ConsumeChallengeAsync(

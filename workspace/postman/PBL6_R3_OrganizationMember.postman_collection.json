@@ -89,7 +89,7 @@
         "url": "http://localhost:5080/api/v1/admin/organizations/{{testOrgId}}/members",
         "body": {
           "mode": "raw",
-          "raw": "{\"userId\":\"01a1825a-c4f0-7950-b53b-da3bb219bbf3\",\"roleCodes\":[\"OPERATOR_ADMIN\"],\"status\":\"ACTIVE\",\"reason\":\"Round 3 membership test\",\"expectedVersion\":0}"
+          "raw": "{\"userId\":\"01990a00-0000-7000-8000-000000000002\",\"roleCodes\":[\"OPERATOR_ADMIN\"],\"status\":\"ACTIVE\",\"reason\":\"Round 3 membership test\",\"expectedVersion\":0}"
         }
       },
       "event": [
@@ -121,7 +121,7 @@
         "url": "http://localhost:5080/api/v1/admin/organizations/{{testOrgId}}/members/{{testMembershipId}}",
         "body": {
           "mode": "raw",
-          "raw": "{\"userId\":\"01a1825a-c4f0-7950-b53b-da3bb219bbf3\",\"roleCodes\":[\"OPERATOR_ADMIN\"],\"status\":\"ENDED\",\"reason\":\"Round 3 fixture cleanup\",\"expectedVersion\":0}"
+          "raw": "{\"userId\":\"01990a00-0000-7000-8000-000000000002\",\"roleCodes\":[\"OPERATOR_ADMIN\"],\"status\":\"ENDED\",\"reason\":\"Round 3 fixture cleanup\",\"expectedVersion\":0}"
         }
       },
       "event": [

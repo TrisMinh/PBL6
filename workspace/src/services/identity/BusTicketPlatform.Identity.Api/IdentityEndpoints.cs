@@ -260,6 +260,13 @@ public static class IdentityEndpoints
         return true;
     }
 
-    private static object ErrorEnvelopeBody(BusTicketPlatform.BuildingBlocks.Errors.AppError error, HttpContext http) =>
-        BusTicketPlatform.BuildingBlocks.Http.ErrorEnvelope.From(error, http.CorrelationId());
+    private static object ErrorEnvelopeBody(BusTicketPlatform.BuildingBlocks.Errors.AppError error, HttpContext http)
+    {
+        if (error.StatusCode == StatusCodes.Status429TooManyRequests)
+        {
+            http.Response.Headers.RetryAfter = (AuthService.SensitiveRequestWindowMinutes * 60).ToString(System.Globalization.CultureInfo.InvariantCulture);
+        }
+
+        return BusTicketPlatform.BuildingBlocks.Http.ErrorEnvelope.From(error, http.CorrelationId());
+    }
 }

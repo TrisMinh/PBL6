@@ -57,17 +57,52 @@ if ($LASTEXITCODE -ne 0) {
     throw "Runner fresh-process default-path dry-run failed with exit code $LASTEXITCODE."
 }
 
+$invalidSuitePath = Join-Path $env:TEMP 'pbl6-round2-invalid-setup.json'
+@{
+    schemaVersion = 1
+    name = 'Invalid setup contract'
+    readinessUrl = 'http://localhost:5080/ready'
+    baseline = @{ passed = 0; passRate = 0 }
+    collections = @(
+        @{ path = 'postman/PBL6_R3_CommonFormats.postman_collection.json'; setup = 'unsupported-action' }
+    )
+} | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $invalidSuitePath -Encoding utf8
+$savedErrorActionPreference = $ErrorActionPreference
+$ErrorActionPreference = 'Continue'
+& powershell -NoProfile -ExecutionPolicy Bypass -File $runnerPath -SuitePath $invalidSuitePath -EnvironmentPath $environmentPath -OutputDirectory (Join-Path $env:TEMP 'pbl6-round2-invalid-setup') -DryRun 2>$null
+$invalidSetupExitCode = $LASTEXITCODE
+$ErrorActionPreference = $savedErrorActionPreference
+if ($invalidSetupExitCode -eq 0) {
+    throw 'Runner must reject unsupported collection setup actions.'
+}
+
 $liveTestRoot = Join-Path $env:TEMP ("pbl6-round2-live-contract-" + [guid]::NewGuid().ToString('N'))
 [System.IO.Directory]::CreateDirectory($liveTestRoot) | Out-Null
 $liveSuitePath = Join-Path $liveTestRoot 'suite.json'
 $liveOutputPath = Join-Path $liveTestRoot 'evidence'
+$liveCollectionPath = Join-Path $liveTestRoot 'ready.postman_collection.json'
+@{
+    info = @{
+        name = 'Runner readiness contract'
+        schema = 'https://schema.getpostman.com/json/collection/v2.1.0/collection.json'
+    }
+    item = @(
+        @{
+            name = 'Gateway ready'
+            request = @{ method = 'GET'; header = @(); url = 'http://localhost:5080/ready' }
+            event = @(
+                @{ listen = 'test'; script = @{ type = 'text/javascript'; exec = @("pm.test('Gateway is ready',()=>pm.response.to.have.status(200));") } }
+            )
+        }
+    )
+} | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $liveCollectionPath -Encoding utf8
 $liveSuite = @{
     schemaVersion = 1
     name = 'Runner live contract'
     readinessUrl = 'http://localhost:5080/ready'
     baseline = @{ passed = 0; passRate = 0 }
     collections = @(
-        @{ path = 'postman/PBL6_R3_CommonFormats.postman_collection.json' }
+        @{ path = $liveCollectionPath }
     )
 }
 $liveSuite | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $liveSuitePath -Encoding utf8
@@ -83,7 +118,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 $liveSummary = Get-Content -LiteralPath (Join-Path $liveOutputPath 'round2-summary.json') -Raw | ConvertFrom-Json
-if ($liveSummary.assertions -ne 2 -or $liveSummary.failed -ne 0) {
+if ($liveSummary.assertions -ne 1 -or $liveSummary.failed -ne 0) {
     throw "Runner live summary was not parsed correctly: $($liveSummary | ConvertTo-Json -Compress)"
 }
 if ([System.IO.Path]::IsPathRooted([string]$liveSummary.environment)) {
