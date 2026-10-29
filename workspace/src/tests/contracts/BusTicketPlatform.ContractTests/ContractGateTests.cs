@@ -25,6 +25,46 @@ public sealed class ContractGateTests
     }
 
     [Fact]
+    public void Payment_callbacks_are_fully_documented_and_require_verified_provider_fields()
+    {
+        var yaml = File.ReadAllText(Path.Combine(RepoRoot(), "docs", "contracts", "openapi", "platform-mvp.openapi.yaml"));
+        Assert.Contains("/integrations/payments/{provider}/return:", yaml);
+        Assert.Contains("operationId: handlePaymentReturn", yaml);
+        Assert.Contains("required: [vnp_TmnCode, vnp_TxnRef, vnp_Amount, vnp_CurrCode, vnp_ResponseCode, vnp_SecureHash]", yaml);
+    }
+
+    [Fact]
+    public void Every_http_operation_declares_the_safe_default_error_envelope()
+    {
+        var path = Path.Combine(RepoRoot(), "docs", "contracts", "openapi", "platform-mvp.openapi.yaml");
+        var stream = new YamlStream();
+        try
+        {
+            stream.Load(new StringReader(File.ReadAllText(path)));
+        }
+        catch (YamlDotNet.Core.YamlException exception)
+        {
+            Assert.Fail($"OpenAPI YAML is invalid at {exception.Start}: {exception.Message}");
+        }
+        var root = (YamlMappingNode)stream.Documents[0].RootNode;
+        var paths = (YamlMappingNode)root.Children[new YamlScalarNode("paths")];
+        var methods = new HashSet<string>(["get", "post", "put", "patch", "delete"], StringComparer.OrdinalIgnoreCase);
+
+        foreach (var pathEntry in paths.Children)
+        {
+            var pathItem = (YamlMappingNode)pathEntry.Value;
+            foreach (var operationEntry in pathItem.Children.Where(entry => methods.Contains(((YamlScalarNode)entry.Key).Value ?? "")))
+            {
+                var operation = (YamlMappingNode)operationEntry.Value;
+                var responses = Assert.IsType<YamlMappingNode>(operation.Children[new YamlScalarNode("responses")]);
+                Assert.True(responses.Children.TryGetValue(new YamlScalarNode("default"), out var fallback), $"{pathEntry.Key} {operationEntry.Key} has no default error response.");
+                var reference = Assert.IsType<YamlMappingNode>(fallback).Children[new YamlScalarNode("$ref")];
+                Assert.Equal("#/components/responses/Error", ((YamlScalarNode)reference).Value);
+            }
+        }
+    }
+
+    [Fact]
     public void AsyncApi_has_twenty_send_operations()
     {
         var path = Path.Combine(RepoRoot(), "docs", "contracts", "asyncapi", "platform-mvp.asyncapi.yaml");

@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: PBL6 Bus Ticket Platform MVP API
-  version: 2.0.1
+  version: 2.1.0
   description: Active MUST-only HTTP contract for ASP.NET Core services behind YARP.
   license:
     name: Academic project - all rights reserved
@@ -915,10 +915,35 @@ paths:
         required: true
         content:
           application/json:
-            schema: {type: object, additionalProperties: true, description: Raw body is verified before transformation.}
+            schema: {$ref: '#/components/schemas/VnPayCallback'}
+          application/x-www-form-urlencoded:
+            schema: {$ref: '#/components/schemas/VnPayCallback'}
       responses:
         '204': {description: Verified outcome persisted or duplicate acknowledged}
         '400': {$ref: '#/components/responses/Error'}
+        '404': {$ref: '#/components/responses/Error'}
+        default: {$ref: '#/components/responses/Error'}
+  /integrations/payments/{provider}/return:
+    servers:
+      - url: /
+    get:
+      tags: [Payments]
+      operationId: handlePaymentReturn
+      summary: Verify a provider browser return before redirecting to the client result page
+      security: []
+      parameters:
+        - {name: provider, in: path, required: true, schema: {type: string, enum: [vnpay-sandbox]}}
+        - {name: vnp_TmnCode, in: query, required: true, schema: {type: string}}
+        - {name: vnp_TxnRef, in: query, required: true, schema: {type: string}}
+        - {name: vnp_Amount, in: query, required: true, schema: {type: string, pattern: '^[0-9]+$'}}
+        - {name: vnp_CurrCode, in: query, required: true, schema: {type: string, enum: [VND]}}
+        - {name: vnp_ResponseCode, in: query, required: true, schema: {type: string}}
+        - {name: vnp_SecureHash, in: query, required: true, schema: {type: string, minLength: 64}}
+      responses:
+        '302': {description: Verified return redirected to the client result page}
+        '204': {description: Verified return accepted when no client return URI is supplied}
+        '400': {$ref: '#/components/responses/Error'}
+        '404': {$ref: '#/components/responses/Error'}
         default: {$ref: '#/components/responses/Error'}
 
 components:
@@ -1006,6 +1031,18 @@ components:
         operationId: {$ref: '#/components/schemas/Id'}
         status: {type: string, enum: [ACCEPTED, PROCESSING]}
         statusUrl: {type: [string, 'null']}
+    VnPayCallback:
+      type: object
+      additionalProperties: true
+      required: [vnp_TmnCode, vnp_TxnRef, vnp_Amount, vnp_CurrCode, vnp_ResponseCode, vnp_SecureHash]
+      properties:
+        vnp_TmnCode: {type: string, minLength: 1}
+        vnp_TxnRef: {type: string, minLength: 1}
+        vnp_Amount: {type: string, pattern: '^[0-9]+$'}
+        vnp_CurrCode: {type: string, enum: [VND]}
+        vnp_ResponseCode: {type: string, minLength: 2, maxLength: 10}
+        vnp_TransactionNo: {type: string}
+        vnp_SecureHash: {type: string, minLength: 64}
     EmailRequest:
       type: object
       required: [email]
@@ -1157,7 +1194,7 @@ components:
         - {type: object, required: [items], properties: {items: {type: array, items: {$ref: '#/components/schemas/Trip'}}}}
     Organization:
       type: object
-    required: [id, code, name, status, allowPayLater, commissionRate, rowVersion]
+      required: [id, code, name, status, allowPayLater, commissionRate, rowVersion]
       properties:
         id: {$ref: '#/components/schemas/Id'}
         code: {type: string}

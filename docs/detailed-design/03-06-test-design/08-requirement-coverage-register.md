@@ -43,4 +43,17 @@ Release gate MVP chỉ áp dụng 61 `MUST`. Mười một `SHOULD` được gi�
 | Admin/Reporting | `AC-ADMIN-001`, `AC-ADMIN-002`, `AC-ADMIN-003`, `AC-ADMIN-004`, `AC-REPORT-001`, `AC-REPORT-002`, `AC-REPORT-003`, `AC-REPORT-004`, `AC-REPORT-005`, `AC-REPORT-006` |
 | System quality | `AC-NFR-001`, `AC-NFR-002`, `AC-NFR-003`, `AC-SEC-001`, `AC-SEC-002`, `AC-UX-001`, `AC-UX-002`, `AC-OBS-001` |
 
-Automation status và latest run ID sẽ được bổ sung khi repository có code/pipeline; requirement ID không được xóa khỏi register khi test chưa triển khai.
+## Automation status — 2026-10-29
+
+| Requirement group | Evidence | Status |
+|---|---|---|
+| `FR-IAM-*` | Identity integration 17/17; targeted Postman auth/security/admin/profile 73/73 | API PASS |
+| `FR-SEARCH-*`, `FR-OPS-*` | Transport integration 9/9; targeted Postman 35/35 | API PASS |
+| Active `FR-BOOK-*`, `FR-TICKET-*` | Booking integration 8/8; targeted Postman 45/45 | API PASS, full Round 2 pending |
+| Active `FR-PAY-*` | Payment integration 5/5; signed/no-webhook Postman 12/12; financial DB readback | API PASS, full Round 2 pending |
+| `FR-REPORT-001..002` | Reporting integration 2/2; live refund projection convergence readback | API PASS, UI pending |
+| `FR-NOTIF-001..002` | Notification integration 2/2 | Partial until full Postman/UI evidence |
+| NFR contract/error | Contract 9/9; Gateway 10/10 | PASS |
+| NFR deployment/restore/UX | Tasks 7–9 | OPEN — không được suy diễn là PASS |
+
+Các `SHOULD` đã khóa khỏi MVP giữ nguyên trạng thái hậu MVP. Requirement ID không được xóa khỏi register khi evidence còn mở.

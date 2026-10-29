@@ -26,3 +26,18 @@ Không được tạo route, navigation, consumer binding hoặc table “để 
 - OpenAPI conformance và event schema test là bắt buộc, không thay thế test nghiệp vụ.
 - Các flow tiền/ghế/check-in phải có integration test trên PostgreSQL/RabbitMQ thật và test retry/idempotency.
 - UI phải có loading, empty, validation, conflict, forbidden, unavailable và retry state được mô tả trong Screen Contract.
+
+## Evidence snapshot — 2026-10-29
+
+| Scope | Automated evidence hiện có | Trạng thái gate |
+|---|---|---|
+| Identity | 17 PostgreSQL integration tests; Auth/Common 39/39, security 16/16, admin/profile/second-customer 18/18 Postman assertions | API complete; client coverage chờ Task 7 |
+| Transport/Search/Ops | 9 PostgreSQL integration tests; 35/35 targeted Postman assertions gồm lifecycle, conflict và cross-tenant | API complete; client coverage chờ Task 7 |
+| Booking/Ticket | 8 PostgreSQL integration tests; 45/45 targeted Postman assertions gồm atomic/concurrent holds, validation, ownership và check-in | API complete; cancellation matrix còn được xác nhận lại trong full Round 2 |
+| Payment/Refund/Settlement | 5 PostgreSQL integration tests; PAY-11 3/3 và signed pay/cancel 9/9; DB readback xác nhận payment/refund/settlement reversal | API complete; performance/reconciliation ngoài happy path còn chờ release gate |
+| Reporting | 2 PostgreSQL integration tests; RefundSucceeded/BookingCancelled được kiểm tra ở cả hai thứ tự, projection cuối `REFUNDED`/net 0 | API behavior covered; report UI và full Postman chờ Task 7/9 |
+| Gateway/Contract | 10 gateway integration tests, 9 contract tests; OpenAPI 2.1.0 có callback/return và safe default error envelope | Contract complete cho API hiện hành |
+| Notification | 2 integration tests trong full solution | Partial; full notification Postman và UI chờ Task 7/9 |
+| Cross-cutting | Full .NET solution 96/96 trước Task 6; Docker `pbl6-r2` fresh build healthy | Production security/restart/backup chờ Task 8 |
+
+Không đánh dấu release 100% ở snapshot này: client/mobile, production deployment checks và full deterministic Postman Round 2 lần cuối lần lượt thuộc Task 7, 8 và 9.
