@@ -5,7 +5,7 @@
   "users": [
     {
       "name": "platform",
-      "password": "guest",
+      "password": "__RABBITMQ_PASSWORD__",
       "tags": ["administrator"]
     }
   ],

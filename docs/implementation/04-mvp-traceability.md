@@ -40,4 +40,4 @@ Không được tạo route, navigation, consumer binding hoặc table “để 
 | Notification | 2 integration tests trong full solution; Web/Mobile notification list + mark-read build thành công | Client complete; full notification Postman chờ Task 9 |
 | Cross-cutting | Full .NET solution 96/96 trước Task 6; Docker `pbl6-r2` fresh build healthy | Production security/restart/backup chờ Task 8 |
 
-Task 7 client gate: Customer Web và Back-office Web production build thành công; Mobile TypeScript check và Expo Android Hermes export (930 modules, 2.1 MB bundle) thành công. Production deployment checks và full deterministic Postman Round 2 lần cuối lần lượt thuộc Task 8 và 9.
+Task 7 client gate: Customer Web và Back-office Web production build thành công; Mobile TypeScript check và Expo Android Hermes export (930 modules, 2.1 MB bundle) thành công. Task 8 production gate: non-root/read-only images, production secret preflight, fresh-stack health, restart recovery, public smoke và backup/restore sáu database đều pass; chi tiết tại `08-production-deployment-runbook.md` và `09-production-readiness-checklist.md`. Full deterministic Postman Round 2 lần cuối thuộc Task 9.

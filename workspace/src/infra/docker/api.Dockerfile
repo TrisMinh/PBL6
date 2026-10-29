@@ -16,4 +16,5 @@ RUN apt-get update \
 COPY --from=build /out .
 ENV ASPNETCORE_URLS=http://+:8080
 EXPOSE 8080
+USER $APP_UID
 ENTRYPOINT ["dotnet"]

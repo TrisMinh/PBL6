@@ -8,8 +8,8 @@ RUN npm install
 ARG APP
 RUN npm run build -w "@busticket/${APP}"
 
-FROM nginx:1.27-alpine
+FROM nginxinc/nginx-unprivileged:1.27-alpine
 ARG APP
 COPY workspace/src/infra/docker/nginx-web.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/src/apps/${APP}/dist /usr/share/nginx/html
-EXPOSE 80
+EXPOSE 8080

@@ -14,6 +14,10 @@ public sealed class SmtpOptions
     public string Host { get; set; } = "";
     public int Port { get; set; } = 1025;
     public string From { get; set; } = "noreply@example.test";
+    public string Username { get; set; } = "";
+    public string Password { get; set; } = "";
+    public bool EnableSsl { get; set; }
+    public bool CaptureChallenges { get; set; } = true;
 
     public bool IsConfigured => !string.IsNullOrWhiteSpace(Host);
 }
@@ -48,8 +52,12 @@ public sealed class ChallengeNotifier(
         string code,
         CancellationToken cancellationToken)
     {
-        mailbox.Remember(new ChallengeNotice(email, challengeType, challengeId, code));
         var options = smtp.Value;
+        if (options.CaptureChallenges)
+        {
+            mailbox.Remember(new ChallengeNotice(email, challengeType, challengeId, code));
+        }
+
         if (!options.IsConfigured)
         {
             return;
@@ -65,8 +73,10 @@ public sealed class ChallengeNotifier(
             using var client = new SmtpClient(options.Host, options.Port)
             {
                 DeliveryMethod = SmtpDeliveryMethod.Network,
-                EnableSsl = false,
-                Credentials = CredentialCache.DefaultNetworkCredentials
+                EnableSsl = options.EnableSsl,
+                Credentials = string.IsNullOrWhiteSpace(options.Username)
+                    ? CredentialCache.DefaultNetworkCredentials
+                    : new NetworkCredential(options.Username, options.Password)
             };
             await client.SendMailAsync(message, cancellationToken);
         }

@@ -53,7 +53,9 @@ services:
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
       - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
-      - ./rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
+      - ./rabbitmq/definitions.json:/etc/rabbitmq/definitions.template.json:ro
+      - ./rabbitmq/entrypoint.sh:/usr/local/bin/pbl6-rabbitmq-entrypoint:ro
+    entrypoint: ["/bin/sh", "/usr/local/bin/pbl6-rabbitmq-entrypoint"]
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 10s

@@ -1,0 +1,198 @@
+name: pbl6-production
+
+# Production-shaped overlay. TLS is terminated by the host/load balancer and
+# forwarded only to the loopback-bound web containers below.
+x-api-hardening: &api-hardening
+  read_only: true
+  tmpfs:
+    - /tmp:size=64m,mode=1777
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  deploy:
+    resources:
+      limits:
+        cpus: "1.00"
+        memory: 768M
+      reservations:
+        memory: 192M
+  logging:
+    driver: json-file
+    options:
+      max-size: 10m
+      max-file: "5"
+
+services:
+  postgres:
+    ports: !reset []
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits: {cpus: "2.00", memory: 2G}
+        reservations: {memory: 512M}
+    logging:
+      driver: json-file
+      options: {max-size: 10m, max-file: "5"}
+
+  db-bootstrap:
+    environment:
+      PGPASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+
+  rabbitmq:
+    ports: !reset []
+    environment:
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?RABBITMQ_PASSWORD is required}
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits: {cpus: "1.00", memory: 1G}
+        reservations: {memory: 256M}
+
+  redis:
+    ports: !reset []
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits: {cpus: "0.50", memory: 256M}
+        reservations: {memory: 64M}
+
+  mailpit:
+    profiles: [development]
+    ports: !reset []
+
+  payment-simulator:
+    profiles: [development]
+    ports: !reset []
+
+  identity:
+    <<: *api-hardening
+    ports: !reset []
+    environment:
+      Authentication__SigningKey: ${JWT_SIGNING_KEY:?JWT_SIGNING_KEY is required}
+      Messaging__AmqpUri: amqp://platform:${RABBITMQ_PASSWORD:?RABBITMQ_PASSWORD is required}@rabbitmq:5672/bus-ticket
+      ConnectionStrings__Identity: Host=postgres;Port=5432;Database=identity;Username=platform;Password=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      AllowedHosts: localhost;127.0.0.1;identity;${API_ALLOWED_HOSTS:?API_ALLOWED_HOSTS is required}
+      Smtp__Host: ${SMTP_HOST:?SMTP_HOST is required}
+      Smtp__Port: ${SMTP_PORT:-587}
+      Smtp__From: ${SMTP_FROM:?SMTP_FROM is required}
+      Smtp__Username: ${SMTP_USERNAME:?SMTP_USERNAME is required}
+      Smtp__Password: ${SMTP_PASSWORD:?SMTP_PASSWORD is required}
+      Smtp__EnableSsl: "true"
+      Smtp__CaptureChallenges: "false"
+
+  transport:
+    <<: *api-hardening
+    ports: !reset []
+    environment:
+      Authentication__SigningKey: ${JWT_SIGNING_KEY:?JWT_SIGNING_KEY is required}
+      Messaging__AmqpUri: amqp://platform:${RABBITMQ_PASSWORD:?RABBITMQ_PASSWORD is required}@rabbitmq:5672/bus-ticket
+      ConnectionStrings__Transport: Host=postgres;Port=5432;Database=transport;Username=platform;Password=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      AllowedHosts: localhost;127.0.0.1;transport;${API_ALLOWED_HOSTS:?API_ALLOWED_HOSTS is required}
+
+  booking:
+    <<: *api-hardening
+    ports: !reset []
+    environment:
+      Authentication__SigningKey: ${JWT_SIGNING_KEY:?JWT_SIGNING_KEY is required}
+      Messaging__AmqpUri: amqp://platform:${RABBITMQ_PASSWORD:?RABBITMQ_PASSWORD is required}@rabbitmq:5672/bus-ticket
+      ConnectionStrings__Booking: Host=postgres;Port=5432;Database=booking;Username=platform;Password=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      AllowedHosts: localhost;127.0.0.1;booking;${API_ALLOWED_HOSTS:?API_ALLOWED_HOSTS is required}
+
+  payment:
+    <<: *api-hardening
+    ports: !reset []
+    environment:
+      Authentication__SigningKey: ${JWT_SIGNING_KEY:?JWT_SIGNING_KEY is required}
+      Messaging__AmqpUri: amqp://platform:${RABBITMQ_PASSWORD:?RABBITMQ_PASSWORD is required}@rabbitmq:5672/bus-ticket
+      ConnectionStrings__Payment: Host=postgres;Port=5432;Database=payment;Username=platform;Password=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      AllowedHosts: localhost;127.0.0.1;payment;${API_ALLOWED_HOSTS:?API_ALLOWED_HOSTS is required}
+      Payment__CheckoutBaseUrl: ${VNPAY_CHECKOUT_URL:?VNPAY_CHECKOUT_URL is required}
+      Payment__TmnCode: ${VNPAY_TMN_CODE:?VNPAY_TMN_CODE is required}
+      Payment__HashSecret: ${VNPAY_HASH_SECRET:?VNPAY_HASH_SECRET is required}
+
+  notification:
+    <<: *api-hardening
+    ports: !reset []
+    environment:
+      Authentication__SigningKey: ${JWT_SIGNING_KEY:?JWT_SIGNING_KEY is required}
+      Messaging__AmqpUri: amqp://platform:${RABBITMQ_PASSWORD:?RABBITMQ_PASSWORD is required}@rabbitmq:5672/bus-ticket
+      ConnectionStrings__Notification: Host=postgres;Port=5432;Database=notification;Username=platform;Password=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      AllowedHosts: localhost;127.0.0.1;notification;${API_ALLOWED_HOSTS:?API_ALLOWED_HOSTS is required}
+
+  reporting:
+    <<: *api-hardening
+    ports: !reset []
+    environment:
+      Authentication__SigningKey: ${JWT_SIGNING_KEY:?JWT_SIGNING_KEY is required}
+      Messaging__AmqpUri: amqp://platform:${RABBITMQ_PASSWORD:?RABBITMQ_PASSWORD is required}@rabbitmq:5672/bus-ticket
+      ConnectionStrings__Reporting: Host=postgres;Port=5432;Database=reporting;Username=platform;Password=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      AllowedHosts: localhost;127.0.0.1;reporting;${API_ALLOWED_HOSTS:?API_ALLOWED_HOSTS is required}
+
+  gateway:
+    <<: *api-hardening
+    ports: !reset []
+    environment:
+      Authentication__SigningKey: ${JWT_SIGNING_KEY:?JWT_SIGNING_KEY is required}
+      Messaging__AmqpUri: amqp://platform:${RABBITMQ_PASSWORD:?RABBITMQ_PASSWORD is required}@rabbitmq:5672/bus-ticket
+      AllowedHosts: localhost;127.0.0.1;gateway;${API_ALLOWED_HOSTS:?API_ALLOWED_HOSTS is required}
+      Cors__Origins__0: ${CUSTOMER_ORIGIN:?CUSTOMER_ORIGIN is required}
+      Cors__Origins__1: ${BACKOFFICE_ORIGIN:?BACKOFFICE_ORIGIN is required}
+
+  customer-web:
+    ports: !override
+      - 127.0.0.1:${CUSTOMER_HTTP_PORT:-8080}:8080
+    read_only: true
+    tmpfs: [/tmp, /var/cache/nginx, /var/run]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/healthz"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+  backoffice-web:
+    ports: !override
+      - 127.0.0.1:${BACKOFFICE_HTTP_PORT:-8081}:8080
+    read_only: true
+    tmpfs: [/tmp, /var/cache/nginx, /var/run]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/healthz"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+  pg-backup:
+    image: postgres:17-alpine
+    profiles: [ops]
+    depends_on:
+      postgres: {condition: service_healthy}
+    environment:
+      PGHOST: postgres
+      PGUSER: platform
+      PGPASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+    volumes:
+      - ${BACKUP_DIR:-./backups}:/backups
+      - ./docker/postgres-backup.sh:/usr/local/bin/backup:ro
+    entrypoint: ["/bin/sh", "/usr/local/bin/backup"]
+    networks: [platform]
+
+  pg-restore-verify:
+    image: postgres:17-alpine
+    profiles: [ops]
+    depends_on:
+      postgres: {condition: service_healthy}
+    environment:
+      PGHOST: postgres
+      PGUSER: platform
+      PGPASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      BACKUP_SET: ${BACKUP_SET:-latest}
+    volumes:
+      - ${BACKUP_DIR:-./backups}:/backups
+      - ./docker/postgres-restore-verify.sh:/usr/local/bin/restore-verify:ro
+    entrypoint: ["/bin/sh", "/usr/local/bin/restore-verify"]
+    networks: [platform]
+
