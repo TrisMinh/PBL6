@@ -1,0 +1,672 @@
+﻿{
+    "schemaVersion":  1,
+    "suite":  "PBL6 API Postman Round 2",
+    "startedAt":  "2026-10-29T02:01:15.7089745+00:00",
+    "completedAt":  "2026-10-29T02:03:47.8790926+00:00",
+    "readinessUrl":  "http://localhost:5080/ready",
+    "environment":  "postman/PBL6_Local.postman_environment.json",
+    "collections":  72,
+    "failedCollections":  37,
+    "assertions":  419,
+    "passed":  311,
+    "failed":  108,
+    "passRate":  0.742243,
+    "round1Baseline":  {
+                           "round":  1,
+                           "assertions":  419,
+                           "passed":  330,
+                           "failed":  89,
+                           "passRate":  0.7876
+                       },
+    "exceededRound1":  false,
+    "results":  [
+                    {
+                        "Collection":  "PBL6_PAY03_Readback.postman_collection",
+                        "Path":  "postman/PBL6_PAY03_Readback.postman_collection.json",
+                        "ExitCode":  0,
+                        "Assertions":  2,
+                        "Passed":  2,
+                        "Failed":  0,
+                        "Log":  "PBL6_PAY03_Readback.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_AdminRoles.postman_collection",
+                        "Path":  "postman/PBL6_R3_AdminRoles.postman_collection.json",
+                        "ExitCode":  1,
+                        "Assertions":  4,
+                        "Passed":  1,
+                        "Failed":  3,
+                        "Log":  "PBL6_R3_AdminRoles.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_AdminSettlement.postman_collection",
+                        "Path":  "postman/PBL6_R3_AdminSettlement.postman_collection.json",
+                        "ExitCode":  0,
+                        "Assertions":  0,
+                        "Passed":  0,
+                        "Failed":  0,
+                        "Log":  "PBL6_R3_AdminSettlement.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_AuthExpiry.postman_collection",
+                        "Path":  "postman/PBL6_R3_AuthExpiry.postman_collection.json",
+                        "ExitCode":  1,
+                        "Assertions":  4,
+                        "Passed":  0,
+                        "Failed":  4,
+                        "Log":  "PBL6_R3_AuthExpiry.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_Auth_Common_Security.postman_collection",
+                        "Path":  "postman/PBL6_R3_Auth_Common_Security.postman_collection.json",
+                        "ExitCode":  1,
+                        "Assertions":  39,
+                        "Passed":  22,
+                        "Failed":  17,
+                        "Log":  "PBL6_R3_Auth_Common_Security.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_BOOK03_BOOK04_ExistingTrip.postman_collection",
+                        "Path":  "postman/PBL6_R3_BOOK03_BOOK04_ExistingTrip.postman_collection.json",
+                        "ExitCode":  0,
+                        "Assertions":  5,
+                        "Passed":  5,
+                        "Failed":  0,
+                        "Log":  "PBL6_R3_BOOK03_BOOK04_ExistingTrip.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_BOOK03_BOOK04_Multiseat.postman_collection",
+                        "Path":  "postman/PBL6_R3_BOOK03_BOOK04_Multiseat.postman_collection.json",
+                        "ExitCode":  1,
+                        "Assertions":  5,
+                        "Passed":  3,
+                        "Failed":  2,
+                        "Log":  "PBL6_R3_BOOK03_BOOK04_Multiseat.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_BOOK05_ConcurrentHold.postman_collection",
+                        "Path":  "postman/PBL6_R3_BOOK05_ConcurrentHold.postman_collection.json",
+                        "ExitCode":  1,
+                        "Assertions":  1,
+                        "Passed":  0,
+                        "Failed":  1,
+                        "Log":  "PBL6_R3_BOOK05_ConcurrentHold.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_BOOK12_BOOK13_PayLaterIdempotency.postman_collection",
+                        "Path":  "postman/PBL6_R3_BOOK12_BOOK13_PayLaterIdempotency.postman_collection.json",
+                        "ExitCode":  1,
+                        "Assertions":  5,
+                        "Passed":  2,
+                        "Failed":  3,
+                        "Log":  "PBL6_R3_BOOK12_BOOK13_PayLaterIdempotency.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_BOOK17_ForeignHold.postman_collection",
+                        "Path":  "postman/PBL6_R3_BOOK17_ForeignHold.postman_collection.json",
+                        "ExitCode":  0,
+                        "Assertions":  3,
+                        "Passed":  3,
+                        "Failed":  0,
+                        "Log":  "PBL6_R3_BOOK17_ForeignHold.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_BOOK18_PayLater.postman_collection",
+                        "Path":  "postman/PBL6_R3_BOOK18_PayLater.postman_collection.json",
+                        "ExitCode":  1,
+                        "Assertions":  2,
+                        "Passed":  1,
+                        "Failed":  1,
+                        "Log":  "PBL6_R3_BOOK18_PayLater.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_BOOK20_InvalidChannel.postman_collection",
+                        "Path":  "postman/PBL6_R3_BOOK20_InvalidChannel.postman_collection.json",
+                        "ExitCode":  1,
+                        "Assertions":  3,
+                        "Passed":  2,
+                        "Failed":  1,
+                        "Log":  "PBL6_R3_BOOK20_InvalidChannel.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_Booking.postman_collection",
+                        "Path":  "postman/PBL6_R3_Booking.postman_collection.json",
+                        "ExitCode":  1,
+                        "Assertions":  6,
+                        "Passed":  4,
+                        "Failed":  2,
+                        "Log":  "PBL6_R3_Booking.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_BookingCorrectTotal.postman_collection",
+                        "Path":  "postman/PBL6_R3_BookingCorrectTotal.postman_collection.json",
+                        "ExitCode":  0,
+                        "Assertions":  2,
+                        "Passed":  2,
+                        "Failed":  0,
+                        "Log":  "PBL6_R3_BookingCorrectTotal.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_BookingExpiry.postman_collection",
+                        "Path":  "postman/PBL6_R3_BookingExpiry.postman_collection.json",
+                        "ExitCode":  1,
+                        "Assertions":  1,
+                        "Passed":  0,
+                        "Failed":  1,
+                        "Log":  "PBL6_R3_BookingExpiry.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_BookingFresh.postman_collection",
+                        "Path":  "postman/PBL6_R3_BookingFresh.postman_collection.json",
+                        "ExitCode":  1,
+                        "Assertions":  6,
+                        "Passed":  4,
+                        "Failed":  2,
+                        "Log":  "PBL6_R3_BookingFresh.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_BookingInvalidChannel.postman_collection",
+                        "Path":  "postman/PBL6_R3_BookingInvalidChannel.postman_collection.json",
+                        "ExitCode":  1,
+                        "Assertions":  1,
+                        "Passed":  0,
+                        "Failed":  1,
+                        "Log":  "PBL6_R3_BookingInvalidChannel.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_BookingState.postman_collection",
+                        "Path":  "postman/PBL6_R3_BookingState.postman_collection.json",
+                        "ExitCode":  0,
+                        "Assertions":  0,
+                        "Passed":  0,
+                        "Failed":  0,
+                        "Log":  "PBL6_R3_BookingState.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_BookingValidation.postman_collection",
+                        "Path":  "postman/PBL6_R3_BookingValidation.postman_collection.json",
+                        "ExitCode":  1,
+                        "Assertions":  9,
+                        "Passed":  5,
+                        "Failed":  4,
+                        "Log":  "PBL6_R3_BookingValidation.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_CAN01_Preview.postman_collection",
+                        "Path":  "postman/PBL6_R3_CAN01_Preview.postman_collection.json",
+                        "ExitCode":  0,
+                        "Assertions":  2,
+                        "Passed":  2,
+                        "Failed":  0,
+                        "Log":  "PBL6_R3_CAN01_Preview.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_CAN02_PrepaidConfirmCancel.postman_collection",
+                        "Path":  "postman/PBL6_R3_CAN02_PrepaidConfirmCancel.postman_collection.json",
+                        "ExitCode":  1,
+                        "Assertions":  3,
+                        "Passed":  0,
+                        "Failed":  3,
+                        "Log":  "PBL6_R3_CAN02_PrepaidConfirmCancel.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_CAN02_PrepaidRefundFlow.postman_collection",
+                        "Path":  "postman/PBL6_R3_CAN02_PrepaidRefundFlow.postman_collection.json",
+                        "ExitCode":  1,
+                        "Assertions":  8,
+                        "Passed":  1,
+                        "Failed":  7,
+                        "Log":  "PBL6_R3_CAN02_PrepaidRefundFlow.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_CAN02_RefundReadback.postman_collection",
+                        "Path":  "postman/PBL6_R3_CAN02_RefundReadback.postman_collection.json",
+                        "ExitCode":  1,
+                        "Assertions":  1,
+                        "Passed":  0,
+                        "Failed":  1,
+                        "Log":  "PBL6_R3_CAN02_RefundReadback.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_CAN03_PayLaterCancellation.postman_collection",
+                        "Path":  "postman/PBL6_R3_CAN03_PayLaterCancellation.postman_collection.json",
+                        "ExitCode":  1,
+                        "Assertions":  3,
+                        "Passed":  1,
+                        "Failed":  2,
+                        "Log":  "PBL6_R3_CAN03_PayLaterCancellation.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_CAN04_CancelReplay.postman_collection",
+                        "Path":  "postman/PBL6_R3_CAN04_CancelReplay.postman_collection.json",
+                        "ExitCode":  0,
+                        "Assertions":  2,
+                        "Passed":  2,
+                        "Failed":  0,
+                        "Log":  "PBL6_R3_CAN04_CancelReplay.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_CAN05_CheckedIn.postman_collection",
+                        "Path":  "postman/PBL6_R3_CAN05_CheckedIn.postman_collection.json",
+                        "ExitCode":  1,
+                        "Assertions":  2,
+                        "Passed":  1,
+                        "Failed":  1,
+                        "Log":  "PBL6_R3_CAN05_CheckedIn.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_CAN06_RepeatCancelled.postman_collection",
+                        "Path":  "postman/PBL6_R3_CAN06_RepeatCancelled.postman_collection.json",
+                        "ExitCode":  0,
+                        "Assertions":  1,
+                        "Passed":  1,
+                        "Failed":  0,
+                        "Log":  "PBL6_R3_CAN06_RepeatCancelled.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_CAN09_ForeignPreview.postman_collection",
+                        "Path":  "postman/PBL6_R3_CAN09_ForeignPreview.postman_collection.json",
+                        "ExitCode":  0,
+                        "Assertions":  1,
+                        "Passed":  1,
+                        "Failed":  0,
+                        "Log":  "PBL6_R3_CAN09_ForeignPreview.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_CancelledTripHold.postman_collection",
+                        "Path":  "postman/PBL6_R3_CancelledTripHold.postman_collection.json",
+                        "ExitCode":  1,
+                        "Assertions":  2,
+                        "Passed":  1,
+                        "Failed":  1,
+                        "Log":  "PBL6_R3_CancelledTripHold.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_CommonFormats.postman_collection",
+                        "Path":  "postman/PBL6_R3_CommonFormats.postman_collection.json",
+                        "ExitCode":  0,
+                        "Assertions":  2,
+                        "Passed":  2,
+                        "Failed":  0,
+                        "Log":  "PBL6_R3_CommonFormats.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_CreateSecondCustomer.postman_collection",
+                        "Path":  "postman/PBL6_R3_CreateSecondCustomer.postman_collection.json",
+                        "ExitCode":  1,
+                        "Assertions":  5,
+                        "Passed":  2,
+                        "Failed":  3,
+                        "Log":  "PBL6_R3_CreateSecondCustomer.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_CrossTenant.postman_collection",
+                        "Path":  "postman/PBL6_R3_CrossTenant.postman_collection.json",
+                        "ExitCode":  1,
+                        "Assertions":  5,
+                        "Passed":  2,
+                        "Failed":  3,
+                        "Log":  "PBL6_R3_CrossTenant.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_Drivers.postman_collection",
+                        "Path":  "postman/PBL6_R3_Drivers.postman_collection.json",
+                        "ExitCode":  1,
+                        "Assertions":  4,
+                        "Passed":  3,
+                        "Failed":  1,
+                        "Log":  "PBL6_R3_Drivers.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_DriverScheduleConflict.postman_collection",
+                        "Path":  "postman/PBL6_R3_DriverScheduleConflict.postman_collection.json",
+                        "ExitCode":  1,
+                        "Assertions":  4,
+                        "Passed":  2,
+                        "Failed":  2,
+                        "Log":  "PBL6_R3_DriverScheduleConflict.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_ExpiredHoldBooking.postman_collection",
+                        "Path":  "postman/PBL6_R3_ExpiredHoldBooking.postman_collection.json",
+                        "ExitCode":  0,
+                        "Assertions":  1,
+                        "Passed":  1,
+                        "Failed":  0,
+                        "Log":  "PBL6_R3_ExpiredHoldBooking.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_ExpiredToken.postman_collection",
+                        "Path":  "postman/PBL6_R3_ExpiredToken.postman_collection.json",
+                        "ExitCode":  0,
+                        "Assertions":  1,
+                        "Passed":  1,
+                        "Failed":  0,
+                        "Log":  "PBL6_R3_ExpiredToken.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_FinalAdmin.postman_collection",
+                        "Path":  "postman/PBL6_R3_FinalAdmin.postman_collection.json",
+                        "ExitCode":  0,
+                        "Assertions":  2,
+                        "Passed":  2,
+                        "Failed":  0,
+                        "Log":  "PBL6_R3_FinalAdmin.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_HoldExpiry.postman_collection",
+                        "Path":  "postman/PBL6_R3_HoldExpiry.postman_collection.json",
+                        "ExitCode":  0,
+                        "Assertions":  2,
+                        "Passed":  2,
+                        "Failed":  0,
+                        "Log":  "PBL6_R3_HoldExpiry.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_NotificationSettlement.postman_collection",
+                        "Path":  "postman/PBL6_R3_NotificationSettlement.postman_collection.json",
+                        "ExitCode":  1,
+                        "Assertions":  2,
+                        "Passed":  0,
+                        "Failed":  2,
+                        "Log":  "PBL6_R3_NotificationSettlement.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_OrganizationMember.postman_collection",
+                        "Path":  "postman/PBL6_R3_OrganizationMember.postman_collection.json",
+                        "ExitCode":  1,
+                        "Assertions":  3,
+                        "Passed":  2,
+                        "Failed":  1,
+                        "Log":  "PBL6_R3_OrganizationMember.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_PAY11_NoWebhook.postman_collection",
+                        "Path":  "postman/PBL6_R3_PAY11_NoWebhook.postman_collection.json",
+                        "ExitCode":  1,
+                        "Assertions":  3,
+                        "Passed":  1,
+                        "Failed":  2,
+                        "Log":  "PBL6_R3_PAY11_NoWebhook.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_PaymentAmount.postman_collection",
+                        "Path":  "postman/PBL6_R3_PaymentAmount.postman_collection.json",
+                        "ExitCode":  1,
+                        "Assertions":  1,
+                        "Passed":  0,
+                        "Failed":  1,
+                        "Log":  "PBL6_R3_PaymentAmount.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_PaymentAmountSigned.postman_collection",
+                        "Path":  "postman/PBL6_R3_PaymentAmountSigned.postman_collection.json",
+                        "ExitCode":  0,
+                        "Assertions":  4,
+                        "Passed":  4,
+                        "Failed":  0,
+                        "Log":  "PBL6_R3_PaymentAmountSigned.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_PaymentComplete.postman_collection",
+                        "Path":  "postman/PBL6_R3_PaymentComplete.postman_collection.json",
+                        "ExitCode":  1,
+                        "Assertions":  6,
+                        "Passed":  4,
+                        "Failed":  2,
+                        "Log":  "PBL6_R3_PaymentComplete.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_PaymentFailure.postman_collection",
+                        "Path":  "postman/PBL6_R3_PaymentFailure.postman_collection.json",
+                        "ExitCode":  0,
+                        "Assertions":  6,
+                        "Passed":  6,
+                        "Failed":  0,
+                        "Log":  "PBL6_R3_PaymentFailure.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_PaymentIdempotency.postman_collection",
+                        "Path":  "postman/PBL6_R3_PaymentIdempotency.postman_collection.json",
+                        "ExitCode":  0,
+                        "Assertions":  5,
+                        "Passed":  5,
+                        "Failed":  0,
+                        "Log":  "PBL6_R3_PaymentIdempotency.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_PaymentIntent.postman_collection",
+                        "Path":  "postman/PBL6_R3_PaymentIntent.postman_collection.json",
+                        "ExitCode":  0,
+                        "Assertions":  1,
+                        "Passed":  1,
+                        "Failed":  0,
+                        "Log":  "PBL6_R3_PaymentIntent.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_PaymentReadback.postman_collection",
+                        "Path":  "postman/PBL6_R3_PaymentReadback.postman_collection.json",
+                        "ExitCode":  0,
+                        "Assertions":  0,
+                        "Passed":  0,
+                        "Failed":  0,
+                        "Log":  "PBL6_R3_PaymentReadback.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_ProfileEmail.postman_collection",
+                        "Path":  "postman/PBL6_R3_ProfileEmail.postman_collection.json",
+                        "ExitCode":  0,
+                        "Assertions":  7,
+                        "Passed":  7,
+                        "Failed":  0,
+                        "Log":  "PBL6_R3_ProfileEmail.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_ReadSyntheticTrip.postman_collection",
+                        "Path":  "postman/PBL6_R3_ReadSyntheticTrip.postman_collection.json",
+                        "ExitCode":  0,
+                        "Assertions":  0,
+                        "Passed":  0,
+                        "Failed":  0,
+                        "Log":  "PBL6_R3_ReadSyntheticTrip.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_ReadTripSevenSeats.postman_collection",
+                        "Path":  "postman/PBL6_R3_ReadTripSevenSeats.postman_collection.json",
+                        "ExitCode":  0,
+                        "Assertions":  0,
+                        "Passed":  0,
+                        "Failed":  0,
+                        "Log":  "PBL6_R3_ReadTripSevenSeats.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_ReportReadback.postman_collection",
+                        "Path":  "postman/PBL6_R3_ReportReadback.postman_collection.json",
+                        "ExitCode":  0,
+                        "Assertions":  0,
+                        "Passed":  0,
+                        "Failed":  0,
+                        "Log":  "PBL6_R3_ReportReadback.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_Resource_Readback.postman_collection",
+                        "Path":  "postman/PBL6_R3_Resource_Readback.postman_collection.json",
+                        "ExitCode":  0,
+                        "Assertions":  0,
+                        "Passed":  0,
+                        "Failed":  0,
+                        "Log":  "PBL6_R3_Resource_Readback.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_SearchLimit.postman_collection",
+                        "Path":  "postman/PBL6_R3_SearchLimit.postman_collection.json",
+                        "ExitCode":  1,
+                        "Assertions":  1,
+                        "Passed":  0,
+                        "Failed":  1,
+                        "Log":  "PBL6_R3_SearchLimit.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_SearchNotSellable.postman_collection",
+                        "Path":  "postman/PBL6_R3_SearchNotSellable.postman_collection.json",
+                        "ExitCode":  0,
+                        "Assertions":  1,
+                        "Passed":  1,
+                        "Failed":  0,
+                        "Log":  "PBL6_R3_SearchNotSellable.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_SeatReadback.postman_collection",
+                        "Path":  "postman/PBL6_R3_SeatReadback.postman_collection.json",
+                        "ExitCode":  0,
+                        "Assertions":  0,
+                        "Passed":  0,
+                        "Failed":  0,
+                        "Log":  "PBL6_R3_SeatReadback.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_SecurityRateInjection.postman_collection",
+                        "Path":  "postman/PBL6_R3_SecurityRateInjection.postman_collection.json",
+                        "ExitCode":  1,
+                        "Assertions":  16,
+                        "Passed":  14,
+                        "Failed":  2,
+                        "Log":  "PBL6_R3_SecurityRateInjection.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_TicketCheckin.postman_collection",
+                        "Path":  "postman/PBL6_R3_TicketCheckin.postman_collection.json",
+                        "ExitCode":  1,
+                        "Assertions":  5,
+                        "Passed":  2,
+                        "Failed":  3,
+                        "Log":  "PBL6_R3_TicketCheckin.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_TKT08_CancelledTripScan.postman_collection",
+                        "Path":  "postman/PBL6_R3_TKT08_CancelledTripScan.postman_collection.json",
+                        "ExitCode":  0,
+                        "Assertions":  1,
+                        "Passed":  1,
+                        "Failed":  0,
+                        "Log":  "PBL6_R3_TKT08_CancelledTripScan.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_TKT09_CustomerCheckin.postman_collection",
+                        "Path":  "postman/PBL6_R3_TKT09_CustomerCheckin.postman_collection.json",
+                        "ExitCode":  0,
+                        "Assertions":  1,
+                        "Passed":  1,
+                        "Failed":  0,
+                        "Log":  "PBL6_R3_TKT09_CustomerCheckin.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_Transport.postman_collection",
+                        "Path":  "postman/PBL6_R3_Transport.postman_collection.json",
+                        "ExitCode":  1,
+                        "Assertions":  7,
+                        "Passed":  6,
+                        "Failed":  1,
+                        "Log":  "PBL6_R3_Transport.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_TRIP10_Manifest.postman_collection",
+                        "Path":  "postman/PBL6_R3_TRIP10_Manifest.postman_collection.json",
+                        "ExitCode":  0,
+                        "Assertions":  1,
+                        "Passed":  1,
+                        "Failed":  0,
+                        "Log":  "PBL6_R3_TRIP10_Manifest.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_TRIP12_CancelSoldTrip.postman_collection",
+                        "Path":  "postman/PBL6_R3_TRIP12_CancelSoldTrip.postman_collection.json",
+                        "ExitCode":  0,
+                        "Assertions":  1,
+                        "Passed":  1,
+                        "Failed":  0,
+                        "Log":  "PBL6_R3_TRIP12_CancelSoldTrip.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_TRIP12_SoldTripReadback.postman_collection",
+                        "Path":  "postman/PBL6_R3_TRIP12_SoldTripReadback.postman_collection.json",
+                        "ExitCode":  0,
+                        "Assertions":  0,
+                        "Passed":  0,
+                        "Failed":  0,
+                        "Log":  "PBL6_R3_TRIP12_SoldTripReadback.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_TripCancel.postman_collection",
+                        "Path":  "postman/PBL6_R3_TripCancel.postman_collection.json",
+                        "ExitCode":  0,
+                        "Assertions":  5,
+                        "Passed":  5,
+                        "Failed":  0,
+                        "Log":  "PBL6_R3_TripCancel.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_TripReadback.postman_collection",
+                        "Path":  "postman/PBL6_R3_TripReadback.postman_collection.json",
+                        "ExitCode":  0,
+                        "Assertions":  0,
+                        "Passed":  0,
+                        "Failed":  0,
+                        "Log":  "PBL6_R3_TripReadback.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_Trips.postman_collection",
+                        "Path":  "postman/PBL6_R3_Trips.postman_collection.json",
+                        "ExitCode":  1,
+                        "Assertions":  5,
+                        "Passed":  3,
+                        "Failed":  2,
+                        "Log":  "PBL6_R3_Trips.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_TripState.postman_collection",
+                        "Path":  "postman/PBL6_R3_TripState.postman_collection.json",
+                        "ExitCode":  1,
+                        "Assertions":  8,
+                        "Passed":  2,
+                        "Failed":  6,
+                        "Log":  "PBL6_R3_TripState.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_R3_UnknownTicket.postman_collection",
+                        "Path":  "postman/PBL6_R3_UnknownTicket.postman_collection.json",
+                        "ExitCode":  1,
+                        "Assertions":  1,
+                        "Passed":  0,
+                        "Failed":  1,
+                        "Log":  "PBL6_R3_UnknownTicket.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_REP02_ReadOnly_Smoke.postman_collection",
+                        "Path":  "postman/PBL6_REP02_ReadOnly_Smoke.postman_collection.json",
+                        "ExitCode":  0,
+                        "Assertions":  3,
+                        "Passed":  3,
+                        "Failed":  0,
+                        "Log":  "PBL6_REP02_ReadOnly_Smoke.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_SEC01_Protected_Endpoint_Matrix.postman_collection",
+                        "Path":  "postman/PBL6_SEC01_Protected_Endpoint_Matrix.postman_collection.json",
+                        "ExitCode":  1,
+                        "Assertions":  68,
+                        "Passed":  66,
+                        "Failed":  2,
+                        "Log":  "PBL6_SEC01_Protected_Endpoint_Matrix.postman_collection.log"
+                    },
+                    {
+                        "Collection":  "PBL6_Workbook_API_Verification.postman_collection",
+                        "Path":  "postman/PBL6_Workbook_API_Verification.postman_collection.json",
+                        "ExitCode":  1,
+                        "Assertions":  108,
+                        "Passed":  92,
+                        "Failed":  16,
+                        "Log":  "PBL6_Workbook_API_Verification.postman_collection.log"
+                    }
+                ]
+}
