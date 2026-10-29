@@ -1,4 +1,12 @@
-import { ApiError, type Booking, type Payment, type Trip } from "@busticket/api-client";
+import {
+  ApiError,
+  type Booking,
+  type Payment,
+  type Refund,
+  type Settlement,
+  type Trip,
+  type UserProfile,
+} from "@busticket/api-client";
 import { FormEvent, useEffect, useState, type ReactNode } from "react";
 import { Link, Navigate, Route, Routes, useNavigate, useParams } from "react-router-dom";
 import { SessionProvider, useSession } from "./session";
@@ -34,6 +42,8 @@ function Shell({ children }: { children: ReactNode }) {
         <Link to="/app/fleet">Xe / tuyến / tài xế</Link>
         <Link to="/app/bookings">Đơn đặt vé</Link>
         <Link to="/app/payments">Thanh toán</Link>
+        <Link to="/app/finance">Đối soát tài chính</Link>
+        {session.user.roles.includes("PLATFORM_ADMIN") ? <Link to="/app/users">Người dùng & phân quyền</Link> : null}
         <Link to="/app/reports">Báo cáo</Link>
         <Link to="/app/driver">Lịch tài xế</Link>
         <button
@@ -488,6 +498,141 @@ function PaymentsPage() {
   );
 }
 
+function FinancePage() {
+  const { api, session } = useSession();
+  const isAdmin = Boolean(session?.user.roles.includes("PLATFORM_ADMIN"));
+  const [settlements, setSettlements] = useState<Settlement[]>([]);
+  const [refunds, setRefunds] = useState<Refund[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  async function reload() {
+    try {
+      const settlementPage = await (isAdmin ? api.adminSettlements() : api.operatorSettlements());
+      setSettlements(settlementPage.items);
+      if (isAdmin) setRefunds((await api.adminRefunds()).items);
+      setError(null);
+    } catch (err) {
+      setError(errorText(err));
+    }
+  }
+
+  useEffect(() => {
+    void reload();
+  }, [api, isAdmin]);
+
+  return (
+    <>
+      <h1>Đối soát tài chính</h1>
+      <p className="muted">Theo dõi doanh thu gộp, hoa hồng, tiền thực nhận và các khoản hoàn tiền.</p>
+      {error ? <p className="error">{error}</p> : null}
+      {notice ? <p className="success">{notice}</p> : null}
+      {isAdmin ? (
+        <div className="finance-forms">
+          <form
+            className="card"
+            onSubmit={async (event: FormEvent<HTMLFormElement>) => {
+              event.preventDefault();
+              const data = new FormData(event.currentTarget);
+              try {
+                await api.createRefund({
+                  paymentId: String(data.get("paymentId")),
+                  bookingId: String(data.get("bookingId")),
+                  refundReference: `BO-${Date.now()}`,
+                  amount: Number(data.get("amount")),
+                  currency: "VND",
+                  reason: String(data.get("reason")),
+                });
+                setNotice("Đã tiếp nhận hoàn tiền.");
+                event.currentTarget.reset();
+                await reload();
+              } catch (err) {
+                setError(errorText(err));
+              }
+            }}
+          >
+            <strong>Tạo hoàn tiền</strong>
+            <label>Payment ID<input name="paymentId" required /></label>
+            <label>Booking ID<input name="bookingId" required /></label>
+            <label>Số tiền<input name="amount" type="number" min="1" required /></label>
+            <label>Lý do<input name="reason" required defaultValue="CUSTOMER_REQUEST" /></label>
+            <button type="submit">Hoàn tiền</button>
+          </form>
+          <form
+            className="card"
+            onSubmit={async (event: FormEvent<HTMLFormElement>) => {
+              event.preventDefault();
+              const data = new FormData(event.currentTarget);
+              try {
+                const payout = await api.createPayout({
+                  organizationId: String(data.get("organizationId")),
+                  periodStart: String(data.get("periodStart")),
+                  periodEnd: String(data.get("periodEnd")),
+                  currency: "VND",
+                  payableAmount: Number(data.get("payableAmount")),
+                });
+                setNotice(`Đã tạo đợt chi trả ${payout.id}.`);
+                event.currentTarget.reset();
+              } catch (err) {
+                setError(errorText(err));
+              }
+            }}
+          >
+            <strong>Tạo đợt chi trả</strong>
+            <label>Organization ID<input name="organizationId" required /></label>
+            <div className="row"><label>Từ ngày<input name="periodStart" type="date" required /></label><label>Đến ngày<input name="periodEnd" type="date" required /></label></div>
+            <label>Số tiền chi trả<input name="payableAmount" type="number" min="0" required /></label>
+            <button type="submit">Tạo payout</button>
+          </form>
+        </div>
+      ) : null}
+      <h2>Đối soát đơn hàng</h2>
+      <div className="table-scroll"><table><thead><tr><th>Booking</th><th>Kênh</th><th>Doanh thu</th><th>Hoa hồng</th><th>Thực nhận</th><th>Trạng thái</th></tr></thead><tbody>
+        {settlements.map((item) => <tr key={item.id}><td>{item.bookingId}</td><td>{item.paymentChannel}</td><td>{money(item.grossAmount, item.currency)}</td><td>{money(item.commissionAmount, item.currency)}</td><td>{money(item.operatorNet, item.currency)}</td><td>{item.collectionStatus}</td></tr>)}
+        {settlements.length === 0 ? <tr><td colSpan={6}>Chưa có dữ liệu đối soát.</td></tr> : null}
+      </tbody></table></div>
+      {isAdmin ? <><h2>Hoàn tiền</h2><div className="table-scroll"><table><thead><tr><th>Tham chiếu</th><th>Payment</th><th>Số tiền</th><th>Lý do</th><th>Trạng thái</th></tr></thead><tbody>
+        {refunds.map((item) => <tr key={item.id}><td>{item.refundReference}</td><td>{item.paymentId}</td><td>{money(item.amount, item.currency)}</td><td>{item.reason}</td><td>{item.status}</td></tr>)}
+        {refunds.length === 0 ? <tr><td colSpan={5}>Chưa có hoàn tiền.</td></tr> : null}
+      </tbody></table></div></> : null}
+    </>
+  );
+}
+
+function UsersPage() {
+  const { api, session } = useSession();
+  const [users, setUsers] = useState<UserProfile[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  async function reload() {
+    try {
+      setUsers((await api.adminUsers()).items);
+      setError(null);
+    } catch (err) {
+      setError(errorText(err));
+    }
+  }
+  useEffect(() => { void reload(); }, [api]);
+  if (!session?.user.roles.includes("PLATFORM_ADMIN")) return <Navigate to="/app/dashboard" replace />;
+  return (
+    <>
+      <h1>Người dùng & phân quyền</h1>
+      <p className="muted">Mọi thay đổi trạng thái và vai trò đều được ghi nhận audit ở dịch vụ Identity.</p>
+      {error ? <p className="error">{error}</p> : null}
+      <div className="table-scroll"><table><thead><tr><th>Người dùng</th><th>Trạng thái</th><th>Vai trò hệ thống</th><th>Thao tác</th></tr></thead><tbody>
+        {users.map((user) => <tr key={user.id}>
+          <td><strong>{user.fullName}</strong><br /><span className="muted">{user.email}<br />{user.id}</span></td>
+          <td>{user.status}</td>
+          <td>{user.roles.join(", ") || "—"}</td>
+          <td><div className="row">
+            <button className="secondary" onClick={async () => { try { await api.changeUserStatus(user.id, { status: user.status === "ACTIVE" ? "SUSPENDED" : "ACTIVE", reason: "BACKOFFICE_ADMIN", expectedVersion: user.rowVersion }); await reload(); } catch (err) { setError(errorText(err)); } }}>{user.status === "ACTIVE" ? "Tạm khóa" : "Kích hoạt"}</button>
+            <button className="secondary" onClick={async () => { const raw = window.prompt("Vai trò, phân cách bằng dấu phẩy", user.roles.join(",")); if (raw === null) return; try { await api.replaceUserRoles(user.id, { roleCodes: raw.split(",").map((role) => role.trim()).filter(Boolean), reason: "BACKOFFICE_ADMIN", expectedVersion: user.rowVersion }); await reload(); } catch (err) { setError(errorText(err)); } }}>Sửa vai trò</button>
+          </div></td>
+        </tr>)}
+      </tbody></table></div>
+    </>
+  );
+}
+
 function reportRows(data: unknown): Record<string, unknown>[] {
   if (!data || typeof data !== "object") return [];
   const payload = (data as { data?: unknown }).data;
@@ -886,6 +1031,22 @@ export function App() {
             element={
               <Guard>
                 <PaymentsPage />
+              </Guard>
+            }
+          />
+          <Route
+            path="/app/finance"
+            element={
+              <Guard>
+                <FinancePage />
+              </Guard>
+            }
+          />
+          <Route
+            path="/app/users"
+            element={
+              <Guard>
+                <UsersPage />
               </Guard>
             }
           />

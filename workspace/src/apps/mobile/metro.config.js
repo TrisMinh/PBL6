@@ -10,6 +10,9 @@ config.resolver.nodeModulesPaths = [
   path.resolve(projectRoot, "node_modules"),
   path.resolve(workspaceRoot, "node_modules"),
 ];
-config.resolver.disableHierarchicalLookup = true;
+// Keep hierarchical lookup enabled so transitive Expo modules can resolve
+// their own nested dependencies while workspace packages still use the
+// explicit roots above.
+config.resolver.disableHierarchicalLookup = false;
 
 module.exports = config;

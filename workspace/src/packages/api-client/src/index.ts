@@ -30,9 +30,20 @@ export type UserProfile = {
   phone: string;
   status: string;
   roles: string[];
-  organizationMemberships: { organizationId: string; roleCodes: string[]; status: string }[];
+  organizationMemberships: Membership[];
+  rowVersion: number;
+  createdAt?: string;
+};
+
+export type Membership = {
+  id: string;
+  userId: string;
+  organizationId: string;
+  roleCodes: string[];
+  status: string;
   rowVersion: number;
 };
+export type UserPage = { page: number; size: number; totalElements: number; totalPages: number; items: UserProfile[] };
 
 export type Money = { amount: number; currency: string };
 export type TripStop = {
@@ -113,6 +124,40 @@ export type Payment = {
   provider: string;
   providerAction?: { redirectUri?: string };
   statusUrl?: string;
+  rowVersion: number;
+};
+export type Refund = {
+  id: string;
+  refundReference: string;
+  paymentId: string;
+  bookingId: string;
+  amount: number;
+  currency: string;
+  status: string;
+  reason: string;
+};
+export type Settlement = {
+  id: string;
+  bookingId: string;
+  organizationId: string;
+  paymentId?: string;
+  paymentChannel: string;
+  grossAmount: number;
+  commissionRate: number;
+  commissionAmount: number;
+  operatorNet: number;
+  currency: string;
+  collectionStatus: string;
+};
+export type Payout = {
+  id: string;
+  organizationId: string;
+  periodStart: string;
+  periodEnd: string;
+  currency: string;
+  payableAmount: number;
+  status: string;
+  transferredAt?: string;
 };
 export type NotificationItem = {
   id: string;
@@ -128,8 +173,14 @@ export type SessionStore = {
   write(session: Session | null): void;
 };
 
+type StorageLike = {
+  getItem(key: string): string | null;
+  setItem(key: string, value: string): void;
+  removeItem(key: string): void;
+};
+
 export function createSessionStore(storageKey = "busticket.session"): SessionStore {
-  const storage = typeof globalThis.sessionStorage === "undefined" ? null : globalThis.sessionStorage;
+  const storage = (globalThis as { sessionStorage?: StorageLike }).sessionStorage ?? null;
   return {
     read() {
       const raw = storage?.getItem(storageKey);
@@ -146,7 +197,10 @@ export function createSessionStore(storageKey = "busticket.session"): SessionSto
 export const browserSession = createSessionStore();
 
 function idempotencyKey() {
-  return crypto.randomUUID().replaceAll("-", "") + "00";
+  const nativeUuid = (globalThis as { crypto?: { randomUUID?: () => string } }).crypto?.randomUUID?.();
+  if (nativeUuid) return nativeUuid.replaceAll("-", "") + "00";
+  const random = Array.from({ length: 4 }, () => Math.floor(Math.random() * 0x1_0000_0000).toString(16).padStart(8, "0")).join("");
+  return random + "00";
 }
 
 export function createClient(options: { baseUrl?: string; session: SessionStore }) {
@@ -239,7 +293,7 @@ export function createClient(options: { baseUrl?: string; session: SessionStore 
     },
     logout: async () => {
       try {
-        await request("/api/v1/auth/logout", { method: "POST", auth: true });
+        await request("/api/v1/auth/logout", { method: "POST", auth: true, idempotent: true });
       } finally {
         options.session.write(null);
       }
@@ -301,6 +355,8 @@ export function createClient(options: { baseUrl?: string; session: SessionStore 
         idempotent: true,
       }),
     getPayment: (id: string) => request<Payment>(`/api/v1/payments/${id}`),
+    listBookingPayments: (bookingId: string) => request<Payment[]>(`/api/v1/bookings/${bookingId}/payments`),
+    cancelPayment: (id: string) => request(`/api/v1/payments/${id}/cancel`, { method: "POST", idempotent: true }),
     listNotifications: () => request<{ items: NotificationItem[]; nextCursor?: string }>("/api/v1/notifications?limit=20"),
     markNotificationRead: (id: string) => request(`/api/v1/notifications/${id}/read`, { method: "PATCH" }),
     operatorOrganization: () => request<{ id: string; name: string; status: string; allowPayLater?: boolean; contactEmail?: string; contactPhone?: string; rowVersion: number }>("/api/v1/operator/organization"),
@@ -345,6 +401,27 @@ export function createClient(options: { baseUrl?: string; session: SessionStore 
       }),
     adminBookings: () => request<{ items: Booking[] }>("/api/v1/admin/bookings?page=0&size=20"),
     adminPayments: () => request<{ items: Payment[] }>("/api/v1/admin/payments?page=0&size=20"),
+    adminRefunds: () => request<{ items: Refund[] }>("/api/v1/admin/refunds?page=0&size=50"),
+    operatorSettlements: () => request<{ items: Settlement[] }>("/api/v1/operator/settlements?page=0&size=50"),
+    adminSettlements: () => request<{ items: Settlement[] }>("/api/v1/admin/settlements?page=0&size=50"),
+    createRefund: (body: { paymentId: string; bookingId: string; refundReference: string; amount: number; currency: string; reason: string }) =>
+      request<Refund>("/api/v1/refunds", { method: "POST", body: JSON.stringify(body), idempotent: true }),
+    createPayout: (body: { organizationId: string; periodStart: string; periodEnd: string; currency: string; payableAmount: number }) =>
+      request<Payout>("/api/v1/admin/payouts", { method: "POST", body: JSON.stringify(body) }),
+    adminUsers: () => request<UserPage>("/api/v1/admin/users?page=0&size=50"),
+    adminUser: (userId: string) => request<UserProfile>(`/api/v1/admin/users/${userId}`),
+    changeUserStatus: (userId: string, body: { status: string; reason: string; expectedVersion: number }) =>
+      request<UserProfile>(`/api/v1/admin/users/${userId}/status`, { method: "PATCH", body: JSON.stringify(body) }),
+    replaceUserRoles: (userId: string, body: { roleCodes: string[]; reason: string; expectedVersion: number }) =>
+      request<UserProfile>(`/api/v1/admin/users/${userId}/roles`, { method: "PUT", body: JSON.stringify(body) }),
+    organizationMembers: (organizationId: string) =>
+      request<Membership[]>(`/api/v1/admin/organizations/${organizationId}/members`),
+    addOrganizationMember: (organizationId: string, body: { userId: string; roleCodes: string[]; status: string; reason: string; expectedVersion: number }) =>
+      request<Membership>(`/api/v1/admin/organizations/${organizationId}/members`, {
+        method: "POST",
+        body: JSON.stringify(body),
+        idempotent: true,
+      }),
     report: (kind: "revenue" | "bookings" | "occupancy", from: string, to: string) =>
       request(`/api/v1/reports/${kind}?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&timezone=Asia/Ho_Chi_Minh`),
     driverAssignments: () => request<{ tripId: string; startAt: string; endAt: string }[]>("/api/v1/driver/assignments"),

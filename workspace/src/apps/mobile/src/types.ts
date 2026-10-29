@@ -10,7 +10,7 @@ export type SearchStackParamList = {
   Search: undefined;
   Results: { origin: string; destination: string; departureDate: string; passengerCount: string };
   Trip: { tripId: string };
-  Passengers: { holdToken: string };
+  Passengers: { holdToken: string; pickupStopId: string; dropoffStopId: string };
   Payment: { bookingId: string };
   PaymentStatus: { paymentId: string };
 };
