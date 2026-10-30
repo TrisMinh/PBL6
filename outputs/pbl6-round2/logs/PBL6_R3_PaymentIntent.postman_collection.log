@@ -8,7 +8,7 @@ PBL6 Round 3 Payment intent
 
 Root Customer login
 
-  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.56 KB, 33 ms]
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.56 KB, 41 ms]
 
 Root PAY-01 Create VNPAY sandbox payment intent
 
@@ -16,7 +16,7 @@ Root PAY-01 Create VNPAY sandbox payment intent
   -
   | 'PAYMENT {"error":{"code":"RESOURCE_NOT_FOUND","messag
   | e":"The requested resource was not found.","correlatio
-  | nId":"01a18af7-fb37-7f90-9eb3-dddc17b966fa"}}'
+  | nId":"01a18b06-ee82-7bd7-b55f-5b1f842ecb7d"}}'
   -
   1. Payment intent created with local sandbox action
 
@@ -33,11 +33,11 @@ Root PAY-01 Create VNPAY sandbox payment intent
 --------------------------+--------------------+---------------------
 |              assertions |                  1 |                  1 |
 ---------------------------------------------------------------------
-| total run duration: 86 ms                                         |
+| total run duration: 101 ms                                        |
 ---------------------------------------------------------------------
 | total data received: 1.5 KB (approx)                              |
 ---------------------------------------------------------------------
-| average response time: 20 ms [min: 8 ms, max: 33 ms, s.d.: 12 ms] |
+| average response time: 24 ms [min: 8 ms, max: 41 ms, s.d.: 16 ms] |
 ---------------------------------------------------------------------
 
   #  failure         detail                                                

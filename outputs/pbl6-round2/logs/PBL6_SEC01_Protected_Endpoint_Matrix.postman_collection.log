@@ -8,12 +8,12 @@ PBL6 SEC-01 Active Contract Auth Matrix
 
 Root SEC-01 Protected operation 01: POST /auth/logout
 
-  POST http://localhost:5080/api/v1/auth/logout [401 Unauthorized, 353 B, 14 ms]
+  POST http://localhost:5080/api/v1/auth/logout [401 Unauthorized, 353 B, 13 ms]
   Pass  Protected operation rejects missing bearer token
 
 Root SEC-01 Protected operation 02: GET /users/me
 
-  GET http://localhost:5080/api/v1/users/me [401 Unauthorized, 353 B, 3 ms]
+  GET http://localhost:5080/api/v1/users/me [401 Unauthorized, 353 B, 4 ms]
   Pass  Protected operation rejects missing bearer token
 
 Root SEC-01 Protected operation 03: PATCH /users/me
@@ -28,17 +28,17 @@ Root SEC-01 Protected operation 04: GET /admin/users
 
 Root SEC-01 Protected operation 05: GET /admin/users/00000000-0000-7000-8000-000000000099
 
-  GET http://localhost:5080/api/v1/admin/users/00000000-0000-7000-8000-000000000099 [401 Unauthorized, 353 B, 3 ms]
+  GET http://localhost:5080/api/v1/admin/users/00000000-0000-7000-8000-000000000099 [401 Unauthorized, 353 B, 4 ms]
   Pass  Protected operation rejects missing bearer token
 
 Root SEC-01 Protected operation 06: PATCH /admin/users/00000000-0000-7000-8000-000000000099/status
 
-  PATCH http://localhost:5080/api/v1/admin/users/00000000-0000-7000-8000-000000000099/status [401 Unauthorized, 353 B, 3 ms]
+  PATCH http://localhost:5080/api/v1/admin/users/00000000-0000-7000-8000-000000000099/status [401 Unauthorized, 353 B, 4 ms]
   Pass  Protected operation rejects missing bearer token
 
 Root SEC-01 Protected operation 07: PUT /admin/users/00000000-0000-7000-8000-000000000099/roles
 
-  PUT http://localhost:5080/api/v1/admin/users/00000000-0000-7000-8000-000000000099/roles [401 Unauthorized, 353 B, 2 ms]
+  PUT http://localhost:5080/api/v1/admin/users/00000000-0000-7000-8000-000000000099/roles [401 Unauthorized, 353 B, 3 ms]
   Pass  Protected operation rejects missing bearer token
 
 Root SEC-01 Protected operation 08: GET /admin/organizations/00000000-0000-7000-8000-000000000099/members
@@ -53,7 +53,7 @@ Root SEC-01 Protected operation 09: POST /admin/organizations/00000000-0000-7000
 
 Root SEC-01 Protected operation 10: PATCH /admin/organizations/00000000-0000-7000-8000-000000000099/members/00000000-0000-7000-8000-000000000098
 
-  PATCH http://localhost:5080/api/v1/admin/organizations/00000000-0000-7000-8000-000000000099/members/00000000-0000-7000-8000-000000000098 [401 Unauthorized, 353 B, 3 ms]
+  PATCH http://localhost:5080/api/v1/admin/organizations/00000000-0000-7000-8000-000000000099/members/00000000-0000-7000-8000-000000000098 [401 Unauthorized, 353 B, 4 ms]
   Pass  Protected operation rejects missing bearer token
 
 Root SEC-01 Protected operation 11: GET /trips/01990a00-0000-7000-8000-000000000007/seats
@@ -63,17 +63,17 @@ Root SEC-01 Protected operation 11: GET /trips/01990a00-0000-7000-8000-000000000
 
 Root SEC-01 Protected operation 12: POST /trips/01990a00-0000-7000-8000-000000000007/seat-holds
 
-  POST http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seat-holds [401 Unauthorized, 353 B, 3 ms]
+  POST http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seat-holds [401 Unauthorized, 353 B, 4 ms]
   Pass  Protected operation rejects missing bearer token
 
 Root SEC-01 Protected operation 13: GET /seat-holds/opaque-hold-token-that-is-long-enough-12345
 
-  GET http://localhost:5080/api/v1/seat-holds/opaque-hold-token-that-is-long-enough-12345 [401 Unauthorized, 353 B, 2 ms]
+  GET http://localhost:5080/api/v1/seat-holds/opaque-hold-token-that-is-long-enough-12345 [401 Unauthorized, 353 B, 3 ms]
   Pass  Protected operation rejects missing bearer token
 
 Root SEC-01 Protected operation 14: DELETE /seat-holds/opaque-hold-token-that-is-long-enough-12345
 
-  DELETE http://localhost:5080/api/v1/seat-holds/opaque-hold-token-that-is-long-enough-12345 [401 Unauthorized, 353 B, 3 ms]
+  DELETE http://localhost:5080/api/v1/seat-holds/opaque-hold-token-that-is-long-enough-12345 [401 Unauthorized, 353 B, 2 ms]
   Pass  Protected operation rejects missing bearer token
 
 Root SEC-01 Protected operation 15: GET /bookings
@@ -83,17 +83,17 @@ Root SEC-01 Protected operation 15: GET /bookings
 
 Root SEC-01 Protected operation 16: POST /bookings
 
-  POST http://localhost:5080/api/v1/bookings [401 Unauthorized, 353 B, 2 ms]
+  POST http://localhost:5080/api/v1/bookings [401 Unauthorized, 353 B, 3 ms]
   Pass  Protected operation rejects missing bearer token
 
 Root SEC-01 Protected operation 17: GET /bookings/00000000-0000-7000-8000-000000000099
 
-  GET http://localhost:5080/api/v1/bookings/00000000-0000-7000-8000-000000000099 [401 Unauthorized, 353 B, 2 ms]
+  GET http://localhost:5080/api/v1/bookings/00000000-0000-7000-8000-000000000099 [401 Unauthorized, 353 B, 3 ms]
   Pass  Protected operation rejects missing bearer token
 
 Root SEC-01 Protected operation 18: POST /bookings/00000000-0000-7000-8000-000000000099/cancellation-preview
 
-  POST http://localhost:5080/api/v1/bookings/00000000-0000-7000-8000-000000000099/cancellation-preview [401 Unauthorized, 353 B, 2 ms]
+  POST http://localhost:5080/api/v1/bookings/00000000-0000-7000-8000-000000000099/cancellation-preview [401 Unauthorized, 353 B, 3 ms]
   Pass  Protected operation rejects missing bearer token
 
 Root SEC-01 Protected operation 19: POST /bookings/00000000-0000-7000-8000-000000000099/cancel
@@ -103,22 +103,22 @@ Root SEC-01 Protected operation 19: POST /bookings/00000000-0000-7000-8000-00000
 
 Root SEC-01 Protected operation 20: GET /bookings/00000000-0000-7000-8000-000000000099/payments
 
-  GET http://localhost:5080/api/v1/bookings/00000000-0000-7000-8000-000000000099/payments [401 Unauthorized, 353 B, 5 ms]
+  GET http://localhost:5080/api/v1/bookings/00000000-0000-7000-8000-000000000099/payments [401 Unauthorized, 353 B, 6 ms]
   Pass  Protected operation rejects missing bearer token
 
 Root SEC-01 Protected operation 21: POST /bookings/00000000-0000-7000-8000-000000000099/payments
 
-  POST http://localhost:5080/api/v1/bookings/00000000-0000-7000-8000-000000000099/payments [401 Unauthorized, 353 B, 2 ms]
+  POST http://localhost:5080/api/v1/bookings/00000000-0000-7000-8000-000000000099/payments [401 Unauthorized, 353 B, 4 ms]
   Pass  Protected operation rejects missing bearer token
 
 Root SEC-01 Protected operation 22: GET /payments/00000000-0000-7000-8000-000000000099
 
-  GET http://localhost:5080/api/v1/payments/00000000-0000-7000-8000-000000000099 [401 Unauthorized, 353 B, 3 ms]
+  GET http://localhost:5080/api/v1/payments/00000000-0000-7000-8000-000000000099 [401 Unauthorized, 353 B, 4 ms]
   Pass  Protected operation rejects missing bearer token
 
 Root SEC-01 Protected operation 23: POST /payments/00000000-0000-7000-8000-000000000099/cancel
 
-  POST http://localhost:5080/api/v1/payments/00000000-0000-7000-8000-000000000099/cancel [401 Unauthorized, 353 B, 2 ms]
+  POST http://localhost:5080/api/v1/payments/00000000-0000-7000-8000-000000000099/cancel [401 Unauthorized, 353 B, 3 ms]
   Pass  Protected operation rejects missing bearer token
 
 Root SEC-01 Protected operation 24: POST /refunds
@@ -133,7 +133,7 @@ Root SEC-01 Protected operation 25: GET /refunds/00000000-0000-7000-8000-0000000
 
 Root SEC-01 Protected operation 26: GET /tickets
 
-  GET http://localhost:5080/api/v1/tickets [401 Unauthorized, 353 B, 2 ms]
+  GET http://localhost:5080/api/v1/tickets [401 Unauthorized, 353 B, 3 ms]
   Pass  Protected operation rejects missing bearer token
 
 Root SEC-01 Protected operation 27: GET /tickets/00000000-0000-7000-8000-000000000099
@@ -143,7 +143,7 @@ Root SEC-01 Protected operation 27: GET /tickets/00000000-0000-7000-8000-0000000
 
 Root SEC-01 Protected operation 28: POST /tickets/validate
 
-  POST http://localhost:5080/api/v1/tickets/validate [401 Unauthorized, 353 B, 2 ms]
+  POST http://localhost:5080/api/v1/tickets/validate [401 Unauthorized, 353 B, 3 ms]
   Pass  Protected operation rejects missing bearer token
 
 Root SEC-01 Protected operation 29: POST /tickets/00000000-0000-7000-8000-000000000099/check-in
@@ -153,7 +153,7 @@ Root SEC-01 Protected operation 29: POST /tickets/00000000-0000-7000-8000-000000
 
 Root SEC-01 Protected operation 30: GET /operator/organization
 
-  GET http://localhost:5080/api/v1/operator/organization [401 Unauthorized, 353 B, 5 ms]
+  GET http://localhost:5080/api/v1/operator/organization [401 Unauthorized, 353 B, 6 ms]
   Pass  Protected operation rejects missing bearer token
 
 Root SEC-01 Protected operation 31: PATCH /operator/organization
@@ -161,10 +161,10 @@ Root SEC-01 Protected operation 31: PATCH /operator/organization
   PATCH http://localhost:5080/api/v1/operator/organization [401 Unauthorized, 353 B, 3 ms]
   Pass  Protected operation rejects missing bearer token
 
-Root SEC-01 Protected operation 32: GET /admin/organizations
+Root SEC-01 Unsupported operation 32: GET /admin/organizations
 
-  GET http://localhost:5080/api/v1/admin/organizations [500 Internal Server Error, 422 B, 2 ms]
-  1. Protected operation rejects missing bearer token
+  GET http://localhost:5080/api/v1/admin/organizations [405 Method Not Allowed, 376 B, 3 ms]
+  Pass  Operation absent from the API contract returns method not allowed
 
 Root SEC-01 Protected operation 33: POST /admin/organizations
 
@@ -176,14 +176,14 @@ Root SEC-01 Protected operation 34: GET /admin/organizations/00000000-0000-7000-
   GET http://localhost:5080/api/v1/admin/organizations/00000000-0000-7000-8000-000000000099 [401 Unauthorized, 353 B, 3 ms]
   Pass  Protected operation rejects missing bearer token
 
-Root SEC-01 Protected operation 35: PATCH /admin/organizations/00000000-0000-7000-8000-000000000099
+Root SEC-01 Unsupported operation 35: PATCH /admin/organizations/00000000-0000-7000-8000-000000000099
 
-  PATCH http://localhost:5080/api/v1/admin/organizations/00000000-0000-7000-8000-000000000099 [500 Internal Server Error, 422 B, 3 ms]
-  2. Protected operation rejects missing bearer token
+  PATCH http://localhost:5080/api/v1/admin/organizations/00000000-0000-7000-8000-000000000099 [405 Method Not Allowed, 376 B, 3 ms]
+  Pass  Operation absent from the API contract returns method not allowed
 
 Root SEC-01 Protected operation 36: GET /operator/buses
 
-  GET http://localhost:5080/api/v1/operator/buses [401 Unauthorized, 353 B, 2 ms]
+  GET http://localhost:5080/api/v1/operator/buses [401 Unauthorized, 353 B, 3 ms]
   Pass  Protected operation rejects missing bearer token
 
 Root SEC-01 Protected operation 37: POST /operator/buses
@@ -193,12 +193,12 @@ Root SEC-01 Protected operation 37: POST /operator/buses
 
 Root SEC-01 Protected operation 38: PATCH /operator/buses/00000000-0000-7000-8000-000000000099
 
-  PATCH http://localhost:5080/api/v1/operator/buses/00000000-0000-7000-8000-000000000099 [401 Unauthorized, 353 B, 2 ms]
+  PATCH http://localhost:5080/api/v1/operator/buses/00000000-0000-7000-8000-000000000099 [401 Unauthorized, 353 B, 3 ms]
   Pass  Protected operation rejects missing bearer token
 
 Root SEC-01 Protected operation 39: POST /operator/buses/00000000-0000-7000-8000-000000000099/deactivate
 
-  POST http://localhost:5080/api/v1/operator/buses/00000000-0000-7000-8000-000000000099/deactivate [401 Unauthorized, 353 B, 2 ms]
+  POST http://localhost:5080/api/v1/operator/buses/00000000-0000-7000-8000-000000000099/deactivate [401 Unauthorized, 353 B, 3 ms]
   Pass  Protected operation rejects missing bearer token
 
 Root SEC-01 Protected operation 40: PUT /operator/buses/00000000-0000-7000-8000-000000000099/seats
@@ -208,12 +208,12 @@ Root SEC-01 Protected operation 40: PUT /operator/buses/00000000-0000-7000-8000-
 
 Root SEC-01 Protected operation 41: GET /operator/drivers
 
-  GET http://localhost:5080/api/v1/operator/drivers [401 Unauthorized, 353 B, 2 ms]
+  GET http://localhost:5080/api/v1/operator/drivers [401 Unauthorized, 353 B, 3 ms]
   Pass  Protected operation rejects missing bearer token
 
 Root SEC-01 Protected operation 42: POST /operator/drivers
 
-  POST http://localhost:5080/api/v1/operator/drivers [401 Unauthorized, 353 B, 2 ms]
+  POST http://localhost:5080/api/v1/operator/drivers [401 Unauthorized, 353 B, 3 ms]
   Pass  Protected operation rejects missing bearer token
 
 Root SEC-01 Protected operation 43: PATCH /operator/drivers/00000000-0000-7000-8000-000000000099
@@ -223,7 +223,7 @@ Root SEC-01 Protected operation 43: PATCH /operator/drivers/00000000-0000-7000-8
 
 Root SEC-01 Protected operation 44: POST /operator/drivers/00000000-0000-7000-8000-000000000099/deactivate
 
-  POST http://localhost:5080/api/v1/operator/drivers/00000000-0000-7000-8000-000000000099/deactivate [401 Unauthorized, 353 B, 2 ms]
+  POST http://localhost:5080/api/v1/operator/drivers/00000000-0000-7000-8000-000000000099/deactivate [401 Unauthorized, 353 B, 3 ms]
   Pass  Protected operation rejects missing bearer token
 
 Root SEC-01 Protected operation 45: GET /operator/routes
@@ -233,12 +233,12 @@ Root SEC-01 Protected operation 45: GET /operator/routes
 
 Root SEC-01 Protected operation 46: POST /operator/routes
 
-  POST http://localhost:5080/api/v1/operator/routes [401 Unauthorized, 353 B, 3 ms]
+  POST http://localhost:5080/api/v1/operator/routes [401 Unauthorized, 353 B, 4 ms]
   Pass  Protected operation rejects missing bearer token
 
 Root SEC-01 Protected operation 47: PATCH /operator/routes/00000000-0000-7000-8000-000000000099
 
-  PATCH http://localhost:5080/api/v1/operator/routes/00000000-0000-7000-8000-000000000099 [401 Unauthorized, 353 B, 2 ms]
+  PATCH http://localhost:5080/api/v1/operator/routes/00000000-0000-7000-8000-000000000099 [401 Unauthorized, 353 B, 3 ms]
   Pass  Protected operation rejects missing bearer token
 
 Root SEC-01 Protected operation 48: PUT /operator/routes/00000000-0000-7000-8000-000000000099/stops
@@ -248,102 +248,102 @@ Root SEC-01 Protected operation 48: PUT /operator/routes/00000000-0000-7000-8000
 
 Root SEC-01 Protected operation 49: POST /operator/routes/00000000-0000-7000-8000-000000000099/deactivate
 
-  POST http://localhost:5080/api/v1/operator/routes/00000000-0000-7000-8000-000000000099/deactivate [401 Unauthorized, 353 B, 2 ms]
+  POST http://localhost:5080/api/v1/operator/routes/00000000-0000-7000-8000-000000000099/deactivate [401 Unauthorized, 353 B, 5 ms]
   Pass  Protected operation rejects missing bearer token
 
 Root SEC-01 Protected operation 50: GET /operator/trips
 
-  GET http://localhost:5080/api/v1/operator/trips [401 Unauthorized, 353 B, 2 ms]
+  GET http://localhost:5080/api/v1/operator/trips [401 Unauthorized, 353 B, 3 ms]
   Pass  Protected operation rejects missing bearer token
 
 Root SEC-01 Protected operation 51: POST /operator/trips
 
-  POST http://localhost:5080/api/v1/operator/trips [401 Unauthorized, 353 B, 3 ms]
+  POST http://localhost:5080/api/v1/operator/trips [401 Unauthorized, 353 B, 4 ms]
   Pass  Protected operation rejects missing bearer token
 
 Root SEC-01 Protected operation 52: PATCH /operator/trips/00000000-0000-7000-8000-000000000099
 
-  PATCH http://localhost:5080/api/v1/operator/trips/00000000-0000-7000-8000-000000000099 [401 Unauthorized, 353 B, 2 ms]
+  PATCH http://localhost:5080/api/v1/operator/trips/00000000-0000-7000-8000-000000000099 [401 Unauthorized, 353 B, 4 ms]
   Pass  Protected operation rejects missing bearer token
 
 Root SEC-01 Protected operation 53: POST /operator/trips/00000000-0000-7000-8000-000000000099/publish
 
-  POST http://localhost:5080/api/v1/operator/trips/00000000-0000-7000-8000-000000000099/publish [401 Unauthorized, 353 B, 3 ms]
+  POST http://localhost:5080/api/v1/operator/trips/00000000-0000-7000-8000-000000000099/publish [401 Unauthorized, 353 B, 4 ms]
   Pass  Protected operation rejects missing bearer token
 
 Root SEC-01 Protected operation 54: POST /operator/trips/00000000-0000-7000-8000-000000000099/cancel
 
-  POST http://localhost:5080/api/v1/operator/trips/00000000-0000-7000-8000-000000000099/cancel [401 Unauthorized, 353 B, 3 ms]
+  POST http://localhost:5080/api/v1/operator/trips/00000000-0000-7000-8000-000000000099/cancel [401 Unauthorized, 353 B, 4 ms]
   Pass  Protected operation rejects missing bearer token
 
 Root SEC-01 Protected operation 55: POST /operator/trips/00000000-0000-7000-8000-000000000099/status-transitions
 
-  POST http://localhost:5080/api/v1/operator/trips/00000000-0000-7000-8000-000000000099/status-transitions [401 Unauthorized, 353 B, 2 ms]
+  POST http://localhost:5080/api/v1/operator/trips/00000000-0000-7000-8000-000000000099/status-transitions [401 Unauthorized, 353 B, 6 ms]
   Pass  Protected operation rejects missing bearer token
 
 Root SEC-01 Protected operation 56: GET /operator/trips/00000000-0000-7000-8000-000000000099/manifest
 
-  GET http://localhost:5080/api/v1/operator/trips/00000000-0000-7000-8000-000000000099/manifest [401 Unauthorized, 353 B, 3 ms]
+  GET http://localhost:5080/api/v1/operator/trips/00000000-0000-7000-8000-000000000099/manifest [401 Unauthorized, 353 B, 4 ms]
   Pass  Protected operation rejects missing bearer token
 
 Root SEC-01 Protected operation 57: GET /driver/assignments
 
-  GET http://localhost:5080/api/v1/driver/assignments [401 Unauthorized, 353 B, 3 ms]
+  GET http://localhost:5080/api/v1/driver/assignments [401 Unauthorized, 353 B, 4 ms]
   Pass  Protected operation rejects missing bearer token
 
 Root SEC-01 Protected operation 58: GET /admin/bookings
 
-  GET http://localhost:5080/api/v1/admin/bookings [401 Unauthorized, 353 B, 2 ms]
+  GET http://localhost:5080/api/v1/admin/bookings [401 Unauthorized, 353 B, 4 ms]
   Pass  Protected operation rejects missing bearer token
 
 Root SEC-01 Protected operation 59: GET /admin/payments
 
-  GET http://localhost:5080/api/v1/admin/payments [401 Unauthorized, 353 B, 2 ms]
+  GET http://localhost:5080/api/v1/admin/payments [401 Unauthorized, 353 B, 4 ms]
   Pass  Protected operation rejects missing bearer token
 
 Root SEC-01 Protected operation 60: GET /admin/refunds
 
-  GET http://localhost:5080/api/v1/admin/refunds [401 Unauthorized, 353 B, 3 ms]
+  GET http://localhost:5080/api/v1/admin/refunds [401 Unauthorized, 353 B, 4 ms]
   Pass  Protected operation rejects missing bearer token
 
 Root SEC-01 Protected operation 61: GET /operator/settlements
 
-  GET http://localhost:5080/api/v1/operator/settlements [401 Unauthorized, 353 B, 3 ms]
+  GET http://localhost:5080/api/v1/operator/settlements [401 Unauthorized, 353 B, 4 ms]
   Pass  Protected operation rejects missing bearer token
 
 Root SEC-01 Protected operation 62: GET /admin/settlements
 
-  GET http://localhost:5080/api/v1/admin/settlements [401 Unauthorized, 353 B, 3 ms]
+  GET http://localhost:5080/api/v1/admin/settlements [401 Unauthorized, 353 B, 5 ms]
   Pass  Protected operation rejects missing bearer token
 
 Root SEC-01 Protected operation 63: POST /admin/payouts
 
-  POST http://localhost:5080/api/v1/admin/payouts [401 Unauthorized, 353 B, 3 ms]
+  POST http://localhost:5080/api/v1/admin/payouts [401 Unauthorized, 353 B, 5 ms]
   Pass  Protected operation rejects missing bearer token
 
 Root SEC-01 Protected operation 64: GET /notifications
 
-  GET http://localhost:5080/api/v1/notifications [401 Unauthorized, 353 B, 8 ms]
+  GET http://localhost:5080/api/v1/notifications [401 Unauthorized, 353 B, 12 ms]
   Pass  Protected operation rejects missing bearer token
 
 Root SEC-01 Protected operation 65: PATCH /notifications/00000000-0000-7000-8000-000000000099/read
 
-  PATCH http://localhost:5080/api/v1/notifications/00000000-0000-7000-8000-000000000099/read [401 Unauthorized, 353 B, 4 ms]
+  PATCH http://localhost:5080/api/v1/notifications/00000000-0000-7000-8000-000000000099/read [401 Unauthorized, 353 B, 7 ms]
   Pass  Protected operation rejects missing bearer token
 
 Root SEC-01 Protected operation 66: GET /reports/revenue?from=2026-10-01T00%3A00%3A00Z&to=2026-10-31T23%3A59%3A59Z&timezone=Asia%2FHo_Chi_Minh
 
-  GET http://localhost:5080/api/v1/reports/revenue?from=2026-10-01T00%3A00%3A00Z&to=2026-10-31T23%3A59%3A59Z&timezone=Asia%2FHo_Chi_Minh [401 Unauthorized, 353 B, 10 ms]
+  GET http://localhost:5080/api/v1/reports/revenue?from=2026-10-01T00%3A00%3A00Z&to=2026-10-31T23%3A59%3A59Z&timezone=Asia%2FHo_Chi_Minh [401 Unauthorized, 353 B, 13 ms]
   Pass  Protected operation rejects missing bearer token
 
 Root SEC-01 Protected operation 67: GET /reports/bookings?from=2026-10-01T00%3A00%3A00Z&to=2026-10-31T23%3A59%3A59Z&timezone=Asia%2FHo_Chi_Minh
 
-  GET http://localhost:5080/api/v1/reports/bookings?from=2026-10-01T00%3A00%3A00Z&to=2026-10-31T23%3A59%3A59Z&timezone=Asia%2FHo_Chi_Minh [401 Unauthorized, 353 B, 3 ms]
+  GET http://localhost:5080/api/v1/reports/bookings?from=2026-10-01T00%3A00%3A00Z&to=2026-10-31T23%3A59%3A59Z&timezone=Asia%2FHo_Chi_Minh [401 Unauthorized, 353 B, 4 ms]
   Pass  Protected operation rejects missing bearer token
 
 Root SEC-01 Protected operation 68: GET /reports/occupancy?from=2026-10-01T00%3A00%3A00Z&to=2026-10-31T23%3A59%3A59Z&timezone=Asia%2FHo_Chi_Minh
 
-  GET http://localhost:5080/api/v1/reports/occupancy?from=2026-10-01T00%3A00%3A00Z&to=2026-10-31T23%3A59%3A59Z&timezone=Asia%2FHo_Chi_Minh [401 Unauthorized, 353 B, 2 ms]
+  GET http://localhost:5080/api/v1/reports/occupancy?from=2026-10-01T00%3A00%3A00Z&to=2026-10-31T23%3A59%3A59Z&timezone=Asia%2FHo_Chi_Minh [401 Unauthorized, 353 B, 3 ms]
   Pass  Protected operation rejects missing bearer token
 
 -------------------------------------------------------------------
@@ -357,25 +357,13 @@ Root SEC-01 Protected operation 68: GET /reports/occupancy?from=2026-10-01T00%3A
 --------------------------+-------------------+--------------------
 |      prerequest-scripts |                 0 |                 0 |
 --------------------------+-------------------+--------------------
-|              assertions |                68 |                 2 |
+|              assertions |                68 |                 0 |
 -------------------------------------------------------------------
-| total run duration: 1149 ms                                     |
+| total run duration: 1215 ms                                     |
 -------------------------------------------------------------------
-| total data received: 9.35 KB (approx)                           |
+| total data received: 9.26 KB (approx)                           |
 -------------------------------------------------------------------
-| average response time: 3 ms [min: 2 ms, max: 14 ms, s.d.: 1 ms] |
+| average response time: 4 ms [min: 2 ms, max: 13 ms, s.d.: 2 ms] |
 -------------------------------------------------------------------
-
-  #  failure         detail                                                                                                  
-                                                                                                                             
- 1.  AssertionError  Protected operation rejects missing bearer token                                                        
-                     expected response to have status code 401 but got 500                                                   
-                     at assertion:0 in test-script                                                                           
-                     inside "SEC-01 Protected operation 32: GET /admin/organizations"                                        
-                                                                                                                             
- 2.  AssertionError  Protected operation rejects missing bearer token                                                        
-                     expected response to have status code 401 but got 500                                                   
-                     at assertion:0 in test-script                                                                           
-                     inside "SEC-01 Protected operation 35: PATCH /admin/organizations/00000000-0000-7000-8000-000000000099" 
 Postman credentials are required for publishing run details to Postman cloud.
 Please specify it by using the `postman login` command

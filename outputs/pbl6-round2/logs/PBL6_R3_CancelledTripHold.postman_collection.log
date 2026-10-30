@@ -8,11 +8,11 @@ PBL6 Round 3 hold against cancelled trip
 
 Root Customer login
 
-  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.35 KB, 40 ms]
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.35 KB, 35 ms]
 
 Root Read cancelled trip inventory if prepared
 
-  GET http://localhost:5080/api/v1/trips/01a1826d-de88-7e82-b851-f44393cb9534/seats [404 Not Found, 355 B, 6 ms]
+  GET http://localhost:5080/api/v1/trips/01a1826d-de88-7e82-b851-f44393cb9534/seats [404 Not Found, 355 B, 7 ms]
   1. Cancelled synthetic trip inventory exists
 
 Root BOOK-07 Hold on cancelled trip is rejected
@@ -20,8 +20,8 @@ Root BOOK-07 Hold on cancelled trip is rejected
   POST http://localhost:5080/api/v1/trips/01a1826d-de88-7e82-b851-f44393cb9534/seat-holds [400 Bad Request, 341 B, 4 ms]
   -
   | 'CANCEL HOLD {"error":{"code":"VALIDATION_ERROR","mess
-  | age":"The request is invalid.","correlationId":"01a18a
-  | f7-5b1e-7c3a-87fe-9ba7b9165434"}}'
+  | age":"The request is invalid.","correlationId":"01a18b
+  | 06-4dfb-71c8-aca2-ce82324c01da"}}'
   -
   2. Non-sellable trip is rejected
 
@@ -38,11 +38,11 @@ Root BOOK-07 Hold on cancelled trip is rejected
 --------------------------+--------------------+---------------------
 |              assertions |                  2 |                  2 |
 ---------------------------------------------------------------------
-| total run duration: 109 ms                                        |
+| total run duration: 112 ms                                        |
 ---------------------------------------------------------------------
 | total data received: 1.41 KB (approx)                             |
 ---------------------------------------------------------------------
-| average response time: 16 ms [min: 4 ms, max: 40 ms, s.d.: 16 ms] |
+| average response time: 15 ms [min: 4 ms, max: 35 ms, s.d.: 13 ms] |
 ---------------------------------------------------------------------
 
   #  failure         detail                                                

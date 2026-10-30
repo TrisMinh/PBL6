@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<testsuite name="PBL6_R3_BOOK12_BOOK13_PayLaterIdempotency.postman_collection" tests="5" failures="0" errors="0" time="2.530">
+<testsuite name="PBL6_R3_BOOK12_BOOK13_PayLaterIdempotency.postman_collection" tests="5" failures="0" errors="0" time="2.111">
   <testcase classname="PBL6_R3_BOOK12_BOOK13_PayLaterIdempotency.postman_collection" name="passed assertion 001" />
   <testcase classname="PBL6_R3_BOOK12_BOOK13_PayLaterIdempotency.postman_collection" name="passed assertion 002" />
   <testcase classname="PBL6_R3_BOOK12_BOOK13_PayLaterIdempotency.postman_collection" name="passed assertion 003" />

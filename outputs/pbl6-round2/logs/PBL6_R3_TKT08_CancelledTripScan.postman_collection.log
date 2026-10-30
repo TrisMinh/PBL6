@@ -8,21 +8,21 @@ PBL6 Round 3 ticket from cancelled trip rejected at validation
 
 Root Customer login
 
-  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.56 KB, 32 ms]
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.55 KB, 32 ms]
 
 Root Read ticket from cancelled trip
 
-  GET http://localhost:5080/api/v1/tickets/01a18264-d050-7859-87c9-ac97499370e4 [404 Not Found, 355 B, 8 ms]
+  GET http://localhost:5080/api/v1/tickets/01a18264-d050-7859-87c9-ac97499370e4 [404 Not Found, 355 B, 7 ms]
   1⠄ AssertionError in test-script
 
 Root TKT-08 Validate ticket on cancelled trip
 
-  POST http://localhost:5080/api/v1/tickets/validate [404 Not Found, 355 B, 13 ms]
+  POST http://localhost:5080/api/v1/tickets/validate [404 Not Found, 355 B, 14 ms]
   -
   | 'CANCELLED TICKET VALIDATION {"error":{"code":"RESOURC
   | E_NOT_FOUND","message":"The requested resource was not
-  |  found.","correlationId":"01a18af8-8276-7bbd-a9f7-cc73
-  | 15477012"}}'
+  |  found.","correlationId":"01a18b07-6bcb-7f5e-9ec7-d828
+  | 9a5e79a6"}}'
   -
   2. Cancelled trip ticket is rejected by validation
 
@@ -39,11 +39,11 @@ Root TKT-08 Validate ticket on cancelled trip
 --------------------------+--------------------+---------------------
 |              assertions |                  1 |                  1 |
 ---------------------------------------------------------------------
-| total run duration: 116 ms                                        |
+| total run duration: 111 ms                                        |
 ---------------------------------------------------------------------
-| total data received: 1.65 KB (approx)                             |
+| total data received: 1.64 KB (approx)                             |
 ---------------------------------------------------------------------
-| average response time: 17 ms [min: 8 ms, max: 32 ms, s.d.: 10 ms] |
+| average response time: 17 ms [min: 7 ms, max: 32 ms, s.d.: 10 ms] |
 ---------------------------------------------------------------------
 
   #  failure         detail                                                

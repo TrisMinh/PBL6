@@ -8,14 +8,14 @@ PBL6 Round 3 atomic multiseat hold
 
 Root Operator login
 
-  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.37 KB, 41 ms]
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.37 KB, 33 ms]
 
 Root Create isolated future draft
 
-  POST http://localhost:5080/api/v1/operator/trips [201 Created, 1.1 KB, 129 ms]
+  POST http://localhost:5080/api/v1/operator/trips [201 Created, 1.1 KB, 127 ms]
   -
-  | 'MULTISEAT TRIP {"id":"01a18af6-87ee-7549-805b-fe10475
-  | 3a5ea","organizationId":"01990a00-0000-7000-8000-00000
+  | 'MULTISEAT TRIP {"id":"01a18b05-7d46-7d60-a543-d6717b2
+  | b6b22","organizationId":"01990a00-0000-7000-8000-00000
   | 0000001","operatorName":"Synthetic Seed Operator","bus
   | Type":"STANDARD","amenities":["WIFI","AC","WATER"],"de
   | partureAt":"2027-01-15T06:00:00+00:00","arrivalAt":"20
@@ -23,7 +23,7 @@ Root Create isolated future draft
   | ","destination":"Seed Destination Station","fare":{"am
   | ount":150000,"currency":"VND"},"status":"DRAFT","sella
   | ble":false,"availableSeatCount":6,"availabilityAsOf":"
-  | 2026-10-30T03:59:34.9137908+00:00","policyVersion":"ca
+  | 2026-10-30T04:15:55.2258499+00:00","policyVersion":"ca
   | ncel-mvp-v1","stops":[{"id":"01990a00-0000-7000-8000-0
   | 00000000004","name":"Seed Origin Station","address":"1
   |  Seed Street","sequence":0,"offsetMinutes":0,"pickupAl
@@ -37,68 +37,74 @@ Root Create isolated future draft
 
 Root Publish isolated trip
 
-  POST http://localhost:5080/api/v1/operator/trips/01a18af6-87ee-7549-805b-fe104753a5ea/publish [202 Accepted, 284 B, 54 ms]
+  POST http://localhost:5080/api/v1/operator/trips/01a18b05-7d46-7d60-a543-d6717b2b6b22/publish [202 Accepted, 284 B, 49 ms]
 
 Root Customer login
 
-  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.35 KB, 21 ms]
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.35 KB, 25 ms]
 
 Root Read new trip seats and stops
 
-  GET http://localhost:5080/api/v1/trips/01a18af6-87ee-7549-805b-fe104753a5ea/seats [200 OK, 1.27 KB, 11 ms]
+  GET http://localhost:5080/api/v1/trips/01a18b05-7d46-7d60-a543-d6717b2b6b22/seats [404 Not Found, 355 B, 8 ms]
+
+Attempting to set next request to Read new trip seats and stops
+
+Root Read new trip seats and stops
+
+  GET http://localhost:5080/api/v1/trips/01a18b05-7d46-7d60-a543-d6717b2b6b22/seats [200 OK, 1.27 KB, 9 ms]
   Pass  Select two available seats from the live response
 
 Root BOOK-03 Atomically hold two seats
 
-  POST http://localhost:5080/api/v1/trips/01a18af6-87ee-7549-805b-fe104753a5ea/seat-holds [201 Created, 740 B, 16 ms]
+  POST http://localhost:5080/api/v1/trips/01a18b05-7d46-7d60-a543-d6717b2b6b22/seat-holds [201 Created, 740 B, 14 ms]
   -
-  | 'MULTISEAT HOLD {"holdToken":"in6jAjymGhm-lRXNOqEzipVE
-  | jUiucBKN2FX2nDZQJU0","tripId":"01a18af6-87ee-7549-805b
-  | -fe104753a5ea","status":"ACTIVE","seats":[{"id":"01a18
-  | af6-8a0a-7c8b-b4ba-830b1bbc35f4","code":"1A","type":"S
+  | 'MULTISEAT HOLD {"holdToken":"XnbiaGRhxYjTieerdC9_0XkB
+  | 9Y35_CyqHepzrVH3NYE","tripId":"01a18b05-7d46-7d60-a543
+  | -d6717b2b6b22","status":"ACTIVE","seats":[{"id":"01a18
+  | b05-839c-79f8-802b-c08ccf9ab89d","code":"1A","type":"S
   | TANDARD","status":"HELD","price":{"amount":150000,"cur
-  | rency":"VND"},"rowVersion":0},{"id":"01a18af6-8a0a-7f5
-  | e-8296-e4c795dd2a3d","code":"1B","type":"STANDARD","st
+  | rency":"VND"},"rowVersion":0},{"id":"01a18b05-839c-789
+  | a-8351-34eb80130207","code":"1B","type":"STANDARD","st
   | atus":"HELD","price":{"amount":150000,"currency":"VND"
-  | },"rowVersion":0}],"expiresAt":"2026-10-30T04:09:36.08
-  | 0003+00:00","serverTime":"2026-10-30T03:59:36.0848022+
+  | },"rowVersion":0}],"expiresAt":"2026-10-30T04:25:56.92
+  | 2636+00:00","serverTime":"2026-10-30T04:15:56.9268985+
   | 00:00"}'
   -
   Pass  Two-seat hold succeeds atomically
 
 Root BOOK-04 Reject multi-seat hold containing unknown seat
 
-  POST http://localhost:5080/api/v1/trips/01a18af6-87ee-7549-805b-fe104753a5ea/seat-holds [409 Conflict, 351 B, 11 ms]
+  POST http://localhost:5080/api/v1/trips/01a18b05-7d46-7d60-a543-d6717b2b6b22/seat-holds [409 Conflict, 351 B, 11 ms]
   -
   | 'PARTIAL HOLD {"error":{"code":"SEAT_UNAVAILABLE","mes
   | sage":"One or more seats are not available.","correlat
-  | ionId":"01a18af6-8ca8-7649-8812-9a7a111d7b20"}}'
+  | ionId":"01a18b05-8412-7094-b1ef-947c0b3721cd"}}'
   -
   Pass  Mixed valid and unknown seats are rejected
 
 Root Release successful synthetic hold
 
-  DELETE http://localhost:5080/api/v1/seat-holds/in6jAjymGhm-lRXNOqEzipVEjUiucBKN2FX2nDZQJU0 [204 No Content, 137 B, 10 ms]
+  DELETE http://localhost:5080/api/v1/seat-holds/XnbiaGRhxYjTieerdC9_0XkB9Y35_CyqHepzrVH3NYE [204 No Content, 137 B, 11 ms]
   Pass  Successful synthetic hold was released
 
------------------------------------------------------------------------
-|                         |            executed |              failed |
---------------------------+---------------------+----------------------
-|              iterations |                   1 |                   0 |
---------------------------+---------------------+----------------------
-|                requests |                   8 |                   0 |
---------------------------+---------------------+----------------------
-|            test-scripts |                   8 |                   0 |
---------------------------+---------------------+----------------------
-|      prerequest-scripts |                   0 |                   0 |
---------------------------+---------------------+----------------------
-|              assertions |                   5 |                   0 |
------------------------------------------------------------------------
-| total run duration: 1424 ms                                         |
------------------------------------------------------------------------
-| total data received: 5.01 KB (approx)                               |
------------------------------------------------------------------------
-| average response time: 36 ms [min: 10 ms, max: 129 ms, s.d.: 37 ms] |
------------------------------------------------------------------------
+----------------------------------------------------------------------
+|                         |            executed |             failed |
+--------------------------+---------------------+---------------------
+|              iterations |                   1 |                  0 |
+--------------------------+---------------------+---------------------
+|                requests |                   9 |                  0 |
+--------------------------+---------------------+---------------------
+|            test-scripts |                   9 |                  0 |
+--------------------------+---------------------+---------------------
+|      prerequest-scripts |                   0 |                  0 |
+--------------------------+---------------------+---------------------
+|              assertions |                   5 |                  0 |
+----------------------------------------------------------------------
+| total run duration: 1942 ms                                        |
+----------------------------------------------------------------------
+| total data received: 5.15 KB (approx)                              |
+----------------------------------------------------------------------
+| average response time: 31 ms [min: 8 ms, max: 127 ms, s.d.: 36 ms] |
+----------------------------------------------------------------------
 Postman credentials are required for publishing run details to Postman cloud.
 Please specify it by using the `postman login` command

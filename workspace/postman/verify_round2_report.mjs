@@ -3,6 +3,7 @@ import { FileBlob, SpreadsheetFile } from 'file:///C:/Users/minht/.cache/codex-r
 
 const root = 'C:/Users/minht/OneDrive/Desktop/PBL6/.worktrees/pbl6-production-ready';
 const file = `${root}/outputs/pbl6-round2/Test_Report_API_Postman_Round2.xlsx`;
+const summary = JSON.parse((await fs.readFile(`${root}/outputs/pbl6-round2/round2-summary.json`, 'utf8')).replace(/^\uFEFF/, ''));
 const workbook = await SpreadsheetFile.importXlsx(await FileBlob.load(file));
 const errors = [];
 for (const sheet of workbook.worksheets.items) {
@@ -16,7 +17,7 @@ for (const sheet of workbook.worksheets.items) {
 }
 const evidence = workbook.worksheets.getItem('Round2_Evidence');
 const round2 = evidence.getRange('A4:E4').values[0];
-if (Number(round2[1]) !== 421 || Number(round2[2]) !== 358 || Number(round2[3]) !== 63) {
+if (Number(round2[1]) !== Number(summary.assertions) || Number(round2[2]) !== Number(summary.passed) || Number(round2[3]) !== Number(summary.failed)) {
   throw new Error(`Unexpected Round 2 summary: ${JSON.stringify(round2)}`);
 }
 if (errors.length) throw new Error(`Formula errors: ${errors.join(', ')}`);

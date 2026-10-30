@@ -8,80 +8,80 @@ PBL6 Round 3 payment notification and settlement verification
 
 Root Customer login
 
-  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.35 KB, 36 ms]
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.35 KB, 41 ms]
 
 Root NOTIF-01 Verify payment notification references synthetic booking
 
-  GET http://localhost:5080/api/v1/notifications [200 OK, 2.84 KB, 65 ms]
+  GET http://localhost:5080/api/v1/notifications [200 OK, 2.84 KB, 61 ms]
   -
-  | 'NOTIFS {"items":[{"id":"01a18af7-1fe3-7a44-b866-08d88
-  | b13df1f","type":"BOOKING_CANCELLED","title":"Booking c
+  | 'NOTIFS {"items":[{"id":"01a18b06-1f3c-7602-8bb4-cbfa5
+  | bafb5b9","type":"BOOKING_CANCELLED","title":"Booking c
   | ancelled","body":"Your booking was cancelled.","refere
-  | nceId":"01a18af7-1471-731c-ac9d-d62539595c39","read":f
-  | alse,"createdAt":"2026-10-30T04:00:13.796058+00:00"},{
-  | "id":"01a18af7-1fe0-78a7-94e8-4e50100b326c","type":"TI
+  | nceId":"01a18b06-069f-7253-af50-f51654332855","read":f
+  | alse,"createdAt":"2026-10-30T04:16:36.669113+00:00"},{
+  | "id":"01a18b06-1f39-7db6-b254-0ce8ecc3cef9","type":"TI
   | CKET_ISSUED","title":"Tickets issued","body":"Your tic
-  | kets are ready.","referenceId":"01a18af7-1471-731c-ac9
-  | d-d62539595c39","read":false,"createdAt":"2026-10-30T0
-  | 4:00:13.792782+00:00"},{"id":"01a18af7-1fdc-7400-92c0-
-  | 1998ddc5114f","type":"BOOKING_PAID","title":"Booking p
+  | kets are ready.","referenceId":"01a18b06-069f-7253-af5
+  | 0-f51654332855","read":false,"createdAt":"2026-10-30T0
+  | 4:16:36.666127+00:00"},{"id":"01a18b06-1f36-7486-85a0-
+  | 36095c81816b","type":"BOOKING_PAID","title":"Booking p
   | aid","body":"Payment for your booking succeeded.","ref
-  | erenceId":"01a18af7-1471-731c-ac9d-d62539595c39","read
-  | ":false,"createdAt":"2026-10-30T04:00:13.78877+00:00"}
-  | ,{"id":"01a18af7-1800-7373-8101-437d3a1b41b1","type":"
-  | BOOKING_CREATED","title":"Booking created","body":"You
-  | r booking was created.","referenceId":"01a18af7-1471-7
-  | 31c-ac9d-d62539595c39","read":false,"createdAt":"2026-
-  | 10-30T04:00:11.776695+00:00"},{"id":"01a18af6-e90f-7a8
-  | 9-8b4d-07ef6b7560aa","type":"BOOKING_CREATED","title":
-  | "Booking created","body":"Your booking was created.","
-  | referenceId":"01a18af6-e27a-7dfc-b362-80a71cdf9e93","r
-  | ead":false,"createdAt":"2026-10-30T03:59:59.759446+00:
-  | 00"},{"id":"01a18af6-c1f0-7c08-a00d-a1f6f84449eb","typ
+  | erenceId":"01a18b06-069f-7253-af50-f51654332855","read
+  | ":false,"createdAt":"2026-10-30T04:16:36.662999+00:00"
+  | },{"id":"01a18b06-0f8d-7201-9166-4a913fd0d964","type":
+  | "BOOKING_CREATED","title":"Booking created","body":"Yo
+  | ur booking was created.","referenceId":"01a18b06-069f-
+  | 7253-af50-f51654332855","read":false,"createdAt":"2026
+  | -10-30T04:16:32.653503+00:00"},{"id":"01a18b05-d8cf-74
+  | a0-beae-23bedf258c05","type":"BOOKING_CREATED","title"
+  | :"Booking created","body":"Your booking was created.",
+  | "referenceId":"01a18b05-d2e5-7aee-b531-10223a455fda","
+  | read":false,"createdAt":"2026-10-30T04:16:18.639887+00
+  | :00"},{"id":"01a18b05-b980-7e3e-a133-c2089e93d661","ty
+  | pe":"BOOKING_CREATED","title":"Booking created","body"
+  | :"Your booking was created.","referenceId":"01a18b05-b
+  | 550-77c7-80c2-02a37195528b","read":false,"createdAt":"
+  | 2026-10-30T04:16:10.624579+00:00"},{"id":"01a18b05-a9d
+  | 7-7880-a35c-d6dca324f571","type":"TICKET_ISSUED","titl
+  | e":"Tickets issued","body":"Your tickets are ready.","
+  | referenceId":"01a18b05-a4be-7541-a28a-63de899031c5","r
+  | ead":false,"createdAt":"2026-10-30T04:16:06.615779+00:
+  | 00"},{"id":"01a18b05-a9d3-7501-aeae-9653372bb015","typ
   | e":"BOOKING_CREATED","title":"Booking created","body":
-  | "Your booking was created.","referenceId":"01a18af6-c0
-  | 55-7ef3-a646-9944d3f9768f","read":false,"createdAt":"2
-  | 026-10-30T03:59:49.744821+00:00"},{"id":"01a18af6-b24d
-  | -75ce-8937-e2aa1d07a0e6","type":"TICKET_ISSUED","title
-  | ":"Tickets issued","body":"Your tickets are ready.","r
-  | eferenceId":"01a18af6-aec6-7d13-8d34-77c0bab0f61a","re
-  | ad":false,"createdAt":"2026-10-30T03:59:45.741293+00:0
-  | 0"},{"id":"01a18af6-b249-7fd6-b834-8c4c6cbf06c7","type
-  | ":"BOOKING_CREATED","title":"Booking created","body":"
-  | Your booking was created.","referenceId":"01a18af6-aec
-  | 6-7d13-8d34-77c0bab0f61a","read":false,"createdAt":"20
-  | 26-10-30T03:59:45.737596+00:00"},{"id":"01a18af6-a2a0-
-  | 768e-a9c6-dbb0c55cabe4","type":"BOOKING_CANCELLED","ti
-  | tle":"Booking cancelled","body":"Your booking was canc
-  | elled.","referenceId":"01a18af6-9d6b-7c9e-850b-249bef3
-  | 25bd4","read":false,"createdAt":"2026-10-30T03:59:41.7
-  | 2903+00:00"},{"id":"01a18af6-a29d-7a3c-aaaf-4a546a397d
-  | e1","type":"TICKET_ISSUED","title":"Tickets issued","b
-  | ody":"Your tickets are ready.","referenceId":"01a18af6
-  | -9d6b-7c9e-850b-249bef325bd4","read":false,"createdAt"
-  | :"2026-10-30T03:59:41.725525+00:00"},{"id":"01a18af6-a
-  | 299-7a75-8d54-6b53c17f4116","type":"BOOKING_CREATED","
-  | title":"Booking created","body":"Your booking was crea
-  | ted.","referenceId":"01a18af6-9d6b-7c9e-850b-249bef325
-  | bd4","read":false,"createdAt":"2026-10-30T03:59:41.721
-  | 9+00:00"}]}'
+  | "Your booking was created.","referenceId":"01a18b05-a4
+  | be-7541-a28a-63de899031c5","read":false,"createdAt":"2
+  | 026-10-30T04:16:06.611678+00:00"},{"id":"01a18b05-9a2a
+  | -738c-9aa0-5372fa08616c","type":"BOOKING_CANCELLED","t
+  | itle":"Booking cancelled","body":"Your booking was can
+  | celled.","referenceId":"01a18b05-9378-735a-8352-1a973d
+  | 137b43","read":false,"createdAt":"2026-10-30T04:16:02.
+  | 602621+00:00"},{"id":"01a18b05-9a26-7381-b46d-f1e051b4
+  | a6f2","type":"TICKET_ISSUED","title":"Tickets issued",
+  | "body":"Your tickets are ready.","referenceId":"01a18b
+  | 05-9378-735a-8352-1a973d137b43","read":false,"createdA
+  | t":"2026-10-30T04:16:02.598709+00:00"},{"id":"01a18b05
+  | -9a22-78a4-b142-4730dae46e26","type":"BOOKING_CREATED"
+  | ,"title":"Booking created","body":"Your booking was cr
+  | eated.","referenceId":"01a18b05-9378-735a-8352-1a973d1
+  | 37b43","read":false,"createdAt":"2026-10-30T04:16:02.5
+  | 94712+00:00"}]}'
   -
   1. Payment notification created for owner
 
 Root Operator login
 
-  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.37 KB, 24 ms]
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.37 KB, 19 ms]
 
 Root PAY-12 Verify settlement fee and net
 
   GET http://localhost:5080/api/v1/operator/settlements?page=0&size=100 [200 OK, 623 B, 7 ms]
   -
   | 'SETTLEMENT {"page":0,"size":100,"totalElements":1,"to
-  | talPages":1,"items":[{"id":"01a18af7-175c-726a-9c8f-54
-  | a5fc886922","bookingId":"01a18af7-1471-731c-ac9d-d6253
-  | 9595c39","organizationId":"01990a00-0000-7000-8000-000
-  | 000000001","paymentId":"01a18af7-170c-7805-9fdd-b71278
-  | 2ef7db","paymentChannel":"PREPAID","grossAmount":0,"co
+  | talPages":1,"items":[{"id":"01a18b06-10a7-7eab-9371-a4
+  | 9ce5fa5063","bookingId":"01a18b06-069f-7253-af50-f5165
+  | 4332855","organizationId":"01990a00-0000-7000-8000-000
+  | 000000001","paymentId":"01a18b06-1057-78e8-9ad1-58b852
+  | da08fd","paymentChannel":"PREPAID","grossAmount":0,"co
   | mmissionRate":0.1000,"commissionAmount":0,"operatorNet
   | ":0,"currency":"VND","collectionStatus":"REFUNDED"}]}'
   -
@@ -100,11 +100,11 @@ Root PAY-12 Verify settlement fee and net
 --------------------------+--------------------+---------------------
 |              assertions |                  2 |                  2 |
 ---------------------------------------------------------------------
-| total run duration: 215 ms                                        |
+| total run duration: 204 ms                                        |
 ---------------------------------------------------------------------
 | total data received: 5.37 KB (approx)                             |
 ---------------------------------------------------------------------
-| average response time: 33 ms [min: 7 ms, max: 65 ms, s.d.: 21 ms] |
+| average response time: 32 ms [min: 7 ms, max: 61 ms, s.d.: 20 ms] |
 ---------------------------------------------------------------------
 
   #  failure         detail                                                                     

@@ -8,25 +8,25 @@ PBL6 Round 3 prepaid cancellation preview
 
 Root Customer login
 
-  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.36 KB, 37 ms]
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.35 KB, 37 ms]
 
 Root Read owned ticket
 
-  GET http://localhost:5080/api/v1/tickets/01a0c49d-73ed-7e96-8861-b8bff3983bfd [404 Not Found, 355 B, 8 ms]
+  GET http://localhost:5080/api/v1/tickets/01a0c49d-73ed-7e96-8861-b8bff3983bfd [404 Not Found, 355 B, 9 ms]
   -
   | 'TICKET {"error":{"code":"RESOURCE_NOT_FOUND","message
   | ":"The requested resource was not found.","correlation
-  | Id":"01a18af7-040f-73bb-86fa-d445360e318f"}}'
+  | Id":"01a18b05-f587-781e-8ba7-069b6816a71f"}}'
   -
   1. Owned ticket identifies booking
 
 Root CAN-01 Preview eligible prepaid cancellation
 
-  POST http://localhost:5080/api/v1/bookings/{{bookingId}}/cancellation-preview [404 Not Found, 355 B, 5 ms]
+  POST http://localhost:5080/api/v1/bookings/{{bookingId}}/cancellation-preview [404 Not Found, 355 B, 8 ms]
   -
   | 'PREVIEW {"error":{"code":"RESOURCE_NOT_FOUND","messag
   | e":"The requested resource was not found.","correlatio
-  | nId":"01a18af7-042c-74dd-a6d5-a6677e9c3626"}}'
+  | nId":"01a18b05-f5a5-77d0-a19f-6b8afd1e7b93"}}'
   -
   2. Eligible cancellation preview returns refund calculation
 
@@ -43,11 +43,11 @@ Root CAN-01 Preview eligible prepaid cancellation
 --------------------------+--------------------+---------------------
 |              assertions |                  2 |                  2 |
 ---------------------------------------------------------------------
-| total run duration: 113 ms                                        |
+| total run duration: 119 ms                                        |
 ---------------------------------------------------------------------
-| total data received: 1.44 KB (approx)                             |
+| total data received: 1.43 KB (approx)                             |
 ---------------------------------------------------------------------
-| average response time: 16 ms [min: 5 ms, max: 37 ms, s.d.: 14 ms] |
+| average response time: 18 ms [min: 8 ms, max: 37 ms, s.d.: 13 ms] |
 ---------------------------------------------------------------------
 
   #  failure         detail                                                   

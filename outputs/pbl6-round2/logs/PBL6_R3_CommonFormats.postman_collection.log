@@ -8,11 +8,11 @@ PBL6 Round 3 common time and money formats
 
 Root Customer login
 
-  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.35 KB, 32 ms]
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.35 KB, 40 ms]
 
 Root CMN-05 Trip date and VND money format
 
-  GET http://localhost:5080/api/v1/trips/01a1825d-b562-7b04-bab7-d50af84b5142 [404 Not Found, 355 B, 12 ms]
+  GET http://localhost:5080/api/v1/trips/01a1825d-b562-7b04-bab7-d50af84b5142 [404 Not Found, 355 B, 13 ms]
   1. Trip uses timezone-aware ISO timestamp and integer VND amount
 
 Root CMN-05 Payment VND amount format
@@ -33,11 +33,11 @@ Root CMN-05 Payment VND amount format
 --------------------------+--------------------+---------------------
 |              assertions |                  2 |                  2 |
 ---------------------------------------------------------------------
-| total run duration: 116 ms                                        |
+| total run duration: 127 ms                                        |
 ---------------------------------------------------------------------
 | total data received: 1.43 KB (approx)                             |
 ---------------------------------------------------------------------
-| average response time: 16 ms [min: 6 ms, max: 32 ms, s.d.: 11 ms] |
+| average response time: 19 ms [min: 6 ms, max: 40 ms, s.d.: 14 ms] |
 ---------------------------------------------------------------------
 
   #  failure         detail                                                           

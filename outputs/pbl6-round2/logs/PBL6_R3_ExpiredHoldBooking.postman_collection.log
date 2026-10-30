@@ -8,7 +8,7 @@ PBL6 Round 3 expired hold booking rejection
 
 Root Customer login
 
-  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.35 KB, 40 ms]
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.35 KB, 41 ms]
 
 Root BOOK-16 Create booking from expired hold
 
@@ -16,7 +16,7 @@ Root BOOK-16 Create booking from expired hold
   -
   | 'EXPIRED BOOK {"error":{"code":"RESOURCE_NOT_FOUND","m
   | essage":"The requested resource was not found.","corre
-  | lationId":"01a18af7-8a8b-7e7d-a7ed-06004c31e503"}}'
+  | lationId":"01a18b06-7ecd-7325-a0a3-2326ff9c1779"}}'
   -
   1. Expired hold cannot create booking
 
@@ -33,11 +33,11 @@ Root BOOK-16 Create booking from expired hold
 --------------------------+---------------------+---------------------
 |              assertions |                   1 |                  1 |
 ----------------------------------------------------------------------
-| total run duration: 100 ms                                         |
+| total run duration: 107 ms                                         |
 ----------------------------------------------------------------------
 | total data received: 1.29 KB (approx)                              |
 ----------------------------------------------------------------------
-| average response time: 25 ms [min: 11 ms, max: 40 ms, s.d.: 14 ms] |
+| average response time: 26 ms [min: 11 ms, max: 41 ms, s.d.: 15 ms] |
 ----------------------------------------------------------------------
 
   #  failure         detail                                                

@@ -8,7 +8,7 @@ PBL6 Round 3 Profile email verification
 
 Root Login seed customer
 
-  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.56 KB, 33 ms]
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.56 KB, 30 ms]
 
 Root Read profile before email change
 
@@ -17,7 +17,7 @@ Root Read profile before email change
 
 Root PRF-03 Request pending email change
 
-  PATCH http://localhost:5080/api/v1/users/me [202 Accepted, 284 B, 67 ms]
+  PATCH http://localhost:5080/api/v1/users/me [202 Accepted, 284 B, 66 ms]
   Pass  Email change accepted for verification
 
 Root PRF-03 Confirm email remains unchanged before verification
@@ -27,12 +27,12 @@ Root PRF-03 Confirm email remains unchanged before verification
 
 Root Locate delivered email change OTP
 
-  GET http://localhost:8025/api/v1/messages [200 OK, 1.57 KB, 7 ms]
+  GET http://localhost:8025/api/v1/messages [200 OK, 1.57 KB, 8 ms]
   Pass  Mailpit delivered email change verification
 
 Root Read actual email change challenge
 
-  GET http://localhost:8025/api/v1/message/m2zM236uhsQJffoTxuUZtm [200 OK, 809 B, 3 ms]
+  GET http://localhost:8025/api/v1/message/ffGnnquALF9WuMF3gcFdrU [200 OK, 811 B, 3 ms]
   Pass  Read challenge identifiers from actual email
 
 Root PRF-04 Reject incorrect email verification code
@@ -58,11 +58,11 @@ Root PRF-04 Old email remains after failed verification
 --------------------------+--------------------+---------------------
 |              assertions |                  7 |                  0 |
 ---------------------------------------------------------------------
-| total run duration: 270 ms                                        |
+| total run duration: 275 ms                                        |
 ---------------------------------------------------------------------
-| total data received: 5.08 KB (approx)                             |
+| total data received: 5.07 KB (approx)                             |
 ---------------------------------------------------------------------
-| average response time: 17 ms [min: 3 ms, max: 67 ms, s.d.: 20 ms] |
+| average response time: 16 ms [min: 3 ms, max: 66 ms, s.d.: 20 ms] |
 ---------------------------------------------------------------------
 Postman credentials are required for publishing run details to Postman cloud.
 Please specify it by using the `postman login` command

@@ -8,16 +8,16 @@ PBL6 Round 3 foreign customer cancellation preview access
 
 Root Second customer login
 
-  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.13 KB, 29 ms]
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.13 KB, 31 ms]
 
 Root CAN-09 Foreign customer cannot preview synthetic booking cancellation
 
-  POST http://localhost:5080/api/v1/bookings/01a18263-9bb1-7393-9355-47d8efecdb8b/cancellation-preview [404 Not Found, 355 B, 5 ms]
+  POST http://localhost:5080/api/v1/bookings/01a18263-9bb1-7393-9355-47d8efecdb8b/cancellation-preview [404 Not Found, 355 B, 4 ms]
   -
   | 'FOREIGN CANCEL PREVIEW {"error":{"code":"RESOURCE_NOT
   | _FOUND","message":"The requested resource was not foun
-  | d.","correlationId":"01a18af7-52e7-7bd3-9078-11ed163f3
-  | 9b5"}}'
+  | d.","correlationId":"01a18b06-45c9-72f8-8460-57ebaf787
+  | a72"}}'
   -
   Pass  Foreign cancellation preview is forbidden or concealed
 
@@ -38,7 +38,7 @@ Root CAN-09 Foreign customer cannot preview synthetic booking cancellation
 ---------------------------------------------------------------------
 | total data received: 1.07 KB (approx)                             |
 ---------------------------------------------------------------------
-| average response time: 17 ms [min: 5 ms, max: 29 ms, s.d.: 12 ms] |
+| average response time: 17 ms [min: 4 ms, max: 31 ms, s.d.: 13 ms] |
 ---------------------------------------------------------------------
 Postman credentials are required for publishing run details to Postman cloud.
 Please specify it by using the `postman login` command

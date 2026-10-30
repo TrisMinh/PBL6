@@ -13,22 +13,22 @@ Root AUTH-01 Register second synthetic customer
 
 Root Locate second customer verification email
 
-  GET http://localhost:8025/api/v1/messages [200 OK, 1.48 KB, 8 ms]
+  GET http://localhost:8025/api/v1/messages [200 OK, 1.48 KB, 10 ms]
   Pass  Second customer verification email delivered
 
 Root Extract actual second customer OTP from Mailpit
 
-  GET http://localhost:8025/api/v1/message/dH2EJccXam5ij9B7W6pdNt [200 OK, 812 B, 4 ms]
+  GET http://localhost:8025/api/v1/message/X8AV6CoUwZaATjicvT5XoM [200 OK, 814 B, 4 ms]
   Pass  Actual OTP and challenge extracted from Mailpit
 
 Root Verify second customer
 
-  POST http://localhost:5080/api/v1/auth/verify [200 OK, 1.13 KB, 22 ms]
+  POST http://localhost:5080/api/v1/auth/verify [200 OK, 1.13 KB, 17 ms]
   Pass  Second synthetic customer verifies and receives access token
 
 Root Login second customer
 
-  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.13 KB, 26 ms]
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.13 KB, 22 ms]
   Pass  Second synthetic customer can log in
 
 ---------------------------------------------------------------------
@@ -44,11 +44,11 @@ Root Login second customer
 --------------------------+--------------------+---------------------
 |              assertions |                  5 |                  0 |
 ---------------------------------------------------------------------
-| total run duration: 234 ms                                        |
+| total run duration: 232 ms                                        |
 ---------------------------------------------------------------------
 | total data received: 3.37 KB (approx)                             |
 ---------------------------------------------------------------------
-| average response time: 29 ms [min: 4 ms, max: 87 ms, s.d.: 29 ms] |
+| average response time: 28 ms [min: 4 ms, max: 87 ms, s.d.: 30 ms] |
 ---------------------------------------------------------------------
 Postman credentials are required for publishing run details to Postman cloud.
 Please specify it by using the `postman login` command

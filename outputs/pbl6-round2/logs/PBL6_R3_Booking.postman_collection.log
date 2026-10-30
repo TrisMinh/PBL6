@@ -8,11 +8,11 @@ PBL6 Round 3 Seat Hold and Booking flow
 
 Root Customer login
 
-  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.35 KB, 31 ms]
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.35 KB, 42 ms]
 
 Root BOOK-01 Read seats for synthetic published trip
 
-  GET http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seats [200 OK, 1.26 KB, 12 ms]
+  GET http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seats [200 OK, 1.26 KB, 7 ms]
   Pass  Seat availability has usable seats and timestamp
 
 Root Read trip stops
@@ -22,32 +22,32 @@ Root Read trip stops
 
 Root BOOK-02 Hold one available seat
 
-  POST http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seat-holds [201 Created, 590 B, 14 ms]
+  POST http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seat-holds [201 Created, 590 B, 16 ms]
   Pass  Seat hold created
 
 Root BOOK-08 Replay hold with same idempotency key
 
-  POST http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seat-holds [201 Created, 600 B, 5 ms]
+  POST http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seat-holds [201 Created, 600 B, 6 ms]
   Pass  Idempotent retry returns same active hold
 
 Root Read active seat hold
 
-  GET http://localhost:5080/api/v1/seat-holds/5lDohart9IFXT6uQX_MGpv7NCgigDYRYAMki4zhpq6A [200 OK, 585 B, 9 ms]
+  GET http://localhost:5080/api/v1/seat-holds/rPpbVQeDLVAh-uVEQUwrUKpNDSekBfSjI3fWq-mhj6E [200 OK, 585 B, 15 ms]
   Pass  Hold lookup returns active owned hold
 
 Root BOOK-10/11 Create booking and verify server total
 
-  POST http://localhost:5080/api/v1/bookings [201 Created, 874 B, 17 ms]
+  POST http://localhost:5080/api/v1/bookings [201 Created, 874 B, 21 ms]
   -
-  | 'BOOKING ERROR/RESPONSE {"id":"01a18af6-c055-7ef3-a646
-  | -9944d3f9768f","code":"BK9944D3F9768F","customerId":"0
+  | 'BOOKING ERROR/RESPONSE {"id":"01a18b05-b550-77c7-80c2
+  | -02a37195528b","code":"BK02A37195528B","customerId":"0
   | 1990a00-0000-7000-8000-000000000002","tripId":"01990a0
   | 0-0000-7000-8000-000000000007","status":"PENDING_PAYME
   | NT","paymentChannel":"PREPAID","contact":{"fullName":"
   | Postman Synthetic","email":"seed.customer@example.test
   | ","phone":"\\u002B840000000001"},"subtotal":150000,"di
   | scount":0,"fee":0,"total":150000,"currency":"VND","exp
-  | iresAt":"2026-10-30T04:09:49.259536+00:00","items":[{"
+  | iresAt":"2026-10-30T04:26:09.469525+00:00","items":[{"
   | seatId":"01990a00-0000-7000-8000-000000000022","fullNa
   | me":"Postman Passenger","pickupStopId":"01990a00-0000-
   | 7000-8000-000000000004","dropoffStopId":"01990a00-0000
@@ -55,24 +55,24 @@ Root BOOK-10/11 Create booking and verify server total
   -
   Pass  Booking created and server calculates total
 
---------------------------------------------------------------------
-|                         |           executed |            failed |
---------------------------+--------------------+--------------------
-|              iterations |                  1 |                 0 |
---------------------------+--------------------+--------------------
-|                requests |                  7 |                 0 |
---------------------------+--------------------+--------------------
-|            test-scripts |                  7 |                 0 |
---------------------------+--------------------+--------------------
-|      prerequest-scripts |                  0 |                 0 |
---------------------------+--------------------+--------------------
-|              assertions |                  6 |                 0 |
---------------------------------------------------------------------
-| total run duration: 218 ms                                       |
---------------------------------------------------------------------
-| total data received: 4.33 KB (approx)                            |
---------------------------------------------------------------------
-| average response time: 14 ms [min: 5 ms, max: 31 ms, s.d.: 7 ms] |
---------------------------------------------------------------------
+---------------------------------------------------------------------
+|                         |           executed |             failed |
+--------------------------+--------------------+---------------------
+|              iterations |                  1 |                  0 |
+--------------------------+--------------------+---------------------
+|                requests |                  7 |                  0 |
+--------------------------+--------------------+---------------------
+|            test-scripts |                  7 |                  0 |
+--------------------------+--------------------+---------------------
+|      prerequest-scripts |                  0 |                  0 |
+--------------------------+--------------------+---------------------
+|              assertions |                  6 |                  0 |
+---------------------------------------------------------------------
+| total run duration: 238 ms                                        |
+---------------------------------------------------------------------
+| total data received: 4.33 KB (approx)                             |
+---------------------------------------------------------------------
+| average response time: 16 ms [min: 6 ms, max: 42 ms, s.d.: 11 ms] |
+---------------------------------------------------------------------
 Postman credentials are required for publishing run details to Postman cloud.
 Please specify it by using the `postman login` command

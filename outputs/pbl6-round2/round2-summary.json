@@ -1,16 +1,16 @@
 ﻿{
     "schemaVersion":  1,
     "suite":  "PBL6 API Postman Round 2",
-    "startedAt":  "2026-10-30T03:59:13.3912642+00:00",
-    "completedAt":  "2026-10-30T04:02:18.2169319+00:00",
+    "startedAt":  "2026-10-30T04:15:34.5989375+00:00",
+    "completedAt":  "2026-10-30T04:18:36.3565230+00:00",
     "readinessUrl":  "http://localhost:5080/ready",
     "environment":  "postman/PBL6_Local.postman_environment.json",
     "collections":  72,
-    "failedCollections":  34,
+    "failedCollections":  33,
     "assertions":  421,
-    "passed":  358,
-    "failed":  63,
-    "passRate":  0.850356,
+    "passed":  360,
+    "failed":  61,
+    "passRate":  0.855107,
     "round1Baseline":  {
                            "round":  1,
                            "assertions":  419,
@@ -27,7 +27,7 @@
                         "Assertions":  2,
                         "Passed":  1,
                         "Failed":  1,
-                        "DurationSeconds":  2.551,
+                        "DurationSeconds":  2.995,
                         "Log":  "logs/PBL6_PAY03_Readback.postman_collection.log",
                         "JUnit":  "junit/PBL6_PAY03_Readback.postman_collection.xml"
                     },
@@ -38,7 +38,7 @@
                         "Assertions":  4,
                         "Passed":  0,
                         "Failed":  4,
-                        "DurationSeconds":  3.361,
+                        "DurationSeconds":  2.433,
                         "Log":  "logs/PBL6_R3_AdminRoles.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_AdminRoles.postman_collection.xml"
                     },
@@ -49,7 +49,7 @@
                         "Assertions":  0,
                         "Passed":  0,
                         "Failed":  0,
-                        "DurationSeconds":  2.519,
+                        "DurationSeconds":  2.46,
                         "Log":  "logs/PBL6_R3_AdminSettlement.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_AdminSettlement.postman_collection.xml"
                     },
@@ -60,7 +60,7 @@
                         "Assertions":  39,
                         "Passed":  39,
                         "Failed":  0,
-                        "DurationSeconds":  4.176,
+                        "DurationSeconds":  3.814,
                         "Log":  "logs/PBL6_R3_Auth_Common_Security.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_Auth_Common_Security.postman_collection.xml"
                     },
@@ -71,7 +71,7 @@
                         "Assertions":  4,
                         "Passed":  4,
                         "Failed":  0,
-                        "DurationSeconds":  2.44,
+                        "DurationSeconds":  2.534,
                         "Log":  "logs/PBL6_R3_AuthExpiry.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_AuthExpiry.postman_collection.xml"
                     },
@@ -82,7 +82,7 @@
                         "Assertions":  5,
                         "Passed":  5,
                         "Failed":  0,
-                        "DurationSeconds":  2.441,
+                        "DurationSeconds":  2.206,
                         "Log":  "logs/PBL6_R3_CreateSecondCustomer.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_CreateSecondCustomer.postman_collection.xml"
                     },
@@ -93,7 +93,7 @@
                         "Assertions":  5,
                         "Passed":  5,
                         "Failed":  0,
-                        "DurationSeconds":  2.397,
+                        "DurationSeconds":  2.485,
                         "Log":  "logs/PBL6_R3_BOOK03_BOOK04_ExistingTrip.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_BOOK03_BOOK04_ExistingTrip.postman_collection.xml"
                     },
@@ -104,7 +104,7 @@
                         "Assertions":  5,
                         "Passed":  5,
                         "Failed":  0,
-                        "DurationSeconds":  3.262,
+                        "DurationSeconds":  3.853,
                         "Log":  "logs/PBL6_R3_BOOK03_BOOK04_Multiseat.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_BOOK03_BOOK04_Multiseat.postman_collection.xml"
                     },
@@ -115,7 +115,7 @@
                         "Assertions":  1,
                         "Passed":  1,
                         "Failed":  0,
-                        "DurationSeconds":  1.973,
+                        "DurationSeconds":  2.02,
                         "Log":  "logs/PBL6_R3_BOOK05_ConcurrentHold.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_BOOK05_ConcurrentHold.postman_collection.xml"
                     },
@@ -126,7 +126,7 @@
                         "Assertions":  5,
                         "Passed":  5,
                         "Failed":  0,
-                        "DurationSeconds":  2.53,
+                        "DurationSeconds":  2.111,
                         "Log":  "logs/PBL6_R3_BOOK12_BOOK13_PayLaterIdempotency.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_BOOK12_BOOK13_PayLaterIdempotency.postman_collection.xml"
                     },
@@ -148,7 +148,7 @@
                         "Assertions":  2,
                         "Passed":  2,
                         "Failed":  0,
-                        "DurationSeconds":  2.057,
+                        "DurationSeconds":  1.965,
                         "Log":  "logs/PBL6_R3_BOOK18_PayLater.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_BOOK18_PayLater.postman_collection.xml"
                     },
@@ -159,7 +159,7 @@
                         "Assertions":  3,
                         "Passed":  3,
                         "Failed":  0,
-                        "DurationSeconds":  2.237,
+                        "DurationSeconds":  2.002,
                         "Log":  "logs/PBL6_R3_BOOK20_InvalidChannel.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_BOOK20_InvalidChannel.postman_collection.xml"
                     },
@@ -170,7 +170,7 @@
                         "Assertions":  6,
                         "Passed":  6,
                         "Failed":  0,
-                        "DurationSeconds":  2.358,
+                        "DurationSeconds":  2.257,
                         "Log":  "logs/PBL6_R3_Booking.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_Booking.postman_collection.xml"
                     },
@@ -181,7 +181,7 @@
                         "Assertions":  2,
                         "Passed":  0,
                         "Failed":  2,
-                        "DurationSeconds":  2.226,
+                        "DurationSeconds":  2.027,
                         "Log":  "logs/PBL6_R3_BookingCorrectTotal.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_BookingCorrectTotal.postman_collection.xml"
                     },
@@ -192,7 +192,7 @@
                         "Assertions":  1,
                         "Passed":  0,
                         "Failed":  1,
-                        "DurationSeconds":  2.031,
+                        "DurationSeconds":  2.263,
                         "Log":  "logs/PBL6_R3_BookingExpiry.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_BookingExpiry.postman_collection.xml"
                     },
@@ -203,7 +203,7 @@
                         "Assertions":  6,
                         "Passed":  6,
                         "Failed":  0,
-                        "DurationSeconds":  4.272,
+                        "DurationSeconds":  3.462,
                         "Log":  "logs/PBL6_R3_BookingFresh.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_BookingFresh.postman_collection.xml"
                     },
@@ -214,7 +214,7 @@
                         "Assertions":  1,
                         "Passed":  0,
                         "Failed":  1,
-                        "DurationSeconds":  2.056,
+                        "DurationSeconds":  2.235,
                         "Log":  "logs/PBL6_R3_BookingInvalidChannel.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_BookingInvalidChannel.postman_collection.xml"
                     },
@@ -225,7 +225,7 @@
                         "Assertions":  0,
                         "Passed":  0,
                         "Failed":  0,
-                        "DurationSeconds":  2.24,
+                        "DurationSeconds":  2.117,
                         "Log":  "logs/PBL6_R3_BookingState.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_BookingState.postman_collection.xml"
                     },
@@ -236,7 +236,7 @@
                         "Assertions":  9,
                         "Passed":  9,
                         "Failed":  0,
-                        "DurationSeconds":  2.196,
+                        "DurationSeconds":  2.361,
                         "Log":  "logs/PBL6_R3_BookingValidation.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_BookingValidation.postman_collection.xml"
                     },
@@ -247,7 +247,7 @@
                         "Assertions":  2,
                         "Passed":  0,
                         "Failed":  2,
-                        "DurationSeconds":  2.11,
+                        "DurationSeconds":  1.978,
                         "Log":  "logs/PBL6_R3_CAN01_Preview.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_CAN01_Preview.postman_collection.xml"
                     },
@@ -258,7 +258,7 @@
                         "Assertions":  3,
                         "Passed":  0,
                         "Failed":  3,
-                        "DurationSeconds":  2.107,
+                        "DurationSeconds":  2.352,
                         "Log":  "logs/PBL6_R3_CAN02_PrepaidConfirmCancel.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_CAN02_PrepaidConfirmCancel.postman_collection.xml"
                     },
@@ -269,7 +269,7 @@
                         "Assertions":  9,
                         "Passed":  9,
                         "Failed":  0,
-                        "DurationSeconds":  4.103,
+                        "DurationSeconds":  5.819,
                         "Log":  "logs/PBL6_R3_CAN02_PrepaidRefundFlow.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_CAN02_PrepaidRefundFlow.postman_collection.xml"
                     },
@@ -280,7 +280,7 @@
                         "Assertions":  1,
                         "Passed":  0,
                         "Failed":  1,
-                        "DurationSeconds":  2.096,
+                        "DurationSeconds":  2.074,
                         "Log":  "logs/PBL6_R3_CAN02_RefundReadback.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_CAN02_RefundReadback.postman_collection.xml"
                     },
@@ -291,7 +291,7 @@
                         "Assertions":  3,
                         "Passed":  0,
                         "Failed":  3,
-                        "DurationSeconds":  2.99,
+                        "DurationSeconds":  2.175,
                         "Log":  "logs/PBL6_R3_CAN03_PayLaterCancellation.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_CAN03_PayLaterCancellation.postman_collection.xml"
                     },
@@ -302,7 +302,7 @@
                         "Assertions":  2,
                         "Passed":  0,
                         "Failed":  2,
-                        "DurationSeconds":  2.046,
+                        "DurationSeconds":  2.025,
                         "Log":  "logs/PBL6_R3_CAN04_CancelReplay.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_CAN04_CancelReplay.postman_collection.xml"
                     },
@@ -313,7 +313,7 @@
                         "Assertions":  2,
                         "Passed":  1,
                         "Failed":  1,
-                        "DurationSeconds":  2.283,
+                        "DurationSeconds":  2.084,
                         "Log":  "logs/PBL6_R3_CAN05_CheckedIn.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_CAN05_CheckedIn.postman_collection.xml"
                     },
@@ -324,7 +324,7 @@
                         "Assertions":  1,
                         "Passed":  1,
                         "Failed":  0,
-                        "DurationSeconds":  2.191,
+                        "DurationSeconds":  1.995,
                         "Log":  "logs/PBL6_R3_CAN06_RepeatCancelled.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_CAN06_RepeatCancelled.postman_collection.xml"
                     },
@@ -335,7 +335,7 @@
                         "Assertions":  1,
                         "Passed":  1,
                         "Failed":  0,
-                        "DurationSeconds":  2.339,
+                        "DurationSeconds":  1.942,
                         "Log":  "logs/PBL6_R3_CAN09_ForeignPreview.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_CAN09_ForeignPreview.postman_collection.xml"
                     },
@@ -346,7 +346,7 @@
                         "Assertions":  2,
                         "Passed":  0,
                         "Failed":  2,
-                        "DurationSeconds":  2.264,
+                        "DurationSeconds":  2.122,
                         "Log":  "logs/PBL6_R3_CancelledTripHold.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_CancelledTripHold.postman_collection.xml"
                     },
@@ -357,7 +357,7 @@
                         "Assertions":  2,
                         "Passed":  0,
                         "Failed":  2,
-                        "DurationSeconds":  2.416,
+                        "DurationSeconds":  2.52,
                         "Log":  "logs/PBL6_R3_CommonFormats.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_CommonFormats.postman_collection.xml"
                     },
@@ -368,7 +368,7 @@
                         "Assertions":  6,
                         "Passed":  6,
                         "Failed":  0,
-                        "DurationSeconds":  2.742,
+                        "DurationSeconds":  2.4,
                         "Log":  "logs/PBL6_R3_CrossTenant.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_CrossTenant.postman_collection.xml"
                     },
@@ -379,7 +379,7 @@
                         "Assertions":  4,
                         "Passed":  4,
                         "Failed":  0,
-                        "DurationSeconds":  2.482,
+                        "DurationSeconds":  2.522,
                         "Log":  "logs/PBL6_R3_Drivers.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_Drivers.postman_collection.xml"
                     },
@@ -390,7 +390,7 @@
                         "Assertions":  4,
                         "Passed":  3,
                         "Failed":  1,
-                        "DurationSeconds":  2.348,
+                        "DurationSeconds":  2.77,
                         "Log":  "logs/PBL6_R3_DriverScheduleConflict.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_DriverScheduleConflict.postman_collection.xml"
                     },
@@ -401,7 +401,7 @@
                         "Assertions":  1,
                         "Passed":  0,
                         "Failed":  1,
-                        "DurationSeconds":  2.251,
+                        "DurationSeconds":  2.268,
                         "Log":  "logs/PBL6_R3_ExpiredHoldBooking.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_ExpiredHoldBooking.postman_collection.xml"
                     },
@@ -412,7 +412,7 @@
                         "Assertions":  1,
                         "Passed":  1,
                         "Failed":  0,
-                        "DurationSeconds":  2.044,
+                        "DurationSeconds":  2.073,
                         "Log":  "logs/PBL6_R3_ExpiredToken.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_ExpiredToken.postman_collection.xml"
                     },
@@ -423,7 +423,7 @@
                         "Assertions":  2,
                         "Passed":  2,
                         "Failed":  0,
-                        "DurationSeconds":  2.493,
+                        "DurationSeconds":  2.141,
                         "Log":  "logs/PBL6_R3_FinalAdmin.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_FinalAdmin.postman_collection.xml"
                     },
@@ -434,7 +434,7 @@
                         "Assertions":  2,
                         "Passed":  0,
                         "Failed":  2,
-                        "DurationSeconds":  1.89,
+                        "DurationSeconds":  2.117,
                         "Log":  "logs/PBL6_R3_HoldExpiry.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_HoldExpiry.postman_collection.xml"
                     },
@@ -445,7 +445,7 @@
                         "Assertions":  2,
                         "Passed":  0,
                         "Failed":  2,
-                        "DurationSeconds":  2.163,
+                        "DurationSeconds":  2.188,
                         "Log":  "logs/PBL6_R3_NotificationSettlement.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_NotificationSettlement.postman_collection.xml"
                     },
@@ -456,7 +456,7 @@
                         "Assertions":  3,
                         "Passed":  3,
                         "Failed":  0,
-                        "DurationSeconds":  2.268,
+                        "DurationSeconds":  1.913,
                         "Log":  "logs/PBL6_R3_OrganizationMember.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_OrganizationMember.postman_collection.xml"
                     },
@@ -467,7 +467,7 @@
                         "Assertions":  3,
                         "Passed":  3,
                         "Failed":  0,
-                        "DurationSeconds":  3.688,
+                        "DurationSeconds":  3.337,
                         "Log":  "logs/PBL6_R3_PAY11_NoWebhook.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_PAY11_NoWebhook.postman_collection.xml"
                     },
@@ -478,7 +478,7 @@
                         "Assertions":  1,
                         "Passed":  0,
                         "Failed":  1,
-                        "DurationSeconds":  2.231,
+                        "DurationSeconds":  2.133,
                         "Log":  "logs/PBL6_R3_PaymentAmount.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_PaymentAmount.postman_collection.xml"
                     },
@@ -489,7 +489,7 @@
                         "Assertions":  4,
                         "Passed":  0,
                         "Failed":  4,
-                        "DurationSeconds":  5.431,
+                        "DurationSeconds":  5.407,
                         "Log":  "logs/PBL6_R3_PaymentAmountSigned.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_PaymentAmountSigned.postman_collection.xml"
                     },
@@ -500,7 +500,7 @@
                         "Assertions":  6,
                         "Passed":  2,
                         "Failed":  4,
-                        "DurationSeconds":  2.163,
+                        "DurationSeconds":  2.447,
                         "Log":  "logs/PBL6_R3_PaymentComplete.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_PaymentComplete.postman_collection.xml"
                     },
@@ -511,7 +511,7 @@
                         "Assertions":  6,
                         "Passed":  0,
                         "Failed":  6,
-                        "DurationSeconds":  2.241,
+                        "DurationSeconds":  2.529,
                         "Log":  "logs/PBL6_R3_PaymentFailure.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_PaymentFailure.postman_collection.xml"
                     },
@@ -522,7 +522,7 @@
                         "Assertions":  5,
                         "Passed":  0,
                         "Failed":  5,
-                        "DurationSeconds":  5.207,
+                        "DurationSeconds":  5.514,
                         "Log":  "logs/PBL6_R3_PaymentIdempotency.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_PaymentIdempotency.postman_collection.xml"
                     },
@@ -533,7 +533,7 @@
                         "Assertions":  1,
                         "Passed":  0,
                         "Failed":  1,
-                        "DurationSeconds":  3.691,
+                        "DurationSeconds":  2.102,
                         "Log":  "logs/PBL6_R3_PaymentIntent.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_PaymentIntent.postman_collection.xml"
                     },
@@ -544,7 +544,7 @@
                         "Assertions":  0,
                         "Passed":  0,
                         "Failed":  0,
-                        "DurationSeconds":  1.943,
+                        "DurationSeconds":  2.17,
                         "Log":  "logs/PBL6_R3_PaymentReadback.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_PaymentReadback.postman_collection.xml"
                     },
@@ -555,7 +555,7 @@
                         "Assertions":  7,
                         "Passed":  7,
                         "Failed":  0,
-                        "DurationSeconds":  2.158,
+                        "DurationSeconds":  2.75,
                         "Log":  "logs/PBL6_R3_ProfileEmail.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_ProfileEmail.postman_collection.xml"
                     },
@@ -566,7 +566,7 @@
                         "Assertions":  0,
                         "Passed":  0,
                         "Failed":  0,
-                        "DurationSeconds":  2.078,
+                        "DurationSeconds":  1.945,
                         "Log":  "logs/PBL6_R3_ReadSyntheticTrip.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_ReadSyntheticTrip.postman_collection.xml"
                     },
@@ -577,7 +577,7 @@
                         "Assertions":  0,
                         "Passed":  0,
                         "Failed":  0,
-                        "DurationSeconds":  2.102,
+                        "DurationSeconds":  1.916,
                         "Log":  "logs/PBL6_R3_ReadTripSevenSeats.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_ReadTripSevenSeats.postman_collection.xml"
                     },
@@ -588,7 +588,7 @@
                         "Assertions":  0,
                         "Passed":  0,
                         "Failed":  0,
-                        "DurationSeconds":  2.879,
+                        "DurationSeconds":  2.166,
                         "Log":  "logs/PBL6_R3_ReportReadback.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_ReportReadback.postman_collection.xml"
                     },
@@ -599,7 +599,7 @@
                         "Assertions":  0,
                         "Passed":  0,
                         "Failed":  0,
-                        "DurationSeconds":  1.981,
+                        "DurationSeconds":  2.138,
                         "Log":  "logs/PBL6_R3_Resource_Readback.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_Resource_Readback.postman_collection.xml"
                     },
@@ -610,7 +610,7 @@
                         "Assertions":  1,
                         "Passed":  1,
                         "Failed":  0,
-                        "DurationSeconds":  2.153,
+                        "DurationSeconds":  2.155,
                         "Log":  "logs/PBL6_R3_SearchLimit.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_SearchLimit.postman_collection.xml"
                     },
@@ -621,7 +621,7 @@
                         "Assertions":  1,
                         "Passed":  1,
                         "Failed":  0,
-                        "DurationSeconds":  2.186,
+                        "DurationSeconds":  2.173,
                         "Log":  "logs/PBL6_R3_SearchNotSellable.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_SearchNotSellable.postman_collection.xml"
                     },
@@ -632,7 +632,7 @@
                         "Assertions":  0,
                         "Passed":  0,
                         "Failed":  0,
-                        "DurationSeconds":  2.685,
+                        "DurationSeconds":  2.127,
                         "Log":  "logs/PBL6_R3_SeatReadback.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_SeatReadback.postman_collection.xml"
                     },
@@ -643,7 +643,7 @@
                         "Assertions":  16,
                         "Passed":  16,
                         "Failed":  0,
-                        "DurationSeconds":  3.062,
+                        "DurationSeconds":  2.483,
                         "Log":  "logs/PBL6_R3_SecurityRateInjection.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_SecurityRateInjection.postman_collection.xml"
                     },
@@ -654,7 +654,7 @@
                         "Assertions":  5,
                         "Passed":  0,
                         "Failed":  5,
-                        "DurationSeconds":  2.279,
+                        "DurationSeconds":  2.359,
                         "Log":  "logs/PBL6_R3_TicketCheckin.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_TicketCheckin.postman_collection.xml"
                     },
@@ -665,7 +665,7 @@
                         "Assertions":  1,
                         "Passed":  0,
                         "Failed":  1,
-                        "DurationSeconds":  2.134,
+                        "DurationSeconds":  2.445,
                         "Log":  "logs/PBL6_R3_TKT08_CancelledTripScan.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_TKT08_CancelledTripScan.postman_collection.xml"
                     },
@@ -676,7 +676,7 @@
                         "Assertions":  1,
                         "Passed":  1,
                         "Failed":  0,
-                        "DurationSeconds":  2.147,
+                        "DurationSeconds":  2.028,
                         "Log":  "logs/PBL6_R3_TKT09_CustomerCheckin.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_TKT09_CustomerCheckin.postman_collection.xml"
                     },
@@ -687,7 +687,7 @@
                         "Assertions":  7,
                         "Passed":  7,
                         "Failed":  0,
-                        "DurationSeconds":  2.328,
+                        "DurationSeconds":  2.071,
                         "Log":  "logs/PBL6_R3_Transport.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_Transport.postman_collection.xml"
                     },
@@ -698,7 +698,7 @@
                         "Assertions":  1,
                         "Passed":  0,
                         "Failed":  1,
-                        "DurationSeconds":  1.936,
+                        "DurationSeconds":  1.955,
                         "Log":  "logs/PBL6_R3_TRIP10_Manifest.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_TRIP10_Manifest.postman_collection.xml"
                     },
@@ -709,7 +709,7 @@
                         "Assertions":  1,
                         "Passed":  0,
                         "Failed":  1,
-                        "DurationSeconds":  2.027,
+                        "DurationSeconds":  1.849,
                         "Log":  "logs/PBL6_R3_TRIP12_CancelSoldTrip.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_TRIP12_CancelSoldTrip.postman_collection.xml"
                     },
@@ -720,7 +720,7 @@
                         "Assertions":  0,
                         "Passed":  0,
                         "Failed":  0,
-                        "DurationSeconds":  1.938,
+                        "DurationSeconds":  2.077,
                         "Log":  "logs/PBL6_R3_TRIP12_SoldTripReadback.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_TRIP12_SoldTripReadback.postman_collection.xml"
                     },
@@ -731,7 +731,7 @@
                         "Assertions":  5,
                         "Passed":  5,
                         "Failed":  0,
-                        "DurationSeconds":  2.101,
+                        "DurationSeconds":  2.024,
                         "Log":  "logs/PBL6_R3_TripCancel.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_TripCancel.postman_collection.xml"
                     },
@@ -742,7 +742,7 @@
                         "Assertions":  0,
                         "Passed":  0,
                         "Failed":  0,
-                        "DurationSeconds":  1.822,
+                        "DurationSeconds":  1.923,
                         "Log":  "logs/PBL6_R3_TripReadback.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_TripReadback.postman_collection.xml"
                     },
@@ -753,7 +753,7 @@
                         "Assertions":  5,
                         "Passed":  4,
                         "Failed":  1,
-                        "DurationSeconds":  2.071,
+                        "DurationSeconds":  2.139,
                         "Log":  "logs/PBL6_R3_Trips.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_Trips.postman_collection.xml"
                     },
@@ -764,7 +764,7 @@
                         "Assertions":  8,
                         "Passed":  8,
                         "Failed":  0,
-                        "DurationSeconds":  2.401,
+                        "DurationSeconds":  2.66,
                         "Log":  "logs/PBL6_R3_TripState.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_TripState.postman_collection.xml"
                     },
@@ -775,7 +775,7 @@
                         "Assertions":  1,
                         "Passed":  1,
                         "Failed":  0,
-                        "DurationSeconds":  1.799,
+                        "DurationSeconds":  2.301,
                         "Log":  "logs/PBL6_R3_UnknownTicket.postman_collection.log",
                         "JUnit":  "junit/PBL6_R3_UnknownTicket.postman_collection.xml"
                     },
@@ -786,18 +786,18 @@
                         "Assertions":  3,
                         "Passed":  3,
                         "Failed":  0,
-                        "DurationSeconds":  1.803,
+                        "DurationSeconds":  2.006,
                         "Log":  "logs/PBL6_REP02_ReadOnly_Smoke.postman_collection.log",
                         "JUnit":  "junit/PBL6_REP02_ReadOnly_Smoke.postman_collection.xml"
                     },
                     {
                         "Collection":  "PBL6_SEC01_Protected_Endpoint_Matrix.postman_collection",
                         "Path":  "postman/PBL6_SEC01_Protected_Endpoint_Matrix.postman_collection.json",
-                        "ExitCode":  1,
+                        "ExitCode":  0,
                         "Assertions":  68,
-                        "Passed":  66,
-                        "Failed":  2,
-                        "DurationSeconds":  3.223,
+                        "Passed":  68,
+                        "Failed":  0,
+                        "DurationSeconds":  3.181,
                         "Log":  "logs/PBL6_SEC01_Protected_Endpoint_Matrix.postman_collection.log",
                         "JUnit":  "junit/PBL6_SEC01_Protected_Endpoint_Matrix.postman_collection.xml"
                     },
@@ -808,7 +808,7 @@
                         "Assertions":  108,
                         "Passed":  108,
                         "Failed":  0,
-                        "DurationSeconds":  7.582,
+                        "DurationSeconds":  7.778,
                         "Log":  "logs/PBL6_Workbook_API_Verification.postman_collection.log",
                         "JUnit":  "junit/PBL6_Workbook_API_Verification.postman_collection.xml"
                     }

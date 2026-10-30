@@ -8,7 +8,7 @@ PBL6 Round 3 cross-tenant isolation check
 
 Root Admin login
 
-  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.11 KB, 33 ms]
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.12 KB, 31 ms]
 
 Root Create isolated synthetic organization
 
@@ -17,17 +17,17 @@ Root Create isolated synthetic organization
 
 Root Find verified synthetic user
 
-  GET http://localhost:5080/api/v1/admin/users?page=0&size=100 [200 OK, 3.26 KB, 12 ms]
+  GET http://localhost:5080/api/v1/admin/users?page=0&size=100 [200 OK, 3.26 KB, 14 ms]
   Pass  Synthetic principal exists
 
 Root Create active operator membership in synthetic org
 
-  POST http://localhost:5080/api/v1/admin/organizations/01a18af7-6ed3-7778-bb21-4c12b13e4818/members [201 Created, 422 B, 24 ms]
+  POST http://localhost:5080/api/v1/admin/organizations/01a18b06-607b-7b09-9980-0d540f1bd7e9/members [201 Created, 422 B, 26 ms]
   Pass  Synthetic operator membership created
 
 Root Login synthetic org B operator
 
-  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.43 KB, 25 ms]
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.41 KB, 23 ms]
 
 Root OPS-03 Read synthetic org bus list
 
@@ -36,12 +36,12 @@ Root OPS-03 Read synthetic org bus list
 
 Root OPS-03 Attempt cross-org bus update
 
-  PATCH http://localhost:5080/api/v1/operator/buses/01990a00-0000-7000-8000-000000000003 [404 Not Found, 355 B, 9 ms]
+  PATCH http://localhost:5080/api/v1/operator/buses/01990a00-0000-7000-8000-000000000003 [404 Not Found, 355 B, 8 ms]
   Pass  Cross-tenant update is concealed
 
 Root End synthetic org membership
 
-  PATCH http://localhost:5080/api/v1/admin/organizations/01a18af7-6ed3-7778-bb21-4c12b13e4818/members/01a18af7-6f1e-7166-8437-589548d1f485 [200 OK, 416 B, 21 ms]
+  PATCH http://localhost:5080/api/v1/admin/organizations/01a18b06-607b-7b09-9980-0d540f1bd7e9/members/01a18b06-60c6-7c41-bf41-affa42132484 [200 OK, 416 B, 17 ms]
   Pass  Synthetic membership ended for cleanup
 
 --------------------------------------------------------------------
@@ -57,11 +57,11 @@ Root End synthetic org membership
 --------------------------+--------------------+--------------------
 |              assertions |                  6 |                 0 |
 --------------------------------------------------------------------
-| total run duration: 319 ms                                       |
+| total run duration: 305 ms                                       |
 --------------------------------------------------------------------
 | total data received: 6.04 KB (approx)                            |
 --------------------------------------------------------------------
-| average response time: 19 ms [min: 9 ms, max: 33 ms, s.d.: 7 ms] |
+| average response time: 19 ms [min: 8 ms, max: 31 ms, s.d.: 7 ms] |
 --------------------------------------------------------------------
 Postman credentials are required for publishing run details to Postman cloud.
 Please specify it by using the `postman login` command

@@ -8,47 +8,47 @@ PBL6 Round 3 Driver schedule conflict
 
 Root Operator login
 
-  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.38 KB, 40 ms]
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.37 KB, 51 ms]
 
 Root Create a second synthetic bus for driver overlap probe
 
-  POST http://localhost:5080/api/v1/operator/buses [201 Created, 473 B, 22 ms]
+  POST http://localhost:5080/api/v1/operator/buses [201 Created, 473 B, 21 ms]
   Pass  Second synthetic bus created
 
 Root TRIP-05 Draft overlapping same driver on another bus
 
-  POST http://localhost:5080/api/v1/operator/trips [201 Created, 1.09 KB, 15 ms]
+  POST http://localhost:5080/api/v1/operator/trips [201 Created, 1.09 KB, 17 ms]
   Pass  Driver-overlap draft created for publish validation
 
 Root TRIP-05 Reject overlapping driver at publish
 
-  POST http://localhost:5080/api/v1/operator/trips/01a18af7-81f2-7b3e-a3f1-fc3f827491c2/publish [202 Accepted, 284 B, 17 ms]
+  POST http://localhost:5080/api/v1/operator/trips/01a18b06-7537-78b0-8952-4413bcadc98d/publish [202 Accepted, 284 B, 17 ms]
   1. Same driver overlap returns SCHEDULE_CONFLICT
 
 Root Deactivate synthetic overlap bus
 
-  POST http://localhost:5080/api/v1/operator/buses/01a18af7-81cf-7f5d-8166-cb00ccdb53f8/deactivate [200 OK, 470 B, 14 ms]
+  POST http://localhost:5080/api/v1/operator/buses/01a18b06-7511-7fb3-b82b-311b1cb08808/deactivate [200 OK, 470 B, 15 ms]
   Pass  Overlap probe bus deactivated
 
----------------------------------------------------------------------
-|                         |           executed |             failed |
---------------------------+--------------------+---------------------
-|              iterations |                  1 |                  0 |
---------------------------+--------------------+---------------------
-|                requests |                  5 |                  0 |
---------------------------+--------------------+---------------------
-|            test-scripts |                  5 |                  0 |
---------------------------+--------------------+---------------------
-|      prerequest-scripts |                  0 |                  0 |
---------------------------+--------------------+---------------------
-|              assertions |                  4 |                  1 |
----------------------------------------------------------------------
-| total run duration: 201 ms                                        |
----------------------------------------------------------------------
-| total data received: 2.65 KB (approx)                             |
----------------------------------------------------------------------
-| average response time: 21 ms [min: 14 ms, max: 40 ms, s.d.: 9 ms] |
----------------------------------------------------------------------
+----------------------------------------------------------------------
+|                         |            executed |             failed |
+--------------------------+---------------------+---------------------
+|              iterations |                   1 |                  0 |
+--------------------------+---------------------+---------------------
+|                requests |                   5 |                  0 |
+--------------------------+---------------------+---------------------
+|            test-scripts |                   5 |                  0 |
+--------------------------+---------------------+---------------------
+|      prerequest-scripts |                   0 |                  0 |
+--------------------------+---------------------+---------------------
+|              assertions |                   4 |                  1 |
+----------------------------------------------------------------------
+| total run duration: 222 ms                                         |
+----------------------------------------------------------------------
+| total data received: 2.65 KB (approx)                              |
+----------------------------------------------------------------------
+| average response time: 24 ms [min: 15 ms, max: 51 ms, s.d.: 13 ms] |
+----------------------------------------------------------------------
 
   #  failure         detail                                                
                                                                            

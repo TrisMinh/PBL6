@@ -8,21 +8,21 @@ PBL6 Round 3 cancel sold synthetic trip
 
 Root Operator login
 
-  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.37 KB, 32 ms]
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.37 KB, 29 ms]
 
 Root TRIP-12 Cancel synthetic trip with a sold ticket
 
-  POST http://localhost:5080/api/v1/operator/trips/01a1825d-b562-7b04-bab7-d50af84b5142/cancel [404 Not Found, 355 B, 13 ms]
+  POST http://localhost:5080/api/v1/operator/trips/01a1825d-b562-7b04-bab7-d50af84b5142/cancel [404 Not Found, 355 B, 12 ms]
   -
   | 'TRIP12 CANCEL {"error":{"code":"RESOURCE_NOT_FOUND","
   | message":"The requested resource was not found.","corr
-  | elationId":"01a18af8-a314-7a6e-baa2-69a2599ddcf2"}}'
+  | elationId":"01a18b07-8aaf-7941-94b1-20ee13269cb6"}}'
   -
   1. Cancellation command is accepted for synthetic sold trip
 
 Root Customer login for booking readback
 
-  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.56 KB, 21 ms]
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.55 KB, 21 ms]
 
 Root Read booking after trip cancellation
 
@@ -30,8 +30,8 @@ Root Read booking after trip cancellation
   -
   | 'TRIP12 BOOKING READBACK {"error":{"code":"RESOURCE_NO
   | T_FOUND","message":"The requested resource was not fou
-  | nd.","correlationId":"01a18af8-a358-7ab5-bc1f-ab2d904f
-  | fb04"}}'
+  | nd.","correlationId":"01a18b07-8af3-7637-aa77-fbc35845
+  | f9a6"}}'
   -
 
 --------------------------------------------------------------------
@@ -47,11 +47,11 @@ Root Read booking after trip cancellation
 --------------------------+--------------------+--------------------
 |              assertions |                  1 |                 1 |
 --------------------------------------------------------------------
-| total run duration: 151 ms                                       |
+| total run duration: 144 ms                                       |
 --------------------------------------------------------------------
 | total data received: 2.81 KB (approx)                            |
 --------------------------------------------------------------------
-| average response time: 18 ms [min: 6 ms, max: 32 ms, s.d.: 9 ms] |
+| average response time: 17 ms [min: 6 ms, max: 29 ms, s.d.: 8 ms] |
 --------------------------------------------------------------------
 
   #  failure         detail                                                    

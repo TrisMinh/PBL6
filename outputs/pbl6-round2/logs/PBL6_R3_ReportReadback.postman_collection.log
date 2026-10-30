@@ -8,37 +8,37 @@ PBL6 Round 3 reports reconciliation readback
 
 Root Admin login
 
-  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.12 KB, 50 ms]
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.11 KB, 35 ms]
 
 Root Read report revenue
 
-  GET http://localhost:5080/api/v1/reports/revenue?from=2026-10-28T00:00:00Z&to=2026-10-29T00:00:00Z&timezone=Asia%2FHo_Chi_Minh [200 OK, 422 B, 92 ms]
+  GET http://localhost:5080/api/v1/reports/revenue?from=2026-10-28T00:00:00Z&to=2026-10-29T00:00:00Z&timezone=Asia%2FHo_Chi_Minh [200 OK, 424 B, 65 ms]
   -
   | 'REPORT Read report revenue {"data":[],"generatedAt":"
-  | 2026-10-30T04:01:27.886497+00:00","dataAsOf":"2026-10-
-  | 30T04:01:27.886498+00:00","timezone":"Asia/Ho_Chi_Minh
-  | ","metricDefinitions":{"gross_revenue":"Gross prepaid 
-  | and confirmed booking value"}}'
+  | 2026-10-30T04:17:45.9451134+00:00","dataAsOf":"2026-10
+  | -30T04:17:45.9451143+00:00","timezone":"Asia/Ho_Chi_Mi
+  | nh","metricDefinitions":{"gross_revenue":"Gross prepai
+  | d and confirmed booking value"}}'
   -
 
 Root Read report bookings
 
-  GET http://localhost:5080/api/v1/reports/bookings?from=2026-10-28T00:00:00Z&to=2026-10-29T00:00:00Z&timezone=Asia%2FHo_Chi_Minh [200 OK, 404 B, 15 ms]
+  GET http://localhost:5080/api/v1/reports/bookings?from=2026-10-28T00:00:00Z&to=2026-10-29T00:00:00Z&timezone=Asia%2FHo_Chi_Minh [200 OK, 404 B, 11 ms]
   -
   | 'REPORT Read report bookings {"data":[],"generatedAt":
-  | "2026-10-30T04:01:27.9253792+00:00","dataAsOf":"2026-1
-  | 0-30T04:01:27.9253792+00:00","timezone":"Asia/Ho_Chi_M
+  | "2026-10-30T04:17:45.9804315+00:00","dataAsOf":"2026-1
+  | 0-30T04:17:45.9804316+00:00","timezone":"Asia/Ho_Chi_M
   | inh","metricDefinitions":{"booking_count":"Booking row
   | s in range"}}'
   -
 
 Root Read report occupancy
 
-  GET http://localhost:5080/api/v1/reports/occupancy?from=2026-10-28T00:00:00Z&to=2026-10-29T00:00:00Z&timezone=Asia%2FHo_Chi_Minh [200 OK, 402 B, 9 ms]
+  GET http://localhost:5080/api/v1/reports/occupancy?from=2026-10-28T00:00:00Z&to=2026-10-29T00:00:00Z&timezone=Asia%2FHo_Chi_Minh [200 OK, 402 B, 8 ms]
   -
   | 'REPORT Read report occupancy {"data":[],"generatedAt"
-  | :"2026-10-30T04:01:27.9480181+00:00","dataAsOf":"2026-
-  | 10-30T04:01:27.9480182+00:00","timezone":"Asia/Ho_Chi_
+  | :"2026-10-30T04:17:46.0041934+00:00","dataAsOf":"2026-
+  | 10-30T04:17:46.0041934+00:00","timezone":"Asia/Ho_Chi_
   | Minh","metricDefinitions":{"booked_count":"Booked seat
   | s by trip"}}'
   -
@@ -56,11 +56,11 @@ Root Read report occupancy
 --------------------------+--------------------+---------------------
 |              assertions |                  0 |                  0 |
 ---------------------------------------------------------------------
-| total run duration: 252 ms                                        |
+| total run duration: 191 ms                                        |
 ---------------------------------------------------------------------
 | total data received: 1.52 KB (approx)                             |
 ---------------------------------------------------------------------
-| average response time: 41 ms [min: 9 ms, max: 92 ms, s.d.: 33 ms] |
+| average response time: 29 ms [min: 8 ms, max: 65 ms, s.d.: 22 ms] |
 ---------------------------------------------------------------------
 Postman credentials are required for publishing run details to Postman cloud.
 Please specify it by using the `postman login` command

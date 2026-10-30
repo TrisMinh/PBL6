@@ -8,26 +8,26 @@ PBL6 Round 3 Trip state machine checks
 
 Root Login operator
 
-  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.37 KB, 31 ms]
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.37 KB, 32 ms]
 
 Root TRIP-08 Reject scheduled directly to arrived
 
-  POST http://localhost:5080/api/v1/operator/trips/01990a00-0000-7000-8000-000000000040/status-transitions [409 Conflict, 369 B, 13 ms]
+  POST http://localhost:5080/api/v1/operator/trips/01990a00-0000-7000-8000-000000000040/status-transitions [409 Conflict, 369 B, 14 ms]
   Pass  Invalid transition rejected with baseline conflict status
 
 Root TRIP-07 Transition synthetic trip to BOARDING
 
-  POST http://localhost:5080/api/v1/operator/trips/01990a00-0000-7000-8000-000000000040/status-transitions [200 OK, 1.1 KB, 14 ms]
+  POST http://localhost:5080/api/v1/operator/trips/01990a00-0000-7000-8000-000000000040/status-transitions [200 OK, 1.1 KB, 16 ms]
   Pass  Scheduled to boarding
 
 Root TRIP-07 Transition synthetic trip to DEPARTED
 
-  POST http://localhost:5080/api/v1/operator/trips/01990a00-0000-7000-8000-000000000040/status-transitions [200 OK, 1.1 KB, 12 ms]
+  POST http://localhost:5080/api/v1/operator/trips/01990a00-0000-7000-8000-000000000040/status-transitions [200 OK, 1.1 KB, 13 ms]
   Pass  Boarding to departed
 
 Root TRIP-07 Transition synthetic trip to IN_TRANSIT
 
-  POST http://localhost:5080/api/v1/operator/trips/01990a00-0000-7000-8000-000000000040/status-transitions [200 OK, 1.1 KB, 12 ms]
+  POST http://localhost:5080/api/v1/operator/trips/01990a00-0000-7000-8000-000000000040/status-transitions [200 OK, 1.1 KB, 16 ms]
   Pass  Departed to in transit
 
 Root TRIP-07 Transition synthetic trip to ARRIVED
@@ -42,7 +42,7 @@ Root TRIP-07 Transition synthetic trip to COMPLETED
 
 Root TRIP-14 Hard delete is not available
 
-  DELETE http://localhost:5080/api/v1/operator/trips/01990a00-0000-7000-8000-000000000040 [405 Method Not Allowed, 399 B, 4 ms]
+  DELETE http://localhost:5080/api/v1/operator/trips/01990a00-0000-7000-8000-000000000040 [405 Method Not Allowed, 399 B, 5 ms]
   Pass  Hard deletion is rejected
 
 Root TRIP-14 Verify trip still exists after delete attempt
@@ -63,11 +63,11 @@ Root TRIP-14 Verify trip still exists after delete attempt
 --------------------------+--------------------+--------------------
 |              assertions |                  8 |                 0 |
 --------------------------------------------------------------------
-| total run duration: 258 ms                                       |
+| total run duration: 280 ms                                       |
 --------------------------------------------------------------------
 | total data received: 6.9 KB (approx)                             |
 --------------------------------------------------------------------
-| average response time: 13 ms [min: 4 ms, max: 31 ms, s.d.: 7 ms] |
+| average response time: 14 ms [min: 5 ms, max: 32 ms, s.d.: 7 ms] |
 --------------------------------------------------------------------
 Postman credentials are required for publishing run details to Postman cloud.
 Please specify it by using the `postman login` command

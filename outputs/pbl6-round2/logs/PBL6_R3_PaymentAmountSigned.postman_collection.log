@@ -8,7 +8,7 @@ PBL6 Round 3 Signed wrong amount webhook scenario
 
 Root Customer login
 
-  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.55 KB, 36 ms]
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.55 KB, 35 ms]
 
 Root Replay payment intent to obtain sandbox fields
 
@@ -17,17 +17,17 @@ Root Replay payment intent to obtain sandbox fields
 
 Root Send success outcome with incorrect amount (simulator signs it)
 
-  POST http://localhost:8099/pay [404 Not Found, 221 B, 17 ms]
+  POST http://localhost:8099/pay [404 Not Found, 221 B, 23 ms]
   2. Simulator completed tampered-amount signed attempt
 
 Root PAY-08 Payment remains failed after amount mismatch
 
-  GET http://localhost:5080/api/v1/payments/01a18266-2299-7269-b8a2-582347f101db [404 Not Found, 355 B, 5 ms]
+  GET http://localhost:5080/api/v1/payments/01a18266-2299-7269-b8a2-582347f101db [404 Not Found, 355 B, 7 ms]
   3. Signed mismatched-amount event does not succeed payment
 
 Root PAY-08 Booking remains unpaid after amount mismatch
 
-  GET http://localhost:5080/api/v1/bookings/01a18266-208f-792d-bc90-9cc21db05a0e [404 Not Found, 355 B, 6 ms]
+  GET http://localhost:5080/api/v1/bookings/01a18266-208f-792d-bc90-9cc21db05a0e [404 Not Found, 355 B, 9 ms]
   4. Mismatched-amount event does not mark booking paid
 
 ----------------------------------------------------------------------
@@ -47,7 +47,7 @@ Root PAY-08 Booking remains unpaid after amount mismatch
 ----------------------------------------------------------------------
 | total data received: 1.84 KB (approx)                              |
 ----------------------------------------------------------------------
-| average response time: 622 ms [min: 5 ms, max: 3 s, s.d.: 1212 ms] |
+| average response time: 625 ms [min: 7 ms, max: 3 s, s.d.: 1214 ms] |
 ----------------------------------------------------------------------
 
   #  failure         detail                                                                   

@@ -20,6 +20,7 @@ public sealed class ErrorMapperTests
     [InlineData(404, ErrorCodes.ResourceNotFound)]
     [InlineData(401, ErrorCodes.AuthenticationRequired)]
     [InlineData(403, ErrorCodes.AccessDenied)]
+    [InlineData(405, ErrorCodes.MethodNotAllowed)]
     [InlineData(503, ErrorCodes.UpstreamUnavailable)]
     public void Status_code_maps_to_catalog(int status, string code)
     {

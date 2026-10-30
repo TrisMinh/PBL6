@@ -8,11 +8,11 @@ PBL6 Round 3 ticket scan and check-in workflow
 
 Root Customer login
 
-  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.55 KB, 34 ms]
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.55 KB, 40 ms]
 
 Root Read ticket from paid synthetic booking
 
-  GET http://localhost:5080/api/v1/tickets [200 OK, 1.39 KB, 10 ms]
+  GET http://localhost:5080/api/v1/tickets [200 OK, 1.39 KB, 9 ms]
   1. Save synthetic ticket details
 
 Root TKT-06 Validate ticket using wrong trip
@@ -20,14 +20,14 @@ Root TKT-06 Validate ticket using wrong trip
   POST http://localhost:5080/api/v1/tickets/validate [400 Bad Request, 341 B, 5 ms]
   -
   | 'WRONG TRIP {"error":{"code":"VALIDATION_ERROR","messa
-  | ge":"The request is invalid.","correlationId":"01a18af
-  | 8-7987-7030-8a6f-473adf1770a5"}}'
+  | ge":"The request is invalid.","correlationId":"01a18b0
+  | 7-6207-77ce-87b1-2c2983e0d3e3"}}'
   -
   2. Ticket from another trip is rejected with expected business code
 
 Root Assigned driver login
 
-  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.34 KB, 30 ms]
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.34 KB, 26 ms]
 
 Root TKT-05 Assigned driver checks in own trip ticket
 
@@ -57,11 +57,11 @@ Root Verify ticket remains checked-in
 --------------------------+--------------------+---------------------
 |              assertions |                  5 |                  5 |
 ---------------------------------------------------------------------
-| total run duration: 215 ms                                        |
+| total run duration: 222 ms                                        |
 ---------------------------------------------------------------------
-| total data received: 4.23 KB (approx)                             |
+| total data received: 4.24 KB (approx)                             |
 ---------------------------------------------------------------------
-| average response time: 12 ms [min: 3 ms, max: 34 ms, s.d.: 12 ms] |
+| average response time: 12 ms [min: 3 ms, max: 40 ms, s.d.: 13 ms] |
 ---------------------------------------------------------------------
 
   #  failure         detail                                                           

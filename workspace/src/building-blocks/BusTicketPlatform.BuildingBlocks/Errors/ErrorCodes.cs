@@ -7,6 +7,7 @@ public static class ErrorCodes
     public const string InvalidCredentials = "INVALID_CREDENTIALS";
     public const string AccessDenied = "ACCESS_DENIED";
     public const string ResourceNotFound = "RESOURCE_NOT_FOUND";
+    public const string MethodNotAllowed = "METHOD_NOT_ALLOWED";
     public const string RateLimited = "RATE_LIMITED";
     public const string UpstreamUnavailable = "UPSTREAM_UNAVAILABLE";
     public const string VersionConflict = "VERSION_CONFLICT";

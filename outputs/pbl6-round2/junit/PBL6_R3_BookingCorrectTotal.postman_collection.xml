@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<testsuite name="PBL6_R3_BookingCorrectTotal.postman_collection" tests="2" failures="2" errors="0" time="2.226">
+<testsuite name="PBL6_R3_BookingCorrectTotal.postman_collection" tests="2" failures="2" errors="0" time="2.027">
   <testcase classname="PBL6_R3_BookingCorrectTotal.postman_collection" name="failed assertion 001">
     <failure message="Postman assertion failed; see logs/PBL6_R3_BookingCorrectTotal.postman_collection.log">logs/PBL6_R3_BookingCorrectTotal.postman_collection.log</failure>
   </testcase>

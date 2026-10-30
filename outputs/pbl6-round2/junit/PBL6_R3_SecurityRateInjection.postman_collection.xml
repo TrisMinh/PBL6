@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<testsuite name="PBL6_R3_SecurityRateInjection.postman_collection" tests="16" failures="0" errors="0" time="3.062">
+<testsuite name="PBL6_R3_SecurityRateInjection.postman_collection" tests="16" failures="0" errors="0" time="2.483">
   <testcase classname="PBL6_R3_SecurityRateInjection.postman_collection" name="passed assertion 001" />
   <testcase classname="PBL6_R3_SecurityRateInjection.postman_collection" name="passed assertion 002" />
   <testcase classname="PBL6_R3_SecurityRateInjection.postman_collection" name="passed assertion 003" />

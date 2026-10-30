@@ -8,36 +8,36 @@ PBL6 Round 3 VNPAY failure callback
 
 Root Customer login
 
-  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.56 KB, 35 ms]
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.55 KB, 53 ms]
 
 Root Hold seat 1C
 
-  POST http://localhost:5080/api/v1/trips/01a1825d-b562-7b04-bab7-d50af84b5142/seat-holds [422 Unprocessable Entity, 353 B, 9 ms]
+  POST http://localhost:5080/api/v1/trips/01a1825d-b562-7b04-bab7-d50af84b5142/seat-holds [422 Unprocessable Entity, 353 B, 13 ms]
   1. Second synthetic seat held
 
 Root Create second PREPAID booking
 
-  POST http://localhost:5080/api/v1/bookings [404 Not Found, 355 B, 9 ms]
+  POST http://localhost:5080/api/v1/bookings [404 Not Found, 355 B, 10 ms]
   2. Second booking created at server amount
 
 Root Create second sandbox payment intent
 
-  POST http://localhost:5080/api/v1/bookings/{{booking2}}/payments [404 Not Found, 355 B, 6 ms]
+  POST http://localhost:5080/api/v1/bookings/{{booking2}}/payments [404 Not Found, 355 B, 12 ms]
   3. Second payment intent is created without PAN or CVV
 
 Root PAY-09 Send local VNPAY failure callback
 
-  POST http://localhost:8099/pay [404 Not Found, 221 B, 14 ms]
+  POST http://localhost:8099/pay [404 Not Found, 221 B, 20 ms]
   4. Sandbox failure returns to result page
 
 Root PAY-09 Check failed payment remains non-success
 
-  GET http://localhost:5080/api/v1/payments/{{payment2}} [404 Not Found, 355 B, 3 ms]
+  GET http://localhost:5080/api/v1/payments/{{payment2}} [404 Not Found, 355 B, 5 ms]
   5. Failure callback did not succeed payment
 
 Root PAY-09 Check booking is not paid
 
-  GET http://localhost:5080/api/v1/bookings/{{booking2}} [404 Not Found, 355 B, 3 ms]
+  GET http://localhost:5080/api/v1/bookings/{{booking2}} [404 Not Found, 355 B, 6 ms]
   6. Failed payment did not mark booking paid
 
 ---------------------------------------------------------------------
@@ -53,11 +53,11 @@ Root PAY-09 Check booking is not paid
 --------------------------+--------------------+---------------------
 |              assertions |                  6 |                  6 |
 ---------------------------------------------------------------------
-| total run duration: 213 ms                                        |
+| total run duration: 283 ms                                        |
 ---------------------------------------------------------------------
-| total data received: 2.12 KB (approx)                             |
+| total data received: 2.11 KB (approx)                             |
 ---------------------------------------------------------------------
-| average response time: 11 ms [min: 3 ms, max: 35 ms, s.d.: 10 ms] |
+| average response time: 17 ms [min: 5 ms, max: 53 ms, s.d.: 15 ms] |
 ---------------------------------------------------------------------
 
   #  failure         detail                                                   

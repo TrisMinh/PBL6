@@ -8,57 +8,57 @@ PBL6 Round 3 Transport CRUD checks
 
 Root Login operator
 
-  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.37 KB, 35 ms]
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.37 KB, 31 ms]
   Pass  Seed operator login
 
 Root OPS-04 Create synthetic bus
 
-  POST http://localhost:5080/api/v1/operator/buses [201 Created, 475 B, 12 ms]
+  POST http://localhost:5080/api/v1/operator/buses [201 Created, 475 B, 11 ms]
   Pass  Create synthetic bus accepted
 
 Root OPS-05 Reject duplicate bus plate
 
-  POST http://localhost:5080/api/v1/operator/buses [409 Conflict, 355 B, 15 ms]
+  POST http://localhost:5080/api/v1/operator/buses [409 Conflict, 355 B, 14 ms]
   Pass  Duplicate plate rejected without server error
 
 Root OPS-06 Deactivate synthetic bus
 
-  POST http://localhost:5080/api/v1/operator/buses/01a18af8-930f-7589-bec0-6d20552507db/deactivate [200 OK, 472 B, 13 ms]
+  POST http://localhost:5080/api/v1/operator/buses/01a18b07-7b8e-77b4-bd48-27b58e12c2cc/deactivate [200 OK, 472 B, 9 ms]
   Pass  Synthetic bus deactivated
 
 Root OPS-09 Create synthetic route
 
-  POST http://localhost:5080/api/v1/operator/routes [201 Created, 791 B, 26 ms]
+  POST http://localhost:5080/api/v1/operator/routes [201 Created, 791 B, 21 ms]
   Pass  Create route accepted with two ordered stops
 
 Root OPS-10 Reject invalid stop sequence
 
-  PUT http://localhost:5080/api/v1/operator/routes/01a18af8-9373-7e43-932d-4c64087e58a6/stops [400 Bad Request, 411 B, 13 ms]
+  PUT http://localhost:5080/api/v1/operator/routes/01a18b07-7be5-7ffb-a07e-81a222fe636e/stops [400 Bad Request, 411 B, 12 ms]
   Pass  Invalid duplicate stop sequence rejected
 
 Root OPS-11 Deactivate synthetic route
 
-  POST http://localhost:5080/api/v1/operator/routes/01a18af8-9373-7e43-932d-4c64087e58a6/deactivate [200 OK, 791 B, 16 ms]
+  POST http://localhost:5080/api/v1/operator/routes/01a18b07-7be5-7ffb-a07e-81a222fe636e/deactivate [200 OK, 791 B, 15 ms]
   Pass  Synthetic route deactivated
 
----------------------------------------------------------------------
-|                         |           executed |             failed |
---------------------------+--------------------+---------------------
-|              iterations |                  1 |                  0 |
---------------------------+--------------------+---------------------
-|                requests |                  7 |                  0 |
---------------------------+--------------------+---------------------
-|            test-scripts |                  7 |                  0 |
---------------------------+--------------------+---------------------
-|      prerequest-scripts |                  0 |                  0 |
---------------------------+--------------------+---------------------
-|              assertions |                  7 |                  0 |
----------------------------------------------------------------------
-| total run duration: 256 ms                                        |
----------------------------------------------------------------------
-| total data received: 3.17 KB (approx)                             |
----------------------------------------------------------------------
-| average response time: 18 ms [min: 12 ms, max: 35 ms, s.d.: 8 ms] |
----------------------------------------------------------------------
+--------------------------------------------------------------------
+|                         |           executed |            failed |
+--------------------------+--------------------+--------------------
+|              iterations |                  1 |                 0 |
+--------------------------+--------------------+--------------------
+|                requests |                  7 |                 0 |
+--------------------------+--------------------+--------------------
+|            test-scripts |                  7 |                 0 |
+--------------------------+--------------------+--------------------
+|      prerequest-scripts |                  0 |                 0 |
+--------------------------+--------------------+--------------------
+|              assertions |                  7 |                 0 |
+--------------------------------------------------------------------
+| total run duration: 224 ms                                       |
+--------------------------------------------------------------------
+| total data received: 3.17 KB (approx)                            |
+--------------------------------------------------------------------
+| average response time: 16 ms [min: 9 ms, max: 31 ms, s.d.: 7 ms] |
+--------------------------------------------------------------------
 Postman credentials are required for publishing run details to Postman cloud.
 Please specify it by using the `postman login` command

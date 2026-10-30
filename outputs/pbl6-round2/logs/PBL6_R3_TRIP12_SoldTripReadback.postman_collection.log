@@ -8,7 +8,7 @@ PBL6 Round 3 sold-trip cancellation readback
 
 Root Customer login
 
-  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.55 KB, 37 ms]
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.55 KB, 30 ms]
 
 Root Read ticket after trip cancellation
 
@@ -16,85 +16,85 @@ Root Read ticket after trip cancellation
   -
   | 'TRIP CANCELLED TICKET {"error":{"code":"RESOURCE_NOT_
   | FOUND","message":"The requested resource was not found
-  | .","correlationId":"01a18af8-aa7c-7fa3-871c-2e0ce82667
-  | b9"}}'
+  | .","correlationId":"01a18b07-92d9-7db9-a73e-b583315a23
+  | 90"}}'
   -
 
 Root Read customer notifications after trip cancellation
 
-  GET http://localhost:5080/api/v1/notifications [200 OK, 3.08 KB, 7 ms]
+  GET http://localhost:5080/api/v1/notifications [200 OK, 3.08 KB, 6 ms]
   -
-  | 'TRIP CANCELLED NOTIFICATIONS {"items":[{"id":"01a18af
-  | 7-c41c-7d75-ad13-f1ec5b1ba303","type":"BOOKING_CREATED
+  | 'TRIP CANCELLED NOTIFICATIONS {"items":[{"id":"01a18b0
+  | 6-b3da-7f15-9d3c-28fcb4b1fe53","type":"BOOKING_CREATED
   | ","title":"Booking created","body":"Your booking was c
-  | reated.","referenceId":"01a18af7-bebd-72b3-9bcb-a8892d
-  | 135f15","read":false,"createdAt":"2026-10-30T04:00:55.
-  | 836799+00:00"},{"id":"01a18af7-1fe3-7a44-b866-08d88b13
-  | df1f","type":"BOOKING_CANCELLED","title":"Booking canc
+  | reated.","referenceId":"01a18b06-ae9b-7c42-9908-320b95
+  | b57704","read":false,"createdAt":"2026-10-30T04:17:14.
+  | 715114+00:00"},{"id":"01a18b06-1f3c-7602-8bb4-cbfa5baf
+  | b5b9","type":"BOOKING_CANCELLED","title":"Booking canc
   | elled","body":"Your booking was cancelled.","reference
-  | Id":"01a18af7-1471-731c-ac9d-d62539595c39","read":fals
-  | e,"createdAt":"2026-10-30T04:00:13.796058+00:00"},{"id
-  | ":"01a18af7-1fe0-78a7-94e8-4e50100b326c","type":"TICKE
+  | Id":"01a18b06-069f-7253-af50-f51654332855","read":fals
+  | e,"createdAt":"2026-10-30T04:16:36.669113+00:00"},{"id
+  | ":"01a18b06-1f39-7db6-b254-0ce8ecc3cef9","type":"TICKE
   | T_ISSUED","title":"Tickets issued","body":"Your ticket
-  | s are ready.","referenceId":"01a18af7-1471-731c-ac9d-d
-  | 62539595c39","read":false,"createdAt":"2026-10-30T04:0
-  | 0:13.792782+00:00"},{"id":"01a18af7-1fdc-7400-92c0-199
-  | 8ddc5114f","type":"BOOKING_PAID","title":"Booking paid
+  | s are ready.","referenceId":"01a18b06-069f-7253-af50-f
+  | 51654332855","read":false,"createdAt":"2026-10-30T04:1
+  | 6:36.666127+00:00"},{"id":"01a18b06-1f36-7486-85a0-360
+  | 95c81816b","type":"BOOKING_PAID","title":"Booking paid
   | ","body":"Payment for your booking succeeded.","refere
-  | nceId":"01a18af7-1471-731c-ac9d-d62539595c39","read":f
-  | alse,"createdAt":"2026-10-30T04:00:13.78877+00:00"},{"
-  | id":"01a18af7-1800-7373-8101-437d3a1b41b1","type":"BOO
-  | KING_CREATED","title":"Booking created","body":"Your b
-  | ooking was created.","referenceId":"01a18af7-1471-731c
-  | -ac9d-d62539595c39","read":false,"createdAt":"2026-10-
-  | 30T04:00:11.776695+00:00"},{"id":"01a18af6-e90f-7a89-8
-  | b4d-07ef6b7560aa","type":"BOOKING_CREATED","title":"Bo
-  | oking created","body":"Your booking was created.","ref
-  | erenceId":"01a18af6-e27a-7dfc-b362-80a71cdf9e93","read
-  | ":false,"createdAt":"2026-10-30T03:59:59.759446+00:00"
-  | },{"id":"01a18af6-c1f0-7c08-a00d-a1f6f84449eb","type":
+  | nceId":"01a18b06-069f-7253-af50-f51654332855","read":f
+  | alse,"createdAt":"2026-10-30T04:16:36.662999+00:00"},{
+  | "id":"01a18b06-0f8d-7201-9166-4a913fd0d964","type":"BO
+  | OKING_CREATED","title":"Booking created","body":"Your 
+  | booking was created.","referenceId":"01a18b06-069f-725
+  | 3-af50-f51654332855","read":false,"createdAt":"2026-10
+  | -30T04:16:32.653503+00:00"},{"id":"01a18b05-d8cf-74a0-
+  | beae-23bedf258c05","type":"BOOKING_CREATED","title":"B
+  | ooking created","body":"Your booking was created.","re
+  | ferenceId":"01a18b05-d2e5-7aee-b531-10223a455fda","rea
+  | d":false,"createdAt":"2026-10-30T04:16:18.639887+00:00
+  | "},{"id":"01a18b05-b980-7e3e-a133-c2089e93d661","type"
+  | :"BOOKING_CREATED","title":"Booking created","body":"Y
+  | our booking was created.","referenceId":"01a18b05-b550
+  | -77c7-80c2-02a37195528b","read":false,"createdAt":"202
+  | 6-10-30T04:16:10.624579+00:00"},{"id":"01a18b05-a9d7-7
+  | 880-a35c-d6dca324f571","type":"TICKET_ISSUED","title":
+  | "Tickets issued","body":"Your tickets are ready.","ref
+  | erenceId":"01a18b05-a4be-7541-a28a-63de899031c5","read
+  | ":false,"createdAt":"2026-10-30T04:16:06.615779+00:00"
+  | },{"id":"01a18b05-a9d3-7501-aeae-9653372bb015","type":
   | "BOOKING_CREATED","title":"Booking created","body":"Yo
-  | ur booking was created.","referenceId":"01a18af6-c055-
-  | 7ef3-a646-9944d3f9768f","read":false,"createdAt":"2026
-  | -10-30T03:59:49.744821+00:00"},{"id":"01a18af6-b24d-75
-  | ce-8937-e2aa1d07a0e6","type":"TICKET_ISSUED","title":"
-  | Tickets issued","body":"Your tickets are ready.","refe
-  | renceId":"01a18af6-aec6-7d13-8d34-77c0bab0f61a","read"
-  | :false,"createdAt":"2026-10-30T03:59:45.741293+00:00"}
-  | ,{"id":"01a18af6-b249-7fd6-b834-8c4c6cbf06c7","type":"
-  | BOOKING_CREATED","title":"Booking created","body":"You
-  | r booking was created.","referenceId":"01a18af6-aec6-7
-  | d13-8d34-77c0bab0f61a","read":false,"createdAt":"2026-
-  | 10-30T03:59:45.737596+00:00"},{"id":"01a18af6-a2a0-768
-  | e-a9c6-dbb0c55cabe4","type":"BOOKING_CANCELLED","title
-  | ":"Booking cancelled","body":"Your booking was cancell
-  | ed.","referenceId":"01a18af6-9d6b-7c9e-850b-249bef325b
-  | d4","read":false,"createdAt":"2026-10-30T03:59:41.7290
-  | 3+00:00"},{"id":"01a18af6-a29d-7a3c-aaaf-4a546a397de1"
-  | ,"type":"TICKET_ISSUED","title":"Tickets issued","body
-  | ":"Your tickets are ready.","referenceId":"01a18af6-9d
-  | 6b-7c9e-850b-249bef325bd4","read":false,"createdAt":"2
-  | 026-10-30T03:59:41.725525+00:00"},{"id":"01a18af6-a299
-  | -7a75-8d54-6b53c17f4116","type":"BOOKING_CREATED","tit
-  | le":"Booking created","body":"Your booking was created
-  | .","referenceId":"01a18af6-9d6b-7c9e-850b-249bef325bd4
-  | ","read":false,"createdAt":"2026-10-30T03:59:41.7219+0
-  | 0:00"}]}'
+  | ur booking was created.","referenceId":"01a18b05-a4be-
+  | 7541-a28a-63de899031c5","read":false,"createdAt":"2026
+  | -10-30T04:16:06.611678+00:00"},{"id":"01a18b05-9a2a-73
+  | 8c-9aa0-5372fa08616c","type":"BOOKING_CANCELLED","titl
+  | e":"Booking cancelled","body":"Your booking was cancel
+  | led.","referenceId":"01a18b05-9378-735a-8352-1a973d137
+  | b43","read":false,"createdAt":"2026-10-30T04:16:02.602
+  | 621+00:00"},{"id":"01a18b05-9a26-7381-b46d-f1e051b4a6f
+  | 2","type":"TICKET_ISSUED","title":"Tickets issued","bo
+  | dy":"Your tickets are ready.","referenceId":"01a18b05-
+  | 9378-735a-8352-1a973d137b43","read":false,"createdAt":
+  | "2026-10-30T04:16:02.598709+00:00"},{"id":"01a18b05-9a
+  | 22-78a4-b142-4730dae46e26","type":"BOOKING_CREATED","t
+  | itle":"Booking created","body":"Your booking was creat
+  | ed.","referenceId":"01a18b05-9378-735a-8352-1a973d137b
+  | 43","read":false,"createdAt":"2026-10-30T04:16:02.5947
+  | 12+00:00"}]}'
   -
 
 Root Platform admin login
 
-  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.12 KB, 23 ms]
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.12 KB, 24 ms]
 
 Root Read refund list after trip cancellation
 
-  GET http://localhost:5080/api/v1/admin/refunds?page=0&size=100 [200 OK, 556 B, 5 ms]
+  GET http://localhost:5080/api/v1/admin/refunds?page=0&size=100 [200 OK, 556 B, 7 ms]
   -
   | 'TRIP CANCELLED REFUNDS {"page":0,"size":100,"totalEle
-  | ments":1,"totalPages":1,"items":[{"id":"01a18af7-1e91-
-  | 7047-a31b-b494427cca57","refundReference":"REF-ad034bc
-  | 58ece","paymentId":"01a18af7-170c-7805-9fdd-b712782ef7
-  | db","bookingId":"01a18af7-1471-731c-ac9d-d62539595c39"
+  | ments":1,"totalPages":1,"items":[{"id":"01a18b06-1f43-
+  | 7b30-ae4a-3d3f7a466e1d","refundReference":"REF-7321706
+  | f3d20","paymentId":"01a18b06-1057-78e8-9ad1-58b852da08
+  | fd","bookingId":"01a18b06-069f-7253-af50-f51654332855"
   | ,"amount":150000,"currency":"VND","status":"SUCCEEDED"
   | ,"reason":"Round 3 synthetic prepaid refund test"}]}'
   -
@@ -112,11 +112,11 @@ Root Read refund list after trip cancellation
 --------------------------+--------------------+---------------------
 |              assertions |                  0 |                  0 |
 ---------------------------------------------------------------------
-| total run duration: 163 ms                                        |
+| total run duration: 161 ms                                        |
 ---------------------------------------------------------------------
-| total data received: 5.63 KB (approx)                             |
+| total data received: 5.64 KB (approx)                             |
 ---------------------------------------------------------------------
-| average response time: 15 ms [min: 5 ms, max: 37 ms, s.d.: 12 ms] |
+| average response time: 14 ms [min: 6 ms, max: 30 ms, s.d.: 10 ms] |
 ---------------------------------------------------------------------
 Postman credentials are required for publishing run details to Postman cloud.
 Please specify it by using the `postman login` command

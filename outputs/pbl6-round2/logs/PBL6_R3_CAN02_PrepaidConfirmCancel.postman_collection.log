@@ -8,7 +8,7 @@ PBL6 Round 3 confirm cancellation of paid synthetic PREPAID ticket
 
 Root Customer login
 
-  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.35 KB, 37 ms]
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.35 KB, 42 ms]
 
 Root Read current paid booking version
 
@@ -16,23 +16,23 @@ Root Read current paid booking version
   -
   | 'CAN02 CURRENT BOOKING {"error":{"code":"RESOURCE_NOT_
   | FOUND","message":"The requested resource was not found
-  | .","correlationId":"01a18af7-0bba-77c5-a757-cefad4bc51
-  | 56"}}'
+  | .","correlationId":"01a18b05-fd9a-756e-94bf-b34089fda4
+  | bb"}}'
   -
   1. Synthetic booking settled PAID
 
 Root Preview cancellation of paid synthetic ticket
 
-  POST http://localhost:5080/api/v1/bookings/01a18282-b35b-706b-acb5-405d9939522a/cancellation-preview [404 Not Found, 355 B, 4 ms]
+  POST http://localhost:5080/api/v1/bookings/01a18282-b35b-706b-acb5-405d9939522a/cancellation-preview [404 Not Found, 355 B, 5 ms]
   2. Fresh cancellation preview created
 
 Root CAN-02 Confirm cancellation and refund request
 
-  POST http://localhost:5080/api/v1/bookings/01a18282-b35b-706b-acb5-405d9939522a/cancel [400 Bad Request, 341 B, 6 ms]
+  POST http://localhost:5080/api/v1/bookings/01a18282-b35b-706b-acb5-405d9939522a/cancel [400 Bad Request, 341 B, 5 ms]
   -
   | 'CAN02 CANCEL RESULT {"error":{"code":"VALIDATION_ERRO
   | R","message":"The request is invalid.","correlationId"
-  | :"01a18af7-0be7-79b5-896c-f8aaf133cc4e"}}'
+  | :"01a18b05-fdc7-7b76-8128-b3dff4b1eef8"}}'
   -
   3. Paid synthetic ticket cancellation accepted
 
@@ -42,7 +42,7 @@ Root Read booking after refund request
   -
   | 'CAN02 BOOKING AFTER {"error":{"code":"RESOURCE_NOT_FO
   | UND","message":"The requested resource was not found."
-  | ,"correlationId":"01a18af7-0bfb-744b-9a77-4d36fbfead7b
+  | ,"correlationId":"01a18b05-fdda-70d9-890b-8c2bb3811e25
   | "}}'
   -
 
@@ -52,13 +52,13 @@ Root Read ticket after cancellation
   -
   | 'CAN02 TICKET AFTER {"error":{"code":"RESOURCE_NOT_FOU
   | ND","message":"The requested resource was not found.",
-  | "correlationId":"01a18af7-0c0f-7378-8144-8882846e0bdc"
+  | "correlationId":"01a18b05-fdec-7ec5-8b31-f41f47fe0e15"
   | }}'
   -
 
 Root Admin login for refund readback
 
-  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.11 KB, 20 ms]
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.11 KB, 21 ms]
 
 Root Read refund records after cancellation
 
@@ -81,11 +81,11 @@ Root Read refund records after cancellation
 --------------------------+--------------------+---------------------
 |              assertions |                  3 |                  3 |
 ---------------------------------------------------------------------
-| total run duration: 236 ms                                        |
+| total run duration: 228 ms                                        |
 ---------------------------------------------------------------------
 | total data received: 2.81 KB (approx)                             |
 ---------------------------------------------------------------------
-| average response time: 12 ms [min: 4 ms, max: 37 ms, s.d.: 10 ms] |
+| average response time: 12 ms [min: 5 ms, max: 42 ms, s.d.: 12 ms] |
 ---------------------------------------------------------------------
 
   #  failure         detail                                                  

@@ -8,63 +8,51 @@ PBL6 Round 3 Fresh booking flow
 
 Root Login operator
 
-  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.38 KB, 36 ms]
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.37 KB, 33 ms]
 
 Root Create booking test trip
 
-  POST http://localhost:5080/api/v1/operator/trips [201 Created, 1.1 KB, 18 ms]
+  POST http://localhost:5080/api/v1/operator/trips [201 Created, 1.1 KB, 17 ms]
   Pass  Trip draft created
 
 Root Publish booking test trip
 
-  POST http://localhost:5080/api/v1/operator/trips/01a18af6-d9cd-7f19-bb70-15fc2c3b671a/publish [202 Accepted, 284 B, 17 ms]
+  POST http://localhost:5080/api/v1/operator/trips/01a18b05-ce41-7474-ba9d-0f90ac345099/publish [202 Accepted, 284 B, 19 ms]
   Pass  Trip publish accepted
 
 Root Customer login
 
-  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.35 KB, 20 ms]
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.35 KB, 29 ms]
 
 Root Read available seats
 
-  GET http://localhost:5080/api/v1/trips/01a18af6-d9cd-7f19-bb70-15fc2c3b671a/seats [404 Not Found, 355 B, 7 ms]
-
-Attempting to set next request to Read available seats
-
-Root Read available seats
-
-  GET http://localhost:5080/api/v1/trips/01a18af6-d9cd-7f19-bb70-15fc2c3b671a/seats [404 Not Found, 355 B, 7 ms]
-
-Attempting to set next request to Read available seats
-
-Root Read available seats
-
-  GET http://localhost:5080/api/v1/trips/01a18af6-d9cd-7f19-bb70-15fc2c3b671a/seats [200 OK, 1.26 KB, 6 ms]
+  GET http://localhost:5080/api/v1/trips/01a18b05-ce41-7474-ba9d-0f90ac345099/seats [200 OK, 1.27 KB, 7 ms]
   Pass  Find available seat
 
 Root Read stops
 
-  GET http://localhost:5080/api/v1/trips/01a18af6-d9cd-7f19-bb70-15fc2c3b671a/stops [200 OK, 562 B, 6 ms]
+  GET http://localhost:5080/api/v1/trips/01a18b05-ce41-7474-ba9d-0f90ac345099/stops [200 OK, 562 B, 7 ms]
   Pass  Find ordered stops
 
 Root Create hold
 
-  POST http://localhost:5080/api/v1/trips/01a18af6-d9cd-7f19-bb70-15fc2c3b671a/seat-holds [201 Created, 589 B, 21 ms]
+  POST http://localhost:5080/api/v1/trips/01a18b05-ce41-7474-ba9d-0f90ac345099/seat-holds [201 Created, 590 B, 13 ms]
   Pass  Hold created
 
 Root Create PREPAID booking with exact server total
 
-  POST http://localhost:5080/api/v1/bookings [201 Created, 874 B, 16 ms]
+  POST http://localhost:5080/api/v1/bookings [201 Created, 874 B, 18 ms]
   -
-  | 'BOOKING BODY {"id":"01a18af6-e27a-7dfc-b362-80a71cdf9
-  | e93","code":"BK80A71CDF9E93","customerId":"01990a00-00
-  | 00-7000-8000-000000000002","tripId":"01a18af6-d9cd-7f1
-  | 9-bb70-15fc2c3b671a","status":"PENDING_PAYMENT","payme
+  | 'BOOKING BODY {"id":"01a18b05-d2e5-7aee-b531-10223a455
+  | fda","code":"BK10223A455FDA","customerId":"01990a00-00
+  | 00-7000-8000-000000000002","tripId":"01a18b05-ce41-747
+  | 4-ba9d-0f90ac345099","status":"PENDING_PAYMENT","payme
   | ntChannel":"PREPAID","contact":{"fullName":"Postman Sy
   | nthetic","email":"seed.customer@example.test","phone":
   | "\\u002B840000000001"},"subtotal":150000,"discount":0,
   | "fee":0,"total":150000,"currency":"VND","expiresAt":"2
-  | 026-10-30T04:09:58.043043+00:00","items":[{"seatId":"0
-  | 1a18af6-e020-73a3-8cb3-f493b9837399","fullName":"Postm
+  | 026-10-30T04:26:17.094584+00:00","items":[{"seatId":"0
+  | 1a18b05-d1df-7809-a287-3af1a10bf9e6","fullName":"Postm
   | an Passenger","pickupStopId":"01990a00-0000-7000-8000-
   | 000000000004","dropoffStopId":"01990a00-0000-7000-8000
   | -000000000005"}],"rowVersion":0}'
@@ -76,19 +64,19 @@ Root Create PREPAID booking with exact server total
 --------------------------+--------------------+--------------------
 |              iterations |                  1 |                 0 |
 --------------------------+--------------------+--------------------
-|                requests |                 10 |                 0 |
+|                requests |                  8 |                 0 |
 --------------------------+--------------------+--------------------
-|            test-scripts |                 10 |                 0 |
+|            test-scripts |                  8 |                 0 |
 --------------------------+--------------------+--------------------
 |      prerequest-scripts |                  0 |                 0 |
 --------------------------+--------------------+--------------------
 |              assertions |                  6 |                 0 |
 --------------------------------------------------------------------
-| total run duration: 2.3 s                                        |
+| total run duration: 1285 ms                                      |
 --------------------------------------------------------------------
-| total data received: 6.02 KB (approx)                            |
+| total data received: 5.72 KB (approx)                            |
 --------------------------------------------------------------------
-| average response time: 15 ms [min: 6 ms, max: 36 ms, s.d.: 8 ms] |
+| average response time: 17 ms [min: 7 ms, max: 33 ms, s.d.: 8 ms] |
 --------------------------------------------------------------------
 Postman credentials are required for publishing run details to Postman cloud.
 Please specify it by using the `postman login` command

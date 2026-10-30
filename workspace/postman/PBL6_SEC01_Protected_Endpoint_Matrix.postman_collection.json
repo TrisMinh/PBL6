@@ -820,7 +820,7 @@
       ]
     },
     {
-      "name": "SEC-01 Protected operation 32: GET /admin/organizations",
+      "name": "SEC-01 Unsupported operation 32: GET /admin/organizations",
       "request": {
         "method": "GET",
         "header": [],
@@ -832,7 +832,7 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+              "pm.test('Operation absent from the API contract returns method not allowed',()=>pm.response.to.have.status(405));"
             ]
           }
         }
@@ -891,7 +891,7 @@
       ]
     },
     {
-      "name": "SEC-01 Protected operation 35: PATCH /admin/organizations/00000000-0000-7000-8000-000000000099",
+      "name": "SEC-01 Unsupported operation 35: PATCH /admin/organizations/00000000-0000-7000-8000-000000000099",
       "request": {
         "method": "PATCH",
         "header": [
@@ -917,7 +917,7 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.test('Protected operation rejects missing bearer token',()=>pm.response.to.have.status(401));"
+              "pm.test('Operation absent from the API contract returns method not allowed',()=>pm.response.to.have.status(405));"
             ]
           }
         }

@@ -8,7 +8,7 @@ PBL6 Round 3 Expired token validation
 
 Root AUTH-15 Expired signed access token is rejected
 
-  GET http://localhost:5080/api/v1/users/me [401 Unauthorized, 353 B, 14 ms]
+  GET http://localhost:5080/api/v1/users/me [401 Unauthorized, 353 B, 19 ms]
   Pass  Expired access token returns authentication error
 
 ---------------------------------------------------------------------
@@ -24,11 +24,11 @@ Root AUTH-15 Expired signed access token is rejected
 --------------------------+--------------------+---------------------
 |              assertions |                  1 |                  0 |
 ---------------------------------------------------------------------
-| total run duration: 42 ms                                         |
+| total run duration: 50 ms                                         |
 ---------------------------------------------------------------------
 | total data received: 139 B (approx)                               |
 ---------------------------------------------------------------------
-| average response time: 14 ms [min: 14 ms, max: 14 ms, s.d.: 0 us] |
+| average response time: 19 ms [min: 19 ms, max: 19 ms, s.d.: 0 us] |
 ---------------------------------------------------------------------
 Postman credentials are required for publishing run details to Postman cloud.
 Please specify it by using the `postman login` command

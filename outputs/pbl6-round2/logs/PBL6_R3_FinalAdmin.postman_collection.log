@@ -8,15 +8,15 @@ PBL6 Round 3 Protect final admin
 
 Root Admin login
 
-  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.11 KB, 34 ms]
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.11 KB, 35 ms]
 
 Root Read admin identity
 
-  GET http://localhost:5080/api/v1/users/me [200 OK, 474 B, 6 ms]
+  GET http://localhost:5080/api/v1/users/me [200 OK, 474 B, 7 ms]
 
 Root ADM-04 Prevent removing own platform admin role
 
-  PUT http://localhost:5080/api/v1/admin/users/01990a00-0000-7000-8000-000000000022/roles [403 Forbidden, 330 B, 6 ms]
+  PUT http://localhost:5080/api/v1/admin/users/01990a00-0000-7000-8000-000000000022/roles [403 Forbidden, 330 B, 8 ms]
   Pass  Sole admin self-role removal is denied
 
 Root ADM-04 Verify admin role retained
@@ -37,11 +37,11 @@ Root ADM-04 Verify admin role retained
 --------------------------+--------------------+---------------------
 |              assertions |                  2 |                  0 |
 ---------------------------------------------------------------------
-| total run duration: 117 ms                                        |
+| total run duration: 135 ms                                        |
 ---------------------------------------------------------------------
 | total data received: 1.56 KB (approx)                             |
 ---------------------------------------------------------------------
-| average response time: 13 ms [min: 6 ms, max: 34 ms, s.d.: 12 ms] |
+| average response time: 14 ms [min: 6 ms, max: 35 ms, s.d.: 12 ms] |
 ---------------------------------------------------------------------
 Postman credentials are required for publishing run details to Postman cloud.
 Please specify it by using the `postman login` command

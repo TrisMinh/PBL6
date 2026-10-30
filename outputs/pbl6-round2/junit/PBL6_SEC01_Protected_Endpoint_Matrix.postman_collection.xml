@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<testsuite name="PBL6_SEC01_Protected_Endpoint_Matrix.postman_collection" tests="68" failures="2" errors="0" time="3.223">
+<testsuite name="PBL6_SEC01_Protected_Endpoint_Matrix.postman_collection" tests="68" failures="0" errors="0" time="3.181">
   <testcase classname="PBL6_SEC01_Protected_Endpoint_Matrix.postman_collection" name="passed assertion 001" />
   <testcase classname="PBL6_SEC01_Protected_Endpoint_Matrix.postman_collection" name="passed assertion 002" />
   <testcase classname="PBL6_SEC01_Protected_Endpoint_Matrix.postman_collection" name="passed assertion 003" />
@@ -66,10 +66,6 @@
   <testcase classname="PBL6_SEC01_Protected_Endpoint_Matrix.postman_collection" name="passed assertion 064" />
   <testcase classname="PBL6_SEC01_Protected_Endpoint_Matrix.postman_collection" name="passed assertion 065" />
   <testcase classname="PBL6_SEC01_Protected_Endpoint_Matrix.postman_collection" name="passed assertion 066" />
-  <testcase classname="PBL6_SEC01_Protected_Endpoint_Matrix.postman_collection" name="failed assertion 001">
-    <failure message="Postman assertion failed; see logs/PBL6_SEC01_Protected_Endpoint_Matrix.postman_collection.log">logs/PBL6_SEC01_Protected_Endpoint_Matrix.postman_collection.log</failure>
-  </testcase>
-  <testcase classname="PBL6_SEC01_Protected_Endpoint_Matrix.postman_collection" name="failed assertion 002">
-    <failure message="Postman assertion failed; see logs/PBL6_SEC01_Protected_Endpoint_Matrix.postman_collection.log">logs/PBL6_SEC01_Protected_Endpoint_Matrix.postman_collection.log</failure>
-  </testcase>
+  <testcase classname="PBL6_SEC01_Protected_Endpoint_Matrix.postman_collection" name="passed assertion 067" />
+  <testcase classname="PBL6_SEC01_Protected_Endpoint_Matrix.postman_collection" name="passed assertion 068" />
 </testsuite>

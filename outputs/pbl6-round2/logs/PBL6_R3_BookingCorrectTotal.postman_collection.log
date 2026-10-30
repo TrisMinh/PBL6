@@ -8,42 +8,42 @@ PBL6 Round 3 Booking correct-total attempt
 
 Root Customer login
 
-  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.35 KB, 34 ms]
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.35 KB, 32 ms]
 
 Root BOOK-02 Hold next available seat
 
-  POST http://localhost:5080/api/v1/trips/01a1825d-b562-7b04-bab7-d50af84b5142/seat-holds [422 Unprocessable Entity, 353 B, 10 ms]
+  POST http://localhost:5080/api/v1/trips/01a1825d-b562-7b04-bab7-d50af84b5142/seat-holds [422 Unprocessable Entity, 353 B, 12 ms]
   1. Second available seat held
 
 Root BOOK-10 Create PREPAID booking with correct total
 
-  POST http://localhost:5080/api/v1/bookings [404 Not Found, 355 B, 10 ms]
+  POST http://localhost:5080/api/v1/bookings [404 Not Found, 355 B, 9 ms]
   -
   | 'BOOKING {"error":{"code":"RESOURCE_NOT_FOUND","messag
   | e":"The requested resource was not found.","correlatio
-  | nId":"01a18af6-c9c9-7785-8476-38ad9bd2fd7f"}}'
+  | nId":"01a18b05-bd43-772b-ae3b-80e74b9a22de"}}'
   -
   2. Valid PREPAID booking created
 
-----------------------------------------------------------------------
-|                         |            executed |             failed |
---------------------------+---------------------+---------------------
-|              iterations |                   1 |                  0 |
---------------------------+---------------------+---------------------
-|                requests |                   3 |                  0 |
---------------------------+---------------------+---------------------
-|            test-scripts |                   3 |                  0 |
---------------------------+---------------------+---------------------
-|      prerequest-scripts |                   0 |                  0 |
---------------------------+---------------------+---------------------
-|              assertions |                   2 |                  2 |
-----------------------------------------------------------------------
-| total run duration: 119 ms                                         |
-----------------------------------------------------------------------
-| total data received: 1.42 KB (approx)                              |
-----------------------------------------------------------------------
-| average response time: 18 ms [min: 10 ms, max: 34 ms, s.d.: 11 ms] |
-----------------------------------------------------------------------
+---------------------------------------------------------------------
+|                         |           executed |             failed |
+--------------------------+--------------------+---------------------
+|              iterations |                  1 |                  0 |
+--------------------------+--------------------+---------------------
+|                requests |                  3 |                  0 |
+--------------------------+--------------------+---------------------
+|            test-scripts |                  3 |                  0 |
+--------------------------+--------------------+---------------------
+|      prerequest-scripts |                  0 |                  0 |
+--------------------------+--------------------+---------------------
+|              assertions |                  2 |                  2 |
+---------------------------------------------------------------------
+| total run duration: 114 ms                                        |
+---------------------------------------------------------------------
+| total data received: 1.42 KB (approx)                             |
+---------------------------------------------------------------------
+| average response time: 17 ms [min: 9 ms, max: 32 ms, s.d.: 10 ms] |
+---------------------------------------------------------------------
 
   #  failure         detail                                                     
                                                                                 

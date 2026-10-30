@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<testsuite name="PBL6_R3_ReadTripSevenSeats.postman_collection" tests="1" failures="0" errors="1" time="2.102">
+<testsuite name="PBL6_R3_ReadTripSevenSeats.postman_collection" tests="1" failures="0" errors="1" time="1.916">
   <testcase classname="PBL6_R3_ReadTripSevenSeats.postman_collection" name="collection execution">
     <error message="Postman exited with code 1; see logs/PBL6_R3_ReadTripSevenSeats.postman_collection.log">logs/PBL6_R3_ReadTripSevenSeats.postman_collection.log</error>
   </testcase>

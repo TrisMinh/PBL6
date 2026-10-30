@@ -15,6 +15,7 @@ public static class ErrorMapper
             401 => new AppError(ErrorCodes.AuthenticationRequired, "Authentication is required.", 401),
             403 => new AppError(ErrorCodes.AccessDenied, "Access is denied.", 403),
             404 => AppError.NotFound("The requested resource was not found."),
+            405 => new AppError(ErrorCodes.MethodNotAllowed, "The HTTP method is not allowed for this resource.", 405),
             429 => new AppError(ErrorCodes.RateLimited, "Too many requests.", 429),
             502 or 503 or 504 => new AppError(ErrorCodes.UpstreamUnavailable, "A required dependency is unavailable.", 503),
             _ => AppError.Internal(correlationId.ToString())

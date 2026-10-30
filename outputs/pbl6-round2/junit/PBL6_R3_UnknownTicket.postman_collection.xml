@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<testsuite name="PBL6_R3_UnknownTicket.postman_collection" tests="1" failures="0" errors="0" time="1.799">
+<testsuite name="PBL6_R3_UnknownTicket.postman_collection" tests="1" failures="0" errors="0" time="2.301">
   <testcase classname="PBL6_R3_UnknownTicket.postman_collection" name="passed assertion 001" />
 </testsuite>

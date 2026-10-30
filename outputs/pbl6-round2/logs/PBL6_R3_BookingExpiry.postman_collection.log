@@ -8,7 +8,7 @@ PBL6 Round 3 unpaid booking expiry
 
 Root Customer login
 
-  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.36 KB, 34 ms]
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.35 KB, 42 ms]
 
 Root BOOK-21 Read expired synthetic prepaid booking
 
@@ -16,7 +16,7 @@ Root BOOK-21 Read expired synthetic prepaid booking
   -
   | 'BOOKING EXPIRY {"error":{"code":"RESOURCE_NOT_FOUND",
   | "message":"The requested resource was not found.","cor
-  | relationId":"01a18af6-d1c7-7fa0-9e8e-3d74dcb75caf"}}'
+  | relationId":"01a18b05-c618-7e0f-92b5-479c98f76366"}}'
   -
   1. Unpaid PREPAID booking expires and releases inventory
 
@@ -33,11 +33,11 @@ Root BOOK-21 Read expired synthetic prepaid booking
 --------------------------+--------------------+---------------------
 |              assertions |                  1 |                  1 |
 ---------------------------------------------------------------------
-| total run duration: 88 ms                                         |
+| total run duration: 99 ms                                         |
 ---------------------------------------------------------------------
-| total data received: 1.3 KB (approx)                              |
+| total data received: 1.29 KB (approx)                             |
 ---------------------------------------------------------------------
-| average response time: 20 ms [min: 7 ms, max: 34 ms, s.d.: 13 ms] |
+| average response time: 24 ms [min: 7 ms, max: 42 ms, s.d.: 17 ms] |
 ---------------------------------------------------------------------
 
   #  failure         detail                                                  

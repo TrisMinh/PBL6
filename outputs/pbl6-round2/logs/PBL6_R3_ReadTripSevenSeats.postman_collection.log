@@ -8,7 +8,7 @@ PBL6 Round 3 read seats on active synthetic trip
 
 Root Customer login
 
-  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.55 KB, 36 ms]
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.55 KB, 35 ms]
 
 Root Read seats for 2026-12-07 trip
 
@@ -16,7 +16,7 @@ Root Read seats for 2026-12-07 trip
   -
   | 'DEC7 SEATS {"error":{"code":"RESOURCE_NOT_FOUND","mes
   | sage":"The requested resource was not found.","correla
-  | tionId":"01a18af8-3650-75dc-b5d1-92d4d328195a"}}'
+  | tionId":"01a18b07-257b-735c-9722-59cf265b23e4"}}'
   -
   1⠄ AssertionError in test-script
 
@@ -33,11 +33,11 @@ Root Read seats for 2026-12-07 trip
 --------------------------+--------------------+---------------------
 |              assertions |                  0 |                  0 |
 ---------------------------------------------------------------------
-| total run duration: 95 ms                                         |
+| total run duration: 96 ms                                         |
 ---------------------------------------------------------------------
 | total data received: 1.5 KB (approx)                              |
 ---------------------------------------------------------------------
-| average response time: 21 ms [min: 7 ms, max: 36 ms, s.d.: 14 ms] |
+| average response time: 21 ms [min: 7 ms, max: 35 ms, s.d.: 14 ms] |
 ---------------------------------------------------------------------
 
   #  failure         detail                                                

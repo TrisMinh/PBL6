@@ -8,7 +8,7 @@ PBL6 Round 3 Search excludes completed trip
 
 Root SRCH-02 Completed trip excluded from sale search
 
-  GET http://localhost:5080/api/v1/trips?origin=Seed%20Origin%20Station&destination=Seed%20Destination%20Station&departureDate=2026-12-07&passengerCount=1 [200 OK, 268 B, 25 ms]
+  GET http://localhost:5080/api/v1/trips?origin=Seed%20Origin%20Station&destination=Seed%20Destination%20Station&departureDate=2026-12-07&passengerCount=1 [200 OK, 268 B, 28 ms]
   Pass  Search succeeds and excludes completed synthetic trip
 
 ---------------------------------------------------------------------
@@ -28,7 +28,7 @@ Root SRCH-02 Completed trip excluded from sale search
 ---------------------------------------------------------------------
 | total data received: 64 B (approx)                                |
 ---------------------------------------------------------------------
-| average response time: 25 ms [min: 25 ms, max: 25 ms, s.d.: 0 us] |
+| average response time: 28 ms [min: 28 ms, max: 28 ms, s.d.: 0 us] |
 ---------------------------------------------------------------------
 Postman credentials are required for publishing run details to Postman cloud.
 Please specify it by using the `postman login` command

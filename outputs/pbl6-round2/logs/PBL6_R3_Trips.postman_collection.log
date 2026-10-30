@@ -8,52 +8,52 @@ PBL6 Round 3 Trip Draft and Conflict checks
 
 Root Operator login
 
-  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.37 KB, 31 ms]
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.38 KB, 34 ms]
 
 Root TRIP-01 Create future synthetic draft
 
-  POST http://localhost:5080/api/v1/operator/trips [201 Created, 1.1 KB, 13 ms]
+  POST http://localhost:5080/api/v1/operator/trips [201 Created, 1.1 KB, 18 ms]
   Pass  Draft trip accepted
 
 Root TRIP-03 Reject invalid trip input
 
-  POST http://localhost:5080/api/v1/operator/trips [400 Bad Request, 341 B, 5 ms]
+  POST http://localhost:5080/api/v1/operator/trips [400 Bad Request, 341 B, 10 ms]
   Pass  Invalid trip input rejected as client error
 
 Root TRIP-02 Publish synthetic trip
 
-  POST http://localhost:5080/api/v1/operator/trips/01a18af8-c212-7a19-bef4-bfe5293bcede/publish [409 Conflict, 365 B, 13 ms]
+  POST http://localhost:5080/api/v1/operator/trips/01a18b07-a9e2-7ff3-970f-81616cc92bc3/publish [409 Conflict, 365 B, 20 ms]
   1. Publish accepted for conflict-free future trip
 
 Root TRIP-04 Create overlapping draft on same bus and driver
 
-  POST http://localhost:5080/api/v1/operator/trips [201 Created, 1.1 KB, 14 ms]
+  POST http://localhost:5080/api/v1/operator/trips [201 Created, 1.1 KB, 24 ms]
   Pass  Second draft accepted for publish conflict probe
 
 Root TRIP-04 Reject overlapping trip publish
 
-  POST http://localhost:5080/api/v1/operator/trips/01a18af8-c262-734d-aea8-c72a437bb04e/publish [409 Conflict, 365 B, 12 ms]
+  POST http://localhost:5080/api/v1/operator/trips/01a18b07-aa59-7fa9-99d5-1554e0d61916/publish [409 Conflict, 365 B, 26 ms]
   Pass  Resource conflict is rejected
 
---------------------------------------------------------------------
-|                         |           executed |            failed |
---------------------------+--------------------+--------------------
-|              iterations |                  1 |                 0 |
---------------------------+--------------------+--------------------
-|                requests |                  6 |                 0 |
---------------------------+--------------------+--------------------
-|            test-scripts |                  6 |                 0 |
---------------------------+--------------------+--------------------
-|      prerequest-scripts |                  0 |                 0 |
---------------------------+--------------------+--------------------
-|              assertions |                  5 |                 1 |
---------------------------------------------------------------------
-| total run duration: 192 ms                                       |
---------------------------------------------------------------------
-| total data received: 3.39 KB (approx)                            |
---------------------------------------------------------------------
-| average response time: 14 ms [min: 5 ms, max: 31 ms, s.d.: 7 ms] |
---------------------------------------------------------------------
+---------------------------------------------------------------------
+|                         |           executed |             failed |
+--------------------------+--------------------+---------------------
+|              iterations |                  1 |                  0 |
+--------------------------+--------------------+---------------------
+|                requests |                  6 |                  0 |
+--------------------------+--------------------+---------------------
+|            test-scripts |                  6 |                  0 |
+--------------------------+--------------------+---------------------
+|      prerequest-scripts |                  0 |                  0 |
+--------------------------+--------------------+---------------------
+|              assertions |                  5 |                  1 |
+---------------------------------------------------------------------
+| total run duration: 264 ms                                        |
+---------------------------------------------------------------------
+| total data received: 3.4 KB (approx)                              |
+---------------------------------------------------------------------
+| average response time: 22 ms [min: 10 ms, max: 34 ms, s.d.: 7 ms] |
+---------------------------------------------------------------------
 
   #  failure         detail                                         
                                                                     

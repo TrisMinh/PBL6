@@ -8,21 +8,21 @@ PBL6 Round 3 Admin role replacement and restore
 
 Root Admin login
 
-  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.12 KB, 88 ms]
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.12 KB, 64 ms]
 
 Root Find synthetic role test user
 
-  GET http://localhost:5080/api/v1/admin/users?page=0&size=100 [200 OK, 1.88 KB, 60 ms]
+  GET http://localhost:5080/api/v1/admin/users?page=0&size=100 [200 OK, 1.88 KB, 55 ms]
   1. Find synthetic account and save version
 
 Root ADM-02 Remove customer role on synthetic user
 
-  PUT http://localhost:5080/api/v1/admin/users/{{roleTestUserId}}/roles [404 Not Found, 355 B, 17 ms]
+  PUT http://localhost:5080/api/v1/admin/users/{{roleTestUserId}}/roles [404 Not Found, 355 B, 14 ms]
   2. Role replacement removes role from synthetic user
 
 Root ADM-02 Restore customer role on synthetic user
 
-  PUT http://localhost:5080/api/v1/admin/users/{{roleTestUserId}}/roles [404 Not Found, 355 B, 7 ms]
+  PUT http://localhost:5080/api/v1/admin/users/{{roleTestUserId}}/roles [404 Not Found, 355 B, 6 ms]
   3. Synthetic user role restored
 
 Root Verify synthetic account remains active
@@ -43,11 +43,11 @@ Root Verify synthetic account remains active
 --------------------------+--------------------+---------------------
 |              assertions |                  4 |                  4 |
 ---------------------------------------------------------------------
-| total run duration: 288 ms                                        |
+| total run duration: 243 ms                                        |
 ---------------------------------------------------------------------
 | total data received: 3.02 KB (approx)                             |
 ---------------------------------------------------------------------
-| average response time: 35 ms [min: 6 ms, max: 88 ms, s.d.: 32 ms] |
+| average response time: 29 ms [min: 6 ms, max: 64 ms, s.d.: 25 ms] |
 ---------------------------------------------------------------------
 
   #  failure         detail                                                  

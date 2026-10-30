@@ -8,41 +8,41 @@ PBL6 Round 3 concurrent hold race for one synthetic seat
 
 Root Login competing customer
 
-  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.13 KB, 33 ms]
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.12 KB, 30 ms]
 
 Root BOOK-05 Compete for same seat
 
-  POST http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seat-holds [201 Created, 589 B, 13 ms]
+  POST http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seat-holds [201 Created, 590 B, 14 ms]
   -
-  | 'RACE RESULT 201 {"holdToken":"AZYVj2gW3oI4vZibGLpgYmB
-  | 99pPbzolxq6hz65o3sIM","tripId":"01990a00-0000-7000-800
+  | 'RACE RESULT 201 {"holdToken":"C3InjDviIoCLk1w2MNSbOC2
+  | NqIMjlxJEylHgLH7_oxQ","tripId":"01990a00-0000-7000-800
   | 0-000000000007","status":"ACTIVE","seats":[{"id":"0199
   | 0a00-0000-7000-8000-000000000041","code":"1C","type":"
   | STANDARD","status":"HELD","price":{"amount":150000,"cu
   | rrency":"VND"},"rowVersion":0}],"expiresAt":"2026-10-3
-  | 0T04:09:38.098414+00:00","serverTime":"2026-10-30T03:5
-  | 9:38.101279+00:00"}'
+  | 0T04:25:59.000282+00:00","serverTime":"2026-10-30T04:1
+  | 5:59.0035979+00:00"}'
   -
   Pass  Competing hold gets either the seat or a conflict
 
-----------------------------------------------------------------------
-|                         |            executed |             failed |
---------------------------+---------------------+---------------------
-|              iterations |                   1 |                  0 |
---------------------------+---------------------+---------------------
-|                requests |                   2 |                  0 |
---------------------------+---------------------+---------------------
-|            test-scripts |                   2 |                  0 |
---------------------------+---------------------+---------------------
-|      prerequest-scripts |                   0 |                  0 |
---------------------------+---------------------+---------------------
-|              assertions |                   1 |                  0 |
-----------------------------------------------------------------------
-| total run duration: 88 ms                                          |
-----------------------------------------------------------------------
-| total data received: 1.3 KB (approx)                               |
-----------------------------------------------------------------------
-| average response time: 23 ms [min: 13 ms, max: 33 ms, s.d.: 10 ms] |
-----------------------------------------------------------------------
+---------------------------------------------------------------------
+|                         |           executed |             failed |
+--------------------------+--------------------+---------------------
+|              iterations |                  1 |                  0 |
+--------------------------+--------------------+---------------------
+|                requests |                  2 |                  0 |
+--------------------------+--------------------+---------------------
+|            test-scripts |                  2 |                  0 |
+--------------------------+--------------------+---------------------
+|      prerequest-scripts |                  0 |                  0 |
+--------------------------+--------------------+---------------------
+|              assertions |                  1 |                  0 |
+---------------------------------------------------------------------
+| total run duration: 89 ms                                         |
+---------------------------------------------------------------------
+| total data received: 1.29 KB (approx)                             |
+---------------------------------------------------------------------
+| average response time: 22 ms [min: 14 ms, max: 30 ms, s.d.: 8 ms] |
+---------------------------------------------------------------------
 Postman credentials are required for publishing run details to Postman cloud.
 Please specify it by using the `postman login` command

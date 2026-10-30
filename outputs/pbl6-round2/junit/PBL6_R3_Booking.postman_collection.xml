@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<testsuite name="PBL6_R3_Booking.postman_collection" tests="6" failures="0" errors="0" time="2.358">
+<testsuite name="PBL6_R3_Booking.postman_collection" tests="6" failures="0" errors="0" time="2.257">
   <testcase classname="PBL6_R3_Booking.postman_collection" name="passed assertion 001" />
   <testcase classname="PBL6_R3_Booking.postman_collection" name="passed assertion 002" />
   <testcase classname="PBL6_R3_Booking.postman_collection" name="passed assertion 003" />

@@ -8,7 +8,7 @@ PBL6 Round 3 checked-in ticket cancellation guard
 
 Root Customer login
 
-  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.35 KB, 34 ms]
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.36 KB, 34 ms]
 
 Root Read synthetic paid booking version
 
@@ -21,17 +21,17 @@ Root CAN-01 Preview cancellation for checked-in ticket
   -
   | 'CANCEL PREVIEW {"error":{"code":"RESOURCE_NOT_FOUND",
   | "message":"The requested resource was not found.","cor
-  | relationId":"01a18af7-4032-7e74-81a9-5f477c0af324"}}'
+  | relationId":"01a18b06-365b-777b-bf29-9c69f8ca1b58"}}'
   -
   2. Cancellation preview response is readable
 
 Root CAN-05 Checked-in ticket cancellation is rejected
 
-  POST http://localhost:5080/api/v1/bookings/01a18263-9bb1-7393-9355-47d8efecdb8b/cancel [400 Bad Request, 341 B, 5 ms]
+  POST http://localhost:5080/api/v1/bookings/01a18263-9bb1-7393-9355-47d8efecdb8b/cancel [400 Bad Request, 341 B, 3 ms]
   -
   | 'CANCEL CHECKIN {"error":{"code":"VALIDATION_ERROR","m
   | essage":"The request is invalid.","correlationId":"01a
-  | 18af7-4047-71e4-aafe-ffd613a99543"}}'
+  | 18b06-366f-7bb8-bf56-d4dac9115f9e"}}'
   -
   Pass  Checked-in ticket cannot be cancelled
 
@@ -48,11 +48,11 @@ Root CAN-05 Checked-in ticket cancellation is rejected
 --------------------------+--------------------+---------------------
 |              assertions |                  2 |                  1 |
 ---------------------------------------------------------------------
-| total run duration: 124 ms                                        |
+| total run duration: 125 ms                                        |
 ---------------------------------------------------------------------
-| total data received: 1.55 KB (approx)                             |
+| total data received: 1.56 KB (approx)                             |
 ---------------------------------------------------------------------
-| average response time: 12 ms [min: 4 ms, max: 34 ms, s.d.: 12 ms] |
+| average response time: 11 ms [min: 3 ms, max: 34 ms, s.d.: 12 ms] |
 ---------------------------------------------------------------------
 
   #  failure         detail                                                     

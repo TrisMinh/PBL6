@@ -8,7 +8,7 @@ PBL6 Round 3 Verified sandbox payment and duplicate webhook
 
 Root Customer login
 
-  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.56 KB, 44 ms]
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.55 KB, 40 ms]
 
 Root Read/replay original payment intent
 
@@ -17,7 +17,7 @@ Root Read/replay original payment intent
 
 Root Replay VNPAY sandbox success (duplicate event)
 
-  POST http://localhost:8099/pay [404 Not Found, 221 B, 14 ms]
+  POST http://localhost:8099/pay [404 Not Found, 221 B, 16 ms]
   2. Local simulator completed duplicate callback
 
 Root PAY-05/06 Verify payment state is idempotently SUCCEEDED
@@ -32,7 +32,7 @@ Root PAY-05 Verify booking PAID after payment
 
 Root TKT-02 Verify one ticket is issued for paid booking
 
-  GET http://localhost:5080/api/v1/tickets [200 OK, 1.39 KB, 6 ms]
+  GET http://localhost:5080/api/v1/tickets [200 OK, 1.39 KB, 8 ms]
   5. Exactly one ticket belongs to this booking
 
 ----------------------------------------------------------------------
@@ -52,7 +52,7 @@ Root TKT-02 Verify one ticket is issued for paid booking
 ----------------------------------------------------------------------
 | total data received: 3.04 KB (approx)                              |
 ----------------------------------------------------------------------
-| average response time: 527 ms [min: 5 ms, max: 3 s, s.d.: 1145 ms] |
+| average response time: 520 ms [min: 5 ms, max: 3 s, s.d.: 1130 ms] |
 ----------------------------------------------------------------------
 
   #  failure         detail                                                            

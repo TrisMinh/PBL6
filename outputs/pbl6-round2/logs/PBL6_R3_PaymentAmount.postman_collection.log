@@ -16,8 +16,8 @@ Root PAY-08 Wrong amount in otherwise valid signed webhook
   -
   | 'WRONG AMOUNT WEBHOOK {"error":{"code":"RESOURCE_NOT_F
   | OUND","message":"The requested resource was not found.
-  | ","correlationId":"01a18af7-cc96-7922-b570-eaf03ce9ab0
-  | d"}}'
+  | ","correlationId":"01a18b06-bcbb-764b-9735-b8c51d0dd0f
+  | f"}}'
   -
   1. Mismatched amount returns PAYMENT_VERIFICATION_FAILED 422
 
@@ -34,7 +34,7 @@ Root PAY-08 Wrong amount in otherwise valid signed webhook
 --------------------------+--------------------+---------------------
 |              assertions |                  1 |                  1 |
 ---------------------------------------------------------------------
-| total run duration: 55 ms                                         |
+| total run duration: 53 ms                                         |
 ---------------------------------------------------------------------
 | total data received: 144 B (approx)                               |
 ---------------------------------------------------------------------

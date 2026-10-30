@@ -8,7 +8,7 @@ PBL6 Round 3 VNPAY sandbox completion
 
 Root Customer login
 
-  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.55 KB, 52 ms]
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.56 KB, 60 ms]
 
 Root PAY-13 Read payment and prepare local sandbox form
 
@@ -17,12 +17,12 @@ Root PAY-13 Read payment and prepare local sandbox form
 
 Root PAY-05 Complete a sandbox VNPAY checkout
 
-  POST http://localhost:8099/pay [404 Not Found, 221 B, 15 ms]
+  POST http://localhost:8099/pay [404 Not Found, 221 B, 22 ms]
   2. Local sandbox accepted the signed success callback and returned redirect
 
 Root PAY-05 Verify payment succeeded after webhook
 
-  GET http://localhost:5080/api/v1/payments/01a18263-e1eb-72e0-bf3f-21eb7d42c212 [404 Not Found, 355 B, 4 ms]
+  GET http://localhost:5080/api/v1/payments/01a18263-e1eb-72e0-bf3f-21eb7d42c212 [404 Not Found, 355 B, 5 ms]
   3. Payment is SUCCEEDED after the signed local webhook
 
 Root PAY-05 Verify booking PAID
@@ -32,12 +32,12 @@ Root PAY-05 Verify booking PAID
 
 Root TKT-02 Verify ticket issued for booking item
 
-  GET http://localhost:5080/api/v1/tickets [200 OK, 1.39 KB, 7 ms]
+  GET http://localhost:5080/api/v1/tickets [200 OK, 1.39 KB, 8 ms]
   Pass  Ticket exists for the paid booking seat
 
 Root NOTIF-01 Read notifications after payment
 
-  GET http://localhost:5080/api/v1/notifications [200 OK, 3.08 KB, 7 ms]
+  GET http://localhost:5080/api/v1/notifications [200 OK, 3.08 KB, 11 ms]
   Pass  Notification endpoint returns owned notification page
 
 ---------------------------------------------------------------------
@@ -53,11 +53,11 @@ Root NOTIF-01 Read notifications after payment
 --------------------------+--------------------+---------------------
 |              assertions |                  6 |                  4 |
 ---------------------------------------------------------------------
-| total run duration: 232 ms                                        |
+| total run duration: 249 ms                                        |
 ---------------------------------------------------------------------
 | total data received: 5.92 KB (approx)                             |
 ---------------------------------------------------------------------
-| average response time: 13 ms [min: 4 ms, max: 52 ms, s.d.: 15 ms] |
+| average response time: 16 ms [min: 5 ms, max: 60 ms, s.d.: 18 ms] |
 ---------------------------------------------------------------------
 
   #  failure         detail                                                                   

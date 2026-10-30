@@ -8,7 +8,7 @@ PBL6 payment outcome readback
 
 Root Login
 
-  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.55 KB, 32 ms]
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.55 KB, 35 ms]
 
 Root Read /payments/01a18263-e1eb-72e0-bf3f-21eb7d42c212
 
@@ -16,7 +16,7 @@ Root Read /payments/01a18263-e1eb-72e0-bf3f-21eb7d42c212
   -
   | 'STATE {"error":{"code":"RESOURCE_NOT_FOUND","message"
   | :"The requested resource was not found.","correlationI
-  | d":"01a18af8-1d80-726b-9325-9e5a89faa417"}}'
+  | d":"01a18b07-0b8c-704d-87a8-1862f0e72021"}}'
   -
   1⠄ AssertionError in test-script
 
@@ -26,7 +26,7 @@ Root Read /bookings/01a18263-9bb1-7393-9355-47d8efecdb8b
   -
   | 'STATE {"error":{"code":"RESOURCE_NOT_FOUND","message"
   | :"The requested resource was not found.","correlationI
-  | d":"01a18af8-1d97-7c53-87e4-0ea76ecd12fc"}}'
+  | d":"01a18b07-0ba7-713a-80a4-4100f4294772"}}'
   -
   2⠄ AssertionError in test-script
 
@@ -43,11 +43,11 @@ Root Read /bookings/01a18263-9bb1-7393-9355-47d8efecdb8b
 --------------------------+--------------------+---------------------
 |              assertions |                  0 |                  0 |
 ---------------------------------------------------------------------
-| total run duration: 106 ms                                        |
+| total run duration: 111 ms                                        |
 ---------------------------------------------------------------------
 | total data received: 1.64 KB (approx)                             |
 ---------------------------------------------------------------------
-| average response time: 14 ms [min: 5 ms, max: 32 ms, s.d.: 12 ms] |
+| average response time: 15 ms [min: 5 ms, max: 35 ms, s.d.: 14 ms] |
 ---------------------------------------------------------------------
 
   #  failure         detail                                                       

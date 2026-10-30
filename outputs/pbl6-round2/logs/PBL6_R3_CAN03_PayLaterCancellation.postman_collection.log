@@ -8,7 +8,7 @@ PBL6 Round 3 cancel PAY_LATER booking without gateway refund
 
 Root Customer login
 
-  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.35 KB, 32 ms]
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.35 KB, 38 ms]
 
 Root Read PAY_LATER booking version
 
@@ -16,7 +16,7 @@ Root Read PAY_LATER booking version
   -
   | 'PAYLATER VERSION {"error":{"code":"RESOURCE_NOT_FOUND
   | ","message":"The requested resource was not found.","c
-  | orrelationId":"01a18af7-2cd0-758b-b513-022be0b202e3"}}
+  | orrelationId":"01a18b06-25df-74a3-93fa-04f811e2ceaf"}}
   | '
   -
   1⠄ AssertionError in test-script
@@ -26,38 +26,38 @@ Root Read ticket issued for PAY_LATER booking
   GET http://localhost:5080/api/v1/tickets [200 OK, 1.39 KB, 7 ms]
   -
   | 'PAYLATER TICKETS {"page":0,"size":20,"totalElements":
-  | 3,"totalPages":1,"items":[{"id":"01a18af7-1aa6-73c7-90
-  | d5-55f1e4a5ef38","publicCode":"TK55F1E4A5EF38","bookin
-  | gId":"01a18af7-1471-731c-ac9d-d62539595c39","tripId":"
+  | 3,"totalPages":1,"items":[{"id":"01a18b06-144f-7e69-8f
+  | be-2acfaa376c73","publicCode":"TK2ACFAA376C73","bookin
+  | gId":"01a18b06-069f-7253-af50-f51654332855","tripId":"
   | 01990a00-0000-7000-8000-000000000007","passengerName":
   | "PBL6 Round 3 Refund Passenger","seatCode":"1D","statu
   | s":"CANCELLED","paymentChannel":"PREPAID","issuedAt":"
-  | 2026-10-30T04:00:12.452995+00:00","rowVersion":0},{"id
-  | ":"01a18af6-aecd-71fc-8b2f-b7ebb15302ea","publicCode":
-  | "TKB7EBB15302EA","bookingId":"01a18af6-aec6-7d13-8d34-
-  | 77c0bab0f61a","tripId":"01990a00-0000-7000-8000-000000
+  | 2026-10-30T04:16:33.870077+00:00","rowVersion":0},{"id
+  | ":"01a18b05-a4c6-7afc-ba44-da83f687e23b","publicCode":
+  | "TKDA83F687E23B","bookingId":"01a18b05-a4be-7541-a28a-
+  | 63de899031c5","tripId":"01990a00-0000-7000-8000-000000
   | 000007","passengerName":"PBL6 Round 3 PayLater Passeng
   | er","seatCode":"1A","status":"ISSUED","paymentChannel"
-  | :"PAY_LATER","qrPayload":"BT1.01a18af6aecd71fc8b2fb7eb
-  | b15302ea.C06176842ABC1B45B9ED6AAE29CC3ABAFB1EF287381A6
-  | A6B372BCEB4E5C76274","issuedAt":"2026-10-30T03:59:44.8
-  | 44495+00:00","rowVersion":0},{"id":"01a18af6-9d91-7057
-  | -afdc-5d62ebfe7260","publicCode":"TK5D62EBFE7260","boo
-  | kingId":"01a18af6-9d6b-7c9e-850b-249bef325bd4","tripId
+  | :"PAY_LATER","qrPayload":"BT1.01a18b05a4c67afcba44da83
+  | f687e23b.757F38C49F430AF89E1216EC6AB292A6FA037F33DF055
+  | CF9F530CC8E476E4819","issuedAt":"2026-10-30T04:16:05.3
+  | 16973+00:00","rowVersion":0},{"id":"01a18b05-939c-748a
+  | -8fab-00d86a3c3025","publicCode":"TK00D86A3C3025","boo
+  | kingId":"01a18b05-9378-735a-8352-1a973d137b43","tripId
   | ":"01990a00-0000-7000-8000-000000000007","passengerNam
   | e":"PBL6 Idempotency Passenger","seatCode":"1A","statu
   | s":"CANCELLED","paymentChannel":"PAY_LATER","issuedAt"
-  | :"2026-10-30T03:59:40.429522+00:00","rowVersion":0}]}'
+  | :"2026-10-30T04:16:00.91997+00:00","rowVersion":0}]}'
   -
   2. Find ticket for synthetic PAY_LATER booking
 
 Root Preview PAY_LATER cancellation
 
-  POST http://localhost:5080/api/v1/bookings/01a1827d-848f-738f-b02e-eacd3c4401b2/cancellation-preview [400 Bad Request, 341 B, 4 ms]
+  POST http://localhost:5080/api/v1/bookings/01a1827d-848f-738f-b02e-eacd3c4401b2/cancellation-preview [400 Bad Request, 341 B, 3 ms]
   -
   | 'PAYLATER PREVIEW {"error":{"code":"VALIDATION_ERROR",
   | "message":"The request is invalid.","correlationId":"0
-  | 1a18af7-2d00-7477-a989-cf6bad5d4468"}}'
+  | 1a18b06-2610-7989-a467-aa7350cf7038"}}'
   -
   3. PAY_LATER preview has no gateway refund
 
@@ -67,7 +67,7 @@ Root CAN-03 Cancel PAY_LATER booking
   -
   | 'PAYLATER CANCEL {"error":{"code":"VALIDATION_ERROR","
   | message":"The request is invalid.","correlationId":"01
-  | a18af7-2d14-78eb-8701-076437a9e98c"}}'
+  | a18b06-2621-7290-8c4c-fc98ee44beba"}}'
   -
   4. PAY_LATER cancellation accepted without payment gateway
 
@@ -77,29 +77,29 @@ Root Read PAY_LATER booking cancellation state
   -
   | 'PAYLATER CANCELLATION READBACK {"error":{"code":"RESO
   | URCE_NOT_FOUND","message":"The requested resource was 
-  | not found.","correlationId":"01a18af7-2d2b-7a53-b6db-2
-  | 0016a4de3f2"}}'
+  | not found.","correlationId":"01a18b06-2634-71bd-bfef-e
+  | 57e12d35d09"}}'
   -
 
--------------------------------------------------------------------
-|                         |          executed |            failed |
---------------------------+-------------------+--------------------
-|              iterations |                 1 |                 0 |
---------------------------+-------------------+--------------------
-|                requests |                 6 |                 0 |
---------------------------+-------------------+--------------------
-|            test-scripts |                 6 |                 1 |
---------------------------+-------------------+--------------------
-|      prerequest-scripts |                 0 |                 0 |
---------------------------+-------------------+--------------------
-|              assertions |                 3 |                 3 |
--------------------------------------------------------------------
-| total run duration: 173 ms                                      |
--------------------------------------------------------------------
-| total data received: 2.88 KB (approx)                           |
--------------------------------------------------------------------
-| average response time: 9 ms [min: 4 ms, max: 32 ms, s.d.: 9 ms] |
--------------------------------------------------------------------
+---------------------------------------------------------------------
+|                         |           executed |             failed |
+--------------------------+--------------------+---------------------
+|              iterations |                  1 |                  0 |
+--------------------------+--------------------+---------------------
+|                requests |                  6 |                  0 |
+--------------------------+--------------------+---------------------
+|            test-scripts |                  6 |                  1 |
+--------------------------+--------------------+---------------------
+|      prerequest-scripts |                  0 |                  0 |
+--------------------------+--------------------+---------------------
+|              assertions |                  3 |                  3 |
+---------------------------------------------------------------------
+| total run duration: 169 ms                                        |
+---------------------------------------------------------------------
+| total data received: 2.87 KB (approx)                             |
+---------------------------------------------------------------------
+| average response time: 10 ms [min: 3 ms, max: 38 ms, s.d.: 12 ms] |
+---------------------------------------------------------------------
 
   #  failure         detail                                                  
                                                                              

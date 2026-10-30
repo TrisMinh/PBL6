@@ -8,11 +8,11 @@ PBL6 trip readback
 
 Root Inspect synthetic trip state
 
-  GET http://localhost:5080/api/v1/trips/01a1825e-ce81-77ac-a288-7ec225093288 [404 Not Found, 355 B, 15 ms]
+  GET http://localhost:5080/api/v1/trips/01a1825e-ce81-77ac-a288-7ec225093288 [404 Not Found, 355 B, 20 ms]
   -
   | 'TRIP STATE {"error":{"code":"RESOURCE_NOT_FOUND","mes
   | sage":"The requested resource was not found.","correla
-  | tionId":"01a18af8-ba2a-744b-b7c7-a2c11345ba2f"}}'
+  | tionId":"01a18b07-a24a-7c15-b460-2478cd8e1d5e"}}'
   -
   1⠄ AssertionError in test-script
 
@@ -29,11 +29,11 @@ Root Inspect synthetic trip state
 --------------------------+--------------------+---------------------
 |              assertions |                  0 |                  0 |
 ---------------------------------------------------------------------
-| total run duration: 46 ms                                         |
+| total run duration: 53 ms                                         |
 ---------------------------------------------------------------------
 | total data received: 144 B (approx)                               |
 ---------------------------------------------------------------------
-| average response time: 15 ms [min: 15 ms, max: 15 ms, s.d.: 0 us] |
+| average response time: 20 ms [min: 20 ms, max: 20 ms, s.d.: 0 us] |
 ---------------------------------------------------------------------
 
   #  failure         detail                                                

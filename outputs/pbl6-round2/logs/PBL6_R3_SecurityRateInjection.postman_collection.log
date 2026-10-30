@@ -8,27 +8,27 @@ PBL6 Round 3 Rate limit and input safety probes
 
 Root SEC-04 resend burst 1
 
-  POST http://localhost:5080/api/v1/auth/resend-verification [202 Accepted, 284 B, 26 ms]
+  POST http://localhost:5080/api/v1/auth/resend-verification [202 Accepted, 284 B, 21 ms]
   Pass  Resend burst response 1
 
 Root SEC-04 resend burst 2
 
-  POST http://localhost:5080/api/v1/auth/resend-verification [202 Accepted, 284 B, 10 ms]
+  POST http://localhost:5080/api/v1/auth/resend-verification [202 Accepted, 284 B, 9 ms]
   Pass  Resend burst response 2
 
 Root SEC-04 resend burst 3
 
-  POST http://localhost:5080/api/v1/auth/resend-verification [202 Accepted, 284 B, 11 ms]
+  POST http://localhost:5080/api/v1/auth/resend-verification [202 Accepted, 284 B, 9 ms]
   Pass  Resend burst response 3
 
 Root SEC-04 resend burst 4
 
-  POST http://localhost:5080/api/v1/auth/resend-verification [202 Accepted, 284 B, 11 ms]
+  POST http://localhost:5080/api/v1/auth/resend-verification [202 Accepted, 284 B, 9 ms]
   Pass  Resend burst response 4
 
 Root SEC-04 resend burst 5
 
-  POST http://localhost:5080/api/v1/auth/resend-verification [202 Accepted, 284 B, 10 ms]
+  POST http://localhost:5080/api/v1/auth/resend-verification [202 Accepted, 284 B, 9 ms]
   Pass  Resend burst response 5
 
 Root SEC-04 resend burst 6
@@ -38,7 +38,7 @@ Root SEC-04 resend burst 6
 
 Root SEC-04 resend burst 7
 
-  POST http://localhost:5080/api/v1/auth/resend-verification [429 Too Many Requests, 356 B, 9 ms]
+  POST http://localhost:5080/api/v1/auth/resend-verification [429 Too Many Requests, 356 B, 8 ms]
   Pass  Resend burst response 7
 
 Root SEC-04 forgot burst 1
@@ -58,17 +58,17 @@ Root SEC-04 forgot burst 3
 
 Root SEC-04 forgot burst 4
 
-  POST http://localhost:5080/api/v1/auth/forgot-password [202 Accepted, 284 B, 11 ms]
+  POST http://localhost:5080/api/v1/auth/forgot-password [202 Accepted, 284 B, 9 ms]
   Pass  Forgot burst response 4
 
 Root SEC-04 forgot burst 5
 
-  POST http://localhost:5080/api/v1/auth/forgot-password [202 Accepted, 284 B, 11 ms]
+  POST http://localhost:5080/api/v1/auth/forgot-password [202 Accepted, 284 B, 8 ms]
   Pass  Forgot burst response 5
 
 Root SEC-04 forgot burst 6
 
-  POST http://localhost:5080/api/v1/auth/forgot-password [429 Too Many Requests, 356 B, 12 ms]
+  POST http://localhost:5080/api/v1/auth/forgot-password [429 Too Many Requests, 356 B, 9 ms]
   Pass  Forgot burst response 6
 
 Root SEC-04 forgot burst 7
@@ -78,12 +78,12 @@ Root SEC-04 forgot burst 7
 
 Root SEC-05 SQL-like fullName registration
 
-  POST http://localhost:5080/api/v1/auth/register [202 Accepted, 284 B, 72 ms]
+  POST http://localhost:5080/api/v1/auth/register [202 Accepted, 284 B, 71 ms]
   Pass  SQL-like text does not cause server error or leak internals
 
 Root SEC-05 XSS-like fullName registration
 
-  POST http://localhost:5080/api/v1/auth/register [202 Accepted, 284 B, 73 ms]
+  POST http://localhost:5080/api/v1/auth/register [202 Accepted, 284 B, 68 ms]
   Pass  XSS-like text does not cause server error or leak internals
 
 ---------------------------------------------------------------------
@@ -99,11 +99,11 @@ Root SEC-05 XSS-like fullName registration
 --------------------------+--------------------+---------------------
 |              assertions |                 16 |                  0 |
 ---------------------------------------------------------------------
-| total run duration: 567 ms                                        |
+| total run duration: 539 ms                                        |
 ---------------------------------------------------------------------
 | total data received: 1.33 KB (approx)                             |
 ---------------------------------------------------------------------
-| average response time: 19 ms [min: 8 ms, max: 73 ms, s.d.: 20 ms] |
+| average response time: 17 ms [min: 8 ms, max: 71 ms, s.d.: 19 ms] |
 ---------------------------------------------------------------------
 Postman credentials are required for publishing run details to Postman cloud.
 Please specify it by using the `postman login` command

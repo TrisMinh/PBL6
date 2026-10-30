@@ -8,7 +8,7 @@ PBL6 Round 3 foreign customer cannot use another customer's hold
 
 Root Owner customer login
 
-  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.35 KB, 41 ms]
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.35 KB, 36 ms]
 
 Root Choose an available seat
 
@@ -17,11 +17,11 @@ Root Choose an available seat
 
 Root Owner creates a single-seat hold
 
-  POST http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seat-holds [201 Created, 590 B, 14 ms]
+  POST http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seat-holds [201 Created, 590 B, 15 ms]
 
 Root Second customer login
 
-  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.13 KB, 19 ms]
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.13 KB, 26 ms]
 
 Root BOOK-17 Other customer cannot create booking from foreign hold
 
@@ -29,38 +29,38 @@ Root BOOK-17 Other customer cannot create booking from foreign hold
   -
   | 'FOREIGN HOLD BOOKING {"error":{"code":"RESOURCE_NOT_F
   | OUND","message":"The requested resource was not found.
-  | ","correlationId":"01a18af6-a679-7ff7-bef8-6ffca59dda9
-  | d"}}'
+  | ","correlationId":"01a18b05-9cba-75ff-b58d-b07656c10f0
+  | f"}}'
   -
   Pass  Foreign hold cannot be used by another customer
 
 Root Owner restores access token for cleanup
 
-  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.35 KB, 22 ms]
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.35 KB, 20 ms]
 
 Root Release owner hold
 
-  DELETE http://localhost:5080/api/v1/seat-holds/-Ca7pK0Nz5TsAUUTcZajUiEfC27OynqySoDbeHHb2lI [204 No Content, 137 B, 13 ms]
+  DELETE http://localhost:5080/api/v1/seat-holds/R2pyiRjc0zlIMv1DMyn-Zk9TtP6PSCzdvtAgh7PgMYk [204 No Content, 137 B, 10 ms]
   Pass  Owner hold released after cross-customer check
 
----------------------------------------------------------------------
-|                         |           executed |             failed |
---------------------------+--------------------+---------------------
-|              iterations |                  1 |                  0 |
---------------------------+--------------------+---------------------
-|                requests |                  7 |                  0 |
---------------------------+--------------------+---------------------
-|            test-scripts |                  7 |                  0 |
---------------------------+--------------------+---------------------
-|      prerequest-scripts |                  0 |                  0 |
---------------------------+--------------------+---------------------
-|              assertions |                  3 |                  0 |
----------------------------------------------------------------------
-| total run duration: 250 ms                                        |
----------------------------------------------------------------------
-| total data received: 4.79 KB (approx)                             |
----------------------------------------------------------------------
-| average response time: 18 ms [min: 7 ms, max: 41 ms, s.d.: 10 ms] |
----------------------------------------------------------------------
+--------------------------------------------------------------------
+|                         |           executed |            failed |
+--------------------------+--------------------+--------------------
+|              iterations |                  1 |                 0 |
+--------------------------+--------------------+--------------------
+|                requests |                  7 |                 0 |
+--------------------------+--------------------+--------------------
+|            test-scripts |                  7 |                 0 |
+--------------------------+--------------------+--------------------
+|      prerequest-scripts |                  0 |                 0 |
+--------------------------+--------------------+--------------------
+|              assertions |                  3 |                 0 |
+--------------------------------------------------------------------
+| total run duration: 243 ms                                       |
+--------------------------------------------------------------------
+| total data received: 4.79 KB (approx)                            |
+--------------------------------------------------------------------
+| average response time: 17 ms [min: 7 ms, max: 36 ms, s.d.: 9 ms] |
+--------------------------------------------------------------------
 Postman credentials are required for publishing run details to Postman cloud.
 Please specify it by using the `postman login` command

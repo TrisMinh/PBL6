@@ -8,42 +8,42 @@ PBL6 Round 3 invalid booking channel
 
 Root Customer login
 
-  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.35 KB, 49 ms]
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.36 KB, 34 ms]
 
 Root Hold 1D
 
-  POST http://localhost:5080/api/v1/trips/01a1825d-b562-7b04-bab7-d50af84b5142/seat-holds [422 Unprocessable Entity, 353 B, 15 ms]
+  POST http://localhost:5080/api/v1/trips/01a1825d-b562-7b04-bab7-d50af84b5142/seat-holds [422 Unprocessable Entity, 353 B, 10 ms]
   1⠄ AssertionError in test-script
 
 Root BOOK-20 Invalid paymentChannel COD
 
-  POST http://localhost:5080/api/v1/bookings [404 Not Found, 355 B, 9 ms]
+  POST http://localhost:5080/api/v1/bookings [404 Not Found, 355 B, 10 ms]
   -
   | 'COD {"error":{"code":"RESOURCE_NOT_FOUND","message":"
   | The requested resource was not found.","correlationId"
-  | :"01a18af6-ea71-7ace-b1f9-1405a96b3118"}}'
+  | :"01a18b05-dc24-7d55-a916-8bc6f5045f40"}}'
   -
   2. Unsupported payment channel rejected
 
----------------------------------------------------------------------
-|                         |           executed |             failed |
---------------------------+--------------------+---------------------
-|              iterations |                  1 |                  0 |
---------------------------+--------------------+---------------------
-|                requests |                  3 |                  0 |
---------------------------+--------------------+---------------------
-|            test-scripts |                  3 |                  1 |
---------------------------+--------------------+---------------------
-|      prerequest-scripts |                  0 |                  0 |
---------------------------+--------------------+---------------------
-|              assertions |                  1 |                  1 |
----------------------------------------------------------------------
-| total run duration: 135 ms                                        |
----------------------------------------------------------------------
-| total data received: 1.42 KB (approx)                             |
----------------------------------------------------------------------
-| average response time: 24 ms [min: 9 ms, max: 49 ms, s.d.: 17 ms] |
----------------------------------------------------------------------
+----------------------------------------------------------------------
+|                         |            executed |             failed |
+--------------------------+---------------------+---------------------
+|              iterations |                   1 |                  0 |
+--------------------------+---------------------+---------------------
+|                requests |                   3 |                  0 |
+--------------------------+---------------------+---------------------
+|            test-scripts |                   3 |                  1 |
+--------------------------+---------------------+---------------------
+|      prerequest-scripts |                   0 |                  0 |
+--------------------------+---------------------+---------------------
+|              assertions |                   1 |                  1 |
+----------------------------------------------------------------------
+| total run duration: 120 ms                                         |
+----------------------------------------------------------------------
+| total data received: 1.43 KB (approx)                              |
+----------------------------------------------------------------------
+| average response time: 18 ms [min: 10 ms, max: 34 ms, s.d.: 11 ms] |
+----------------------------------------------------------------------
 
   #  failure         detail                                                
                                                                            

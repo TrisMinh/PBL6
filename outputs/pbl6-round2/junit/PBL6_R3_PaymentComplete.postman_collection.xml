@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<testsuite name="PBL6_R3_PaymentComplete.postman_collection" tests="6" failures="4" errors="0" time="2.163">
+<testsuite name="PBL6_R3_PaymentComplete.postman_collection" tests="6" failures="4" errors="0" time="2.447">
   <testcase classname="PBL6_R3_PaymentComplete.postman_collection" name="passed assertion 001" />
   <testcase classname="PBL6_R3_PaymentComplete.postman_collection" name="passed assertion 002" />
   <testcase classname="PBL6_R3_PaymentComplete.postman_collection" name="failed assertion 001">

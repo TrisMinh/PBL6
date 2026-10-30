@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<testsuite name="PBL6_R3_PaymentIdempotency.postman_collection" tests="5" failures="5" errors="0" time="5.207">
+<testsuite name="PBL6_R3_PaymentIdempotency.postman_collection" tests="5" failures="5" errors="0" time="5.514">
   <testcase classname="PBL6_R3_PaymentIdempotency.postman_collection" name="failed assertion 001">
     <failure message="Postman assertion failed; see logs/PBL6_R3_PaymentIdempotency.postman_collection.log">logs/PBL6_R3_PaymentIdempotency.postman_collection.log</failure>
   </testcase>
