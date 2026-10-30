@@ -1,0 +1,157 @@
+﻿No authorization data found. Please use the `postman login` command.
+Refer:https://learning.postman.com/docs/postman-cli/postman-cli-options/#postman-login
+
+Running your collection...
+postman
+
+PBL6 operator resource ids
+
+Root Login
+
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.37 KB, 31 ms]
+
+Root Read buses
+
+  GET http://localhost:5080/api/v1/operator/buses [200 OK, 849 B, 7 ms]
+  -
+  | 'RESPONSE Read buses [{"id":"01990a00-0000-7000-8000-0
+  | 00000000003","plateNumber":"SEED-01","type":"STANDARD"
+  | ,"amenities":["WIFI","AC","WATER"],"expectedVersion":0
+  | ,"status":"ACTIVE","seatTemplateVersion":1,"seats":[{"
+  | code":"1A","deck":1,"row":1,"column":1,"type":"STANDAR
+  | D","enabled":true},{"code":"1B","deck":1,"row":1,"colu
+  | mn":2,"type":"STANDARD","enabled":true},{"code":"1C","
+  | deck":1,"row":1,"column":3,"type":"STANDARD","enabled"
+  | :true},{"code":"1D","deck":1,"row":1,"column":4,"type"
+  | :"STANDARD","enabled":true},{"code":"2A","deck":1,"row
+  | ":2,"column":1,"type":"STANDARD","enabled":true},{"cod
+  | e":"2B","deck":1,"row":2,"column":2,"type":"STANDARD",
+  | "enabled":true}]}]'
+  -
+
+Root Read drivers
+
+  GET http://localhost:5080/api/v1/operator/drivers [200 OK, 400 B, 8 ms]
+  -
+  | 'RESPONSE Read drivers [{"id":"01990a00-0000-7000-8000
+  | -000000000035","userId":"01990a00-0000-7000-8000-00000
+  | 0000023","licenseNumber":"SEED-LIC-001","licenseExpire
+  | sOn":"2027-12-31","expectedVersion":0,"status":"ACTIVE
+  | "}]'
+  -
+
+Root Read routes
+
+  GET http://localhost:5080/api/v1/operator/routes [200 OK, 806 B, 11 ms]
+  -
+  | 'RESPONSE Read routes [{"id":"01990a00-0000-7000-8000-
+  | 000000000006","name":"Seed Origin to Destination","ori
+  | gin":"Seed Origin Station","destination":"Seed Destina
+  | tion Station","distanceKm":100.00,"durationMinutes":24
+  | 0,"expectedVersion":0,"status":"ACTIVE","stops":[{"id"
+  | :"01990a00-0000-7000-8000-000000000004","name":"Seed O
+  | rigin Station","address":"1 Seed Street","sequence":0,
+  | "offsetMinutes":0,"pickupAllowed":true,"dropoffAllowed
+  | ":true},{"id":"01990a00-0000-7000-8000-000000000005","
+  | name":"Seed Destination Station","address":"2 Seed Str
+  | eet","sequence":1,"offsetMinutes":240,"pickupAllowed":
+  | true,"dropoffAllowed":true}]}]'
+  -
+
+Root Read trips?page=0&size=50
+
+  GET http://localhost:5080/api/v1/operator/trips?page=0&size=50 [200 OK, 3.85 KB, 17 ms]
+  -
+  | 'RESPONSE Read trips?page=0&size=50 {"page":0,"size":5
+  | 0,"totalElements":4,"totalPages":1,"items":[{"id":"01a
+  | 18af6-87ee-7549-805b-fe104753a5ea","organizationId":"0
+  | 1990a00-0000-7000-8000-000000000001","operatorName":"S
+  | ynthetic Seed Operator","busType":"STANDARD","amenitie
+  | s":["WIFI","AC","WATER"],"departureAt":"2027-01-15T06:
+  | 00:00+00:00","arrivalAt":"2027-01-15T10:00:00+00:00","
+  | origin":"Seed Origin Station","destination":"Seed Dest
+  | ination Station","fare":{"amount":150000,"currency":"V
+  | ND"},"status":"SCHEDULED","sellable":true,"availableSe
+  | atCount":6,"availabilityAsOf":"2026-10-30T04:01:30.055
+  | 1229+00:00","policyVersion":"cancel-mvp-v1","stops":[{
+  | "id":"01990a00-0000-7000-8000-000000000004","name":"Se
+  | ed Origin Station","address":"1 Seed Street","sequence
+  | ":0,"offsetMinutes":0,"pickupAllowed":true,"dropoffAll
+  | owed":true},{"id":"01990a00-0000-7000-8000-00000000000
+  | 5","name":"Seed Destination Station","address":"2 Seed
+  |  Street","sequence":1,"offsetMinutes":240,"pickupAllow
+  | ed":true,"dropoffAllowed":true}],"rowVersion":1},{"id"
+  | :"01a18af6-d9cd-7f19-bb70-15fc2c3b671a","organizationI
+  | d":"01990a00-0000-7000-8000-000000000001","operatorNam
+  | e":"Synthetic Seed Operator","busType":"STANDARD","ame
+  | nities":["WIFI","AC","WATER"],"departureAt":"2027-01-0
+  | 7T06:00:00+00:00","arrivalAt":"2027-01-07T10:00:00+00:
+  | 00","origin":"Seed Origin Station","destination":"Seed
+  |  Destination Station","fare":{"amount":150000,"currenc
+  | y":"VND"},"status":"SCHEDULED","sellable":true,"availa
+  | bleSeatCount":6,"availabilityAsOf":"2026-10-30T04:01:3
+  | 0.0557949+00:00","policyVersion":"cancel-mvp-v1","stop
+  | s":[{"id":"01990a00-0000-7000-8000-000000000004","name
+  | ":"Seed Origin Station","address":"1 Seed Street","seq
+  | uence":0,"offsetMinutes":0,"pickupAllowed":true,"dropo
+  | ffAllowed":true},{"id":"01990a00-0000-7000-8000-000000
+  | 000005","name":"Seed Destination Station","address":"2
+  |  Seed Street","sequence":1,"offsetMinutes":240,"pickup
+  | Allowed":true,"dropoffAllowed":true}],"rowVersion":1},
+  | {"id":"01a18af7-81f2-7b3e-a3f1-fc3f827491c2","organiza
+  | tionId":"01990a00-0000-7000-8000-000000000001","operat
+  | orName":"Synthetic Seed Operator","busType":"Test Coac
+  | h","amenities":["AC"],"departureAt":"2026-12-05T06:30:
+  | 00+00:00","arrivalAt":"2026-12-05T10:30:00+00:00","ori
+  | gin":"Seed Origin Station","destination":"Seed Destina
+  | tion Station","fare":{"amount":150000,"currency":"VND"
+  | },"status":"SCHEDULED","sellable":true,"availableSeatC
+  | ount":1,"availabilityAsOf":"2026-10-30T04:01:30.056461
+  | 1+00:00","policyVersion":"cancel-mvp-v1","stops":[{"id
+  | ":"01990a00-0000-7000-8000-000000000004","name":"Seed 
+  | Origin Station","address":"1 Seed Street","sequence":0
+  | ,"offsetMinutes":0,"pickupAllowed":true,"dropoffAllowe
+  | d":true},{"id":"01990a00-0000-7000-8000-000000000005",
+  | "name":"Seed Destination Station","address":"2 Seed St
+  | reet","sequence":1,"offsetMinutes":240,"pickupAllowed"
+  | :true,"dropoffAllowed":true}],"rowVersion":1},{"id":"0
+  | 1990a00-0000-7000-8000-000000000007","organizationId":
+  | "01990a00-0000-7000-8000-000000000001","operatorName":
+  | "Synthetic Seed Operator","busType":"STANDARD","amenit
+  | ies":["WIFI","AC","WATER"],"departureAt":"2026-12-01T0
+  | 1:00:00+00:00","arrivalAt":"2026-12-01T05:00:00+00:00"
+  | ,"origin":"Seed Origin Station","destination":"Seed De
+  | stination Station","fare":{"amount":150000,"currency":
+  | "VND"},"status":"SCHEDULED","sellable":true,"available
+  | SeatCount":6,"availabilityAsOf":"2026-10-30T04:01:30.0
+  | 571001+00:00","policyVersion":"cancel-mvp-v1","stops":
+  | [{"id":"01990a00-0000-7000-8000-000000000004","name":"
+  | Seed Origin Station","address":"1 Seed Street","sequen
+  | ce":0,"offsetMinutes":0,"pickupAllowed":true,"dropoffA
+  | llowed":true},{"id":"01990a00-0000-7000-8000-000000000
+  | 005","name":"Seed Destination Station","address":"2 Se
+  | ed Street","sequence":1,"offsetMinutes":240,"pickupAll
+  | owed":true,"dropoffAllowed":true}],"rowVersion":0}]}'
+  -
+
+--------------------------------------------------------------------
+|                         |           executed |            failed |
+--------------------------+--------------------+--------------------
+|              iterations |                  1 |                 0 |
+--------------------------+--------------------+--------------------
+|                requests |                  5 |                 0 |
+--------------------------+--------------------+--------------------
+|            test-scripts |                  5 |                 0 |
+--------------------------+--------------------+--------------------
+|      prerequest-scripts |                  0 |                 0 |
+--------------------------+--------------------+--------------------
+|              assertions |                  0 |                 0 |
+--------------------------------------------------------------------
+| total run duration: 166 ms                                       |
+--------------------------------------------------------------------
+| total data received: 6.23 KB (approx)                            |
+--------------------------------------------------------------------
+| average response time: 14 ms [min: 7 ms, max: 31 ms, s.d.: 8 ms] |
+--------------------------------------------------------------------
+Postman credentials are required for publishing run details to Postman cloud.
+Please specify it by using the `postman login` command

@@ -1,0 +1,51 @@
+﻿No authorization data found. Please use the `postman login` command.
+Refer:https://learning.postman.com/docs/postman-cli/postman-cli-options/#postman-login
+
+Running your collection...
+postman
+
+PBL6 Round 3 Payment amount integrity probe
+
+Root PAY-08 Wrong amount in otherwise valid signed webhook
+
+  -
+  | 'Using "CryptoJS" is deprecated. Use global "crypto" o
+  | bject instead.'
+  -
+  POST http://localhost:5080/integrations/payments/vnpay-sandbox/webhooks [404 Not Found, 355 B, 17 ms]
+  -
+  | 'WRONG AMOUNT WEBHOOK {"error":{"code":"RESOURCE_NOT_F
+  | OUND","message":"The requested resource was not found.
+  | ","correlationId":"01a18af7-cc96-7922-b570-eaf03ce9ab0
+  | d"}}'
+  -
+  1. Mismatched amount returns PAYMENT_VERIFICATION_FAILED 422
+
+---------------------------------------------------------------------
+|                         |           executed |             failed |
+--------------------------+--------------------+---------------------
+|              iterations |                  1 |                  0 |
+--------------------------+--------------------+---------------------
+|                requests |                  1 |                  0 |
+--------------------------+--------------------+---------------------
+|            test-scripts |                  1 |                  0 |
+--------------------------+--------------------+---------------------
+|      prerequest-scripts |                  1 |                  0 |
+--------------------------+--------------------+---------------------
+|              assertions |                  1 |                  1 |
+---------------------------------------------------------------------
+| total run duration: 55 ms                                         |
+---------------------------------------------------------------------
+| total data received: 144 B (approx)                               |
+---------------------------------------------------------------------
+| average response time: 17 ms [min: 17 ms, max: 17 ms, s.d.: 0 us] |
+---------------------------------------------------------------------
+
+  #  failure         detail                                                         
+                                                                                    
+ 1.  AssertionError  Mismatched amount returns PAYMENT_VERIFICATION_FAILED 422      
+                     expected response to have status code 422 but got 404          
+                     at assertion:0 in test-script                                  
+                     inside "PAY-08 Wrong amount in otherwise valid signed webhook" 
+Postman credentials are required for publishing run details to Postman cloud.
+Please specify it by using the `postman login` command

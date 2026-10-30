@@ -1,0 +1,44 @@
+﻿No authorization data found. Please use the `postman login` command.
+Refer:https://learning.postman.com/docs/postman-cli/postman-cli-options/#postman-login
+
+Running your collection...
+postman
+
+PBL6 Round 3 customer cannot check in a ticket
+
+Root Customer login
+
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.56 KB, 34 ms]
+
+Root TKT-09 Customer cannot check in ticket
+
+  POST http://localhost:5080/api/v1/tickets/01a18264-d050-7859-87c9-ac97499370e4/check-in [404 Not Found, 355 B, 17 ms]
+  -
+  | 'CUSTOMER CHECKIN {"error":{"code":"RESOURCE_NOT_FOUND
+  | ","message":"The requested resource was not found.","c
+  | orrelationId":"01a18af8-8ada-7ad7-97b9-6ec9a5938efe"}}
+  | '
+  -
+  Pass  Customer is denied or ticket is concealed
+
+---------------------------------------------------------------------
+|                         |           executed |             failed |
+--------------------------+--------------------+---------------------
+|              iterations |                  1 |                  0 |
+--------------------------+--------------------+---------------------
+|                requests |                  2 |                  0 |
+--------------------------+--------------------+---------------------
+|            test-scripts |                  2 |                  0 |
+--------------------------+--------------------+---------------------
+|      prerequest-scripts |                  0 |                  0 |
+--------------------------+--------------------+---------------------
+|              assertions |                  1 |                  0 |
+---------------------------------------------------------------------
+| total run duration: 95 ms                                         |
+---------------------------------------------------------------------
+| total data received: 1.5 KB (approx)                              |
+---------------------------------------------------------------------
+| average response time: 25 ms [min: 17 ms, max: 34 ms, s.d.: 8 ms] |
+---------------------------------------------------------------------
+Postman credentials are required for publishing run details to Postman cloud.
+Please specify it by using the `postman login` command

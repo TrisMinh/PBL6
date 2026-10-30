@@ -27,17 +27,17 @@ Không được tạo route, navigation, consumer binding hoặc table “để 
 - Các flow tiền/ghế/check-in phải có integration test trên PostgreSQL/RabbitMQ thật và test retry/idempotency.
 - UI phải có loading, empty, validation, conflict, forbidden, unavailable và retry state được mô tả trong Screen Contract.
 
-## Evidence snapshot — 2026-10-29
+## Evidence snapshot — 2026-10-30
 
 | Scope | Automated evidence hiện có | Trạng thái gate |
 |---|---|---|
 | Identity | 17 PostgreSQL integration tests; Auth/Common 39/39, security 16/16, admin/profile/second-customer 18/18 Postman assertions | API complete; Customer/Mobile auth-profile và Back-office IAM đã build production |
 | Transport/Search/Ops | 9 PostgreSQL integration tests; 35/35 targeted Postman assertions gồm lifecycle, conflict và cross-tenant | API complete; Customer/Mobile search và Back-office Operator/Driver đã build production |
 | Booking/Ticket | 8 PostgreSQL integration tests; 45/45 targeted Postman assertions gồm atomic/concurrent holds, validation, ownership và check-in | API complete; cancellation matrix còn được xác nhận lại trong full Round 2 |
-| Payment/Refund/Settlement | 5 PostgreSQL integration tests; PAY-11 3/3 và signed pay/cancel 9/9; DB readback xác nhận payment/refund/settlement reversal | API complete; performance/reconciliation ngoài happy path còn chờ release gate |
-| Reporting | 2 PostgreSQL integration tests; RefundSucceeded/BookingCancelled được kiểm tra ở cả hai thứ tự, projection cuối `REFUNDED`/net 0 | API behavior và report/finance UI covered; full Postman chờ Task 9 |
-| Gateway/Contract | 10 gateway integration tests, 9 contract tests; OpenAPI 2.1.0 có callback/return và safe default error envelope | Contract complete cho API hiện hành |
+| Payment/Refund/Settlement | 6 PostgreSQL integration tests; PAY-11 3/3 và signed pay/cancel 9/9; DB readback xác nhận payment/refund/settlement reversal; quote quá hạn trả `410 BOOKING_EXPIRED` | API complete; release gate pass |
+| Reporting | 3 PostgreSQL integration tests; RefundSucceeded/BookingCancelled được kiểm tra ở cả hai thứ tự, projection cuối `REFUNDED`/net 0; khoảng ngày đảo/zero bị từ chối trước query | API behavior và report/finance UI covered; release gate pass |
+| Gateway/Contract | 10 gateway integration tests, 10 contract tests; OpenAPI 2.1.0 có callback/return và safe default error envelope | Contract complete cho API hiện hành |
 | Notification | 2 integration tests trong full solution; Web/Mobile notification list + mark-read build thành công | Client complete; full notification Postman chờ Task 9 |
-| Cross-cutting | Full .NET solution 96/96 trước Task 6; Docker `pbl6-r2` fresh build healthy | Production security/restart/backup chờ Task 8 |
+| Cross-cutting | Full .NET solution 101/101; Docker `pbl6-r2` có 15 container healthy; NuGet không báo package vulnerable | Automated production gate pass |
 
-Task 7 client gate: Customer Web và Back-office Web production build thành công; Mobile TypeScript check và Expo Android Hermes export (930 modules, 2.1 MB bundle) thành công. Task 8 production gate: non-root/read-only images, production secret preflight, fresh-stack health, restart recovery, public smoke và backup/restore sáu database đều pass; chi tiết tại `08-production-deployment-runbook.md` và `09-production-readiness-checklist.md`. Full deterministic Postman Round 2 lần cuối thuộc Task 9.
+Task 7 client gate: Customer Web và Back-office Web production build thành công; Mobile TypeScript check và Expo Android Hermes export (930 modules, 2.1 MB bundle) thành công. Task 8 production gate: non-root/read-only images, production secret preflight, fresh-stack health, restart recovery, public smoke và backup/restore sáu database đều pass. Task 9 chạy đủ 72 collection Postman: Round 2 đạt 358/421 assertion (85,04%), cao hơn Round 1 330/419 (78,76%); 63 failure lịch sử được giữ nguyên trong evidence để theo dõi, không xóa test nhằm làm đẹp tỷ lệ. Chi tiết tại `08-production-deployment-runbook.md`, `09-production-readiness-checklist.md` và `outputs/pbl6-round2/`.

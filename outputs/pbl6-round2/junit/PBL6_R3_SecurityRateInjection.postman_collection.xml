@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<testsuite name="PBL6_R3_SecurityRateInjection.postman_collection" tests="16" failures="0" errors="0" time="3.062">
+  <testcase classname="PBL6_R3_SecurityRateInjection.postman_collection" name="passed assertion 001" />
+  <testcase classname="PBL6_R3_SecurityRateInjection.postman_collection" name="passed assertion 002" />
+  <testcase classname="PBL6_R3_SecurityRateInjection.postman_collection" name="passed assertion 003" />
+  <testcase classname="PBL6_R3_SecurityRateInjection.postman_collection" name="passed assertion 004" />
+  <testcase classname="PBL6_R3_SecurityRateInjection.postman_collection" name="passed assertion 005" />
+  <testcase classname="PBL6_R3_SecurityRateInjection.postman_collection" name="passed assertion 006" />
+  <testcase classname="PBL6_R3_SecurityRateInjection.postman_collection" name="passed assertion 007" />
+  <testcase classname="PBL6_R3_SecurityRateInjection.postman_collection" name="passed assertion 008" />
+  <testcase classname="PBL6_R3_SecurityRateInjection.postman_collection" name="passed assertion 009" />
+  <testcase classname="PBL6_R3_SecurityRateInjection.postman_collection" name="passed assertion 010" />
+  <testcase classname="PBL6_R3_SecurityRateInjection.postman_collection" name="passed assertion 011" />
+  <testcase classname="PBL6_R3_SecurityRateInjection.postman_collection" name="passed assertion 012" />
+  <testcase classname="PBL6_R3_SecurityRateInjection.postman_collection" name="passed assertion 013" />
+  <testcase classname="PBL6_R3_SecurityRateInjection.postman_collection" name="passed assertion 014" />
+  <testcase classname="PBL6_R3_SecurityRateInjection.postman_collection" name="passed assertion 015" />
+  <testcase classname="PBL6_R3_SecurityRateInjection.postman_collection" name="passed assertion 016" />
+</testsuite>

@@ -1,0 +1,62 @@
+﻿No authorization data found. Please use the `postman login` command.
+Refer:https://learning.postman.com/docs/postman-cli/postman-cli-options/#postman-login
+
+Running your collection...
+postman
+
+PBL6 Round 3 trip validation and idempotent cancel
+
+Root Operator login
+
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.37 KB, 33 ms]
+
+Root TRIP-03 Reject trip missing driver
+
+  POST http://localhost:5080/api/v1/operator/trips [400 Bad Request, 353 B, 12 ms]
+  Pass  Trip without usable driver rejected
+
+Root Create future trip for idempotent cancellation
+
+  POST http://localhost:5080/api/v1/operator/trips [201 Created, 1.1 KB, 15 ms]
+  Pass  Cancellation fixture draft created
+
+Root Publish cancellation fixture
+
+  POST http://localhost:5080/api/v1/operator/trips/01a18af8-b2cb-79ea-a1e0-9093e4bb5e2b/publish [202 Accepted, 284 B, 15 ms]
+
+Root TRIP-13 Cancel synthetic trip once
+
+  POST http://localhost:5080/api/v1/operator/trips/01a18af8-b2cb-79ea-a1e0-9093e4bb5e2b/cancel [202 Accepted, 284 B, 13 ms]
+  Pass  Trip cancellation accepted
+
+Root TRIP-13 Replay same cancellation key and body
+
+  POST http://localhost:5080/api/v1/operator/trips/01a18af8-b2cb-79ea-a1e0-9093e4bb5e2b/cancel [202 Accepted, 284 B, 7 ms]
+  Pass  Duplicate cancellation replays accepted result
+
+Root Verify trip cancelled
+
+  GET http://localhost:5080/api/v1/trips/01a18af8-b2cb-79ea-a1e0-9093e4bb5e2b [200 OK, 1.1 KB, 6 ms]
+  Pass  Trip remains cancelled after idempotent replay
+
+--------------------------------------------------------------------
+|                         |           executed |            failed |
+--------------------------+--------------------+--------------------
+|              iterations |                  1 |                 0 |
+--------------------------+--------------------+--------------------
+|                requests |                  7 |                 0 |
+--------------------------+--------------------+--------------------
+|            test-scripts |                  7 |                 0 |
+--------------------------+--------------------+--------------------
+|      prerequest-scripts |                  0 |                 0 |
+--------------------------+--------------------+--------------------
+|              assertions |                  5 |                 0 |
+--------------------------------------------------------------------
+| total run duration: 211 ms                                       |
+--------------------------------------------------------------------
+| total data received: 3.32 KB (approx)                            |
+--------------------------------------------------------------------
+| average response time: 14 ms [min: 6 ms, max: 33 ms, s.d.: 8 ms] |
+--------------------------------------------------------------------
+Postman credentials are required for publishing run details to Postman cloud.
+Please specify it by using the `postman login` command

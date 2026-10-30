@@ -75,4 +75,16 @@ public sealed class ReportingHealthTests
         Assert.Equal(50000, revenueReader.GetInt64(0));
         Assert.Equal(100000, revenueReader.GetInt64(1));
     }
+
+    [Fact]
+    public async Task Reversed_report_range_is_rejected_before_querying_data()
+    {
+        await using var scope = _fixture.Factory.Services.CreateAsyncScope();
+        var service = scope.ServiceProvider.GetRequiredService<ReportingService>();
+        var actor = new Actor(Guid.CreateVersion7(), null, ["PLATFORM_FINANCE"]);
+        var result = await service.RevenueAsync(actor, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddDays(-1), "Asia/Ho_Chi_Minh", default);
+        Assert.False(result.IsSuccess);
+        Assert.Equal("VALIDATION_ERROR", result.Error!.Code);
+        Assert.Equal(400, result.Error.StatusCode);
+    }
 }

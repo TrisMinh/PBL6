@@ -1,0 +1,55 @@
+﻿No authorization data found. Please use the `postman login` command.
+Refer:https://learning.postman.com/docs/postman-cli/postman-cli-options/#postman-login
+
+Running your collection...
+postman
+
+PBL6 Round 3 common time and money formats
+
+Root Customer login
+
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.35 KB, 32 ms]
+
+Root CMN-05 Trip date and VND money format
+
+  GET http://localhost:5080/api/v1/trips/01a1825d-b562-7b04-bab7-d50af84b5142 [404 Not Found, 355 B, 12 ms]
+  1. Trip uses timezone-aware ISO timestamp and integer VND amount
+
+Root CMN-05 Payment VND amount format
+
+  GET http://localhost:5080/api/v1/payments/01a18263-e1eb-72e0-bf3f-21eb7d42c212 [404 Not Found, 355 B, 6 ms]
+  2. Payment amount is integer VND and status timestamp model is safe
+
+---------------------------------------------------------------------
+|                         |           executed |             failed |
+--------------------------+--------------------+---------------------
+|              iterations |                  1 |                  0 |
+--------------------------+--------------------+---------------------
+|                requests |                  3 |                  0 |
+--------------------------+--------------------+---------------------
+|            test-scripts |                  3 |                  0 |
+--------------------------+--------------------+---------------------
+|      prerequest-scripts |                  0 |                  0 |
+--------------------------+--------------------+---------------------
+|              assertions |                  2 |                  2 |
+---------------------------------------------------------------------
+| total run duration: 116 ms                                        |
+---------------------------------------------------------------------
+| total data received: 1.43 KB (approx)                             |
+---------------------------------------------------------------------
+| average response time: 16 ms [min: 6 ms, max: 32 ms, s.d.: 11 ms] |
+---------------------------------------------------------------------
+
+  #  failure         detail                                                           
+                                                                                      
+ 1.  AssertionError  Trip uses timezone-aware ISO timestamp and integer VND amount    
+                     expected response to have status code 200 but got 404            
+                     at assertion:0 in test-script                                    
+                     inside "CMN-05 Trip date and VND money format"                   
+                                                                                      
+ 2.  AssertionError  Payment amount is integer VND and status timestamp model is safe 
+                     expected response to have status code 200 but got 404            
+                     at assertion:0 in test-script                                    
+                     inside "CMN-05 Payment VND amount format"                        
+Postman credentials are required for publishing run details to Postman cloud.
+Please specify it by using the `postman login` command

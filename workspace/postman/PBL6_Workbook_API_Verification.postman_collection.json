@@ -1020,7 +1020,7 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.test('Operator can read own organization',()=>{pm.response.to.have.status(200);const b=pm.response.json();pm.expect(b.id).to.be.a('string');pm.environment.set('orgName',b.name);pm.environment.set('orgContactEmail',b.contactEmail);pm.environment.set('orgContactPhone',b.contactPhone);pm.environment.set('orgAllowPayLater',String(b.allowPayLater));pm.environment.set('orgVersion',b.rowVersion);pm.environment.set('orgCommissionRate',b.commissionRate);console.log('ORG_STATE',JSON.stringify({allowPayLater:b.allowPayLater,rowVersion:b.rowVersion,commissionRate:b.commissionRate}))});"
+              "pm.test('Operator can read own organization',()=>{pm.response.to.have.status(200);const b=pm.response.json();pm.expect(b.id).to.be.a('string');pm.environment.set('orgName',b.name);pm.environment.set('orgContactEmail',b.contactEmail);pm.environment.set('orgContactPhone',b.contactPhone);pm.environment.set('orgAllowPayLater',String(b.allowPayLater));pm.environment.set('orgToggleAllowPayLater',String(!b.allowPayLater));pm.environment.set('orgVersion',b.rowVersion);pm.environment.set('orgCommissionRate',b.commissionRate);console.log('ORG_STATE',JSON.stringify({allowPayLater:b.allowPayLater,rowVersion:b.rowVersion,commissionRate:b.commissionRate}))});"
             ]
           }
         }
@@ -1038,16 +1038,12 @@
           {
             "key": "Content-Type",
             "value": "application/json"
-          },
-          {
-            "key": "Content-Type",
-            "value": "application/json"
           }
         ],
         "url": "http://localhost:5080/api/v1/operator/organization",
         "body": {
           "mode": "raw",
-          "raw": "{}",
+          "raw": "{\"name\":\"Synthetic Seed Operator\",\"contactEmail\":\"operator.seed@example.test\",\"contactPhone\":\"+840000000000\",\"allowPayLater\":false,\"expectedVersion\":0}",
           "options": {
             "raw": {
               "language": "json"
@@ -1056,15 +1052,6 @@
         }
       },
       "event": [
-        {
-          "listen": "prerequest",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.request.body.update(JSON.stringify({name:pm.environment.get('orgName'),contactEmail:pm.environment.get('orgContactEmail'),contactPhone:pm.environment.get('orgContactPhone'),allowPayLater:pm.environment.get('orgAllowPayLater')!=='true',expectedVersion:Number(pm.environment.get('orgVersion'))}))"
-            ]
-          }
-        },
         {
           "listen": "test",
           "script": {
@@ -1088,16 +1075,12 @@
           {
             "key": "Content-Type",
             "value": "application/json"
-          },
-          {
-            "key": "Content-Type",
-            "value": "application/json"
           }
         ],
         "url": "http://localhost:5080/api/v1/operator/organization",
         "body": {
           "mode": "raw",
-          "raw": "{}",
+          "raw": "{\"name\":\"Synthetic Seed Operator\",\"contactEmail\":\"operator.seed@example.test\",\"contactPhone\":\"+840000000000\",\"allowPayLater\":true,\"expectedVersion\":1}",
           "options": {
             "raw": {
               "language": "json"
@@ -1106,15 +1089,6 @@
         }
       },
       "event": [
-        {
-          "listen": "prerequest",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.request.body.update(JSON.stringify({name:pm.environment.get('orgName'),contactEmail:pm.environment.get('orgContactEmail'),contactPhone:pm.environment.get('orgContactPhone'),allowPayLater:pm.environment.get('orgAllowPayLater')==='true',expectedVersion:Number(pm.environment.get('orgToggledVersion'))}))"
-            ]
-          }
-        },
         {
           "listen": "test",
           "script": {
@@ -1138,16 +1112,12 @@
           {
             "key": "Content-Type",
             "value": "application/json"
-          },
-          {
-            "key": "Content-Type",
-            "value": "application/json"
           }
         ],
         "url": "http://localhost:5080/api/v1/operator/organization",
         "body": {
           "mode": "raw",
-          "raw": "{}",
+          "raw": "{\"name\":\"Synthetic Seed Operator\",\"contactEmail\":\"operator.seed@example.test\",\"contactPhone\":\"+840000000000\",\"allowPayLater\":true,\"commissionRate\":0,\"expectedVersion\":2}",
           "options": {
             "raw": {
               "language": "json"
@@ -1156,15 +1126,6 @@
         }
       },
       "event": [
-        {
-          "listen": "prerequest",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.request.body.update(JSON.stringify({name:pm.environment.get('orgName'),contactEmail:pm.environment.get('orgContactEmail'),contactPhone:pm.environment.get('orgContactPhone'),allowPayLater:pm.environment.get('orgAllowPayLater')==='true',commissionRate:0,expectedVersion:Number(pm.environment.get('orgRestoredVersion'))}))"
-            ]
-          }
-        },
         {
           "listen": "test",
           "script": {
@@ -1289,7 +1250,7 @@
         "url": "http://localhost:5080/api/v1/admin/users/01990a00-0000-7000-8000-000000000021/status",
         "body": {
           "mode": "raw",
-          "raw": "{}",
+          "raw": "{\"status\":\"SUSPENDED\",\"reason\":\"Authorization boundary test\",\"expectedVersion\":0}",
           "options": {
             "raw": {
               "language": "json"
@@ -1649,16 +1610,12 @@
           {
             "key": "Content-Type",
             "value": "application/json"
-          },
-          {
-            "key": "Content-Type",
-            "value": "application/json"
           }
         ],
         "url": "http://localhost:5080/api/v1/users/me",
         "body": {
           "mode": "raw",
-          "raw": "{}",
+          "raw": "{\"fullName\":\"Postman Profile Temp\",\"expectedVersion\":1}",
           "options": {
             "raw": {
               "language": "json"
@@ -1667,15 +1624,6 @@
         }
       },
       "event": [
-        {
-          "listen": "prerequest",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.request.body.update(JSON.stringify({fullName:'Postman Profile Temp',expectedVersion:Number(pm.environment.get('profileVersion'))}));console.log('UPDATE_REQUEST',pm.request.body.raw)"
-            ]
-          }
-        },
         {
           "listen": "test",
           "script": {
@@ -1699,16 +1647,12 @@
           {
             "key": "Content-Type",
             "value": "application/json"
-          },
-          {
-            "key": "Content-Type",
-            "value": "application/json"
           }
         ],
         "url": "http://localhost:5080/api/v1/users/me",
         "body": {
           "mode": "raw",
-          "raw": "{}",
+          "raw": "{\"fullName\":\"Seed Customer\",\"expectedVersion\":2}",
           "options": {
             "raw": {
               "language": "json"
@@ -1717,15 +1661,6 @@
         }
       },
       "event": [
-        {
-          "listen": "prerequest",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.request.body.update(JSON.stringify({fullName:pm.environment.get('profileFullName'),expectedVersion:Number(pm.environment.get('profileChangedVersion'))}))"
-            ]
-          }
-        },
         {
           "listen": "test",
           "script": {
@@ -2373,7 +2308,7 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.test('Own ticket page returns 200',()=>{pm.response.to.have.status(200);const b=pm.response.json();pm.expect(b.items).to.be.an('array');if(b.items.length>0)pm.environment.set('seedTicketId',b.items[0].id);else console.log('NO_SEED_TICKETS')});"
+              "pm.test('Own ticket page returns 200',()=>{pm.response.to.have.status(200);const b=pm.response.json();pm.expect(b.items).to.be.an('array');const t=b.items.find(x=>x.status==='ISSUED'&&typeof x.qrPayload==='string'&&x.qrPayload.length>0);pm.expect(t,'issued ticket with QR').to.exist;pm.environment.set('seedTicketId',t.id)});"
             ]
           }
         }

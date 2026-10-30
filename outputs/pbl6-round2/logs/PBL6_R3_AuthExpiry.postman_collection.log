@@ -1,0 +1,54 @@
+﻿No authorization data found. Please use the `postman login` command.
+Refer:https://learning.postman.com/docs/postman-cli/postman-cli-options/#postman-login
+
+Running your collection...
+postman
+
+PBL6 Round 3 auth challenge expiry
+
+Root Locate expired challenge email
+
+  GET http://localhost:8025/api/v1/messages [200 OK, 1.39 KB, 19 ms]
+  Pass  Locate staged verification email
+
+Root Read code issued for staged challenge
+
+  GET http://localhost:8025/api/v1/message/HdSFZipfuT4bRp7jjQvySg [200 OK, 809 B, 4 ms]
+  Pass  Extract actual challenge and OTP from Mailpit
+
+Root AUTH-06 Submit correct code after expiry
+
+  POST http://localhost:5080/api/v1/auth/verify [410 Gone, 354 B, 15 ms]
+  -
+  | 'EXPIRED OTP {"error":{"code":"VERIFICATION_EXPIRED","
+  | message":"The verification challenge has expired.","co
+  | rrelationId":"01a18af6-6d15-7bc9-8fbe-3bc7529dbe91"}}'
+  -
+  Pass  Expired challenge rejected
+
+Root Expired unverified account cannot login
+
+  POST http://localhost:5080/api/v1/auth/login [401 Unauthorized, 352 B, 8 ms]
+  Pass  Unverified expired account receives no session
+
+--------------------------------------------------------------------
+|                         |           executed |            failed |
+--------------------------+--------------------+--------------------
+|              iterations |                  1 |                 0 |
+--------------------------+--------------------+--------------------
+|                requests |                  4 |                 0 |
+--------------------------+--------------------+--------------------
+|            test-scripts |                  4 |                 0 |
+--------------------------+--------------------+--------------------
+|      prerequest-scripts |                  0 |                 0 |
+--------------------------+--------------------+--------------------
+|              assertions |                  4 |                 0 |
+--------------------------------------------------------------------
+| total run duration: 125 ms                                       |
+--------------------------------------------------------------------
+| total data received: 1.64 KB (approx)                            |
+--------------------------------------------------------------------
+| average response time: 11 ms [min: 4 ms, max: 19 ms, s.d.: 5 ms] |
+--------------------------------------------------------------------
+Postman credentials are required for publishing run details to Postman cloud.
+Please specify it by using the `postman login` command

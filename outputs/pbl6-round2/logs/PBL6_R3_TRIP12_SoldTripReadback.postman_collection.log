@@ -1,0 +1,122 @@
+﻿No authorization data found. Please use the `postman login` command.
+Refer:https://learning.postman.com/docs/postman-cli/postman-cli-options/#postman-login
+
+Running your collection...
+postman
+
+PBL6 Round 3 sold-trip cancellation readback
+
+Root Customer login
+
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.55 KB, 37 ms]
+
+Root Read ticket after trip cancellation
+
+  GET http://localhost:5080/api/v1/tickets/01a18264-d050-7859-87c9-ac97499370e4 [404 Not Found, 355 B, 6 ms]
+  -
+  | 'TRIP CANCELLED TICKET {"error":{"code":"RESOURCE_NOT_
+  | FOUND","message":"The requested resource was not found
+  | .","correlationId":"01a18af8-aa7c-7fa3-871c-2e0ce82667
+  | b9"}}'
+  -
+
+Root Read customer notifications after trip cancellation
+
+  GET http://localhost:5080/api/v1/notifications [200 OK, 3.08 KB, 7 ms]
+  -
+  | 'TRIP CANCELLED NOTIFICATIONS {"items":[{"id":"01a18af
+  | 7-c41c-7d75-ad13-f1ec5b1ba303","type":"BOOKING_CREATED
+  | ","title":"Booking created","body":"Your booking was c
+  | reated.","referenceId":"01a18af7-bebd-72b3-9bcb-a8892d
+  | 135f15","read":false,"createdAt":"2026-10-30T04:00:55.
+  | 836799+00:00"},{"id":"01a18af7-1fe3-7a44-b866-08d88b13
+  | df1f","type":"BOOKING_CANCELLED","title":"Booking canc
+  | elled","body":"Your booking was cancelled.","reference
+  | Id":"01a18af7-1471-731c-ac9d-d62539595c39","read":fals
+  | e,"createdAt":"2026-10-30T04:00:13.796058+00:00"},{"id
+  | ":"01a18af7-1fe0-78a7-94e8-4e50100b326c","type":"TICKE
+  | T_ISSUED","title":"Tickets issued","body":"Your ticket
+  | s are ready.","referenceId":"01a18af7-1471-731c-ac9d-d
+  | 62539595c39","read":false,"createdAt":"2026-10-30T04:0
+  | 0:13.792782+00:00"},{"id":"01a18af7-1fdc-7400-92c0-199
+  | 8ddc5114f","type":"BOOKING_PAID","title":"Booking paid
+  | ","body":"Payment for your booking succeeded.","refere
+  | nceId":"01a18af7-1471-731c-ac9d-d62539595c39","read":f
+  | alse,"createdAt":"2026-10-30T04:00:13.78877+00:00"},{"
+  | id":"01a18af7-1800-7373-8101-437d3a1b41b1","type":"BOO
+  | KING_CREATED","title":"Booking created","body":"Your b
+  | ooking was created.","referenceId":"01a18af7-1471-731c
+  | -ac9d-d62539595c39","read":false,"createdAt":"2026-10-
+  | 30T04:00:11.776695+00:00"},{"id":"01a18af6-e90f-7a89-8
+  | b4d-07ef6b7560aa","type":"BOOKING_CREATED","title":"Bo
+  | oking created","body":"Your booking was created.","ref
+  | erenceId":"01a18af6-e27a-7dfc-b362-80a71cdf9e93","read
+  | ":false,"createdAt":"2026-10-30T03:59:59.759446+00:00"
+  | },{"id":"01a18af6-c1f0-7c08-a00d-a1f6f84449eb","type":
+  | "BOOKING_CREATED","title":"Booking created","body":"Yo
+  | ur booking was created.","referenceId":"01a18af6-c055-
+  | 7ef3-a646-9944d3f9768f","read":false,"createdAt":"2026
+  | -10-30T03:59:49.744821+00:00"},{"id":"01a18af6-b24d-75
+  | ce-8937-e2aa1d07a0e6","type":"TICKET_ISSUED","title":"
+  | Tickets issued","body":"Your tickets are ready.","refe
+  | renceId":"01a18af6-aec6-7d13-8d34-77c0bab0f61a","read"
+  | :false,"createdAt":"2026-10-30T03:59:45.741293+00:00"}
+  | ,{"id":"01a18af6-b249-7fd6-b834-8c4c6cbf06c7","type":"
+  | BOOKING_CREATED","title":"Booking created","body":"You
+  | r booking was created.","referenceId":"01a18af6-aec6-7
+  | d13-8d34-77c0bab0f61a","read":false,"createdAt":"2026-
+  | 10-30T03:59:45.737596+00:00"},{"id":"01a18af6-a2a0-768
+  | e-a9c6-dbb0c55cabe4","type":"BOOKING_CANCELLED","title
+  | ":"Booking cancelled","body":"Your booking was cancell
+  | ed.","referenceId":"01a18af6-9d6b-7c9e-850b-249bef325b
+  | d4","read":false,"createdAt":"2026-10-30T03:59:41.7290
+  | 3+00:00"},{"id":"01a18af6-a29d-7a3c-aaaf-4a546a397de1"
+  | ,"type":"TICKET_ISSUED","title":"Tickets issued","body
+  | ":"Your tickets are ready.","referenceId":"01a18af6-9d
+  | 6b-7c9e-850b-249bef325bd4","read":false,"createdAt":"2
+  | 026-10-30T03:59:41.725525+00:00"},{"id":"01a18af6-a299
+  | -7a75-8d54-6b53c17f4116","type":"BOOKING_CREATED","tit
+  | le":"Booking created","body":"Your booking was created
+  | .","referenceId":"01a18af6-9d6b-7c9e-850b-249bef325bd4
+  | ","read":false,"createdAt":"2026-10-30T03:59:41.7219+0
+  | 0:00"}]}'
+  -
+
+Root Platform admin login
+
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.12 KB, 23 ms]
+
+Root Read refund list after trip cancellation
+
+  GET http://localhost:5080/api/v1/admin/refunds?page=0&size=100 [200 OK, 556 B, 5 ms]
+  -
+  | 'TRIP CANCELLED REFUNDS {"page":0,"size":100,"totalEle
+  | ments":1,"totalPages":1,"items":[{"id":"01a18af7-1e91-
+  | 7047-a31b-b494427cca57","refundReference":"REF-ad034bc
+  | 58ece","paymentId":"01a18af7-170c-7805-9fdd-b712782ef7
+  | db","bookingId":"01a18af7-1471-731c-ac9d-d62539595c39"
+  | ,"amount":150000,"currency":"VND","status":"SUCCEEDED"
+  | ,"reason":"Round 3 synthetic prepaid refund test"}]}'
+  -
+
+---------------------------------------------------------------------
+|                         |           executed |             failed |
+--------------------------+--------------------+---------------------
+|              iterations |                  1 |                  0 |
+--------------------------+--------------------+---------------------
+|                requests |                  5 |                  0 |
+--------------------------+--------------------+---------------------
+|            test-scripts |                  5 |                  0 |
+--------------------------+--------------------+---------------------
+|      prerequest-scripts |                  0 |                  0 |
+--------------------------+--------------------+---------------------
+|              assertions |                  0 |                  0 |
+---------------------------------------------------------------------
+| total run duration: 163 ms                                        |
+---------------------------------------------------------------------
+| total data received: 5.63 KB (approx)                             |
+---------------------------------------------------------------------
+| average response time: 15 ms [min: 5 ms, max: 37 ms, s.d.: 12 ms] |
+---------------------------------------------------------------------
+Postman credentials are required for publishing run details to Postman cloud.
+Please specify it by using the `postman login` command

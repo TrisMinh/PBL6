@@ -1,0 +1,54 @@
+﻿No authorization data found. Please use the `postman login` command.
+Refer:https://learning.postman.com/docs/postman-cli/postman-cli-options/#postman-login
+
+Running your collection...
+postman
+
+PBL6 Round 3 create and verify second synthetic customer
+
+Root AUTH-01 Register second synthetic customer
+
+  POST http://localhost:5080/api/v1/auth/register [202 Accepted, 284 B, 87 ms]
+  Pass  Second customer registration accepted
+
+Root Locate second customer verification email
+
+  GET http://localhost:8025/api/v1/messages [200 OK, 1.48 KB, 8 ms]
+  Pass  Second customer verification email delivered
+
+Root Extract actual second customer OTP from Mailpit
+
+  GET http://localhost:8025/api/v1/message/dH2EJccXam5ij9B7W6pdNt [200 OK, 812 B, 4 ms]
+  Pass  Actual OTP and challenge extracted from Mailpit
+
+Root Verify second customer
+
+  POST http://localhost:5080/api/v1/auth/verify [200 OK, 1.13 KB, 22 ms]
+  Pass  Second synthetic customer verifies and receives access token
+
+Root Login second customer
+
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.13 KB, 26 ms]
+  Pass  Second synthetic customer can log in
+
+---------------------------------------------------------------------
+|                         |           executed |             failed |
+--------------------------+--------------------+---------------------
+|              iterations |                  1 |                  0 |
+--------------------------+--------------------+---------------------
+|                requests |                  5 |                  0 |
+--------------------------+--------------------+---------------------
+|            test-scripts |                  5 |                  0 |
+--------------------------+--------------------+---------------------
+|      prerequest-scripts |                  0 |                  0 |
+--------------------------+--------------------+---------------------
+|              assertions |                  5 |                  0 |
+---------------------------------------------------------------------
+| total run duration: 234 ms                                        |
+---------------------------------------------------------------------
+| total data received: 3.37 KB (approx)                             |
+---------------------------------------------------------------------
+| average response time: 29 ms [min: 4 ms, max: 87 ms, s.d.: 29 ms] |
+---------------------------------------------------------------------
+Postman credentials are required for publishing run details to Postman cloud.
+Please specify it by using the `postman login` command

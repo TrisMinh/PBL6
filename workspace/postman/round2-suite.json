@@ -81,6 +81,6 @@
     { "path": "postman/PBL6_R3_UnknownTicket.postman_collection.json" },
     { "path": "postman/PBL6_REP02_ReadOnly_Smoke.postman_collection.json" },
     { "path": "postman/PBL6_SEC01_Protected_Endpoint_Matrix.postman_collection.json" },
-    { "path": "postman/PBL6_Workbook_API_Verification.postman_collection.json" }
+    { "path": "postman/PBL6_Workbook_API_Verification.postman_collection.json", "setup": "expire-pending-payment-bookings" }
   ]
 }

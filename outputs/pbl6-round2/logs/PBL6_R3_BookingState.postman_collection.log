@@ -1,0 +1,109 @@
+﻿No authorization data found. Please use the `postman login` command.
+Refer:https://learning.postman.com/docs/postman-cli/postman-cli-options/#postman-login
+
+Running your collection...
+postman
+
+PBL6 booking and inventory state readback
+
+Root Login customer
+
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.35 KB, 32 ms]
+
+Root Read state 0
+
+  GET http://localhost:5080/api/v1/bookings?page=0&size=20 [200 OK, 2.89 KB, 16 ms]
+  -
+  | 'STATE Read state 0 {"page":0,"size":20,"totalElements
+  | ":4,"totalPages":1,"items":[{"id":"01a18af6-e27a-7dfc-
+  | b362-80a71cdf9e93","code":"BK80A71CDF9E93","customerId
+  | ":"01990a00-0000-7000-8000-000000000002","tripId":"01a
+  | 18af6-d9cd-7f19-bb70-15fc2c3b671a","status":"PENDING_P
+  | AYMENT","paymentChannel":"PREPAID","contact":{"fullNam
+  | e":"Postman Synthetic","email":"seed.customer@example.
+  | test","phone":"\\u002B840000000001"},"subtotal":150000
+  | ,"discount":0,"fee":0,"total":150000,"currency":"VND",
+  | "expiresAt":"2026-10-30T04:09:58.043043+00:00","items"
+  | :[{"seatId":"01a18af6-e020-73a3-8cb3-f493b9837399","fu
+  | llName":"Postman Passenger","pickupStopId":"01990a00-0
+  | 000-7000-8000-000000000004","dropoffStopId":"01990a00-
+  | 0000-7000-8000-000000000005"}],"rowVersion":0},{"id":"
+  | 01a18af6-c055-7ef3-a646-9944d3f9768f","code":"BK9944D3
+  | F9768F","customerId":"01990a00-0000-7000-8000-00000000
+  | 0002","tripId":"01990a00-0000-7000-8000-000000000007",
+  | "status":"PENDING_PAYMENT","paymentChannel":"PREPAID",
+  | "contact":{"fullName":"Postman Synthetic","email":"see
+  | d.customer@example.test","phone":"\\u002B840000000001"
+  | },"subtotal":150000,"discount":0,"fee":0,"total":15000
+  | 0,"currency":"VND","expiresAt":"2026-10-30T04:09:49.25
+  | 9536+00:00","items":[{"seatId":"01990a00-0000-7000-800
+  | 0-000000000022","fullName":"Postman Passenger","pickup
+  | StopId":"01990a00-0000-7000-8000-000000000004","dropof
+  | fStopId":"01990a00-0000-7000-8000-000000000005"}],"row
+  | Version":0},{"id":"01a18af6-aec6-7d13-8d34-77c0bab0f61
+  | a","code":"BK77C0BAB0F61A","customerId":"01990a00-0000
+  | -7000-8000-000000000002","tripId":"01990a00-0000-7000-
+  | 8000-000000000007","status":"CONFIRMED","paymentChanne
+  | l":"PAY_LATER","contact":{"fullName":"PBL6 Round 3 Pay
+  | Later Test","email":"seed.customer@example.test","phon
+  | e":"\\u002B840000000001"},"subtotal":150000,"discount"
+  | :0,"fee":0,"total":150000,"currency":"VND","expiresAt"
+  | :"2026-10-30T04:09:44.805615+00:00","items":[{"seatId"
+  | :"01990a00-0000-7000-8000-000000000021","fullName":"PB
+  | L6 Round 3 PayLater Passenger","pickupStopId":"01990a0
+  | 0-0000-7000-8000-000000000004","dropoffStopId":"01990a
+  | 00-0000-7000-8000-000000000005"}],"rowVersion":1},{"id
+  | ":"01a18af6-9d6b-7c9e-850b-249bef325bd4","code":"BK249
+  | BEF325BD4","customerId":"01990a00-0000-7000-8000-00000
+  | 0000002","tripId":"01990a00-0000-7000-8000-00000000000
+  | 7","status":"CANCELLED","paymentChannel":"PAY_LATER","
+  | contact":{"fullName":"PBL6 Idempotency Customer","emai
+  | l":"seed.customer@example.test","phone":"\\u002B840000
+  | 000001"},"subtotal":150000,"discount":0,"fee":0,"total
+  | ":150000,"currency":"VND","expiresAt":"2026-10-30T04:0
+  | 9:40.356103+00:00","items":[{"seatId":"01990a00-0000-7
+  | 000-8000-000000000021","fullName":"PBL6 Idempotency Pa
+  | ssenger","pickupStopId":"01990a00-0000-7000-8000-00000
+  | 0000004","dropoffStopId":"01990a00-0000-7000-8000-0000
+  | 00000005"}],"rowVersion":2}]}'
+  -
+
+Root Read state 1
+
+  GET http://localhost:5080/api/v1/trips/01a1825d-b562-7b04-bab7-d50af84b5142/seats [404 Not Found, 355 B, 6 ms]
+  -
+  | 'STATE Read state 1 {"error":{"code":"RESOURCE_NOT_FOU
+  | ND","message":"The requested resource was not found.",
+  | "correlationId":"01a18af6-f32b-7162-96e5-b14cd330d5da"
+  | }}'
+  -
+  1⠄ AssertionError in test-script
+
+---------------------------------------------------------------------
+|                         |           executed |             failed |
+--------------------------+--------------------+---------------------
+|              iterations |                  1 |                  0 |
+--------------------------+--------------------+---------------------
+|                requests |                  3 |                  0 |
+--------------------------+--------------------+---------------------
+|            test-scripts |                  3 |                  1 |
+--------------------------+--------------------+---------------------
+|      prerequest-scripts |                  0 |                  0 |
+--------------------------+--------------------+---------------------
+|              assertions |                  0 |                  0 |
+---------------------------------------------------------------------
+| total run duration: 118 ms                                        |
+---------------------------------------------------------------------
+| total data received: 3.98 KB (approx)                             |
+---------------------------------------------------------------------
+| average response time: 18 ms [min: 6 ms, max: 32 ms, s.d.: 10 ms] |
+---------------------------------------------------------------------
+
+  #  failure         detail                                                
+                                                                           
+ 1.  AssertionError                                                        
+                     expected response to have status code 200 but got 404 
+                     at test-script:3:106                                  
+                     inside "Read state 1"                                 
+Postman credentials are required for publishing run details to Postman cloud.
+Please specify it by using the `postman login` command

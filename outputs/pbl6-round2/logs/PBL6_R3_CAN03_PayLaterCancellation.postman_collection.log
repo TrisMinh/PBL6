@@ -1,0 +1,126 @@
+﻿No authorization data found. Please use the `postman login` command.
+Refer:https://learning.postman.com/docs/postman-cli/postman-cli-options/#postman-login
+
+Running your collection...
+postman
+
+PBL6 Round 3 cancel PAY_LATER booking without gateway refund
+
+Root Customer login
+
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.35 KB, 32 ms]
+
+Root Read PAY_LATER booking version
+
+  GET http://localhost:5080/api/v1/bookings/01a1827d-848f-738f-b02e-eacd3c4401b2 [404 Not Found, 355 B, 6 ms]
+  -
+  | 'PAYLATER VERSION {"error":{"code":"RESOURCE_NOT_FOUND
+  | ","message":"The requested resource was not found.","c
+  | orrelationId":"01a18af7-2cd0-758b-b513-022be0b202e3"}}
+  | '
+  -
+  1⠄ AssertionError in test-script
+
+Root Read ticket issued for PAY_LATER booking
+
+  GET http://localhost:5080/api/v1/tickets [200 OK, 1.39 KB, 7 ms]
+  -
+  | 'PAYLATER TICKETS {"page":0,"size":20,"totalElements":
+  | 3,"totalPages":1,"items":[{"id":"01a18af7-1aa6-73c7-90
+  | d5-55f1e4a5ef38","publicCode":"TK55F1E4A5EF38","bookin
+  | gId":"01a18af7-1471-731c-ac9d-d62539595c39","tripId":"
+  | 01990a00-0000-7000-8000-000000000007","passengerName":
+  | "PBL6 Round 3 Refund Passenger","seatCode":"1D","statu
+  | s":"CANCELLED","paymentChannel":"PREPAID","issuedAt":"
+  | 2026-10-30T04:00:12.452995+00:00","rowVersion":0},{"id
+  | ":"01a18af6-aecd-71fc-8b2f-b7ebb15302ea","publicCode":
+  | "TKB7EBB15302EA","bookingId":"01a18af6-aec6-7d13-8d34-
+  | 77c0bab0f61a","tripId":"01990a00-0000-7000-8000-000000
+  | 000007","passengerName":"PBL6 Round 3 PayLater Passeng
+  | er","seatCode":"1A","status":"ISSUED","paymentChannel"
+  | :"PAY_LATER","qrPayload":"BT1.01a18af6aecd71fc8b2fb7eb
+  | b15302ea.C06176842ABC1B45B9ED6AAE29CC3ABAFB1EF287381A6
+  | A6B372BCEB4E5C76274","issuedAt":"2026-10-30T03:59:44.8
+  | 44495+00:00","rowVersion":0},{"id":"01a18af6-9d91-7057
+  | -afdc-5d62ebfe7260","publicCode":"TK5D62EBFE7260","boo
+  | kingId":"01a18af6-9d6b-7c9e-850b-249bef325bd4","tripId
+  | ":"01990a00-0000-7000-8000-000000000007","passengerNam
+  | e":"PBL6 Idempotency Passenger","seatCode":"1A","statu
+  | s":"CANCELLED","paymentChannel":"PAY_LATER","issuedAt"
+  | :"2026-10-30T03:59:40.429522+00:00","rowVersion":0}]}'
+  -
+  2. Find ticket for synthetic PAY_LATER booking
+
+Root Preview PAY_LATER cancellation
+
+  POST http://localhost:5080/api/v1/bookings/01a1827d-848f-738f-b02e-eacd3c4401b2/cancellation-preview [400 Bad Request, 341 B, 4 ms]
+  -
+  | 'PAYLATER PREVIEW {"error":{"code":"VALIDATION_ERROR",
+  | "message":"The request is invalid.","correlationId":"0
+  | 1a18af7-2d00-7477-a989-cf6bad5d4468"}}'
+  -
+  3. PAY_LATER preview has no gateway refund
+
+Root CAN-03 Cancel PAY_LATER booking
+
+  POST http://localhost:5080/api/v1/bookings/01a1827d-848f-738f-b02e-eacd3c4401b2/cancel [400 Bad Request, 341 B, 4 ms]
+  -
+  | 'PAYLATER CANCEL {"error":{"code":"VALIDATION_ERROR","
+  | message":"The request is invalid.","correlationId":"01
+  | a18af7-2d14-78eb-8701-076437a9e98c"}}'
+  -
+  4. PAY_LATER cancellation accepted without payment gateway
+
+Root Read PAY_LATER booking cancellation state
+
+  GET http://localhost:5080/api/v1/bookings/01a1827d-848f-738f-b02e-eacd3c4401b2 [404 Not Found, 355 B, 6 ms]
+  -
+  | 'PAYLATER CANCELLATION READBACK {"error":{"code":"RESO
+  | URCE_NOT_FOUND","message":"The requested resource was 
+  | not found.","correlationId":"01a18af7-2d2b-7a53-b6db-2
+  | 0016a4de3f2"}}'
+  -
+
+-------------------------------------------------------------------
+|                         |          executed |            failed |
+--------------------------+-------------------+--------------------
+|              iterations |                 1 |                 0 |
+--------------------------+-------------------+--------------------
+|                requests |                 6 |                 0 |
+--------------------------+-------------------+--------------------
+|            test-scripts |                 6 |                 1 |
+--------------------------+-------------------+--------------------
+|      prerequest-scripts |                 0 |                 0 |
+--------------------------+-------------------+--------------------
+|              assertions |                 3 |                 3 |
+-------------------------------------------------------------------
+| total run duration: 173 ms                                      |
+-------------------------------------------------------------------
+| total data received: 2.88 KB (approx)                           |
+-------------------------------------------------------------------
+| average response time: 9 ms [min: 4 ms, max: 32 ms, s.d.: 9 ms] |
+-------------------------------------------------------------------
+
+  #  failure         detail                                                  
+                                                                             
+ 1.  AssertionError                                                          
+                     expected response to have status code 200 but got 404   
+                     at test-script:3:93                                     
+                     inside "Read PAY_LATER booking version"                 
+                                                                             
+ 2.  AssertionError  Find ticket for synthetic PAY_LATER booking             
+                     expected undefined to exist                             
+                     at assertion:0 in test-script                           
+                     inside "Read ticket issued for PAY_LATER booking"       
+                                                                             
+ 3.  AssertionError  PAY_LATER preview has no gateway refund                 
+                     expected response to have status code 200 but got 400   
+                     at assertion:0 in test-script                           
+                     inside "Preview PAY_LATER cancellation"                 
+                                                                             
+ 4.  AssertionError  PAY_LATER cancellation accepted without payment gateway 
+                     expected response to have status code 202 but got 400   
+                     at assertion:0 in test-script                           
+                     inside "CAN-03 Cancel PAY_LATER booking"                
+Postman credentials are required for publishing run details to Postman cloud.
+Please specify it by using the `postman login` command

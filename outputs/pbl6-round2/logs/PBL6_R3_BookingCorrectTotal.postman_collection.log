@@ -1,0 +1,60 @@
+﻿No authorization data found. Please use the `postman login` command.
+Refer:https://learning.postman.com/docs/postman-cli/postman-cli-options/#postman-login
+
+Running your collection...
+postman
+
+PBL6 Round 3 Booking correct-total attempt
+
+Root Customer login
+
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.35 KB, 34 ms]
+
+Root BOOK-02 Hold next available seat
+
+  POST http://localhost:5080/api/v1/trips/01a1825d-b562-7b04-bab7-d50af84b5142/seat-holds [422 Unprocessable Entity, 353 B, 10 ms]
+  1. Second available seat held
+
+Root BOOK-10 Create PREPAID booking with correct total
+
+  POST http://localhost:5080/api/v1/bookings [404 Not Found, 355 B, 10 ms]
+  -
+  | 'BOOKING {"error":{"code":"RESOURCE_NOT_FOUND","messag
+  | e":"The requested resource was not found.","correlatio
+  | nId":"01a18af6-c9c9-7785-8476-38ad9bd2fd7f"}}'
+  -
+  2. Valid PREPAID booking created
+
+----------------------------------------------------------------------
+|                         |            executed |             failed |
+--------------------------+---------------------+---------------------
+|              iterations |                   1 |                  0 |
+--------------------------+---------------------+---------------------
+|                requests |                   3 |                  0 |
+--------------------------+---------------------+---------------------
+|            test-scripts |                   3 |                  0 |
+--------------------------+---------------------+---------------------
+|      prerequest-scripts |                   0 |                  0 |
+--------------------------+---------------------+---------------------
+|              assertions |                   2 |                  2 |
+----------------------------------------------------------------------
+| total run duration: 119 ms                                         |
+----------------------------------------------------------------------
+| total data received: 1.42 KB (approx)                              |
+----------------------------------------------------------------------
+| average response time: 18 ms [min: 10 ms, max: 34 ms, s.d.: 11 ms] |
+----------------------------------------------------------------------
+
+  #  failure         detail                                                     
+                                                                                
+ 1.  AssertionError  Second available seat held                                 
+                     expected response to have status code 201 but got 422      
+                     at assertion:0 in test-script                              
+                     inside "BOOK-02 Hold next available seat"                  
+                                                                                
+ 2.  AssertionError  Valid PREPAID booking created                              
+                     expected response to have status code 201 but got 404      
+                     at assertion:0 in test-script                              
+                     inside "BOOK-10 Create PREPAID booking with correct total" 
+Postman credentials are required for publishing run details to Postman cloud.
+Please specify it by using the `postman login` command

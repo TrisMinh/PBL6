@@ -1,0 +1,60 @@
+﻿No authorization data found. Please use the `postman login` command.
+Refer:https://learning.postman.com/docs/postman-cli/postman-cli-options/#postman-login
+
+Running your collection...
+postman
+
+PBL6 Round 3 replay exact cancellation idempotency key
+
+Root Customer login
+
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.35 KB, 38 ms]
+
+Root CAN-04 Replay same PAY_LATER cancellation key and body
+
+  POST http://localhost:5080/api/v1/bookings/01a1827d-848f-738f-b02e-eacd3c4401b2/cancel [404 Not Found, 355 B, 8 ms]
+  -
+  | 'CANCEL REPLAY {"error":{"code":"RESOURCE_NOT_FOUND","
+  | message":"The requested resource was not found.","corr
+  | elationId":"01a18af7-380b-7dc3-976a-b9e07056d173"}}'
+  -
+  1. Exact cancellation replay is accepted idempotently
+
+Root Read cancelled booking after replay
+
+  GET http://localhost:5080/api/v1/bookings/01a1827d-848f-738f-b02e-eacd3c4401b2 [404 Not Found, 355 B, 6 ms]
+  2. Replay did not change cancelled booking state
+
+---------------------------------------------------------------------
+|                         |           executed |             failed |
+--------------------------+--------------------+---------------------
+|              iterations |                  1 |                  0 |
+--------------------------+--------------------+---------------------
+|                requests |                  3 |                  0 |
+--------------------------+--------------------+---------------------
+|            test-scripts |                  3 |                  0 |
+--------------------------+--------------------+---------------------
+|      prerequest-scripts |                  0 |                  0 |
+--------------------------+--------------------+---------------------
+|              assertions |                  2 |                  2 |
+---------------------------------------------------------------------
+| total run duration: 114 ms                                        |
+---------------------------------------------------------------------
+| total data received: 1.43 KB (approx)                             |
+---------------------------------------------------------------------
+| average response time: 17 ms [min: 6 ms, max: 38 ms, s.d.: 14 ms] |
+---------------------------------------------------------------------
+
+  #  failure         detail                                                          
+                                                                                     
+ 1.  AssertionError  Exact cancellation replay is accepted idempotently              
+                     expected response to have status code 202 but got 404           
+                     at assertion:0 in test-script                                   
+                     inside "CAN-04 Replay same PAY_LATER cancellation key and body" 
+                                                                                     
+ 2.  AssertionError  Replay did not change cancelled booking state                   
+                     expected response to have status code 200 but got 404           
+                     at assertion:0 in test-script                                   
+                     inside "Read cancelled booking after replay"                    
+Postman credentials are required for publishing run details to Postman cloud.
+Please specify it by using the `postman login` command

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<testsuite name="PBL6_R3_ProfileEmail.postman_collection" tests="7" failures="0" errors="0" time="2.158">
+  <testcase classname="PBL6_R3_ProfileEmail.postman_collection" name="passed assertion 001" />
+  <testcase classname="PBL6_R3_ProfileEmail.postman_collection" name="passed assertion 002" />
+  <testcase classname="PBL6_R3_ProfileEmail.postman_collection" name="passed assertion 003" />
+  <testcase classname="PBL6_R3_ProfileEmail.postman_collection" name="passed assertion 004" />
+  <testcase classname="PBL6_R3_ProfileEmail.postman_collection" name="passed assertion 005" />
+  <testcase classname="PBL6_R3_ProfileEmail.postman_collection" name="passed assertion 006" />
+  <testcase classname="PBL6_R3_ProfileEmail.postman_collection" name="passed assertion 007" />
+</testsuite>

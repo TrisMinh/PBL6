@@ -1,0 +1,104 @@
+﻿No authorization data found. Please use the `postman login` command.
+Refer:https://learning.postman.com/docs/postman-cli/postman-cli-options/#postman-login
+
+Running your collection...
+postman
+
+PBL6 Round 3 atomic multiseat hold
+
+Root Operator login
+
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.37 KB, 41 ms]
+
+Root Create isolated future draft
+
+  POST http://localhost:5080/api/v1/operator/trips [201 Created, 1.1 KB, 129 ms]
+  -
+  | 'MULTISEAT TRIP {"id":"01a18af6-87ee-7549-805b-fe10475
+  | 3a5ea","organizationId":"01990a00-0000-7000-8000-00000
+  | 0000001","operatorName":"Synthetic Seed Operator","bus
+  | Type":"STANDARD","amenities":["WIFI","AC","WATER"],"de
+  | partureAt":"2027-01-15T06:00:00+00:00","arrivalAt":"20
+  | 27-01-15T10:00:00+00:00","origin":"Seed Origin Station
+  | ","destination":"Seed Destination Station","fare":{"am
+  | ount":150000,"currency":"VND"},"status":"DRAFT","sella
+  | ble":false,"availableSeatCount":6,"availabilityAsOf":"
+  | 2026-10-30T03:59:34.9137908+00:00","policyVersion":"ca
+  | ncel-mvp-v1","stops":[{"id":"01990a00-0000-7000-8000-0
+  | 00000000004","name":"Seed Origin Station","address":"1
+  |  Seed Street","sequence":0,"offsetMinutes":0,"pickupAl
+  | lowed":true,"dropoffAllowed":true},{"id":"01990a00-000
+  | 0-7000-8000-000000000005","name":"Seed Destination Sta
+  | tion","address":"2 Seed Street","sequence":1,"offsetMi
+  | nutes":240,"pickupAllowed":true,"dropoffAllowed":true}
+  | ],"rowVersion":0}'
+  -
+  Pass  Isolated draft created
+
+Root Publish isolated trip
+
+  POST http://localhost:5080/api/v1/operator/trips/01a18af6-87ee-7549-805b-fe104753a5ea/publish [202 Accepted, 284 B, 54 ms]
+
+Root Customer login
+
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.35 KB, 21 ms]
+
+Root Read new trip seats and stops
+
+  GET http://localhost:5080/api/v1/trips/01a18af6-87ee-7549-805b-fe104753a5ea/seats [200 OK, 1.27 KB, 11 ms]
+  Pass  Select two available seats from the live response
+
+Root BOOK-03 Atomically hold two seats
+
+  POST http://localhost:5080/api/v1/trips/01a18af6-87ee-7549-805b-fe104753a5ea/seat-holds [201 Created, 740 B, 16 ms]
+  -
+  | 'MULTISEAT HOLD {"holdToken":"in6jAjymGhm-lRXNOqEzipVE
+  | jUiucBKN2FX2nDZQJU0","tripId":"01a18af6-87ee-7549-805b
+  | -fe104753a5ea","status":"ACTIVE","seats":[{"id":"01a18
+  | af6-8a0a-7c8b-b4ba-830b1bbc35f4","code":"1A","type":"S
+  | TANDARD","status":"HELD","price":{"amount":150000,"cur
+  | rency":"VND"},"rowVersion":0},{"id":"01a18af6-8a0a-7f5
+  | e-8296-e4c795dd2a3d","code":"1B","type":"STANDARD","st
+  | atus":"HELD","price":{"amount":150000,"currency":"VND"
+  | },"rowVersion":0}],"expiresAt":"2026-10-30T04:09:36.08
+  | 0003+00:00","serverTime":"2026-10-30T03:59:36.0848022+
+  | 00:00"}'
+  -
+  Pass  Two-seat hold succeeds atomically
+
+Root BOOK-04 Reject multi-seat hold containing unknown seat
+
+  POST http://localhost:5080/api/v1/trips/01a18af6-87ee-7549-805b-fe104753a5ea/seat-holds [409 Conflict, 351 B, 11 ms]
+  -
+  | 'PARTIAL HOLD {"error":{"code":"SEAT_UNAVAILABLE","mes
+  | sage":"One or more seats are not available.","correlat
+  | ionId":"01a18af6-8ca8-7649-8812-9a7a111d7b20"}}'
+  -
+  Pass  Mixed valid and unknown seats are rejected
+
+Root Release successful synthetic hold
+
+  DELETE http://localhost:5080/api/v1/seat-holds/in6jAjymGhm-lRXNOqEzipVEjUiucBKN2FX2nDZQJU0 [204 No Content, 137 B, 10 ms]
+  Pass  Successful synthetic hold was released
+
+-----------------------------------------------------------------------
+|                         |            executed |              failed |
+--------------------------+---------------------+----------------------
+|              iterations |                   1 |                   0 |
+--------------------------+---------------------+----------------------
+|                requests |                   8 |                   0 |
+--------------------------+---------------------+----------------------
+|            test-scripts |                   8 |                   0 |
+--------------------------+---------------------+----------------------
+|      prerequest-scripts |                   0 |                   0 |
+--------------------------+---------------------+----------------------
+|              assertions |                   5 |                   0 |
+-----------------------------------------------------------------------
+| total run duration: 1424 ms                                         |
+-----------------------------------------------------------------------
+| total data received: 5.01 KB (approx)                               |
+-----------------------------------------------------------------------
+| average response time: 36 ms [min: 10 ms, max: 129 ms, s.d.: 37 ms] |
+-----------------------------------------------------------------------
+Postman credentials are required for publishing run details to Postman cloud.
+Please specify it by using the `postman login` command

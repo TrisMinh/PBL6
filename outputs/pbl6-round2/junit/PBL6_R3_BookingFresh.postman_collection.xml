@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<testsuite name="PBL6_R3_BookingFresh.postman_collection" tests="6" failures="0" errors="0" time="4.272">
+  <testcase classname="PBL6_R3_BookingFresh.postman_collection" name="passed assertion 001" />
+  <testcase classname="PBL6_R3_BookingFresh.postman_collection" name="passed assertion 002" />
+  <testcase classname="PBL6_R3_BookingFresh.postman_collection" name="passed assertion 003" />
+  <testcase classname="PBL6_R3_BookingFresh.postman_collection" name="passed assertion 004" />
+  <testcase classname="PBL6_R3_BookingFresh.postman_collection" name="passed assertion 005" />
+  <testcase classname="PBL6_R3_BookingFresh.postman_collection" name="passed assertion 006" />
+</testsuite>

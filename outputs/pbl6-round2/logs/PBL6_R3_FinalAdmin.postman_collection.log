@@ -1,0 +1,47 @@
+﻿No authorization data found. Please use the `postman login` command.
+Refer:https://learning.postman.com/docs/postman-cli/postman-cli-options/#postman-login
+
+Running your collection...
+postman
+
+PBL6 Round 3 Protect final admin
+
+Root Admin login
+
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.11 KB, 34 ms]
+
+Root Read admin identity
+
+  GET http://localhost:5080/api/v1/users/me [200 OK, 474 B, 6 ms]
+
+Root ADM-04 Prevent removing own platform admin role
+
+  PUT http://localhost:5080/api/v1/admin/users/01990a00-0000-7000-8000-000000000022/roles [403 Forbidden, 330 B, 6 ms]
+  Pass  Sole admin self-role removal is denied
+
+Root ADM-04 Verify admin role retained
+
+  GET http://localhost:5080/api/v1/admin/users/01990a00-0000-7000-8000-000000000022 [200 OK, 474 B, 6 ms]
+  Pass  Platform admin role remains after denied change
+
+---------------------------------------------------------------------
+|                         |           executed |             failed |
+--------------------------+--------------------+---------------------
+|              iterations |                  1 |                  0 |
+--------------------------+--------------------+---------------------
+|                requests |                  4 |                  0 |
+--------------------------+--------------------+---------------------
+|            test-scripts |                  4 |                  0 |
+--------------------------+--------------------+---------------------
+|      prerequest-scripts |                  0 |                  0 |
+--------------------------+--------------------+---------------------
+|              assertions |                  2 |                  0 |
+---------------------------------------------------------------------
+| total run duration: 117 ms                                        |
+---------------------------------------------------------------------
+| total data received: 1.56 KB (approx)                             |
+---------------------------------------------------------------------
+| average response time: 13 ms [min: 6 ms, max: 34 ms, s.d.: 12 ms] |
+---------------------------------------------------------------------
+Postman credentials are required for publishing run details to Postman cloud.
+Please specify it by using the `postman login` command

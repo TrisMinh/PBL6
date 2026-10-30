@@ -1,0 +1,41 @@
+﻿No authorization data found. Please use the `postman login` command.
+Refer:https://learning.postman.com/docs/postman-cli/postman-cli-options/#postman-login
+
+Running your collection...
+postman
+
+PBL6 admin settlement readback
+
+Root Admin login
+
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.12 KB, 76 ms]
+
+Root Inspect admin settlements
+
+  GET http://localhost:5080/api/v1/admin/settlements?page=0&size=100 [200 OK, 269 B, 25 ms]
+  -
+  | 'ADMIN SETTLEMENT {"page":0,"size":100,"totalElements"
+  | :0,"totalPages":0,"items":[]}'
+  -
+
+----------------------------------------------------------------------
+|                         |            executed |             failed |
+--------------------------+---------------------+---------------------
+|              iterations |                   1 |                  0 |
+--------------------------+---------------------+---------------------
+|                requests |                   2 |                  0 |
+--------------------------+---------------------+---------------------
+|            test-scripts |                   2 |                  0 |
+--------------------------+---------------------+---------------------
+|      prerequest-scripts |                   0 |                  0 |
+--------------------------+---------------------+---------------------
+|              assertions |                   0 |                  0 |
+----------------------------------------------------------------------
+| total run duration: 153 ms                                         |
+----------------------------------------------------------------------
+| total data received: 1004 B (approx)                               |
+----------------------------------------------------------------------
+| average response time: 50 ms [min: 25 ms, max: 76 ms, s.d.: 25 ms] |
+----------------------------------------------------------------------
+Postman credentials are required for publishing run details to Postman cloud.
+Please specify it by using the `postman login` command

@@ -41,7 +41,8 @@ docker compose --env-file /secure/path/pbl6.production.env \
   -f docker-compose.yml -f docker-compose.apps.yml -f docker-compose.production.yml ps
 curl --fail https://customer.example.vn/healthz
 curl --fail https://ops.example.vn/healthz
-curl --fail https://customer.example.vn/ready
+curl --fail https://api.example.vn/health
+curl --fail https://api.example.vn/ready
 ```
 
 All long-running services must be `healthy`. Verify registration email with a real mailbox, complete one low-value VNPay sandbox transaction, cancel it, and confirm payment/refund/settlement records before production traffic is enabled.

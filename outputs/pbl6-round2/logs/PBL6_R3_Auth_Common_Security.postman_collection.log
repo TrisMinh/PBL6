@@ -1,0 +1,228 @@
+﻿No authorization data found. Please use the `postman login` command.
+Refer:https://learning.postman.com/docs/postman-cli/postman-cli-options/#postman-login
+
+Running your collection...
+postman
+
+PBL6 Round 3 Auth Common Security Completion
+
+Root Login platform admin
+
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.11 KB, 34 ms]
+  Pass  Admin login succeeds
+
+Root Login seed customer
+
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.35 KB, 28 ms]
+  Pass  Customer login succeeds
+
+Root SEC-02 customer is denied admin user listing
+
+  GET http://localhost:5080/api/v1/admin/users?page=0&size=20 [403 Forbidden, 330 B, 8 ms]
+  Pass  Customer cannot access admin user list
+
+Root SEC-03 tampered token rejected
+
+  GET http://localhost:5080/api/v1/users/me [401 Unauthorized, 353 B, 10 ms]
+  Pass  Modified JWT signature is rejected
+
+Root AUTH-02 duplicate active email
+
+  POST http://localhost:5080/api/v1/auth/register [409 Conflict, 349 B, 13 ms]
+  Pass  Duplicate email is rejected with 4xx
+
+Root AUTH-03 duplicate active phone
+
+  POST http://localhost:5080/api/v1/auth/register [409 Conflict, 349 B, 9 ms]
+  Pass  Duplicate phone is rejected with 4xx
+
+Root AUTH-06 register pending verification probe
+
+  POST http://localhost:5080/api/v1/auth/register [202 Accepted, 284 B, 128 ms]
+  Pass  Pending account registration accepted
+
+Root AUTH-06 get OTP email
+
+  GET http://localhost:8025/api/v1/messages [200 OK, 802 B, 8 ms]
+  Pass  Mailpit contains OTP probe message
+
+Root AUTH-06 read OTP email
+
+  GET http://localhost:8025/api/v1/message/fYVxQ4s8yforZGCHU8kWJK [200 OK, 810 B, 5 ms]
+  Pass  OTP challenge captured from delivered email
+
+Root AUTH-06 incorrect OTP is rejected
+
+  POST http://localhost:5080/api/v1/auth/verify [422 Unprocessable Entity, 371 B, 29 ms]
+  Pass  Wrong OTP is rejected
+
+Root AUTH-11 pending account cannot login
+
+  POST http://localhost:5080/api/v1/auth/login [401 Unauthorized, 352 B, 9 ms]
+  Pass  Unverified account receives no session
+
+Root AUTH-07 register resend-limit probe
+
+  POST http://localhost:5080/api/v1/auth/register [202 Accepted, 284 B, 75 ms]
+  Pass  Resend probe registration accepted
+
+Root AUTH-07 resend verification attempt 1
+
+  POST http://localhost:5080/api/v1/auth/resend-verification [202 Accepted, 284 B, 67 ms]
+  Pass  Resend attempt 1 follows rate limit expectation
+
+Root AUTH-07 resend verification attempt 2
+
+  POST http://localhost:5080/api/v1/auth/resend-verification [202 Accepted, 284 B, 61 ms]
+  Pass  Resend attempt 2 follows rate limit expectation
+
+Root AUTH-07 resend verification attempt 3
+
+  POST http://localhost:5080/api/v1/auth/resend-verification [202 Accepted, 284 B, 66 ms]
+  Pass  Resend attempt 3 follows rate limit expectation
+
+Root AUTH-07 resend verification attempt 4
+
+  POST http://localhost:5080/api/v1/auth/resend-verification [202 Accepted, 284 B, 64 ms]
+  Pass  Resend attempt 4 follows rate limit expectation
+
+Root AUTH-07 resend verification attempt 5
+
+  POST http://localhost:5080/api/v1/auth/resend-verification [202 Accepted, 284 B, 61 ms]
+  Pass  Resend attempt 5 follows rate limit expectation
+
+Root AUTH-07 resend verification attempt 6
+
+  POST http://localhost:5080/api/v1/auth/resend-verification [429 Too Many Requests, 356 B, 10 ms]
+  Pass  Resend attempt 6 follows rate limit expectation
+
+Root AUTH-06 register challenge for expiry test
+
+  POST http://localhost:5080/api/v1/auth/register [202 Accepted, 284 B, 72 ms]
+  -
+  | 'EXPIRY_CHALLENGE_ID', '01a18af6-5fab-7ee7-939d-5146f7
+  | a213f1'
+  -
+  Pass  Expiry probe registration accepted
+
+Root AUTH-12 register lockout probe
+
+  POST http://localhost:5080/api/v1/auth/register [202 Accepted, 284 B, 74 ms]
+  Pass  Lockout probe registration accepted
+
+Root AUTH-12 find lockout verification email
+
+  GET http://localhost:8025/api/v1/messages [200 OK, 1.39 KB, 3 ms]
+  Pass  Lockout probe email found
+
+Root AUTH-12 read lockout verification code
+
+  GET http://localhost:8025/api/v1/message/VthxC9YJhSfNJivwMXWowv [200 OK, 812 B, 3 ms]
+  Pass  Lockout challenge read
+
+Root AUTH-12 verify lockout synthetic user
+
+  POST http://localhost:5080/api/v1/auth/verify [200 OK, 1.11 KB, 25 ms]
+  Pass  Lockout test account verified
+
+Root ADM-01 get test user id
+
+  GET http://localhost:5080/api/v1/users/me [200 OK, 477 B, 13 ms]
+  Pass  Get synthetic user identity
+
+Root ADM-01 admin manually locks synthetic user
+
+  PATCH http://localhost:5080/api/v1/admin/users/01a18af6-5ff1-70cf-aeb3-504023d2ecf9/status [200 OK, 477 B, 36 ms]
+  Pass  Admin lock changes synthetic user status
+
+Root ADM-01 locked user cannot use existing session
+
+  GET http://localhost:5080/api/v1/users/me [401 Unauthorized, 353 B, 5 ms]
+  Pass  Locked account session is revoked
+
+Root ADM-01 admin unlocks synthetic user
+
+  PATCH http://localhost:5080/api/v1/admin/users/01a18af6-5ff1-70cf-aeb3-504023d2ecf9/status [200 OK, 477 B, 10 ms]
+  Pass  Admin restores synthetic user
+
+Root ADM-01 unlocked user can login
+
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.11 KB, 20 ms]
+  Pass  Unblocked user login succeeds
+
+Root AUTH-12 wrong password attempt 1
+
+  POST http://localhost:5080/api/v1/auth/login [401 Unauthorized, 352 B, 19 ms]
+  Pass  Lockout attempt 1
+
+Root AUTH-12 wrong password attempt 2
+
+  POST http://localhost:5080/api/v1/auth/login [401 Unauthorized, 352 B, 16 ms]
+  Pass  Lockout attempt 2
+
+Root AUTH-12 wrong password attempt 3
+
+  POST http://localhost:5080/api/v1/auth/login [401 Unauthorized, 352 B, 29 ms]
+  Pass  Lockout attempt 3
+
+Root AUTH-12 wrong password attempt 4
+
+  POST http://localhost:5080/api/v1/auth/login [401 Unauthorized, 352 B, 19 ms]
+  Pass  Lockout attempt 4
+
+Root AUTH-12 wrong password attempt 5
+
+  POST http://localhost:5080/api/v1/auth/login [423 Locked, 345 B, 20 ms]
+  Pass  Lockout attempt 5
+
+Root AUTH-12 correct password rejected while locked
+
+  POST http://localhost:5080/api/v1/auth/login [423 Locked, 345 B, 4 ms]
+  Pass  Correct password cannot bypass active lockout
+
+Root AUTH-12 inspect locked test account
+
+  GET http://localhost:5080/api/v1/admin/users/01a18af6-5ff1-70cf-aeb3-504023d2ecf9 [200 OK, 477 B, 8 ms]
+  Pass  Read auto-locked user version
+
+Root AUTH-12 restore lockout test account
+
+  PATCH http://localhost:5080/api/v1/admin/users/01a18af6-5ff1-70cf-aeb3-504023d2ecf9/status [200 OK, 477 B, 10 ms]
+  Pass  Synthetic lockout account restored
+
+Root AUTH-12 confirm test account restored
+
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.11 KB, 22 ms]
+  Pass  Restored synthetic account signs in
+
+Root CMN-01 unknown booking error envelope
+
+  GET http://localhost:5080/api/v1/bookings/00000000-0000-7000-8000-000000000099 [404 Not Found, 355 B, 150 ms]
+  Pass  Not-found error envelope is safe and correlated
+
+Root CMN-04 missing idempotency key is rejected
+
+  POST http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seat-holds [400 Bad Request, 354 B, 37 ms]
+  Pass  Mutation without Idempotency-Key is rejected
+
+----------------------------------------------------------------------
+|                         |            executed |             failed |
+--------------------------+---------------------+---------------------
+|              iterations |                   1 |                  0 |
+--------------------------+---------------------+---------------------
+|                requests |                  39 |                  0 |
+--------------------------+---------------------+---------------------
+|            test-scripts |                  39 |                  0 |
+--------------------------+---------------------+---------------------
+|      prerequest-scripts |                   6 |                  0 |
+--------------------------+---------------------+---------------------
+|              assertions |                  39 |                  0 |
+----------------------------------------------------------------------
+| total run duration: 1970 ms                                        |
+----------------------------------------------------------------------
+| total data received: 11.02 KB (approx)                             |
+----------------------------------------------------------------------
+| average response time: 32 ms [min: 3 ms, max: 150 ms, s.d.: 33 ms] |
+----------------------------------------------------------------------
+Postman credentials are required for publishing run details to Postman cloud.
+Please specify it by using the `postman login` command

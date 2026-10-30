@@ -1,0 +1,78 @@
+﻿No authorization data found. Please use the `postman login` command.
+Refer:https://learning.postman.com/docs/postman-cli/postman-cli-options/#postman-login
+
+Running your collection...
+postman
+
+PBL6 Round 3 Booking validation cases
+
+Root Customer login
+
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.35 KB, 40 ms]
+
+Root Hold 2A for BOOK-14
+
+  POST http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seat-holds [201 Created, 588 B, 16 ms]
+  Pass  Seat hold created for validation check
+
+Root BOOK-14 Reject passenger count mismatch
+
+  POST http://localhost:5080/api/v1/bookings [400 Bad Request, 411 B, 12 ms]
+  Pass  Passenger count mismatch rejected
+
+Root Release BOOK-14 test hold
+
+  DELETE http://localhost:5080/api/v1/seat-holds/LiJqvmpf2bogJBZpxbe6kLfCyY0iek4nZsVjv6nEgyU [204 No Content, 137 B, 11 ms]
+  Pass  Validation failure did not consume hold; release succeeds
+
+Root Hold 2B for BOOK-15
+
+  POST http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seat-holds [201 Created, 590 B, 14 ms]
+  Pass  Seat hold created for validation check
+
+Root BOOK-15 Reject missing passenger name
+
+  POST http://localhost:5080/api/v1/bookings [400 Bad Request, 411 B, 10 ms]
+  Pass  Missing passenger name rejected
+
+Root Release BOOK-15 test hold
+
+  DELETE http://localhost:5080/api/v1/seat-holds/e-tXEROD45yWmFErnjavLwK1Jp3n_iC8fAi7vDXs0kg [204 No Content, 137 B, 10 ms]
+  Pass  Missing passenger validation did not consume hold
+
+Root Hold 2A for BOOK-20
+
+  POST http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seat-holds [201 Created, 590 B, 13 ms]
+  Pass  Seat hold created for validation check
+
+Root BOOK-20 Reject invalid payment channel
+
+  POST http://localhost:5080/api/v1/bookings [400 Bad Request, 400 B, 10 ms]
+  Pass  Unsupported payment channel rejected
+
+Root Release BOOK-20 test hold
+
+  DELETE http://localhost:5080/api/v1/seat-holds/Y8_wEP48-ti4zW5vwYeRT5WeC6lAwA_q2uUjoAHQ4-M [204 No Content, 137 B, 10 ms]
+  Pass  Invalid channel did not consume hold
+
+---------------------------------------------------------------------
+|                         |           executed |             failed |
+--------------------------+--------------------+---------------------
+|              iterations |                  1 |                  0 |
+--------------------------+--------------------+---------------------
+|                requests |                 10 |                  0 |
+--------------------------+--------------------+---------------------
+|            test-scripts |                 10 |                  0 |
+--------------------------+--------------------+---------------------
+|      prerequest-scripts |                  0 |                  0 |
+--------------------------+--------------------+---------------------
+|              assertions |                  9 |                  0 |
+---------------------------------------------------------------------
+| total run duration: 313 ms                                        |
+---------------------------------------------------------------------
+| total data received: 2.83 KB (approx)                             |
+---------------------------------------------------------------------
+| average response time: 14 ms [min: 10 ms, max: 40 ms, s.d.: 8 ms] |
+---------------------------------------------------------------------
+Postman credentials are required for publishing run details to Postman cloud.
+Please specify it by using the `postman login` command

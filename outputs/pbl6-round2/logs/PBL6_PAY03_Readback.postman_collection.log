@@ -1,0 +1,46 @@
+﻿No authorization data found. Please use the `postman login` command.
+Refer:https://learning.postman.com/docs/postman-cli/postman-cli-options/#postman-login
+
+Running your collection...
+postman
+
+PBL6 PAY03 Safe Payment Readback
+
+Root PAY-03 Login seed customer for payment readback
+
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.35 KB, 211 ms]
+  Pass  Login and retain token
+
+Root PAY-03 Read back sandbox payment created by prior test
+
+  GET http://localhost:5080/api/v1/payments/01a18231-5200-79a4-98c5-7f4e79db8eb8 [404 Not Found, 355 B, 71 ms]
+  1. Payment readback returns its actual state
+
+------------------------------------------------------------------------
+|                         |             executed |              failed |
+--------------------------+----------------------+----------------------
+|              iterations |                    1 |                   0 |
+--------------------------+----------------------+----------------------
+|                requests |                    2 |                   0 |
+--------------------------+----------------------+----------------------
+|            test-scripts |                    2 |                   0 |
+--------------------------+----------------------+----------------------
+|      prerequest-scripts |                    0 |                   0 |
+--------------------------+----------------------+----------------------
+|              assertions |                    2 |                   1 |
+------------------------------------------------------------------------
+| total run duration: 336 ms                                           |
+------------------------------------------------------------------------
+| total data received: 1.29 KB (approx)                                |
+------------------------------------------------------------------------
+| average response time: 141 ms [min: 71 ms, max: 211 ms, s.d.: 70 ms] |
+------------------------------------------------------------------------
+
+  #  failure         detail                                                          
+                                                                                     
+ 1.  AssertionError  Payment readback returns its actual state                       
+                     expected response to have status code 200 but got 404           
+                     at assertion:0 in test-script                                   
+                     inside "PAY-03 Read back sandbox payment created by prior test" 
+Postman credentials are required for publishing run details to Postman cloud.
+Please specify it by using the `postman login` command

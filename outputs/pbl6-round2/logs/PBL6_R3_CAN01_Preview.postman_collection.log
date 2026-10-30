@@ -1,0 +1,65 @@
+﻿No authorization data found. Please use the `postman login` command.
+Refer:https://learning.postman.com/docs/postman-cli/postman-cli-options/#postman-login
+
+Running your collection...
+postman
+
+PBL6 Round 3 prepaid cancellation preview
+
+Root Customer login
+
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.36 KB, 37 ms]
+
+Root Read owned ticket
+
+  GET http://localhost:5080/api/v1/tickets/01a0c49d-73ed-7e96-8861-b8bff3983bfd [404 Not Found, 355 B, 8 ms]
+  -
+  | 'TICKET {"error":{"code":"RESOURCE_NOT_FOUND","message
+  | ":"The requested resource was not found.","correlation
+  | Id":"01a18af7-040f-73bb-86fa-d445360e318f"}}'
+  -
+  1. Owned ticket identifies booking
+
+Root CAN-01 Preview eligible prepaid cancellation
+
+  POST http://localhost:5080/api/v1/bookings/{{bookingId}}/cancellation-preview [404 Not Found, 355 B, 5 ms]
+  -
+  | 'PREVIEW {"error":{"code":"RESOURCE_NOT_FOUND","messag
+  | e":"The requested resource was not found.","correlatio
+  | nId":"01a18af7-042c-74dd-a6d5-a6677e9c3626"}}'
+  -
+  2. Eligible cancellation preview returns refund calculation
+
+---------------------------------------------------------------------
+|                         |           executed |             failed |
+--------------------------+--------------------+---------------------
+|              iterations |                  1 |                  0 |
+--------------------------+--------------------+---------------------
+|                requests |                  3 |                  0 |
+--------------------------+--------------------+---------------------
+|            test-scripts |                  3 |                  0 |
+--------------------------+--------------------+---------------------
+|      prerequest-scripts |                  0 |                  0 |
+--------------------------+--------------------+---------------------
+|              assertions |                  2 |                  2 |
+---------------------------------------------------------------------
+| total run duration: 113 ms                                        |
+---------------------------------------------------------------------
+| total data received: 1.44 KB (approx)                             |
+---------------------------------------------------------------------
+| average response time: 16 ms [min: 5 ms, max: 37 ms, s.d.: 14 ms] |
+---------------------------------------------------------------------
+
+  #  failure         detail                                                   
+                                                                              
+ 1.  AssertionError  Owned ticket identifies booking                          
+                     expected response to have status code 200 but got 404    
+                     at assertion:0 in test-script                            
+                     inside "Read owned ticket"                               
+                                                                              
+ 2.  AssertionError  Eligible cancellation preview returns refund calculation 
+                     expected response to have status code 200 but got 404    
+                     at assertion:0 in test-script                            
+                     inside "CAN-01 Preview eligible prepaid cancellation"    
+Postman credentials are required for publishing run details to Postman cloud.
+Please specify it by using the `postman login` command

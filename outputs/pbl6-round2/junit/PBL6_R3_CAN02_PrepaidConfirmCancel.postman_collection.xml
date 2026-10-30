@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<testsuite name="PBL6_R3_CAN02_PrepaidConfirmCancel.postman_collection" tests="3" failures="3" errors="0" time="2.107">
+  <testcase classname="PBL6_R3_CAN02_PrepaidConfirmCancel.postman_collection" name="failed assertion 001">
+    <failure message="Postman assertion failed; see logs/PBL6_R3_CAN02_PrepaidConfirmCancel.postman_collection.log">logs/PBL6_R3_CAN02_PrepaidConfirmCancel.postman_collection.log</failure>
+  </testcase>
+  <testcase classname="PBL6_R3_CAN02_PrepaidConfirmCancel.postman_collection" name="failed assertion 002">
+    <failure message="Postman assertion failed; see logs/PBL6_R3_CAN02_PrepaidConfirmCancel.postman_collection.log">logs/PBL6_R3_CAN02_PrepaidConfirmCancel.postman_collection.log</failure>
+  </testcase>
+  <testcase classname="PBL6_R3_CAN02_PrepaidConfirmCancel.postman_collection" name="failed assertion 003">
+    <failure message="Postman assertion failed; see logs/PBL6_R3_CAN02_PrepaidConfirmCancel.postman_collection.log">logs/PBL6_R3_CAN02_PrepaidConfirmCancel.postman_collection.log</failure>
+  </testcase>
+</testsuite>

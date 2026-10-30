@@ -1,0 +1,101 @@
+﻿No authorization data found. Please use the `postman login` command.
+Refer:https://learning.postman.com/docs/postman-cli/postman-cli-options/#postman-login
+
+Running your collection...
+postman
+
+PBL6 Round 3 delayed prepaid refund readback
+
+Root Customer login
+
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.35 KB, 34 ms]
+
+Root Read paid booking after cancellation
+
+  GET http://localhost:5080/api/v1/bookings/01a18282-b35b-706b-acb5-405d9939522a [404 Not Found, 355 B, 7 ms]
+  -
+  | 'REFUND BOOKING {"error":{"code":"RESOURCE_NOT_FOUND",
+  | "message":"The requested resource was not found.","cor
+  | relationId":"01a18af7-23ff-7a66-8207-56b683fcfd2e"}}'
+  -
+
+Root Read cancelled ticket
+
+  GET http://localhost:5080/api/v1/tickets/01a18282-be35-79bf-b285-fca228ae91f8 [404 Not Found, 355 B, 6 ms]
+  -
+  | 'REFUND TICKET {"error":{"code":"RESOURCE_NOT_FOUND","
+  | message":"The requested resource was not found.","corr
+  | elationId":"01a18af7-2416-7240-94af-0b05183247ea"}}'
+  -
+
+Root Read seat inventory after cancellation
+
+  GET http://localhost:5080/api/v1/trips/01a1825e-ce81-77ac-a288-7ec225093288/seats [404 Not Found, 355 B, 6 ms]
+  -
+  | 'CAN02 SEAT AFTER {"error":{"code":"RESOURCE_NOT_FOUND
+  | ","message":"The requested resource was not found.","c
+  | orrelationId":"01a18af7-242b-7f5c-9ea2-bd359341b37d"}}
+  | '
+  -
+  1. Cancelled PREPAID seat returns available
+
+Root Admin login
+
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.13 KB, 22 ms]
+
+Root Read refund records
+
+  GET http://localhost:5080/api/v1/admin/refunds?page=0&size=100 [200 OK, 556 B, 7 ms]
+  -
+  | 'REFUND RECORDS {"page":0,"size":100,"totalElements":1
+  | ,"totalPages":1,"items":[{"id":"01a18af7-1e91-7047-a31
+  | b-b494427cca57","refundReference":"REF-ad034bc58ece","
+  | paymentId":"01a18af7-170c-7805-9fdd-b712782ef7db","boo
+  | kingId":"01a18af7-1471-731c-ac9d-d62539595c39","amount
+  | ":150000,"currency":"VND","status":"SUCCEEDED","reason
+  | ":"Round 3 synthetic prepaid refund test"}]}'
+  -
+
+Root Read admin settlement after refund
+
+  GET http://localhost:5080/api/v1/admin/settlements?page=0&size=100 [200 OK, 623 B, 8 ms]
+  -
+  | 'CAN02 SETTLEMENT AFTER {"page":0,"size":100,"totalEle
+  | ments":1,"totalPages":1,"items":[{"id":"01a18af7-175c-
+  | 726a-9c8f-54a5fc886922","bookingId":"01a18af7-1471-731
+  | c-ac9d-d62539595c39","organizationId":"01990a00-0000-7
+  | 000-8000-000000000001","paymentId":"01a18af7-170c-7805
+  | -9fdd-b712782ef7db","paymentChannel":"PREPAID","grossA
+  | mount":0,"commissionRate":0.1000,"commissionAmount":0,
+  | "operatorNet":0,"currency":"VND","collectionStatus":"R
+  | EFUNDED"}]}'
+  -
+
+---------------------------------------------------------------------
+|                         |           executed |             failed |
+--------------------------+--------------------+---------------------
+|              iterations |                  1 |                  0 |
+--------------------------+--------------------+---------------------
+|                requests |                  7 |                  0 |
+--------------------------+--------------------+---------------------
+|            test-scripts |                  7 |                  0 |
+--------------------------+--------------------+---------------------
+|      prerequest-scripts |                  0 |                  0 |
+--------------------------+--------------------+---------------------
+|              assertions |                  1 |                  1 |
+---------------------------------------------------------------------
+| total run duration: 214 ms                                        |
+---------------------------------------------------------------------
+| total data received: 3.25 KB (approx)                             |
+---------------------------------------------------------------------
+| average response time: 12 ms [min: 6 ms, max: 34 ms, s.d.: 10 ms] |
+---------------------------------------------------------------------
+
+  #  failure         detail                                                
+                                                                           
+ 1.  AssertionError  Cancelled PREPAID seat returns available              
+                     expected response to have status code 200 but got 404 
+                     at assertion:0 in test-script                         
+                     inside "Read seat inventory after cancellation"       
+Postman credentials are required for publishing run details to Postman cloud.
+Please specify it by using the `postman login` command

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<testsuite name="PBL6_R3_Auth_Common_Security.postman_collection" tests="39" failures="0" errors="0" time="4.176">
+  <testcase classname="PBL6_R3_Auth_Common_Security.postman_collection" name="passed assertion 001" />
+  <testcase classname="PBL6_R3_Auth_Common_Security.postman_collection" name="passed assertion 002" />
+  <testcase classname="PBL6_R3_Auth_Common_Security.postman_collection" name="passed assertion 003" />
+  <testcase classname="PBL6_R3_Auth_Common_Security.postman_collection" name="passed assertion 004" />
+  <testcase classname="PBL6_R3_Auth_Common_Security.postman_collection" name="passed assertion 005" />
+  <testcase classname="PBL6_R3_Auth_Common_Security.postman_collection" name="passed assertion 006" />
+  <testcase classname="PBL6_R3_Auth_Common_Security.postman_collection" name="passed assertion 007" />
+  <testcase classname="PBL6_R3_Auth_Common_Security.postman_collection" name="passed assertion 008" />
+  <testcase classname="PBL6_R3_Auth_Common_Security.postman_collection" name="passed assertion 009" />
+  <testcase classname="PBL6_R3_Auth_Common_Security.postman_collection" name="passed assertion 010" />
+  <testcase classname="PBL6_R3_Auth_Common_Security.postman_collection" name="passed assertion 011" />
+  <testcase classname="PBL6_R3_Auth_Common_Security.postman_collection" name="passed assertion 012" />
+  <testcase classname="PBL6_R3_Auth_Common_Security.postman_collection" name="passed assertion 013" />
+  <testcase classname="PBL6_R3_Auth_Common_Security.postman_collection" name="passed assertion 014" />
+  <testcase classname="PBL6_R3_Auth_Common_Security.postman_collection" name="passed assertion 015" />
+  <testcase classname="PBL6_R3_Auth_Common_Security.postman_collection" name="passed assertion 016" />
+  <testcase classname="PBL6_R3_Auth_Common_Security.postman_collection" name="passed assertion 017" />
+  <testcase classname="PBL6_R3_Auth_Common_Security.postman_collection" name="passed assertion 018" />
+  <testcase classname="PBL6_R3_Auth_Common_Security.postman_collection" name="passed assertion 019" />
+  <testcase classname="PBL6_R3_Auth_Common_Security.postman_collection" name="passed assertion 020" />
+  <testcase classname="PBL6_R3_Auth_Common_Security.postman_collection" name="passed assertion 021" />
+  <testcase classname="PBL6_R3_Auth_Common_Security.postman_collection" name="passed assertion 022" />
+  <testcase classname="PBL6_R3_Auth_Common_Security.postman_collection" name="passed assertion 023" />
+  <testcase classname="PBL6_R3_Auth_Common_Security.postman_collection" name="passed assertion 024" />
+  <testcase classname="PBL6_R3_Auth_Common_Security.postman_collection" name="passed assertion 025" />
+  <testcase classname="PBL6_R3_Auth_Common_Security.postman_collection" name="passed assertion 026" />
+  <testcase classname="PBL6_R3_Auth_Common_Security.postman_collection" name="passed assertion 027" />
+  <testcase classname="PBL6_R3_Auth_Common_Security.postman_collection" name="passed assertion 028" />
+  <testcase classname="PBL6_R3_Auth_Common_Security.postman_collection" name="passed assertion 029" />
+  <testcase classname="PBL6_R3_Auth_Common_Security.postman_collection" name="passed assertion 030" />
+  <testcase classname="PBL6_R3_Auth_Common_Security.postman_collection" name="passed assertion 031" />
+  <testcase classname="PBL6_R3_Auth_Common_Security.postman_collection" name="passed assertion 032" />
+  <testcase classname="PBL6_R3_Auth_Common_Security.postman_collection" name="passed assertion 033" />
+  <testcase classname="PBL6_R3_Auth_Common_Security.postman_collection" name="passed assertion 034" />
+  <testcase classname="PBL6_R3_Auth_Common_Security.postman_collection" name="passed assertion 035" />
+  <testcase classname="PBL6_R3_Auth_Common_Security.postman_collection" name="passed assertion 036" />
+  <testcase classname="PBL6_R3_Auth_Common_Security.postman_collection" name="passed assertion 037" />
+  <testcase classname="PBL6_R3_Auth_Common_Security.postman_collection" name="passed assertion 038" />
+  <testcase classname="PBL6_R3_Auth_Common_Security.postman_collection" name="passed assertion 039" />
+</testsuite>

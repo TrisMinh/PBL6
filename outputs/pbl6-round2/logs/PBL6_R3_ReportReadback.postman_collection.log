@@ -1,0 +1,66 @@
+﻿No authorization data found. Please use the `postman login` command.
+Refer:https://learning.postman.com/docs/postman-cli/postman-cli-options/#postman-login
+
+Running your collection...
+postman
+
+PBL6 Round 3 reports reconciliation readback
+
+Root Admin login
+
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.12 KB, 50 ms]
+
+Root Read report revenue
+
+  GET http://localhost:5080/api/v1/reports/revenue?from=2026-10-28T00:00:00Z&to=2026-10-29T00:00:00Z&timezone=Asia%2FHo_Chi_Minh [200 OK, 422 B, 92 ms]
+  -
+  | 'REPORT Read report revenue {"data":[],"generatedAt":"
+  | 2026-10-30T04:01:27.886497+00:00","dataAsOf":"2026-10-
+  | 30T04:01:27.886498+00:00","timezone":"Asia/Ho_Chi_Minh
+  | ","metricDefinitions":{"gross_revenue":"Gross prepaid 
+  | and confirmed booking value"}}'
+  -
+
+Root Read report bookings
+
+  GET http://localhost:5080/api/v1/reports/bookings?from=2026-10-28T00:00:00Z&to=2026-10-29T00:00:00Z&timezone=Asia%2FHo_Chi_Minh [200 OK, 404 B, 15 ms]
+  -
+  | 'REPORT Read report bookings {"data":[],"generatedAt":
+  | "2026-10-30T04:01:27.9253792+00:00","dataAsOf":"2026-1
+  | 0-30T04:01:27.9253792+00:00","timezone":"Asia/Ho_Chi_M
+  | inh","metricDefinitions":{"booking_count":"Booking row
+  | s in range"}}'
+  -
+
+Root Read report occupancy
+
+  GET http://localhost:5080/api/v1/reports/occupancy?from=2026-10-28T00:00:00Z&to=2026-10-29T00:00:00Z&timezone=Asia%2FHo_Chi_Minh [200 OK, 402 B, 9 ms]
+  -
+  | 'REPORT Read report occupancy {"data":[],"generatedAt"
+  | :"2026-10-30T04:01:27.9480181+00:00","dataAsOf":"2026-
+  | 10-30T04:01:27.9480182+00:00","timezone":"Asia/Ho_Chi_
+  | Minh","metricDefinitions":{"booked_count":"Booked seat
+  | s by trip"}}'
+  -
+
+---------------------------------------------------------------------
+|                         |           executed |             failed |
+--------------------------+--------------------+---------------------
+|              iterations |                  1 |                  0 |
+--------------------------+--------------------+---------------------
+|                requests |                  4 |                  0 |
+--------------------------+--------------------+---------------------
+|            test-scripts |                  4 |                  0 |
+--------------------------+--------------------+---------------------
+|      prerequest-scripts |                  0 |                  0 |
+--------------------------+--------------------+---------------------
+|              assertions |                  0 |                  0 |
+---------------------------------------------------------------------
+| total run duration: 252 ms                                        |
+---------------------------------------------------------------------
+| total data received: 1.52 KB (approx)                             |
+---------------------------------------------------------------------
+| average response time: 41 ms [min: 9 ms, max: 92 ms, s.d.: 33 ms] |
+---------------------------------------------------------------------
+Postman credentials are required for publishing run details to Postman cloud.
+Please specify it by using the `postman login` command

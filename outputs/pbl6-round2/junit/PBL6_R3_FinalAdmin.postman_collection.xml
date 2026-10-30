@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<testsuite name="PBL6_R3_FinalAdmin.postman_collection" tests="2" failures="0" errors="0" time="2.493">
+  <testcase classname="PBL6_R3_FinalAdmin.postman_collection" name="passed assertion 001" />
+  <testcase classname="PBL6_R3_FinalAdmin.postman_collection" name="passed assertion 002" />
+</testsuite>

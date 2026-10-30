@@ -121,6 +121,11 @@ public sealed class PaymentService(IPaymentRepository store, IPaymentEvents even
             return Result<PaymentDto>.Failure(PlatformErrors.PaymentNotAllowed());
         }
 
+        if (quote.ExpiresAt is { } bookingExpiry && bookingExpiry <= DateTimeOffset.UtcNow)
+        {
+            return Result<PaymentDto>.Failure(PlatformErrors.BookingExpired());
+        }
+
         var existing = await store.GetByBookingAsync(bookingId, cancellationToken);
         if (existing is not null)
         {

@@ -1,0 +1,46 @@
+﻿No authorization data found. Please use the `postman login` command.
+Refer:https://learning.postman.com/docs/postman-cli/postman-cli-options/#postman-login
+
+Running your collection...
+postman
+
+PBL6 trip readback
+
+Root Inspect synthetic trip state
+
+  GET http://localhost:5080/api/v1/trips/01a1825e-ce81-77ac-a288-7ec225093288 [404 Not Found, 355 B, 15 ms]
+  -
+  | 'TRIP STATE {"error":{"code":"RESOURCE_NOT_FOUND","mes
+  | sage":"The requested resource was not found.","correla
+  | tionId":"01a18af8-ba2a-744b-b7c7-a2c11345ba2f"}}'
+  -
+  1⠄ AssertionError in test-script
+
+---------------------------------------------------------------------
+|                         |           executed |             failed |
+--------------------------+--------------------+---------------------
+|              iterations |                  1 |                  0 |
+--------------------------+--------------------+---------------------
+|                requests |                  1 |                  0 |
+--------------------------+--------------------+---------------------
+|            test-scripts |                  1 |                  1 |
+--------------------------+--------------------+---------------------
+|      prerequest-scripts |                  0 |                  0 |
+--------------------------+--------------------+---------------------
+|              assertions |                  0 |                  0 |
+---------------------------------------------------------------------
+| total run duration: 46 ms                                         |
+---------------------------------------------------------------------
+| total data received: 144 B (approx)                               |
+---------------------------------------------------------------------
+| average response time: 15 ms [min: 15 ms, max: 15 ms, s.d.: 0 us] |
+---------------------------------------------------------------------
+
+  #  failure         detail                                                
+                                                                           
+ 1.  AssertionError                                                        
+                     expected response to have status code 200 but got 404 
+                     at test-script:3:87                                   
+                     inside "Inspect synthetic trip state"                 
+Postman credentials are required for publishing run details to Postman cloud.
+Please specify it by using the `postman login` command

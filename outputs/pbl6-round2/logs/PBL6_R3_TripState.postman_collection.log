@@ -1,0 +1,73 @@
+﻿No authorization data found. Please use the `postman login` command.
+Refer:https://learning.postman.com/docs/postman-cli/postman-cli-options/#postman-login
+
+Running your collection...
+postman
+
+PBL6 Round 3 Trip state machine checks
+
+Root Login operator
+
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.37 KB, 31 ms]
+
+Root TRIP-08 Reject scheduled directly to arrived
+
+  POST http://localhost:5080/api/v1/operator/trips/01990a00-0000-7000-8000-000000000040/status-transitions [409 Conflict, 369 B, 13 ms]
+  Pass  Invalid transition rejected with baseline conflict status
+
+Root TRIP-07 Transition synthetic trip to BOARDING
+
+  POST http://localhost:5080/api/v1/operator/trips/01990a00-0000-7000-8000-000000000040/status-transitions [200 OK, 1.1 KB, 14 ms]
+  Pass  Scheduled to boarding
+
+Root TRIP-07 Transition synthetic trip to DEPARTED
+
+  POST http://localhost:5080/api/v1/operator/trips/01990a00-0000-7000-8000-000000000040/status-transitions [200 OK, 1.1 KB, 12 ms]
+  Pass  Boarding to departed
+
+Root TRIP-07 Transition synthetic trip to IN_TRANSIT
+
+  POST http://localhost:5080/api/v1/operator/trips/01990a00-0000-7000-8000-000000000040/status-transitions [200 OK, 1.1 KB, 12 ms]
+  Pass  Departed to in transit
+
+Root TRIP-07 Transition synthetic trip to ARRIVED
+
+  POST http://localhost:5080/api/v1/operator/trips/01990a00-0000-7000-8000-000000000040/status-transitions [200 OK, 1.1 KB, 12 ms]
+  Pass  In transit to arrived
+
+Root TRIP-07 Transition synthetic trip to COMPLETED
+
+  POST http://localhost:5080/api/v1/operator/trips/01990a00-0000-7000-8000-000000000040/status-transitions [200 OK, 1.1 KB, 13 ms]
+  Pass  Arrived to completed
+
+Root TRIP-14 Hard delete is not available
+
+  DELETE http://localhost:5080/api/v1/operator/trips/01990a00-0000-7000-8000-000000000040 [405 Method Not Allowed, 399 B, 4 ms]
+  Pass  Hard deletion is rejected
+
+Root TRIP-14 Verify trip still exists after delete attempt
+
+  GET http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000040 [200 OK, 1.1 KB, 6 ms]
+  Pass  Trip remains after unsupported hard delete
+
+--------------------------------------------------------------------
+|                         |           executed |            failed |
+--------------------------+--------------------+--------------------
+|              iterations |                  1 |                 0 |
+--------------------------+--------------------+--------------------
+|                requests |                  9 |                 0 |
+--------------------------+--------------------+--------------------
+|            test-scripts |                  9 |                 0 |
+--------------------------+--------------------+--------------------
+|      prerequest-scripts |                  0 |                 0 |
+--------------------------+--------------------+--------------------
+|              assertions |                  8 |                 0 |
+--------------------------------------------------------------------
+| total run duration: 258 ms                                       |
+--------------------------------------------------------------------
+| total data received: 6.9 KB (approx)                             |
+--------------------------------------------------------------------
+| average response time: 13 ms [min: 4 ms, max: 31 ms, s.d.: 7 ms] |
+--------------------------------------------------------------------
+Postman credentials are required for publishing run details to Postman cloud.
+Please specify it by using the `postman login` command

@@ -1,0 +1,75 @@
+﻿No authorization data found. Please use the `postman login` command.
+Refer:https://learning.postman.com/docs/postman-cli/postman-cli-options/#postman-login
+
+Running your collection...
+postman
+
+PBL6 Round 3 Admin role replacement and restore
+
+Root Admin login
+
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.12 KB, 88 ms]
+
+Root Find synthetic role test user
+
+  GET http://localhost:5080/api/v1/admin/users?page=0&size=100 [200 OK, 1.88 KB, 60 ms]
+  1. Find synthetic account and save version
+
+Root ADM-02 Remove customer role on synthetic user
+
+  PUT http://localhost:5080/api/v1/admin/users/{{roleTestUserId}}/roles [404 Not Found, 355 B, 17 ms]
+  2. Role replacement removes role from synthetic user
+
+Root ADM-02 Restore customer role on synthetic user
+
+  PUT http://localhost:5080/api/v1/admin/users/{{roleTestUserId}}/roles [404 Not Found, 355 B, 7 ms]
+  3. Synthetic user role restored
+
+Root Verify synthetic account remains active
+
+  GET http://localhost:5080/api/v1/admin/users/{{roleTestUserId}} [404 Not Found, 355 B, 6 ms]
+  4. Synthetic user profile retained after role restore
+
+---------------------------------------------------------------------
+|                         |           executed |             failed |
+--------------------------+--------------------+---------------------
+|              iterations |                  1 |                  0 |
+--------------------------+--------------------+---------------------
+|                requests |                  5 |                  0 |
+--------------------------+--------------------+---------------------
+|            test-scripts |                  5 |                  0 |
+--------------------------+--------------------+---------------------
+|      prerequest-scripts |                  0 |                  0 |
+--------------------------+--------------------+---------------------
+|              assertions |                  4 |                  4 |
+---------------------------------------------------------------------
+| total run duration: 288 ms                                        |
+---------------------------------------------------------------------
+| total data received: 3.02 KB (approx)                             |
+---------------------------------------------------------------------
+| average response time: 35 ms [min: 6 ms, max: 88 ms, s.d.: 32 ms] |
+---------------------------------------------------------------------
+
+  #  failure         detail                                                  
+                                                                             
+ 1.  AssertionError  Find synthetic account and save version                 
+                     expected undefined to exist                             
+                     at assertion:0 in test-script                           
+                     inside "Find synthetic role test user"                  
+                                                                             
+ 2.  AssertionError  Role replacement removes role from synthetic user       
+                     expected response to have status code 200 but got 404   
+                     at assertion:0 in test-script                           
+                     inside "ADM-02 Remove customer role on synthetic user"  
+                                                                             
+ 3.  AssertionError  Synthetic user role restored                            
+                     expected response to have status code 200 but got 404   
+                     at assertion:0 in test-script                           
+                     inside "ADM-02 Restore customer role on synthetic user" 
+                                                                             
+ 4.  AssertionError  Synthetic user profile retained after role restore      
+                     expected response to have status code 200 but got 404   
+                     at assertion:0 in test-script                           
+                     inside "Verify synthetic account remains active"        
+Postman credentials are required for publishing run details to Postman cloud.
+Please specify it by using the `postman login` command

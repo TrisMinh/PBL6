@@ -1,0 +1,85 @@
+﻿No authorization data found. Please use the `postman login` command.
+Refer:https://learning.postman.com/docs/postman-cli/postman-cli-options/#postman-login
+
+Running your collection...
+postman
+
+PBL6 Round 3 Verified sandbox payment and duplicate webhook
+
+Root Customer login
+
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.56 KB, 44 ms]
+
+Root Read/replay original payment intent
+
+  POST http://localhost:5080/api/v1/bookings/01a18263-9bb1-7393-9355-47d8efecdb8b/payments [404 Not Found, 355 B, 3 s]
+  1. Payment intent response has no card data and stable id
+
+Root Replay VNPAY sandbox success (duplicate event)
+
+  POST http://localhost:8099/pay [404 Not Found, 221 B, 14 ms]
+  2. Local simulator completed duplicate callback
+
+Root PAY-05/06 Verify payment state is idempotently SUCCEEDED
+
+  GET http://localhost:5080/api/v1/payments/01a18263-e1eb-72e0-bf3f-21eb7d42c212 [404 Not Found, 355 B, 5 ms]
+  3. Duplicate success webhook leaves one succeeded payment
+
+Root PAY-05 Verify booking PAID after payment
+
+  GET http://localhost:5080/api/v1/bookings/01a18263-9bb1-7393-9355-47d8efecdb8b [404 Not Found, 355 B, 7 ms]
+  4. Booking remains PAID
+
+Root TKT-02 Verify one ticket is issued for paid booking
+
+  GET http://localhost:5080/api/v1/tickets [200 OK, 1.39 KB, 6 ms]
+  5. Exactly one ticket belongs to this booking
+
+----------------------------------------------------------------------
+|                         |            executed |             failed |
+--------------------------+---------------------+---------------------
+|              iterations |                   1 |                  0 |
+--------------------------+---------------------+---------------------
+|                requests |                   6 |                  0 |
+--------------------------+---------------------+---------------------
+|            test-scripts |                   6 |                  0 |
+--------------------------+---------------------+---------------------
+|      prerequest-scripts |                   0 |                  0 |
+--------------------------+---------------------+---------------------
+|              assertions |                   5 |                  5 |
+----------------------------------------------------------------------
+| total run duration: 3.2 s                                          |
+----------------------------------------------------------------------
+| total data received: 3.04 KB (approx)                              |
+----------------------------------------------------------------------
+| average response time: 527 ms [min: 5 ms, max: 3 s, s.d.: 1145 ms] |
+----------------------------------------------------------------------
+
+  #  failure         detail                                                            
+                                                                                       
+ 1.  AssertionError  Payment intent response has no card data and stable id            
+                     expected response to have status code 201 but got 404             
+                     at assertion:0 in test-script                                     
+                     inside "Read/replay original payment intent"                      
+                                                                                       
+ 2.  AssertionError  Local simulator completed duplicate callback                      
+                     expected response to have status code 200 but got 404             
+                     at assertion:0 in test-script                                     
+                     inside "Replay VNPAY sandbox success (duplicate event)"           
+                                                                                       
+ 3.  AssertionError  Duplicate success webhook leaves one succeeded payment            
+                     expected response to have status code 200 but got 404             
+                     at assertion:0 in test-script                                     
+                     inside "PAY-05/06 Verify payment state is idempotently SUCCEEDED" 
+                                                                                       
+ 4.  AssertionError  Booking remains PAID                                              
+                     expected response to have status code 200 but got 404             
+                     at assertion:0 in test-script                                     
+                     inside "PAY-05 Verify booking PAID after payment"                 
+                                                                                       
+ 5.  AssertionError  Exactly one ticket belongs to this booking                        
+                     expected +0 to deeply equal 1                                     
+                     at assertion:0 in test-script                                     
+                     inside "TKT-02 Verify one ticket is issued for paid booking"      
+Postman credentials are required for publishing run details to Postman cloud.
+Please specify it by using the `postman login` command

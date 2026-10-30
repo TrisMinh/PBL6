@@ -127,5 +127,13 @@ if ([System.IO.Path]::IsPathRooted([string]$liveSummary.environment)) {
 if ([System.IO.Path]::IsPathRooted([string]$liveSummary.results[0].Log)) {
     throw "Runner summary must not expose a machine-specific log path: $($liveSummary.results[0].Log)"
 }
+$junitPath = Join-Path $liveOutputPath ([string]$liveSummary.results[0].JUnit).Replace('/', '\')
+if (-not (Test-Path -LiteralPath $junitPath -PathType Leaf)) {
+    throw "Runner JUnit evidence is missing: $junitPath"
+}
+[xml]$junit = Get-Content -LiteralPath $junitPath -Raw
+if ($junit.testsuite.tests -ne '1' -or $junit.testsuite.failures -ne '0' -or $junit.testsuite.errors -ne '0') {
+    throw "Runner JUnit evidence was not generated correctly: $($junit.OuterXml)"
+}
 
 Write-Host "Round 2 runner contract passed for $($collections.Count) collections."

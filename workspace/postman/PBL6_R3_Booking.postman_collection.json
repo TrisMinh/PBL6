@@ -42,7 +42,7 @@
                                                         "value":  "Bearer {{customerToken}}"
                                                     }
                                                 ],
-                                     "url":  "http://localhost:5080/api/v1/trips/01a1825d-b562-7b04-bab7-d50af84b5142/seats"
+                                     "url":  "http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seats"
                                  },
                      "event":  [
                                    {
@@ -66,7 +66,7 @@
                                                         "value":  "Bearer {{customerToken}}"
                                                     }
                                                 ],
-                                     "url":  "http://localhost:5080/api/v1/trips/01a1825d-b562-7b04-bab7-d50af84b5142/stops"
+                                     "url":  "http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/stops"
                                  },
                      "event":  [
                                    {
@@ -98,7 +98,7 @@
                                                         "value":  "application/json"
                                                     }
                                                 ],
-                                     "url":  "http://localhost:5080/api/v1/trips/01a1825d-b562-7b04-bab7-d50af84b5142/seat-holds",
+                                     "url":  "http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seat-holds",
                                      "body":  {
                                                   "mode":  "raw",
                                                   "raw":  "{\"seatIds\":[\"{{seatId}}\"],\"pickupStopId\":\"{{pickupId}}\",\"dropoffStopId\":\"{{dropoffId}}\"}"
@@ -134,7 +134,7 @@
                                                         "value":  "application/json"
                                                     }
                                                 ],
-                                     "url":  "http://localhost:5080/api/v1/trips/01a1825d-b562-7b04-bab7-d50af84b5142/seat-holds",
+                                     "url":  "http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seat-holds",
                                      "body":  {
                                                   "mode":  "raw",
                                                   "raw":  "{\"seatIds\":[\"{{seatId}}\"],\"pickupStopId\":\"{{pickupId}}\",\"dropoffStopId\":\"{{dropoffId}}\"}"
@@ -197,7 +197,7 @@
                                      "url":  "http://localhost:5080/api/v1/bookings",
                                      "body":  {
                                                   "mode":  "raw",
-                                                  "raw":  "{\"holdToken\":\"{{holdToken}}\",\"contact\":{\"fullName\":\"Postman Synthetic\",\"email\":\"seed.customer@example.test\",\"phone\":\"+840000000001\"},\"passengers\":[{\"seatId\":\"{{seatId}}\",\"fullName\":\"Postman Passenger\",\"documentType\":null,\"documentNumber\":null,\"pickupStopId\":\"{{pickupId}}\",\"dropoffStopId\":\"{{dropoffId}}\"}],\"expectedTotal\":0,\"currency\":\"VND\",\"paymentChannel\":\"PREPAID\"}"
+                                                  "raw":  "{\"holdToken\":\"{{holdToken}}\",\"contact\":{\"fullName\":\"Postman Synthetic\",\"email\":\"seed.customer@example.test\",\"phone\":\"+840000000001\"},\"passengers\":[{\"seatId\":\"{{seatId}}\",\"fullName\":\"Postman Passenger\",\"documentType\":null,\"documentNumber\":null,\"pickupStopId\":\"{{pickupId}}\",\"dropoffStopId\":\"{{dropoffId}}\"}],\"expectedTotal\":150000,\"currency\":\"VND\",\"paymentChannel\":\"PREPAID\"}"
                                               }
                                  },
                      "event":  [

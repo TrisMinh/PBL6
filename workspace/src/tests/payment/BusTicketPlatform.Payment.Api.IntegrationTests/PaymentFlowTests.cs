@@ -112,6 +112,36 @@ public sealed class PaymentFlowTests
     }
 
     [Fact]
+    public async Task Expired_booking_quote_rejects_new_payment()
+    {
+        var client = _fixture.CreateClient();
+        var bookingId = Guid.CreateVersion7();
+        var user = Guid.CreateVersion7();
+        var quote = await client.PostAsJsonAsync("/internal/quotes", new
+        {
+            bookingId,
+            customerId = user,
+            organizationId = Guid.CreateVersion7(),
+            amount = 150000,
+            currency = "VND",
+            paymentChannel = "PREPAID",
+            commissionRate = 0.1m,
+            expiresAt = DateTimeOffset.UtcNow.AddMinutes(-1)
+        });
+        Assert.Equal(HttpStatusCode.NoContent, quote.StatusCode);
+
+        var response = await Send(client, HttpMethod.Post, $"/api/v1/bookings/{bookingId}/payments", new
+        {
+            provider = "VNPAY_SANDBOX",
+            method = "VNPAY_QR",
+            returnUri = "https://example.test/return"
+        }, TestJwt.Mint(user, ["CUSTOMER"]), Guid.CreateVersion7().ToString("N"));
+        Assert.Equal(HttpStatusCode.Gone, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal("BOOKING_EXPIRED", body.GetProperty("error").GetProperty("code").GetString());
+    }
+
+    [Fact]
     public async Task Duplicate_success_is_idempotent_and_creates_one_settlement()
     {
         var client = _fixture.CreateClient();

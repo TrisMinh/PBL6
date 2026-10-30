@@ -157,15 +157,14 @@ public sealed class TransportFlowTests
     }
 
     [Fact]
-    public async Task Search_caps_oversized_pages_and_rejects_negative_pages()
+    public async Task Search_rejects_oversized_and_negative_pages()
     {
         var client = _fixture.CreateClient();
-        var capped = await SendAsync(
+        var oversized = await SendAsync(
             client,
             HttpMethod.Get,
             "/api/v1/trips?origin=Nowhere&destination=Elsewhere&departureDate=2030-01-01&passengerCount=1&size=100000");
-        Assert.Equal(HttpStatusCode.OK, capped.Response.StatusCode);
-        Assert.Equal(100, capped.Body.GetProperty("size").GetInt32());
+        Assert.Equal(HttpStatusCode.BadRequest, oversized.Response.StatusCode);
 
         var negative = await SendAsync(
             client,

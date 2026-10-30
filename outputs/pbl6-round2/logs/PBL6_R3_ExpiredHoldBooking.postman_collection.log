@@ -1,0 +1,50 @@
+﻿No authorization data found. Please use the `postman login` command.
+Refer:https://learning.postman.com/docs/postman-cli/postman-cli-options/#postman-login
+
+Running your collection...
+postman
+
+PBL6 Round 3 expired hold booking rejection
+
+Root Customer login
+
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.35 KB, 40 ms]
+
+Root BOOK-16 Create booking from expired hold
+
+  POST http://localhost:5080/api/v1/bookings [404 Not Found, 355 B, 11 ms]
+  -
+  | 'EXPIRED BOOK {"error":{"code":"RESOURCE_NOT_FOUND","m
+  | essage":"The requested resource was not found.","corre
+  | lationId":"01a18af7-8a8b-7e7d-a7ed-06004c31e503"}}'
+  -
+  1. Expired hold cannot create booking
+
+----------------------------------------------------------------------
+|                         |            executed |             failed |
+--------------------------+---------------------+---------------------
+|              iterations |                   1 |                  0 |
+--------------------------+---------------------+---------------------
+|                requests |                   2 |                  0 |
+--------------------------+---------------------+---------------------
+|            test-scripts |                   2 |                  0 |
+--------------------------+---------------------+---------------------
+|      prerequest-scripts |                   0 |                  0 |
+--------------------------+---------------------+---------------------
+|              assertions |                   1 |                  1 |
+----------------------------------------------------------------------
+| total run duration: 100 ms                                         |
+----------------------------------------------------------------------
+| total data received: 1.29 KB (approx)                              |
+----------------------------------------------------------------------
+| average response time: 25 ms [min: 11 ms, max: 40 ms, s.d.: 14 ms] |
+----------------------------------------------------------------------
+
+  #  failure         detail                                                
+                                                                           
+ 1.  AssertionError  Expired hold cannot create booking                    
+                     expected response to have status code 410 but got 404 
+                     at assertion:0 in test-script                         
+                     inside "BOOK-16 Create booking from expired hold"     
+Postman credentials are required for publishing run details to Postman cloud.
+Please specify it by using the `postman login` command

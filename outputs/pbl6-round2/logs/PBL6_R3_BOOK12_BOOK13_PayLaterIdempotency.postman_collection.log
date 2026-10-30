@@ -1,0 +1,102 @@
+﻿No authorization data found. Please use the `postman login` command.
+Refer:https://learning.postman.com/docs/postman-cli/postman-cli-options/#postman-login
+
+Running your collection...
+postman
+
+PBL6 Round 3 booking idempotency replay and conflict
+
+Root Customer login
+
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.35 KB, 32 ms]
+
+Root Read available seats for idempotency fixture
+
+  GET http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seats [200 OK, 1.26 KB, 8 ms]
+  Pass  Available seat found
+
+Root Hold idempotency test seat
+
+  POST http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seat-holds [201 Created, 590 B, 13 ms]
+
+Root BOOK-12 Create PAY_LATER booking with key K
+
+  POST http://localhost:5080/api/v1/bookings [201 Created, 887 B, 69 ms]
+  -
+  | 'BOOK12 CREATE {"id":"01a18af6-9d6b-7c9e-850b-249bef32
+  | 5bd4","code":"BK249BEF325BD4","customerId":"01990a00-0
+  | 000-7000-8000-000000000002","tripId":"01990a00-0000-70
+  | 00-8000-000000000007","status":"CONFIRMED","paymentCha
+  | nnel":"PAY_LATER","contact":{"fullName":"PBL6 Idempote
+  | ncy Customer","email":"seed.customer@example.test","ph
+  | one":"\\u002B840000000001"},"subtotal":150000,"discoun
+  | t":0,"fee":0,"total":150000,"currency":"VND","expiresA
+  | t":"2026-10-30T04:09:40.356103+00:00","items":[{"seatI
+  | d":"01990a00-0000-7000-8000-000000000021","fullName":"
+  | PBL6 Idempotency Passenger","pickupStopId":"01990a00-0
+  | 000-7000-8000-000000000004","dropoffStopId":"01990a00-
+  | 0000-7000-8000-000000000005"}],"rowVersion":0}'
+  -
+  Pass  Initial idempotent booking created
+
+Root BOOK-12 Replay same key and exact body
+
+  POST http://localhost:5080/api/v1/bookings [201 Created, 892 B, 8 ms]
+  Pass  Same booking key and body replay the same resource
+
+Root BOOK-13 Reuse same key with different passenger
+
+  POST http://localhost:5080/api/v1/bookings [409 Conflict, 375 B, 6 ms]
+  -
+  | 'BOOK13 KEY CONFLICT {"error":{"code":"IDEMPOTENCY_CON
+  | FLICT","message":"The idempotency key was reused with 
+  | a different payload.","correlationId":"01a18af6-9dc8-7
+  | d9c-b5ad-e10813946925"}}'
+  -
+  Pass  Different body under same key conflicts
+
+Root Read ticket for synthetic booking
+
+  GET http://localhost:5080/api/v1/tickets [200 OK, 727 B, 27 ms]
+  Pass  Ticket found for cleanup
+
+Root Read booking version for cleanup
+
+  GET http://localhost:5080/api/v1/bookings/01a18af6-9d6b-7c9e-850b-249bef325bd4 [200 OK, 882 B, 8 ms]
+
+Root Preview synthetic cancellation for cleanup
+
+  POST http://localhost:5080/api/v1/bookings/01a18af6-9d6b-7c9e-850b-249bef325bd4/cancellation-preview [200 OK, 431 B, 22 ms]
+  -
+  | 'BOOK12 CLEANUP PREVIEW {"previewId":"01a18af6-9e2a-7b
+  | 40-b409-e5eabf2b0639","ticketIds":["01a18af6-9d91-7057
+  | -afdc-5d62ebfe7260"],"policyVersion":"cancel-mvp-v1","
+  | fee":0,"refundAmount":0,"currency":"VND","expiresAt":"
+  | 2026-10-30T04:04:40.5864436+00:00"}'
+  -
+
+Root Cancel idempotency fixture
+
+  POST http://localhost:5080/api/v1/bookings/01a18af6-9d6b-7c9e-850b-249bef325bd4/cancel [202 Accepted, 284 B, 33 ms]
+
+---------------------------------------------------------------------
+|                         |           executed |             failed |
+--------------------------+--------------------+---------------------
+|              iterations |                  1 |                  0 |
+--------------------------+--------------------+---------------------
+|                requests |                 10 |                  0 |
+--------------------------+--------------------+---------------------
+|            test-scripts |                 10 |                  0 |
+--------------------------+--------------------+---------------------
+|      prerequest-scripts |                  0 |                  0 |
+--------------------------+--------------------+---------------------
+|              assertions |                  5 |                  0 |
+---------------------------------------------------------------------
+| total run duration: 393 ms                                        |
+---------------------------------------------------------------------
+| total data received: 5.54 KB (approx)                             |
+---------------------------------------------------------------------
+| average response time: 22 ms [min: 6 ms, max: 69 ms, s.d.: 18 ms] |
+---------------------------------------------------------------------
+Postman credentials are required for publishing run details to Postman cloud.
+Please specify it by using the `postman login` command

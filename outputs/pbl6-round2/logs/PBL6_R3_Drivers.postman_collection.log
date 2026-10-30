@@ -1,0 +1,53 @@
+﻿No authorization data found. Please use the `postman login` command.
+Refer:https://learning.postman.com/docs/postman-cli/postman-cli-options/#postman-login
+
+Running your collection...
+postman
+
+PBL6 Round 3 Driver profiles and license checks
+
+Root Operator login
+
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.37 KB, 43 ms]
+
+Root OPS-07 Create valid synthetic driver profile
+
+  POST http://localhost:5080/api/v1/operator/drivers [201 Created, 410 B, 18 ms]
+  Pass  Valid driver profile created
+
+Root Deactivate synthetic valid driver
+
+  POST http://localhost:5080/api/v1/operator/drivers/01a18af7-78c0-788b-bb42-009ff8bc4fc5/deactivate [200 OK, 407 B, 16 ms]
+  Pass  Synthetic valid driver deactivated
+
+Root OPS-08 Expired driver license is stored as unavailable
+
+  POST http://localhost:5080/api/v1/operator/drivers [201 Created, 413 B, 10 ms]
+  Pass  Expired profile is retained but unavailable for assignment
+
+Root Clean up expired synthetic driver if API accepted it
+
+  POST http://localhost:5080/api/v1/operator/drivers/01a18af7-78fd-746d-98f0-94dbcb133af7/deactivate [200 OK, 409 B, 10 ms]
+  Pass  Expired driver fixture cleanup
+
+----------------------------------------------------------------------
+|                         |            executed |             failed |
+--------------------------+---------------------+---------------------
+|              iterations |                   1 |                  0 |
+--------------------------+---------------------+---------------------
+|                requests |                   5 |                  0 |
+--------------------------+---------------------+---------------------
+|            test-scripts |                   5 |                  0 |
+--------------------------+---------------------+---------------------
+|      prerequest-scripts |                   0 |                  0 |
+--------------------------+---------------------+---------------------
+|              assertions |                   4 |                  0 |
+----------------------------------------------------------------------
+| total run duration: 199 ms                                         |
+----------------------------------------------------------------------
+| total data received: 1.96 KB (approx)                              |
+----------------------------------------------------------------------
+| average response time: 19 ms [min: 10 ms, max: 43 ms, s.d.: 12 ms] |
+----------------------------------------------------------------------
+Postman credentials are required for publishing run details to Postman cloud.
+Please specify it by using the `postman login` command

@@ -29,3 +29,7 @@ Desktop.ini
 
 # Isolated implementation worktrees
 .worktrees/
+
+# Local workbook rendering/inspection scratch files
+outputs/pbl6-round2/previews/
+outputs/pbl6-round2/*.inspect.ndjson

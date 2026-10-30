@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<testsuite name="PBL6_R3_TripCancel.postman_collection" tests="5" failures="0" errors="0" time="2.101">
+  <testcase classname="PBL6_R3_TripCancel.postman_collection" name="passed assertion 001" />
+  <testcase classname="PBL6_R3_TripCancel.postman_collection" name="passed assertion 002" />
+  <testcase classname="PBL6_R3_TripCancel.postman_collection" name="passed assertion 003" />
+  <testcase classname="PBL6_R3_TripCancel.postman_collection" name="passed assertion 004" />
+  <testcase classname="PBL6_R3_TripCancel.postman_collection" name="passed assertion 005" />
+</testsuite>

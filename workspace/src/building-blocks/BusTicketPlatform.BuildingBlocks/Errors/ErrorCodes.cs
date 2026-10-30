@@ -32,5 +32,6 @@ public static class ErrorCodes
     public const string TicketAlreadyCheckedIn = "TICKET_ALREADY_CHECKED_IN";
     public const string PriceMismatch = "PRICE_MISMATCH";
     public const string PaymentNotAllowed = "PAYMENT_NOT_ALLOWED";
+    public const string BookingExpired = "BOOKING_EXPIRED";
     public const string WebhookInvalid = "WEBHOOK_INVALID";
 }

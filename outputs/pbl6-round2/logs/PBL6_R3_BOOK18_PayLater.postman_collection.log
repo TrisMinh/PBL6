@@ -1,0 +1,96 @@
+﻿No authorization data found. Please use the `postman login` command.
+Refer:https://learning.postman.com/docs/postman-cli/postman-cli-options/#postman-login
+
+Running your collection...
+postman
+
+PBL6 Round 3 PAY_LATER booking when enabled
+
+Root Customer login
+
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.35 KB, 33 ms]
+
+Root Read seats on active synthetic trip
+
+  GET http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seats [200 OK, 1.26 KB, 8 ms]
+  -
+  | 'PAYLATER SEATS {"tripId":"01990a00-0000-7000-8000-000
+  | 000000007","seats":[{"id":"01990a00-0000-7000-8000-000
+  | 000000021","code":"1A","type":"STANDARD","status":"AVA
+  | ILABLE","price":{"amount":150000,"currency":"VND"},"ro
+  | wVersion":0},{"id":"01990a00-0000-7000-8000-0000000000
+  | 22","code":"1B","type":"STANDARD","status":"AVAILABLE"
+  | ,"price":{"amount":150000,"currency":"VND"},"rowVersio
+  | n":0},{"id":"01990a00-0000-7000-8000-000000000041","co
+  | de":"1C","type":"STANDARD","status":"HELD","price":{"a
+  | mount":150000,"currency":"VND"},"rowVersion":0},{"id":
+  | "01990a00-0000-7000-8000-000000000042","code":"1D","ty
+  | pe":"STANDARD","status":"AVAILABLE","price":{"amount":
+  | 150000,"currency":"VND"},"rowVersion":0},{"id":"01990a
+  | 00-0000-7000-8000-000000000043","code":"2A","type":"ST
+  | ANDARD","status":"AVAILABLE","price":{"amount":150000,
+  | "currency":"VND"},"rowVersion":0},{"id":"01990a00-0000
+  | -7000-8000-000000000044","code":"2B","type":"STANDARD"
+  | ,"status":"AVAILABLE","price":{"amount":150000,"curren
+  | cy":"VND"},"rowVersion":0}],"availabilityAsOf":"2026-1
+  | 0-30T03:59:44.7803051+00:00","serverTime":"2026-10-30T
+  | 03:59:44.7803051+00:00"}'
+  -
+  Pass  Available seat found
+
+Root Hold one seat
+
+  POST http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seat-holds [201 Created, 590 B, 15 ms]
+  -
+  | 'PAYLATER HOLD {"holdToken":"02L-M38pS39xdII32MOo7gJ1z
+  | P4z2tmIM3h1DU0oW5c","tripId":"01990a00-0000-7000-8000-
+  | 000000000007","status":"ACTIVE","seats":[{"id":"01990a
+  | 00-0000-7000-8000-000000000021","code":"1A","type":"ST
+  | ANDARD","status":"HELD","price":{"amount":150000,"curr
+  | ency":"VND"},"rowVersion":0}],"expiresAt":"2026-10-30T
+  | 04:09:44.805615+00:00","serverTime":"2026-10-30T03:59:
+  | 44.8095211+00:00"}'
+  -
+
+Root BOOK-18 Create PAY_LATER booking on enabled operator
+
+  POST http://localhost:5080/api/v1/bookings [201 Created, 893 B, 22 ms]
+  -
+  | 'PAYLATER BOOKING {"id":"01a18af6-aec6-7d13-8d34-77c0b
+  | ab0f61a","code":"BK77C0BAB0F61A","customerId":"01990a0
+  | 0-0000-7000-8000-000000000002","tripId":"01990a00-0000
+  | -7000-8000-000000000007","status":"CONFIRMED","payment
+  | Channel":"PAY_LATER","contact":{"fullName":"PBL6 Round
+  |  3 PayLater Test","email":"seed.customer@example.test"
+  | ,"phone":"\\u002B840000000001"},"subtotal":150000,"dis
+  | count":0,"fee":0,"total":150000,"currency":"VND","expi
+  | resAt":"2026-10-30T04:09:44.805615+00:00","items":[{"s
+  | eatId":"01990a00-0000-7000-8000-000000000021","fullNam
+  | e":"PBL6 Round 3 PayLater Passenger","pickupStopId":"0
+  | 1990a00-0000-7000-8000-000000000004","dropoffStopId":"
+  | 01990a00-0000-7000-8000-000000000005"}],"rowVersion":0
+  | }'
+  -
+  Pass  PAY_LATER booking accepted for enabled operator
+
+--------------------------------------------------------------------
+|                         |           executed |            failed |
+--------------------------+--------------------+--------------------
+|              iterations |                  1 |                 0 |
+--------------------------+--------------------+--------------------
+|                requests |                  4 |                 0 |
+--------------------------+--------------------+--------------------
+|            test-scripts |                  4 |                 0 |
+--------------------------+--------------------+--------------------
+|      prerequest-scripts |                  0 |                 0 |
+--------------------------+--------------------+--------------------
+|              assertions |                  2 |                 0 |
+--------------------------------------------------------------------
+| total run duration: 157 ms                                       |
+--------------------------------------------------------------------
+| total data received: 3.25 KB (approx)                            |
+--------------------------------------------------------------------
+| average response time: 19 ms [min: 8 ms, max: 33 ms, s.d.: 9 ms] |
+--------------------------------------------------------------------
+Postman credentials are required for publishing run details to Postman cloud.
+Please specify it by using the `postman login` command

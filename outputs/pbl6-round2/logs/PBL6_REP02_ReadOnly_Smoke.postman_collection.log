@@ -1,0 +1,44 @@
+﻿No authorization data found. Please use the `postman login` command.
+Refer:https://learning.postman.com/docs/postman-cli/postman-cli-options/#postman-login
+
+Running your collection...
+postman
+
+PBL6 REP02 Read-only report smoke
+
+Root REP-02 Login platform admin
+
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.12 KB, 33 ms]
+  Pass  Admin login returns access token
+
+Root REP-02 Booking report
+
+  GET http://localhost:5080/api/v1/reports/bookings?from=2026-10-01&to=2026-10-28&timezone=Asia%2FSaigon [200 OK, 399 B, 5 ms]
+  Pass  Live report endpoint returns contract response
+
+Root REP-02 Occupancy report
+
+  GET http://localhost:5080/api/v1/reports/occupancy?from=2026-10-01&to=2026-10-28&timezone=Asia%2FSaigon [200 OK, 397 B, 5 ms]
+  Pass  Live report endpoint returns contract response
+
+---------------------------------------------------------------------
+|                         |           executed |             failed |
+--------------------------+--------------------+---------------------
+|              iterations |                  1 |                  0 |
+--------------------------+--------------------+---------------------
+|                requests |                  3 |                  0 |
+--------------------------+--------------------+---------------------
+|            test-scripts |                  3 |                  0 |
+--------------------------+--------------------+---------------------
+|      prerequest-scripts |                  0 |                  0 |
+--------------------------+--------------------+---------------------
+|              assertions |                  3 |                  0 |
+---------------------------------------------------------------------
+| total run duration: 103 ms                                        |
+---------------------------------------------------------------------
+| total data received: 1.3 KB (approx)                              |
+---------------------------------------------------------------------
+| average response time: 14 ms [min: 5 ms, max: 33 ms, s.d.: 13 ms] |
+---------------------------------------------------------------------
+Postman credentials are required for publishing run details to Postman cloud.
+Please specify it by using the `postman login` command

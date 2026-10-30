@@ -1,0 +1,50 @@
+﻿No authorization data found. Please use the `postman login` command.
+Refer:https://learning.postman.com/docs/postman-cli/postman-cli-options/#postman-login
+
+Running your collection...
+postman
+
+PBL6 Round 3 operator reads trip manifest
+
+Root Operator login
+
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.37 KB, 44 ms]
+
+Root TRIP-10 Read minimal passenger manifest
+
+  GET http://localhost:5080/api/v1/operator/trips/01a1825d-b562-7b04-bab7-d50af84b5142/manifest [404 Not Found, 355 B, 7 ms]
+  -
+  | 'MANIFEST {"error":{"code":"RESOURCE_NOT_FOUND","messa
+  | ge":"The requested resource was not found.","correlati
+  | onId":"01a18af8-9b41-774f-b2e0-5461a2d2c623"}}'
+  -
+  1. Authorized manifest returns minimum passenger fields
+
+---------------------------------------------------------------------
+|                         |           executed |             failed |
+--------------------------+--------------------+---------------------
+|              iterations |                  1 |                  0 |
+--------------------------+--------------------+---------------------
+|                requests |                  2 |                  0 |
+--------------------------+--------------------+---------------------
+|            test-scripts |                  2 |                  0 |
+--------------------------+--------------------+---------------------
+|      prerequest-scripts |                  0 |                  0 |
+--------------------------+--------------------+---------------------
+|              assertions |                  1 |                  1 |
+---------------------------------------------------------------------
+| total run duration: 98 ms                                         |
+---------------------------------------------------------------------
+| total data received: 1.31 KB (approx)                             |
+---------------------------------------------------------------------
+| average response time: 25 ms [min: 7 ms, max: 44 ms, s.d.: 18 ms] |
+---------------------------------------------------------------------
+
+  #  failure         detail                                                
+                                                                           
+ 1.  AssertionError  Authorized manifest returns minimum passenger fields  
+                     expected response to have status code 200 but got 404 
+                     at assertion:0 in test-script                         
+                     inside "TRIP-10 Read minimal passenger manifest"      
+Postman credentials are required for publishing run details to Postman cloud.
+Please specify it by using the `postman login` command

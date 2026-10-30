@@ -1,0 +1,64 @@
+﻿No authorization data found. Please use the `postman login` command.
+Refer:https://learning.postman.com/docs/postman-cli/postman-cli-options/#postman-login
+
+Running your collection...
+postman
+
+PBL6 Round 3 cancel sold synthetic trip
+
+Root Operator login
+
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.37 KB, 32 ms]
+
+Root TRIP-12 Cancel synthetic trip with a sold ticket
+
+  POST http://localhost:5080/api/v1/operator/trips/01a1825d-b562-7b04-bab7-d50af84b5142/cancel [404 Not Found, 355 B, 13 ms]
+  -
+  | 'TRIP12 CANCEL {"error":{"code":"RESOURCE_NOT_FOUND","
+  | message":"The requested resource was not found.","corr
+  | elationId":"01a18af8-a314-7a6e-baa2-69a2599ddcf2"}}'
+  -
+  1. Cancellation command is accepted for synthetic sold trip
+
+Root Customer login for booking readback
+
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.56 KB, 21 ms]
+
+Root Read booking after trip cancellation
+
+  GET http://localhost:5080/api/v1/bookings/01a18263-9bb1-7393-9355-47d8efecdb8b [404 Not Found, 355 B, 6 ms]
+  -
+  | 'TRIP12 BOOKING READBACK {"error":{"code":"RESOURCE_NO
+  | T_FOUND","message":"The requested resource was not fou
+  | nd.","correlationId":"01a18af8-a358-7ab5-bc1f-ab2d904f
+  | fb04"}}'
+  -
+
+--------------------------------------------------------------------
+|                         |           executed |            failed |
+--------------------------+--------------------+--------------------
+|              iterations |                  1 |                 0 |
+--------------------------+--------------------+--------------------
+|                requests |                  4 |                 0 |
+--------------------------+--------------------+--------------------
+|            test-scripts |                  4 |                 0 |
+--------------------------+--------------------+--------------------
+|      prerequest-scripts |                  0 |                 0 |
+--------------------------+--------------------+--------------------
+|              assertions |                  1 |                 1 |
+--------------------------------------------------------------------
+| total run duration: 151 ms                                       |
+--------------------------------------------------------------------
+| total data received: 2.81 KB (approx)                            |
+--------------------------------------------------------------------
+| average response time: 18 ms [min: 6 ms, max: 32 ms, s.d.: 9 ms] |
+--------------------------------------------------------------------
+
+  #  failure         detail                                                    
+                                                                               
+ 1.  AssertionError  Cancellation command is accepted for synthetic sold trip  
+                     expected response to have status code 202 but got 404     
+                     at assertion:0 in test-script                             
+                     inside "TRIP-12 Cancel synthetic trip with a sold ticket" 
+Postman credentials are required for publishing run details to Postman cloud.
+Please specify it by using the `postman login` command

@@ -719,6 +719,7 @@ public sealed class TransportService(ITransportRepository store, ITransportEvent
     {
         if (query.PassengerCount is < 1 or > 10
             || query.Page < 0
+            || query.Size > 100
             || string.IsNullOrWhiteSpace(query.Origin)
             || string.IsNullOrWhiteSpace(query.Destination))
         {
@@ -730,7 +731,7 @@ public sealed class TransportService(ITransportRepository store, ITransportEvent
             return Fail<TripPageDto>(PlatformErrors.Validation("Sort is not allowed.", "sort"));
         }
 
-        query = query with { Size = query.Size <= 0 ? 20 : Math.Min(query.Size, 100) };
+        query = query with { Size = query.Size <= 0 ? 20 : query.Size };
         var (items, total) = await store.SearchSellableAsync(query, cancellationToken);
         var mapped = new List<TripDto>();
         foreach (var trip in items)

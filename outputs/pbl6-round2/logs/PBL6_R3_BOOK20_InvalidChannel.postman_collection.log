@@ -1,0 +1,68 @@
+﻿No authorization data found. Please use the `postman login` command.
+Refer:https://learning.postman.com/docs/postman-cli/postman-cli-options/#postman-login
+
+Running your collection...
+postman
+
+PBL6 Round 3 invalid booking payment channel
+
+Root Customer login
+
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.35 KB, 42 ms]
+
+Root Choose an available seat
+
+  GET http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seats [200 OK, 1.26 KB, 7 ms]
+  Pass  Live seat inventory available
+
+Root Hold selected seat
+
+  POST http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seat-holds [201 Created, 590 B, 14 ms]
+  -
+  | 'BOOK20 HOLD {"holdToken":"wI-C0xNkM31IV9y6AR0vg6tJGuC
+  | uLhzEwAB_W4cpIIY","tripId":"01990a00-0000-7000-8000-00
+  | 0000000007","status":"ACTIVE","seats":[{"id":"01990a00
+  | -0000-7000-8000-000000000022","code":"1B","type":"STAN
+  | DARD","status":"HELD","price":{"amount":150000,"curren
+  | cy":"VND"},"rowVersion":0}],"expiresAt":"2026-10-30T04
+  | :09:47.100345+00:00","serverTime":"2026-10-30T03:59:47
+  | .1042574+00:00"}'
+  -
+
+Root BOOK-20 Reject unsupported paymentChannel
+
+  POST http://localhost:5080/api/v1/bookings [400 Bad Request, 400 B, 13 ms]
+  -
+  | 'INVALID CHANNEL {"error":{"code":"VALIDATION_ERROR","
+  | message":"Payment channel must be PREPAID or PAY_LATER
+  | .","correlationId":"01a18af6-b7b3-737b-8038-d15f1b301d
+  | fa","details":{"field":"paymentChannel"}}}'
+  -
+  Pass  Unsupported paymentChannel is rejected as client error
+
+Root Release test hold
+
+  DELETE http://localhost:5080/api/v1/seat-holds/wI-C0xNkM31IV9y6AR0vg6tJGuCuLhzEwAB_W4cpIIY [204 No Content, 137 B, 10 ms]
+  Pass  Test hold released
+
+---------------------------------------------------------------------
+|                         |           executed |             failed |
+--------------------------+--------------------+---------------------
+|              iterations |                  1 |                  0 |
+--------------------------+--------------------+---------------------
+|                requests |                  5 |                  0 |
+--------------------------+--------------------+---------------------
+|            test-scripts |                  5 |                  0 |
+--------------------------+--------------------+---------------------
+|      prerequest-scripts |                  0 |                  0 |
+--------------------------+--------------------+---------------------
+|              assertions |                  3 |                  0 |
+---------------------------------------------------------------------
+| total run duration: 182 ms                                        |
+---------------------------------------------------------------------
+| total data received: 2.76 KB (approx)                             |
+---------------------------------------------------------------------
+| average response time: 17 ms [min: 7 ms, max: 42 ms, s.d.: 12 ms] |
+---------------------------------------------------------------------
+Postman credentials are required for publishing run details to Postman cloud.
+Please specify it by using the `postman login` command

@@ -63,6 +63,9 @@ public static class PlatformErrors
     public static AppError PaymentNotAllowed() =>
         new(ErrorCodes.PaymentNotAllowed, "Payment is not allowed for this booking.", StatusCodes.Unprocessable);
 
+    public static AppError BookingExpired() =>
+        new(ErrorCodes.BookingExpired, "The booking payment window has expired.", StatusCodes.Gone);
+
     public static AppError WebhookInvalid() =>
         new(ErrorCodes.WebhookInvalid, "The webhook could not be verified.", StatusCodes.BadRequest);
 }

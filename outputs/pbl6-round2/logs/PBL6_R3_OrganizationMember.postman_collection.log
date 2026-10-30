@@ -1,0 +1,48 @@
+﻿No authorization data found. Please use the `postman login` command.
+Refer:https://learning.postman.com/docs/postman-cli/postman-cli-options/#postman-login
+
+Running your collection...
+postman
+
+PBL6 Round 3 Organization and membership workflow
+
+Root Admin login
+
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.12 KB, 38 ms]
+
+Root ADM-03 Create synthetic organization
+
+  POST http://localhost:5080/api/v1/admin/organizations [201 Created, 473 B, 11 ms]
+  Pass  Synthetic org created
+
+Root ADM-03 Add synthetic admin member
+
+  POST http://localhost:5080/api/v1/admin/organizations/01a18af7-b59a-7b48-ad84-fd8bbf8348e2/members [201 Created, 422 B, 16 ms]
+  Pass  Membership created for synthetic user
+
+Root Close synthetic test membership
+
+  PATCH http://localhost:5080/api/v1/admin/organizations/01a18af7-b59a-7b48-ad84-fd8bbf8348e2/members/01a18af7-b5b6-7d6e-b87c-02c09a6d71db [200 OK, 416 B, 15 ms]
+  Pass  Synthetic membership ended after test
+
+----------------------------------------------------------------------
+|                         |            executed |             failed |
+--------------------------+---------------------+---------------------
+|              iterations |                   1 |                  0 |
+--------------------------+---------------------+---------------------
+|                requests |                   4 |                  0 |
+--------------------------+---------------------+---------------------
+|            test-scripts |                   4 |                  0 |
+--------------------------+---------------------+---------------------
+|      prerequest-scripts |                   0 |                  0 |
+--------------------------+---------------------+---------------------
+|              assertions |                   3 |                  0 |
+----------------------------------------------------------------------
+| total run duration: 157 ms                                         |
+----------------------------------------------------------------------
+| total data received: 1.59 KB (approx)                              |
+----------------------------------------------------------------------
+| average response time: 20 ms [min: 11 ms, max: 38 ms, s.d.: 10 ms] |
+----------------------------------------------------------------------
+Postman credentials are required for publishing run details to Postman cloud.
+Please specify it by using the `postman login` command

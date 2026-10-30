@@ -1,0 +1,109 @@
+﻿No authorization data found. Please use the `postman login` command.
+Refer:https://learning.postman.com/docs/postman-cli/postman-cli-options/#postman-login
+
+Running your collection...
+postman
+
+PBL6 Round 3 Rate limit and input safety probes
+
+Root SEC-04 resend burst 1
+
+  POST http://localhost:5080/api/v1/auth/resend-verification [202 Accepted, 284 B, 26 ms]
+  Pass  Resend burst response 1
+
+Root SEC-04 resend burst 2
+
+  POST http://localhost:5080/api/v1/auth/resend-verification [202 Accepted, 284 B, 10 ms]
+  Pass  Resend burst response 2
+
+Root SEC-04 resend burst 3
+
+  POST http://localhost:5080/api/v1/auth/resend-verification [202 Accepted, 284 B, 11 ms]
+  Pass  Resend burst response 3
+
+Root SEC-04 resend burst 4
+
+  POST http://localhost:5080/api/v1/auth/resend-verification [202 Accepted, 284 B, 11 ms]
+  Pass  Resend burst response 4
+
+Root SEC-04 resend burst 5
+
+  POST http://localhost:5080/api/v1/auth/resend-verification [202 Accepted, 284 B, 10 ms]
+  Pass  Resend burst response 5
+
+Root SEC-04 resend burst 6
+
+  POST http://localhost:5080/api/v1/auth/resend-verification [429 Too Many Requests, 356 B, 9 ms]
+  Pass  Resend burst response 6
+
+Root SEC-04 resend burst 7
+
+  POST http://localhost:5080/api/v1/auth/resend-verification [429 Too Many Requests, 356 B, 9 ms]
+  Pass  Resend burst response 7
+
+Root SEC-04 forgot burst 1
+
+  POST http://localhost:5080/api/v1/auth/forgot-password [202 Accepted, 284 B, 12 ms]
+  Pass  Forgot burst response 1
+
+Root SEC-04 forgot burst 2
+
+  POST http://localhost:5080/api/v1/auth/forgot-password [202 Accepted, 284 B, 10 ms]
+  Pass  Forgot burst response 2
+
+Root SEC-04 forgot burst 3
+
+  POST http://localhost:5080/api/v1/auth/forgot-password [202 Accepted, 284 B, 10 ms]
+  Pass  Forgot burst response 3
+
+Root SEC-04 forgot burst 4
+
+  POST http://localhost:5080/api/v1/auth/forgot-password [202 Accepted, 284 B, 11 ms]
+  Pass  Forgot burst response 4
+
+Root SEC-04 forgot burst 5
+
+  POST http://localhost:5080/api/v1/auth/forgot-password [202 Accepted, 284 B, 11 ms]
+  Pass  Forgot burst response 5
+
+Root SEC-04 forgot burst 6
+
+  POST http://localhost:5080/api/v1/auth/forgot-password [429 Too Many Requests, 356 B, 12 ms]
+  Pass  Forgot burst response 6
+
+Root SEC-04 forgot burst 7
+
+  POST http://localhost:5080/api/v1/auth/forgot-password [429 Too Many Requests, 356 B, 8 ms]
+  Pass  Forgot burst response 7
+
+Root SEC-05 SQL-like fullName registration
+
+  POST http://localhost:5080/api/v1/auth/register [202 Accepted, 284 B, 72 ms]
+  Pass  SQL-like text does not cause server error or leak internals
+
+Root SEC-05 XSS-like fullName registration
+
+  POST http://localhost:5080/api/v1/auth/register [202 Accepted, 284 B, 73 ms]
+  Pass  XSS-like text does not cause server error or leak internals
+
+---------------------------------------------------------------------
+|                         |           executed |             failed |
+--------------------------+--------------------+---------------------
+|              iterations |                  1 |                  0 |
+--------------------------+--------------------+---------------------
+|                requests |                 16 |                  0 |
+--------------------------+--------------------+---------------------
+|            test-scripts |                 16 |                  0 |
+--------------------------+--------------------+---------------------
+|      prerequest-scripts |                  0 |                  0 |
+--------------------------+--------------------+---------------------
+|              assertions |                 16 |                  0 |
+---------------------------------------------------------------------
+| total run duration: 567 ms                                        |
+---------------------------------------------------------------------
+| total data received: 1.33 KB (approx)                             |
+---------------------------------------------------------------------
+| average response time: 19 ms [min: 8 ms, max: 73 ms, s.d.: 20 ms] |
+---------------------------------------------------------------------
+Postman credentials are required for publishing run details to Postman cloud.
+Please specify it by using the `postman login` command

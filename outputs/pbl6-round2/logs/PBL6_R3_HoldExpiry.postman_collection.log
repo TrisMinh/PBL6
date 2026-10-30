@@ -1,0 +1,60 @@
+﻿No authorization data found. Please use the `postman login` command.
+Refer:https://learning.postman.com/docs/postman-cli/postman-cli-options/#postman-login
+
+Running your collection...
+postman
+
+PBL6 Round 3 hold expiry check
+
+Root Customer login
+
+  POST http://localhost:5080/api/v1/auth/login [200 OK, 1.36 KB, 38 ms]
+
+Root BOOK-09 Check original hold expiration
+
+  GET http://localhost:5080/api/v1/seat-holds/_FCtHQBqTleeN5HEj5y2W_S25KLDXo_GM4XUBoDQVTE [404 Not Found, 355 B, 6 ms]
+  -
+  | 'EXPIRED HOLD {"error":{"code":"RESOURCE_NOT_FOUND","m
+  | essage":"The requested resource was not found.","corre
+  | lationId":"01a18af7-a4ad-7bab-ad45-71deb9479754"}}'
+  -
+  1. Hold expired after its expiry time
+
+Root Check seat 1A returned to available
+
+  GET http://localhost:5080/api/v1/trips/01a1825d-b562-7b04-bab7-d50af84b5142/seats [404 Not Found, 355 B, 6 ms]
+  2. Expired hold seat is released
+
+---------------------------------------------------------------------
+|                         |           executed |             failed |
+--------------------------+--------------------+---------------------
+|              iterations |                  1 |                  0 |
+--------------------------+--------------------+---------------------
+|                requests |                  3 |                  0 |
+--------------------------+--------------------+---------------------
+|            test-scripts |                  3 |                  0 |
+--------------------------+--------------------+---------------------
+|      prerequest-scripts |                  0 |                  0 |
+--------------------------+--------------------+---------------------
+|              assertions |                  2 |                  2 |
+---------------------------------------------------------------------
+| total run duration: 108 ms                                        |
+---------------------------------------------------------------------
+| total data received: 1.44 KB (approx)                             |
+---------------------------------------------------------------------
+| average response time: 16 ms [min: 6 ms, max: 38 ms, s.d.: 15 ms] |
+---------------------------------------------------------------------
+
+  #  failure         detail                                                
+                                                                           
+ 1.  AssertionError  Hold expired after its expiry time                    
+                     expected response to have status code 200 but got 404 
+                     at assertion:0 in test-script                         
+                     inside "BOOK-09 Check original hold expiration"       
+                                                                           
+ 2.  AssertionError  Expired hold seat is released                         
+                     expected response to have status code 200 but got 404 
+                     at assertion:0 in test-script                         
+                     inside "Check seat 1A returned to available"          
+Postman credentials are required for publishing run details to Postman cloud.
+Please specify it by using the `postman login` command

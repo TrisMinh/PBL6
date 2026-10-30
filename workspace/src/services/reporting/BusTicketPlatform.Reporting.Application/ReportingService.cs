@@ -34,6 +34,11 @@ public sealed class ReportingService(IReportingRepository store)
             return Result<ReportDto>.Failure(PlatformErrors.AccessDenied());
         }
 
+        if (from >= to)
+        {
+            return Result<ReportDto>.Failure(PlatformErrors.Validation("Report start must be before report end.", "from"));
+        }
+
         var data = await store.RevenueAsync(Scope(actor), from, to, cancellationToken);
         return Result<ReportDto>.Success(Report(data, timezone, "gross_revenue", "Gross prepaid and confirmed booking value"));
     }
@@ -45,6 +50,11 @@ public sealed class ReportingService(IReportingRepository store)
             return Result<ReportDto>.Failure(PlatformErrors.AccessDenied());
         }
 
+        if (from >= to)
+        {
+            return Result<ReportDto>.Failure(PlatformErrors.Validation("Report start must be before report end.", "from"));
+        }
+
         var data = await store.BookingsAsync(Scope(actor), from, to, cancellationToken);
         return Result<ReportDto>.Success(Report(data, timezone, "booking_count", "Booking rows in range"));
     }
@@ -54,6 +64,11 @@ public sealed class ReportingService(IReportingRepository store)
         if (!CanRead(actor))
         {
             return Result<ReportDto>.Failure(PlatformErrors.AccessDenied());
+        }
+
+        if (from >= to)
+        {
+            return Result<ReportDto>.Failure(PlatformErrors.Validation("Report start must be before report end.", "from"));
         }
 
         var data = await store.OccupancyAsync(Scope(actor), from, to, cancellationToken);
