@@ -1,0 +1,418 @@
+.trip-results,
+.trip-results__success {
+  display: grid;
+  gap: var(--space-section-inset);
+  min-width: 0;
+}
+
+.trip-results__header {
+  display: grid;
+  gap: var(--space-inline-gap);
+}
+
+.trip-results__title {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.trip-results__summary,
+.trip-results__count {
+  margin: 0;
+  color: var(--color-text-secondary);
+}
+
+.trip-results__edit {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  min-width: var(--size-control-min);
+  min-height: var(--size-control-min);
+  padding-inline: var(--space-inline-gap);
+  border-radius: var(--radius-control);
+  color: var(--color-bg-brand);
+  font-weight: 600;
+}
+
+.trip-results__edit:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.trip-results__booking {
+  display: grid;
+  gap: var(--space-inline-gap);
+  margin: 0;
+  color: var(--color-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.trip-results__list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-content-gap);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.trip-results__item {
+  display: grid;
+  min-width: 0;
+}
+
+.trip-results__loading {
+  display: grid;
+  gap: var(--space-content-gap);
+  color: var(--color-text-secondary);
+}
+
+@media (min-width: 768px) {
+  .trip-results__list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .trip-results__list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.trip-results {
+  align-content: start;
+  gap: 34px;
+  min-height: 1144px;
+  color: var(--color-results-text);
+  font-family: var(--font-body);
+}
+
+.trip-results__search {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  min-height: 190px;
+  padding: 20px 24px 42px;
+  border-radius: 24px;
+  background: var(--color-results-surface);
+  box-shadow: var(--shadow-results-panel);
+}
+
+.trip-results__trip-types {
+  display: flex;
+  gap: 10px;
+}
+
+.trip-results__trip-type {
+  display: grid;
+  place-items: center;
+  min-width: 96px;
+  height: 36px;
+  padding-inline: 16px;
+  border: 1px solid var(--color-results-border);
+  border-radius: 18px;
+  color: var(--color-results-text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.trip-results__trip-type--active {
+  min-width: 108px;
+  border-color: var(--color-bg-shell-action);
+  background: var(--color-bg-shell-action);
+  color: var(--color-results-surface);
+  font-weight: 600;
+}
+
+.trip-results__search-count {
+  margin: 9px 0 0;
+  color: var(--color-results-text-secondary);
+  font-size: 13px;
+}
+
+.trip-results__search-fields {
+  position: absolute;
+  right: 24px;
+  bottom: 42px;
+  left: 24px;
+  display: grid;
+  grid-template-columns: 238px 238px 212px 188px minmax(180px, 276px);
+  gap: 12px;
+  align-items: center;
+}
+
+.trip-results__search-fact {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  height: 72px;
+  padding: 11px 18px;
+  border-radius: 16px;
+  background: var(--color-results-control);
+}
+
+.trip-results__search-fact > span {
+  color: var(--color-results-text-muted);
+  font-size: 11px;
+  line-height: 16px;
+}
+
+.trip-results__search-fact strong {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  color: var(--color-results-text);
+  font-size: 14px;
+  line-height: 20px;
+  white-space: nowrap;
+}
+
+.trip-results__search-fact img {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+
+.trip-results__swap {
+  position: absolute;
+  z-index: 1;
+  left: 176px;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--color-bg-shell-action);
+  color: var(--color-results-surface);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.trip-results__search-action {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  height: 56px;
+  border-radius: 16px;
+  background: var(--color-bg-shell-action);
+  color: var(--color-results-surface);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transform: translateX(8px);
+}
+
+.trip-results__body {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 990px);
+  gap: 30px;
+  align-items: start;
+}
+
+.trip-results__success {
+  gap: 26px;
+  padding-top: 6px;
+}
+
+.trip-results__heading-row {
+  display: grid;
+  gap: 10px;
+}
+
+.trip-results__header {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+}
+
+.trip-results__title {
+  color: var(--color-results-text);
+  font-family: var(--font-body);
+  font-size: 22px;
+  line-height: 28px;
+}
+
+.trip-results__count {
+  color: var(--color-results-text-secondary);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.trip-results__sort {
+  display: flex;
+  gap: 8px;
+}
+
+.trip-results__sort button,
+.trip-results__pagination button {
+  min-width: 44px;
+  min-height: 40px;
+  padding-inline: 14px;
+  border: 1px solid var(--color-results-border);
+  border-radius: 20px;
+  background: var(--color-results-surface);
+  color: var(--color-results-text-secondary);
+  font: inherit;
+  font-size: 13px;
+}
+
+.trip-results__sort button[aria-pressed="true"],
+.trip-results__pagination button[aria-current="page"] {
+  border-color: var(--color-results-active);
+  background: var(--color-results-active);
+  color: var(--color-results-surface);
+  font-weight: 600;
+}
+
+.trip-results__list {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  column-gap: 18px;
+  row-gap: 20px;
+}
+
+.trip-results__pagination-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 30px;
+}
+
+.trip-results__pagination-row > p {
+  margin: 0;
+  color: var(--color-results-text-secondary);
+  font-size: 13px;
+}
+
+.trip-results__pagination {
+  display: flex;
+  gap: 8px;
+}
+
+.trip-results__pagination button {
+  padding: 0;
+}
+
+.trip-results__pagination button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.trip-results__search-action:focus-visible,
+.trip-results__sort button:focus-visible,
+.trip-results__pagination button:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+@media (min-width: 1320px) {
+  .trip-results {
+    width: calc(100% + 32px);
+    margin: -2px -16px 0;
+  }
+}
+
+@media (max-width: 1199px) {
+  .trip-results__search-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .trip-results__search {
+    min-height: 290px;
+  }
+
+  .trip-results__body {
+    grid-template-columns: 240px minmax(0, 1fr);
+    gap: 20px;
+  }
+
+  .trip-results__list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 768px) and (max-width: 899px) {
+  .trip-results__list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 767px) {
+  .trip-results {
+    gap: 20px;
+    min-height: 0;
+  }
+
+  .trip-results__success {
+    gap: 14px;
+    padding-top: 0;
+  }
+
+  .trip-results__search-action {
+    transform: none;
+  }
+
+  .trip-results__pagination-row {
+    margin-top: 18px;
+  }
+
+  .trip-results__search {
+    display: grid;
+    min-height: 514px;
+    padding: 18px;
+  }
+
+  .trip-results__search-count {
+    align-self: center;
+  }
+
+  .trip-results__search-fields {
+    right: 18px;
+    bottom: 18px;
+    left: 18px;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .trip-results__search-fact {
+    height: 64px;
+  }
+
+  .trip-results__swap {
+    top: 57px;
+    right: 12px;
+    left: auto;
+  }
+
+  .trip-results__body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .trip-results__list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .trip-results__header {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .trip-results__sort {
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+
+  .trip-results__sort button {
+    flex: none;
+  }
+
+  .trip-results__pagination-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

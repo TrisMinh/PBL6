@@ -1,0 +1,318 @@
+.explore {
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 40px 0 64px;
+  color: var(--color-text-primary);
+}
+.explore__intro {
+  max-width: 800px;
+  margin-bottom: 32px;
+}
+.explore__eyebrow {
+  margin: 0 0 16px;
+  color: var(--color-brand-shell-strong);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.explore__intro h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(32px, 4vw, 52px);
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+}
+.explore__intro > p:last-child,
+.explore__province-intro > p:last-child {
+  max-width: 680px;
+  margin: 20px 0 0;
+  color: var(--color-text-secondary);
+  font-size: 16px;
+  line-height: 1.75;
+}
+.explore__notice {
+  margin: 0 0 32px;
+  padding: 16px 20px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-bg-subtle);
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 1.8;
+}
+.explore__search {
+  max-width: 680px;
+  margin-bottom: 32px;
+}
+.explore__search label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.explore__search > div {
+  display: flex;
+  gap: 12px;
+}
+.explore__search input {
+  flex: 1;
+  min-width: 0;
+  min-height: 48px;
+  padding: 12px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  font-size: 15px;
+}
+.explore__section-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.explore__section-heading h2 {
+  margin: 0;
+  font-size: 24px;
+}
+.explore__section-heading p {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+.explore__province-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+.explore__province-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 28px;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  text-decoration: none;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+.explore__province-card:hover {
+  border-color: var(--color-bg-brand);
+  box-shadow: var(--shadow-card);
+}
+.explore__card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--color-bg-brand);
+}
+.explore__region {
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.explore__province-card h2 {
+  margin: 24px 0 12px;
+  font-size: 28px;
+  line-height: 1.25;
+}
+.explore__province-card > p {
+  flex: 1;
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  line-height: 1.8;
+}
+.explore__card-counts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 28px 0 0;
+  padding-top: 20px;
+  border-top: 1px solid var(--color-border);
+}
+.explore__card-counts dt {
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+.explore__card-counts dd {
+  margin: 4px 0 0;
+  font-size: 24px;
+  font-weight: 600;
+}
+.explore__card-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 44px;
+  margin-top: 16px;
+  color: var(--color-brand-shell-strong);
+  font-size: 14px;
+  font-weight: 600;
+}
+.explore__state {
+  padding: 40px 24px;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  background: var(--color-bg-surface);
+  text-align: center;
+}
+.explore__state h2 {
+  margin: 0 0 12px;
+  font-size: 24px;
+}
+.explore__state p {
+  color: var(--color-text-secondary);
+}
+.explore__back,
+.explore__breadcrumb a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--color-brand-shell-strong);
+  font-weight: 600;
+  text-underline-offset: 4px;
+}
+.explore__breadcrumb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 24px;
+  font-size: 14px;
+}
+.explore__breadcrumb > span:last-child {
+  color: var(--color-text-muted);
+}
+.explore__province-intro {
+  margin-bottom: 28px;
+}
+.explore__province-intro h1 {
+  margin: 0;
+  font-size: 48px;
+  line-height: 1.2;
+}
+.explore__coordinates {
+  margin: 0 0 28px;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  line-height: 1.8;
+}
+.explore__locations-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 32px;
+}
+.explore__location-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.explore__location-heading h2 {
+  margin: 0;
+  font-size: 28px;
+}
+.explore__location-heading span {
+  padding: 6px 12px;
+  border-radius: 20px;
+  background: var(--color-bg-subtle);
+  color: var(--color-brand-shell-strong);
+  font-size: 13px;
+}
+.explore__location-section > p {
+  margin: 8px 0 20px;
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+.explore__point-card {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+  padding: 24px;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  background: var(--color-bg-surface);
+}
+.explore__point-card > svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--color-bg-brand);
+}
+.explore__point-card > div {
+  min-width: 0;
+}
+.explore__point-card h3 {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 17px;
+  font-weight: 600;
+}
+.explore__address {
+  margin: 10px 0;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  line-height: 1.7;
+}
+.explore__operators {
+  margin: 0 0 14px;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 1.8;
+}
+.explore__point-note {
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+.explore :is(a, button, input):focus-visible {
+  outline: 3px solid var(--color-focus-ring);
+  outline-offset: 4px;
+}
+.explore :is(h1, h2, h3, p, span, dt, dd) {
+  overflow-wrap: anywhere;
+}
+@media (width < 768px) {
+  .explore {
+    padding: 24px 0 40px;
+  }
+  .explore__province-grid,
+  .explore__locations-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+  }
+  .explore__section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .explore__province-card {
+    padding: 24px;
+  }
+  .explore__province-intro h1 {
+    font-size: 36px;
+  }
+  .explore__point-card {
+    padding: 20px;
+  }
+}
+@media (width < 420px) {
+  .explore__search > div {
+    flex-direction: column;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .explore__province-card {
+    transition: none;
+  }
+}

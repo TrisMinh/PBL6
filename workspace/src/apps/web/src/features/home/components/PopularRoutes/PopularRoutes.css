@@ -1,0 +1,109 @@
+.popular-routes__header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 24px;
+  min-height: 68px;
+}
+
+.popular-routes__header h2 {
+  margin: 0;
+  color: var(--color-text-editorial-heading);
+  font-family: "Newsreader", Georgia, serif;
+  font-size: 40px;
+  font-weight: 600;
+  line-height: 48px;
+  letter-spacing: -0.5px;
+}
+
+.popular-routes__header p {
+  margin: 0 29px 9px 0;
+  color: var(--color-text-editorial-copy);
+  font-size: 14px;
+}
+
+.popular-routes__scroller {
+  display: grid;
+  grid-auto-columns: 308px;
+  grid-auto-flow: column;
+  gap: 16px;
+  height: 292px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-top: 26px;
+  scrollbar-width: thin;
+}
+
+.popular-routes__card {
+  position: relative;
+  height: 240px;
+  overflow: hidden;
+  border: 1px solid var(--color-border-route-card);
+  border-radius: 18px;
+  box-shadow: var(--shadow-route-card);
+}
+
+.popular-routes__card::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    var(--color-overlay-route-clear),
+    var(--color-overlay-route-middle) 55%,
+    var(--color-overlay-route-strong)
+  );
+  content: "";
+}
+
+.popular-routes__card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.popular-routes__card-copy {
+  position: absolute;
+  z-index: 1;
+  right: 19px;
+  bottom: 15px;
+  left: 19px;
+  color: var(--color-text-on-image);
+}
+
+.popular-routes__card-copy h3,
+.popular-routes__card-copy p {
+  margin: 0;
+  font-family: var(--font-body);
+}
+
+.popular-routes__card-copy h3 {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 24px;
+}
+
+.popular-routes__card-copy p {
+  color: var(--color-text-on-image-muted);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+@media (max-width: 767px) {
+  .popular-routes__header {
+    display: block;
+    min-height: 0;
+  }
+
+  .popular-routes__header h2 {
+    font-size: 34px;
+    line-height: 40px;
+  }
+
+  .popular-routes__header p {
+    margin: 8px 0 0;
+  }
+
+  .popular-routes__scroller {
+    grid-auto-columns: min(82vw, 308px);
+  }
+}

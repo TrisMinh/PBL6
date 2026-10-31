@@ -1,0 +1,40 @@
+.home-page {
+  display: flex;
+  flex-direction: column;
+}
+
+.home-page > .product-truths {
+  margin-top: 36px;
+}
+
+.home-page > .popular-routes {
+  margin-top: 54px;
+}
+
+.home-page > .trust-journey {
+  margin-top: 46px;
+}
+
+.home-page > .support-banner {
+  margin-top: 46px;
+}
+
+.home-page > .home-footer {
+  margin-top: 66px;
+}
+
+@media (max-width: 767px) {
+  .home-page {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+  }
+
+  .home-page > .product-truths,
+  .home-page > .popular-routes,
+  .home-page > .trust-journey,
+  .home-page > .support-banner,
+  .home-page > .home-footer {
+    margin-top: 0;
+  }
+}
