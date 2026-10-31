@@ -1,0 +1,17 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Story / Arrow action" filter="url(#filter0_d_0_69)">
+<rect x="8" y="5" width="28" height="28" rx="14" fill="white"/>
+<path id="Story / Arrow chevron" d="M20 15L24 19L20 23" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke="#0A1F38"/>
+</g>
+<defs>
+<filter id="filter0_d_0_69" x="0" y="0" width="44" height="44" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+<feOffset dy="3"/>
+<feGaussianBlur stdDeviation="4"/>
+<feColorMatrix type="matrix" values="0 0 0 0 0.04 0 0 0 0 0.12 0 0 0 0 0.22 0 0 0 0.16 0"/>
+<feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_0_69"/>
+<feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_0_69" result="shape"/>
+</filter>
+</defs>
+</svg>

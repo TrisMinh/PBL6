@@ -1,0 +1,22 @@
+.guard-state {
+  --guard-state-space: var(--space-content-gap);
+  --guard-state-control-size: var(--size-control-min);
+  --guard-state-focus-width: 2px;
+  --guard-state-focus-offset: 2px;
+
+  padding: var(--guard-state-space);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+}
+
+.guard-state__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--guard-state-control-size);
+  color: var(--color-bg-brand);
+}
+
+.guard-state__link:focus-visible {
+  outline: var(--guard-state-focus-width) solid var(--color-focus-ring);
+  outline-offset: var(--guard-state-focus-offset);
+}

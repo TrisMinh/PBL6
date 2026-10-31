@@ -1,0 +1,64 @@
+.field {
+  --field-gap: var(--space-inline-gap);
+  --field-control-min-size: var(--size-control-min);
+  --field-control-padding-block: 10px;
+  --field-control-padding-inline: 12px;
+  --field-control-border-width: 1px;
+  --field-focus-width: 2px;
+  --field-focus-offset: 2px;
+  --field-disabled-opacity: 0.5;
+
+  display: grid;
+  gap: var(--field-gap);
+  min-width: 0;
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+}
+
+.field__label {
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.field__control {
+  width: 100%;
+  min-width: var(--field-control-min-size);
+  min-height: var(--field-control-min-size);
+  padding: var(--field-control-padding-block)
+    var(--field-control-padding-inline);
+  border: var(--field-control-border-width) solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  font: inherit;
+  line-height: 1.5;
+}
+
+.field__control::placeholder {
+  color: var(--color-text-muted);
+}
+
+.field__control[aria-invalid="true"] {
+  border-color: var(--color-status-error);
+}
+
+.field__control:focus-visible {
+  outline: var(--field-focus-width) solid var(--color-focus-ring);
+  outline-offset: var(--field-focus-offset);
+}
+
+.field__control[readonly],
+.field__control[disabled] {
+  background: var(--color-bg-subtle);
+}
+
+.field__control[disabled] {
+  opacity: var(--field-disabled-opacity);
+  cursor: not-allowed;
+}
+
+.field__error {
+  margin: 0;
+  color: var(--color-status-error);
+  line-height: 1.5;
+}

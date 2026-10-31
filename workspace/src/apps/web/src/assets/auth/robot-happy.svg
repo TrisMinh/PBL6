@@ -1,0 +1,17 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="120" height="106" viewBox="0 0 120 106" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Robot assistant / happy">
+<path id="Vector" opacity="0.1" d="M60 106C83.196 106 102 103.314 102 100C102 96.6863 83.196 94 60 94C36.804 94 18 96.6863 18 100C18 103.314 36.804 106 60 106Z" fill="#0B2345"/>
+<path id="Vector_2" d="M60 18V8" stroke-width="3" stroke-linecap="round" stroke="#0B2345"/>
+<path id="Vector_3" d="M60 11C62.7614 11 65 8.76142 65 6C65 3.23858 62.7614 1 60 1C57.2386 1 55 3.23858 55 6C55 8.76142 57.2386 11 60 11Z" fill="#246BDA" stroke-width="2" stroke="#0B2345"/>
+<path id="Vector_4" d="M23 46C23 42.6863 20.3137 40 17 40C13.6863 40 11 42.6863 11 46V64C11 67.3137 13.6863 70 17 70C20.3137 70 23 67.3137 23 64V46Z" fill="white" stroke-width="2" stroke="#0B2345"/>
+<path id="Vector_5" d="M109 46C109 42.6863 106.314 40 103 40C99.6863 40 97 42.6863 97 46V64C97 67.3137 99.6863 70 103 70C106.314 70 109 67.3137 109 64V46Z" fill="white" stroke-width="2" stroke="#0B2345"/>
+<path id="Vector_6" d="M76 20H44C30.7452 20 20 30.7452 20 44V66C20 79.2548 30.7452 90 44 90H76C89.2548 90 100 79.2548 100 66V44C100 30.7452 89.2548 20 76 20Z" fill="white" stroke-width="2.5" stroke="#0B2345"/>
+<path id="Vector_7" d="M74 32H46C36.6112 32 29 39.6112 29 49V63C29 72.3888 36.6112 80 46 80H74C83.3888 80 91 72.3888 91 63V49C91 39.6112 83.3888 32 74 32Z" fill="#0B2345"/>
+<path id="Vector_8" d="M44 56C46.7614 56 49 52.866 49 49C49 45.134 46.7614 42 44 42C41.2386 42 39 45.134 39 49C39 52.866 41.2386 56 44 56Z" fill="white"/>
+<path id="Vector_9" d="M76 56C78.7614 56 81 52.866 81 49C81 45.134 78.7614 42 76 42C73.2386 42 71 45.134 71 49C71 52.866 73.2386 56 76 56Z" fill="white"/>
+<path id="Vector_10" opacity="0.9" d="M36 69C38.2091 69 40 67.2091 40 65C40 62.7909 38.2091 61 36 61C33.7909 61 32 62.7909 32 65C32 67.2091 33.7909 69 36 69Z" fill="#38BDF8"/>
+<path id="Vector_11" opacity="0.9" d="M84 69C86.2091 69 88 67.2091 88 65C88 62.7909 86.2091 61 84 61C81.7909 61 80 62.7909 80 65C80 67.2091 81.7909 69 84 69Z" fill="#38BDF8"/>
+<path id="Vector_12" d="M46 65C54 74 66 74 74 65" stroke-width="3" stroke-linecap="round" stroke="white"/>
+<path id="Vector_13" d="M41 91V99M79 91V99" stroke-width="5" stroke-linecap="round" stroke="#0B2345"/>
+</g>
+</svg>

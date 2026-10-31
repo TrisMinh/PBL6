@@ -1,0 +1,8 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Bus icon">
+<path id="Vector" d="M7 3H17C18.6569 3 20 4.34315 20 6V16C20 17.6569 18.6569 19 17 19H7C5.34315 19 4 17.6569 4 16V6C4 4.34315 5.34315 3 7 3Z" stroke-width="1.7" stroke="#246BDA"/>
+<path id="Vector_2" d="M6.5 8H17.5M7 15H17" stroke-width="1.7" stroke-linecap="round" stroke="#246BDA"/>
+<path id="Vector_3" d="M8 20.5C8.82843 20.5 9.5 19.8284 9.5 19C9.5 18.1716 8.82843 17.5 8 17.5C7.17157 17.5 6.5 18.1716 6.5 19C6.5 19.8284 7.17157 20.5 8 20.5Z" fill="#246BDA"/>
+<path id="Vector_4" d="M16 20.5C16.8284 20.5 17.5 19.8284 17.5 19C17.5 18.1716 16.8284 17.5 16 17.5C15.1716 17.5 14.5 18.1716 14.5 19C14.5 19.8284 15.1716 20.5 16 20.5Z" fill="#246BDA"/>
+</g>
+</svg>

@@ -1,0 +1,18 @@
+<svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="18" height="18" fill="#F5F5F5"/>
+<g id="Customer / Passenger Details / Completed / 1440">
+<rect width="1440" height="1040" transform="translate(-969 -478)" fill="#F7FAFF"/>
+<g id="Trip summary / Operator aware">
+<rect x="-38.5" y="-247.5" width="429" height="699" rx="21.5" fill="#FCFDFF"/>
+<rect x="-38.5" y="-247.5" width="429" height="699" rx="21.5" stroke="#C8D9EE"/>
+<g id="Journey details">
+<rect x="-14.5" y="-69.5" width="381" height="121" rx="13.5" fill="white"/>
+<rect x="-14.5" y="-69.5" width="381" height="121" rx="13.5" stroke="#DCE8F7"/>
+<g id="Pickup icon">
+<path id="Vector" d="M15 7.5C15 11.4 9 15.75 9 15.75C9 15.75 3 11.4 3 7.5C3 5.9087 3.63214 4.38258 4.75736 3.25736C5.88258 2.13214 7.4087 1.5 9 1.5C10.5913 1.5 12.1174 2.13214 13.2426 3.25736C14.3679 4.38258 15 5.9087 15 7.5Z" stroke="#246BDA" stroke-width="1.7"/>
+<path id="Vector_2" d="M8.99961 9.52501C10.118 9.52501 11.0246 8.61838 11.0246 7.50001C11.0246 6.38163 10.118 5.47501 8.99961 5.47501C7.88123 5.47501 6.97461 6.38163 6.97461 7.50001C6.97461 8.61838 7.88123 9.52501 8.99961 9.52501Z" stroke="#246BDA" stroke-width="1.7"/>
+</g>
+</g>
+</g>
+</g>
+</svg>

@@ -1,0 +1,88 @@
+.button {
+  --button-min-size: var(--size-control-min);
+  --button-padding-block: 10px;
+  --button-padding-inline: var(--space-control-inset);
+  --button-border-width: 1px;
+  --button-focus-width: 2px;
+  --button-focus-offset: 2px;
+  --button-transition-duration: 160ms;
+  --button-disabled-opacity: 0.5;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--button-min-size);
+  min-height: var(--button-min-size);
+  padding: var(--button-padding-block) var(--button-padding-inline);
+  border: var(--button-border-width) solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  font-size: inherit;
+  font-weight: 600;
+  line-height: 1.5;
+  text-align: center;
+  cursor: pointer;
+  transition:
+    background-color var(--button-transition-duration) ease,
+    border-color var(--button-transition-duration) ease,
+    color var(--button-transition-duration) ease;
+}
+
+.button--primary {
+  border-color: var(--color-bg-brand);
+  background: var(--color-bg-brand);
+  color: var(--color-bg-surface);
+}
+
+.button--primary:hover:not([disabled]) {
+  border-color: var(--color-text-primary);
+  background: var(--color-text-primary);
+}
+
+.button--secondary {
+  border-color: var(--color-bg-brand);
+  color: var(--color-bg-brand);
+}
+
+.button--secondary:hover:not([disabled]) {
+  background: var(--color-bg-subtle);
+}
+
+.button--ghost {
+  border-color: transparent;
+  background: transparent;
+  color: var(--color-bg-brand);
+}
+
+.button--ghost:hover:not([disabled]) {
+  background: var(--color-bg-subtle);
+}
+
+.button--danger {
+  border-color: var(--color-status-error);
+  background: var(--color-status-error);
+  color: var(--color-bg-surface);
+}
+
+.button--danger:hover:not([disabled]) {
+  border-color: var(--color-text-primary);
+  background: var(--color-text-primary);
+}
+
+.button:focus-visible {
+  outline: var(--button-focus-width) solid var(--color-focus-ring);
+  outline-offset: var(--button-focus-offset);
+}
+
+.button[disabled] {
+  opacity: var(--button-disabled-opacity);
+  cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button {
+    transition: none;
+  }
+}

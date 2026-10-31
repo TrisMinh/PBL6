@@ -1,0 +1,34 @@
+.page-state {
+  display: grid;
+  gap: var(--space-content-gap);
+  max-width: 48rem;
+  margin-inline: auto;
+  padding: var(--space-section-inset) var(--space-page-gutter);
+  color: var(--color-text-primary);
+}
+
+.page-state__title,
+.page-state__description {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.page-state__description {
+  color: var(--color-text-secondary);
+}
+
+.page-state__action a {
+  display: inline-flex;
+  align-items: center;
+  min-width: var(--size-control-min);
+  min-height: var(--size-control-min);
+  padding-inline: var(--space-control-inset);
+  border-radius: var(--radius-control);
+  color: var(--color-bg-brand);
+  text-underline-offset: 0.2em;
+}
+
+.page-state__action a:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}

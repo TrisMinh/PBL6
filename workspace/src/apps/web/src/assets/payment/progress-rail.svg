@@ -1,0 +1,11 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="28" height="174" viewBox="0 0 28 174" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Progress rail">
+<path id="Vector" d="M14 24V80" stroke="#B9C9DD" stroke-width="2"/>
+<path id="Vector_2" d="M14 94V150" stroke="#D7E0EB" stroke-width="2"/>
+<path id="Vector_3" d="M14 24C19.5228 24 24 19.5228 24 14C24 8.47715 19.5228 4 14 4C8.47715 4 4 8.47715 4 14C4 19.5228 8.47715 24 14 24Z" fill="#20A56E"/>
+<path id="Vector_4" d="M9.5 14L12.5 17L18.5 11" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Vector_5" d="M14 97C19.5228 97 24 92.5228 24 87C24 81.4772 19.5228 77 14 77C8.47715 77 4 81.4772 4 87C4 92.5228 8.47715 97 14 97Z" fill="#EAF2FF" stroke="#246BDA" stroke-width="2"/>
+<path id="Vector_6" d="M14 91C16.2091 91 18 89.2091 18 87C18 84.7909 16.2091 83 14 83C11.7909 83 10 84.7909 10 87C10 89.2091 11.7909 91 14 91Z" fill="#246BDA"/>
+<path id="Vector_7" d="M14 169C18.9706 169 23 164.971 23 160C23 155.029 18.9706 151 14 151C9.02944 151 5 155.029 5 160C5 164.971 9.02944 169 14 169Z" fill="white" stroke="#B7C3D2" stroke-width="2"/>
+</g>
+</svg>

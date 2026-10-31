@@ -1,0 +1,12 @@
+.claude/
+.react-router/
+.superpowers/
+.tasks/
+_scaffold/
+build/
+coverage/
+docs/
+node_modules/
+*.md
+pnpm-lock.yaml
+public/mockServiceWorker.js

@@ -1,0 +1,22 @@
+<svg width="6" height="2" viewBox="0 0 6 2" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="6" height="2" fill="#F5F5F5"/>
+<g id="Customer / Seat Map / Hold Expired / 1440">
+<rect width="1440" height="1080" transform="translate(-486 -372)" fill="#F7FAFF"/>
+<g id="Expired dialog" filter="url(#filter0_d_7_5)">
+<rect x="-56" y="-52" width="580" height="400" rx="24" fill="white"/>
+<rect x="-55.5" y="-51.5" width="579" height="399" rx="23.5" stroke="#DCE8F7"/>
+<rect id="Clock hand horizontal" width="6" height="2" rx="1" fill="#C64343"/>
+</g>
+</g>
+<defs>
+<filter id="filter0_d_7_5" x="-98" y="-76" width="664" height="484" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+<feOffset dy="18"/>
+<feGaussianBlur stdDeviation="21"/>
+<feColorMatrix type="matrix" values="0 0 0 0 0.04 0 0 0 0 0.12 0 0 0 0 0.23 0 0 0 0.18 0"/>
+<feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_7_5"/>
+<feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_7_5" result="shape"/>
+</filter>
+</defs>
+</svg>

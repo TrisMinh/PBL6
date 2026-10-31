@@ -1,0 +1,20 @@
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="24" height="24" fill="#F5F5F5"/>
+<g id="Customer / Passenger Details / Completed / 1440">
+<rect width="1440" height="1040" transform="translate(-980 -329)" fill="#F7FAFF"/>
+<g id="Trip summary / Operator aware">
+<rect x="-49.5" y="-98.5" width="429" height="699" rx="21.5" fill="#FCFDFF"/>
+<rect x="-49.5" y="-98.5" width="429" height="699" rx="21.5" stroke="#C8D9EE"/>
+<g id="Operating company">
+<rect x="-25.5" y="-28.5" width="381" height="93" rx="13.5" fill="white"/>
+<rect x="-25.5" y="-28.5" width="381" height="93" rx="13.5" stroke="#DCE8F7"/>
+<g id="Bus icon">
+<path id="Vector" d="M17 3H7C5.34315 3 4 4.34315 4 6V16C4 17.6569 5.34315 19 7 19H17C18.6569 19 20 17.6569 20 16V6C20 4.34315 18.6569 3 17 3Z" stroke="#246BDA" stroke-width="1.7"/>
+<path id="Vector_2" d="M6.5 8H17.5M7 15H17" stroke="#246BDA" stroke-width="1.7" stroke-linecap="round"/>
+<path id="Vector_3" d="M8 20.5C8.82843 20.5 9.5 19.8284 9.5 19C9.5 18.1716 8.82843 17.5 8 17.5C7.17157 17.5 6.5 18.1716 6.5 19C6.5 19.8284 7.17157 20.5 8 20.5Z" fill="#246BDA"/>
+<path id="Vector_4" d="M16 20.5C16.8284 20.5 17.5 19.8284 17.5 19C17.5 18.1716 16.8284 17.5 16 17.5C15.1716 17.5 14.5 18.1716 14.5 19C14.5 19.8284 15.1716 20.5 16 20.5Z" fill="#246BDA"/>
+</g>
+</g>
+</g>
+</g>
+</svg>

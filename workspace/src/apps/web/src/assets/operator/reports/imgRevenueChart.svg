@@ -1,0 +1,25 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="774" height="246" viewBox="0 0 774 246" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Revenue chart" clip-path="url(#clip0_0_22)">
+<path id="Vector" d="M0 162L82 150L164 158L246 125L328 139L410 91L492 107L574 70L656 98L774 52V246H0V162Z" fill="url(#paint0_linear_0_22)"/>
+<path id="Vector_2" d="M0 162L82 150L164 158L246 125L328 139L410 91L492 107L574 70L656 98L774 52" stroke-width="2" stroke="#2472E8"/>
+<path id="Vector_3" d="M0 165.5C1.933 165.5 3.5 163.933 3.5 162C3.5 160.067 1.933 158.5 0 158.5C-1.933 158.5 -3.5 160.067 -3.5 162C-3.5 163.933 -1.933 165.5 0 165.5Z" fill="white" stroke-width="2" stroke="#2472E8"/>
+<path id="Vector_4" d="M82 153.5C83.933 153.5 85.5 151.933 85.5 150C85.5 148.067 83.933 146.5 82 146.5C80.067 146.5 78.5 148.067 78.5 150C78.5 151.933 80.067 153.5 82 153.5Z" fill="white" stroke-width="2" stroke="#2472E8"/>
+<path id="Vector_5" d="M164 161.5C165.933 161.5 167.5 159.933 167.5 158C167.5 156.067 165.933 154.5 164 154.5C162.067 154.5 160.5 156.067 160.5 158C160.5 159.933 162.067 161.5 164 161.5Z" fill="white" stroke-width="2" stroke="#2472E8"/>
+<path id="Vector_6" d="M246 128.5C247.933 128.5 249.5 126.933 249.5 125C249.5 123.067 247.933 121.5 246 121.5C244.067 121.5 242.5 123.067 242.5 125C242.5 126.933 244.067 128.5 246 128.5Z" fill="white" stroke-width="2" stroke="#2472E8"/>
+<path id="Vector_7" d="M328 142.5C329.933 142.5 331.5 140.933 331.5 139C331.5 137.067 329.933 135.5 328 135.5C326.067 135.5 324.5 137.067 324.5 139C324.5 140.933 326.067 142.5 328 142.5Z" fill="white" stroke-width="2" stroke="#2472E8"/>
+<path id="Vector_8" d="M410 94.5C411.933 94.5 413.5 92.933 413.5 91C413.5 89.067 411.933 87.5 410 87.5C408.067 87.5 406.5 89.067 406.5 91C406.5 92.933 408.067 94.5 410 94.5Z" fill="white" stroke-width="2" stroke="#2472E8"/>
+<path id="Vector_9" d="M492 110.5C493.933 110.5 495.5 108.933 495.5 107C495.5 105.067 493.933 103.5 492 103.5C490.067 103.5 488.5 105.067 488.5 107C488.5 108.933 490.067 110.5 492 110.5Z" fill="white" stroke-width="2" stroke="#2472E8"/>
+<path id="Vector_10" d="M574 73.5C575.933 73.5 577.5 71.933 577.5 70C577.5 68.067 575.933 66.5 574 66.5C572.067 66.5 570.5 68.067 570.5 70C570.5 71.933 572.067 73.5 574 73.5Z" fill="white" stroke-width="2" stroke="#2472E8"/>
+<path id="Vector_11" d="M656 101.5C657.933 101.5 659.5 99.933 659.5 98C659.5 96.067 657.933 94.5 656 94.5C654.067 94.5 652.5 96.067 652.5 98C652.5 99.933 654.067 101.5 656 101.5Z" fill="white" stroke-width="2" stroke="#2472E8"/>
+<path id="Vector_12" d="M774 55.5C775.933 55.5 777.5 53.933 777.5 52C777.5 50.067 775.933 48.5 774 48.5C772.067 48.5 770.5 50.067 770.5 52C770.5 53.933 772.067 55.5 774 55.5Z" fill="white" stroke-width="2" stroke="#2472E8"/>
+</g>
+<defs>
+<linearGradient id="paint0_linear_0_22" x1="0" y1="52" x2="0" y2="246" gradientUnits="userSpaceOnUse">
+<stop stop-color="#2472E8" stop-opacity="0.25"/>
+<stop offset="1" stop-color="#2472E8" stop-opacity="0.03"/>
+</linearGradient>
+<clipPath id="clip0_0_22">
+<rect width="774" height="246" fill="white"/>
+</clipPath>
+</defs>
+</svg>
