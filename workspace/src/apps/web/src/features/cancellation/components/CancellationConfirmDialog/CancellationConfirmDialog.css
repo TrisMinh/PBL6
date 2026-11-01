@@ -1,0 +1,53 @@
+.cancellation-dialog__overlay {
+  position: fixed;
+  inset: 90px 0 0;
+  z-index: 40;
+  background: var(--color-bg-page);
+}
+.cancellation-dialog__content {
+  position: absolute;
+  z-index: 41;
+  top: 90px;
+  left: 0;
+  width: 100%;
+  min-height: calc(100dvh - 90px);
+  padding: 0;
+  background: var(--color-bg-page);
+}
+
+.cancellation-dialog__content:focus {
+  outline: 2px solid transparent;
+}
+
+.cancellation-dialog__sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.cancellation-dialog__actions {
+  display: grid;
+  gap: 14px;
+}
+
+.cancellation-dialog__actions .button {
+  width: 100%;
+}
+
+.cancellation-dialog__actions .button--primary {
+  background: var(--color-cancellation-accent);
+  color: var(--color-text-on-image);
+}
+
+@media (max-width: 767px) {
+  .cancellation-dialog__overlay {
+    inset: 90px 0 0;
+  }
+
+  .cancellation-dialog__content {
+    top: 90px;
+  }
+}

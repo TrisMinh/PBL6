@@ -1,0 +1,318 @@
+.account-live {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 48px 24px 72px;
+  color: var(--color-text-primary, #172b4d);
+}
+.account-live__heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+.account-live__eyebrow {
+  color: #2563eb;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  margin: 0 0 10px;
+}
+.account-live__heading h1 {
+  font-family: var(--font-display);
+  font-size: clamp(26px, 3vw, 36px);
+  line-height: 1.25;
+  letter-spacing: -0.035em;
+  margin: 0 0 12px;
+}
+.account-live__heading > div > p:last-child,
+.account-live__section-heading p {
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.7;
+  margin: 0;
+}
+.account-live__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+.account-live__actions .button {
+  font-size: 13px;
+  gap: 10px;
+  color: #64748b;
+}
+.account-live__layout {
+  display: grid;
+  grid-template-columns: 310px minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+.account-live__sidebar,
+.account-live__journeys {
+  min-width: 0;
+  background: #fff;
+  border: 1px solid #e4eaf3;
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgb(28 50 88 / 3%);
+}
+.account-live__profile {
+  padding: 28px 24px;
+}
+.account-live__profile-avatar {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  background: #edf3ff;
+  color: #2563eb;
+  font-weight: 700;
+  font-size: 20px;
+  margin-bottom: 18px;
+}
+.account-live__profile h2,
+.account-live__section-heading h2 {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 6px;
+  letter-spacing: -0.02em;
+}
+.account-live__profile-caption {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0 0 24px;
+  line-height: 1.6;
+}
+.account-live__profile form {
+  display: grid;
+  gap: 18px;
+}
+.account-live__profile label {
+  display: grid;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+}
+.account-live__profile input {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  border: 1px solid #dce3ee;
+  background: #fff;
+  border-radius: 10px;
+  padding: 11px 12px;
+  font: inherit;
+  font-size: 14px;
+  color: #253858;
+  box-sizing: border-box;
+}
+.account-live__profile input[readonly] {
+  color: #64748b;
+  background: #f7f9fc;
+  font-size: 12px;
+}
+.account-live__profile input:focus-visible {
+  outline: 3px solid #dbeafe;
+  border-color: #2563eb;
+}
+.account-live__profile .button {
+  width: 100%;
+  font-size: 13px;
+  min-height: 44px;
+  border-radius: 10px;
+}
+.account-live__profile-footer {
+  border-top: 1px solid #edf0f5;
+  padding-top: 18px;
+  margin: 4px 0 0;
+  color: #94a3b8;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.account-live__journeys {
+  padding: 28px;
+  min-height: 480px;
+}
+.account-live__tabs {
+  display: flex;
+  gap: 24px;
+  border-bottom: 1px solid #e8edf5;
+  margin-top: 24px;
+}
+.account-live__tabs button {
+  background: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  padding: 0 0 14px;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: -1px;
+}
+.account-live__tabs button[aria-pressed="true"] {
+  color: #2563eb;
+  border-bottom-color: #2563eb;
+}
+.account-live__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 52px 20px 34px;
+}
+.account-live__empty-icon {
+  display: grid;
+  place-items: center;
+  width: 80px;
+  height: 80px;
+  background: #eff5ff;
+  border: 8px solid #f8faff;
+  color: #5386e9;
+  border-radius: 50%;
+  margin-bottom: 22px;
+}
+.account-live__empty-icon svg {
+  width: 42px;
+  height: 42px;
+}
+.account-live__empty h3 {
+  font-size: 18px;
+  margin: 0 0 10px;
+  font-weight: 600;
+}
+.account-live__empty p {
+  max-width: 310px;
+  font-size: 14px;
+  color: #64748b;
+  line-height: 1.7;
+  margin: 0 0 24px;
+}
+.account-live__empty .button {
+  min-height: 44px;
+  padding: 10px 24px;
+  font-size: 14px;
+  border-radius: 10px;
+  text-decoration: none;
+}
+.account-live__cards {
+  display: grid;
+  gap: 16px;
+  margin-top: 24px;
+}
+.account-live__ticket {
+  border: 1px solid #e4eaf3;
+  border-radius: 14px;
+  padding: 20px;
+  min-width: 0;
+}
+.account-live__ticket-top,
+.account-live__ticket-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.account-live__code {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  overflow-wrap: anywhere;
+}
+.account-live__status {
+  font-size: 11px;
+  font-weight: 600;
+  color: #475569;
+  background: #f1f5f9;
+  border-radius: 20px;
+  padding: 5px 10px;
+}
+.account-live__status--issued,
+.account-live__status--confirmed,
+.account-live__status--checked_in {
+  color: #15803d;
+  background: #ecfdf3;
+}
+.account-live__status--pending_payment {
+  color: #a16207;
+  background: #fffbeb;
+}
+.account-live__ticket h3 {
+  margin: 18px 0 5px;
+  font-size: 16px;
+  overflow-wrap: anywhere;
+}
+.account-live__ticket > p {
+  margin: 0 0 18px;
+  color: #64748b;
+  font-size: 13px;
+}
+.account-live__ticket-bottom {
+  border-top: 1px dashed #e4eaf3;
+  padding-top: 14px;
+  font-size: 12px;
+  color: #94a3b8;
+}
+.account-live__ticket-bottom a {
+  color: #2563eb;
+  font-weight: 600;
+  margin-left: auto;
+  text-decoration: none;
+}
+.account-live__pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 24px;
+  font-size: 13px;
+}
+.account-live__loading {
+  padding: 60px 20px;
+  text-align: center;
+  color: #64748b;
+}
+.account-live :where(button, a):focus-visible {
+  outline: 3px solid #93c5fd;
+  outline-offset: 4px;
+}
+@media (max-width: 800px) {
+  .account-live__layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .account-live__heading {
+    align-items: flex-start;
+  }
+  .account-live__profile-avatar {
+    float: left;
+    margin-right: 16px;
+  }
+  .account-live__profile form {
+    clear: both;
+    padding-top: 8px;
+  }
+}
+@media (max-width: 480px) {
+  .account-live {
+    padding: 28px 16px 48px;
+  }
+  .account-live__heading {
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  .account-live__actions {
+    align-self: flex-end;
+  }
+  .account-live__profile,
+  .account-live__journeys {
+    padding: 22px 18px;
+  }
+  .account-live__empty {
+    padding: 36px 0 24px;
+  }
+}

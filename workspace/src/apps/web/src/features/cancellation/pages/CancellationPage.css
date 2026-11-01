@@ -1,0 +1,883 @@
+.cancellation-page {
+  width: min(100%, 1280px);
+  min-height: 950px;
+  margin: 0 auto;
+  padding: 31px 0 90px;
+  color: var(--color-cancellation-text);
+  font-family: var(--font-body);
+}
+
+.cancellation-page__heading {
+  height: 109px;
+}
+
+.cancellation-page__heading p,
+.cancellation-page__processing-heading p {
+  margin: 0;
+  color: var(--color-cancellation-copy);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.cancellation-page__heading h1,
+.cancellation-page__processing-heading h1 {
+  margin: 9px 0 1px;
+  color: var(--color-cancellation-text);
+  font-size: 36px;
+  font-weight: 600;
+  line-height: 1.22;
+}
+
+.cancellation-page__heading h1 + p {
+  font-weight: 400;
+}
+
+.cancellation-page__grid {
+  display: grid;
+  grid-template-columns: 820px 430px;
+  gap: 30px;
+  align-items: start;
+}
+
+.cancellation-page__review-panel {
+  display: grid;
+  grid-template-rows: 188px 210px 154px 72px;
+  gap: 16px;
+  height: 720px;
+  padding: 23px;
+  border: 1px solid var(--color-cancellation-border);
+  border-radius: 24px;
+  background: var(--color-cancellation-panel);
+}
+
+.cancellation-page__journey,
+.cancellation-page__policy,
+.cancellation-page__selected-review {
+  overflow: hidden;
+  border: 1px solid var(--color-cancellation-border);
+  border-radius: 18px;
+  background: var(--color-cancellation-surface);
+}
+
+.cancellation-page__journey {
+  padding: 15px 19px 11px;
+}
+
+.cancellation-page__section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cancellation-page__section-heading h2,
+.cancellation-page__policy h2 {
+  margin: 0;
+  color: var(--color-cancellation-text);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.cancellation-page__section-heading button,
+.cancellation-page__policy-row button {
+  min-width: 44px;
+  min-height: 32px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-cancellation-accent);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.cancellation-page__operator {
+  display: flex;
+  gap: 14px;
+  margin-top: 4px;
+}
+
+.cancellation-page__icon-well {
+  display: inline-flex;
+  flex: 0 0 44px;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+  background: var(--color-cancellation-accent-soft);
+}
+
+.cancellation-page__icon-well img {
+  width: 24px;
+  height: 24px;
+}
+
+.cancellation-page__operator div,
+.cancellation-page__summary-operator div {
+  display: grid;
+  align-content: center;
+}
+
+.cancellation-page__operator span,
+.cancellation-page__summary-operator span,
+.cancellation-page__payment-method span,
+.cancellation-page__refund-brand span,
+.cancellation-page__refund-facts > span,
+.cancellation-page__progress > span {
+  color: var(--color-cancellation-compact-accent);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.cancellation-page__operator strong,
+.cancellation-page__summary-operator strong {
+  color: var(--color-cancellation-text);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.cancellation-page__operator small,
+.cancellation-page__summary-operator small,
+.cancellation-page__route small,
+.cancellation-page__summary-route small,
+.cancellation-page__selected-ticket small,
+.cancellation-page__pickup small,
+.cancellation-page__policy-row small,
+.cancellation-page__consent small,
+.cancellation-page__payment-method small,
+.cancellation-page__notice small,
+.cancellation-page__progress small {
+  color: var(--color-cancellation-compact-copy);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 400;
+}
+
+.cancellation-page__route {
+  display: grid;
+  grid-template-columns: 182px 1fr 182px;
+  align-items: end;
+  margin-top: 7px;
+}
+
+.cancellation-page__route > div:not(.cancellation-page__timeline) {
+  display: grid;
+}
+
+.cancellation-page__route strong {
+  font-size: 18px;
+}
+
+.cancellation-page__route span {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.cancellation-page__route-end {
+  text-align: right;
+}
+
+.cancellation-page__timeline {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 41px;
+  margin-bottom: 1px;
+}
+
+.cancellation-page__timeline::before {
+  position: absolute;
+  top: 10px;
+  right: 6px;
+  left: 6px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--color-cancellation-border-strong);
+  content: "";
+}
+
+.cancellation-page__timeline > span:not(.cancellation-page__timeline-bus) {
+  z-index: 1;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--color-cancellation-accent);
+}
+
+.cancellation-page__timeline-bus {
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 30px;
+  border-radius: 15px;
+  background: var(--color-cancellation-accent-soft);
+}
+
+.cancellation-page__timeline-bus img {
+  width: 18px;
+  height: 18px;
+}
+
+.cancellation-page__timeline small {
+  position: absolute;
+  top: 32px;
+  left: 50%;
+  width: 200px;
+  text-align: center;
+  transform: translateX(-50%);
+}
+
+.cancellation-page__policy {
+  padding: 15px 19px;
+}
+
+.cancellation-page__policy-row {
+  display: grid;
+  grid-template-columns: 22px 1fr auto;
+  align-items: center;
+  gap: 14px;
+  min-height: 49px;
+}
+
+.cancellation-page__policy-row img {
+  width: 22px;
+  height: 22px;
+}
+
+.cancellation-page__policy-row div {
+  display: grid;
+}
+
+.cancellation-page__policy-row strong {
+  font-size: 12px;
+}
+
+.cancellation-page__consent {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 0 17px;
+  border-radius: 14px;
+  background: var(--color-cancellation-success-soft);
+}
+
+.cancellation-page__consent img {
+  width: 26px;
+  height: 26px;
+}
+
+.cancellation-page__consent div {
+  display: grid;
+  gap: 5px;
+}
+
+.cancellation-page__consent strong {
+  font-size: 12px;
+}
+
+.cancellation-page__summary {
+  display: flex;
+  flex-direction: column;
+  min-height: 720px;
+  padding: 19px 23px 15px;
+  border: 1px solid var(--color-cancellation-border-strong);
+  border-radius: 22px;
+  background: var(--color-cancellation-panel);
+}
+
+.cancellation-page__summary-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 13px;
+}
+
+.cancellation-page__summary-title h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.cancellation-page__summary-title > span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 32px;
+  border-radius: 16px;
+  background: var(--color-cancellation-warning-soft);
+  color: var(--color-status-warning);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.cancellation-page__summary-operator {
+  display: flex;
+  gap: 14px;
+  min-height: 86px;
+  padding: 14px 13px;
+  border: 1px solid var(--color-cancellation-border);
+  border-radius: 14px;
+  background: var(--color-cancellation-surface);
+}
+
+.cancellation-page__summary-route {
+  display: grid;
+  gap: 6px;
+  min-height: 92px;
+  margin-top: 14px;
+  padding: 13px;
+  border: 1px solid var(--color-cancellation-border);
+  border-radius: 14px;
+  background: var(--color-cancellation-surface);
+}
+
+.cancellation-page__summary-route strong {
+  font-size: 14px;
+}
+
+.cancellation-page__summary-route span {
+  color: var(--color-cancellation-accent);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.cancellation-page__amounts {
+  display: grid;
+  gap: 18px;
+  margin: 25px 0 18px;
+}
+
+.cancellation-page__amounts div {
+  display: flex;
+  justify-content: space-between;
+  color: var(--color-cancellation-copy);
+  font-size: 13px;
+}
+
+.cancellation-page__amounts div:last-child {
+  margin-top: 1px;
+  padding-top: 20px;
+  border-top: 1px solid var(--color-cancellation-border);
+  font-weight: 600;
+}
+
+.cancellation-page__amounts dd {
+  margin: 0;
+  color: var(--color-cancellation-text);
+  font-weight: 600;
+}
+
+.cancellation-page__payment-method {
+  position: relative;
+  display: grid;
+  gap: 6px;
+  min-height: 66px;
+  margin-bottom: 14px;
+  padding: 10px 13px;
+  border-radius: 14px;
+  background: var(--color-cancellation-accent-soft);
+}
+
+.cancellation-page__payment-method strong {
+  font-size: 11px;
+}
+
+.cancellation-page__payment-method small {
+  position: absolute;
+  right: 13px;
+  bottom: 24px;
+}
+
+.cancellation-page__summary > .button,
+.cancellation-dialog__actions .button {
+  min-height: 52px;
+  border-radius: 12px;
+}
+
+.cancellation-page__summary > .button + .button {
+  min-height: 42px;
+  margin-top: 14px;
+}
+
+.cancellation-page__summary-footnote {
+  margin-top: 13px;
+  color: var(--color-cancellation-compact-copy);
+  font-size: 9px;
+  text-align: center;
+}
+
+.cancellation-page__selected-review {
+  padding: 15px 19px;
+}
+
+.cancellation-page__selected-list {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.cancellation-page__selected-ticket {
+  display: grid;
+  grid-template-columns: 50px 22px minmax(90px, 1fr) 1px 14px auto;
+  align-items: center;
+  gap: 10px;
+  width: min(356px, 100%);
+  min-height: 68px;
+  padding: 0 13px;
+  border: 1px solid var(--color-cancellation-border-strong);
+  border-radius: 12px;
+  background: var(--color-cancellation-control);
+}
+
+.cancellation-page__selected-ticket > span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 34px;
+  border-radius: 17px;
+  background: var(--color-cancellation-accent-soft);
+  color: var(--color-cancellation-compact-accent);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.cancellation-page__selected-ticket img:first-of-type {
+  width: 22px;
+  height: 22px;
+}
+
+.cancellation-page__selected-ticket img:last-of-type {
+  width: 14px;
+  height: 14px;
+}
+
+.cancellation-page__selected-ticket strong {
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.cancellation-page__selected-ticket i {
+  width: 1px;
+  height: 32px;
+  background: var(--color-cancellation-border-strong);
+}
+
+.cancellation-page__pickup {
+  display: grid;
+  grid-template-columns: 22px 1fr 128px;
+  align-items: center;
+  gap: 14px;
+  min-height: 64px;
+  margin-top: 12px;
+  padding: 0 14px;
+  border-radius: 12px;
+  background: var(--color-cancellation-accent-soft);
+}
+
+.cancellation-page__pickup > img {
+  width: 22px;
+  height: 22px;
+}
+
+.cancellation-page__pickup div {
+  display: grid;
+  gap: 5px;
+}
+
+.cancellation-page__pickup strong {
+  font-size: 11px;
+}
+
+.cancellation-page__pickup > span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  border-radius: 18px;
+  background: var(--color-cancellation-surface);
+  color: var(--color-cancellation-accent);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.cancellation-page--processing {
+  width: 1120px;
+  min-height: 0;
+  padding-top: 0;
+}
+
+.cancellation-page:has(> .cancellation-page--processing) {
+  min-height: 810px;
+  padding-bottom: 0;
+}
+
+.cancellation-page__processing-heading {
+  height: 109px;
+}
+
+.cancellation-page__refund {
+  height: 520px;
+  padding: 20px 31px 28px;
+  overflow: hidden;
+  border: 1px solid var(--color-cancellation-border-strong);
+  border-top: 4px solid var(--color-cancellation-accent);
+  border-radius: 24px;
+  background: var(--color-cancellation-surface);
+  box-shadow: var(--shadow-cancellation-ticket);
+}
+
+.cancellation-page__refund-brand {
+  display: flex;
+  align-items: center;
+  height: 26px;
+}
+
+.cancellation-page__refund-brand strong {
+  color: var(--color-cancellation-accent);
+  font-size: 16px;
+}
+
+.cancellation-page__refund-brand i {
+  width: 1px;
+  height: 23px;
+  margin: 0 25px;
+  background: var(--color-cancellation-border);
+}
+
+.cancellation-page__refund-brand img {
+  width: 8px;
+  height: 8px;
+  margin-right: 7px;
+}
+
+.cancellation-page__refund-brand small {
+  margin-left: auto;
+  color: var(--color-cancellation-copy);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.cancellation-page__refund > h2 {
+  margin: 12px 0 1px;
+  font-size: 30px;
+}
+
+.cancellation-page__refund > p {
+  margin: 0;
+  color: var(--color-cancellation-copy);
+  font-size: 13px;
+}
+
+.cancellation-page__refund-divider {
+  height: 1px;
+  margin-top: 15px;
+  background: var(--color-cancellation-border);
+}
+
+.cancellation-page__refund-body {
+  display: grid;
+  grid-template-columns: 696px 1fr;
+  min-height: 286px;
+  margin-top: 20px;
+}
+
+.cancellation-page__refund-facts {
+  padding-right: 46px;
+}
+
+.cancellation-page__refund-facts dl {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 27px 44px;
+  margin: 17px 0 25px;
+}
+
+.cancellation-page__refund-facts dl div {
+  display: grid;
+  gap: 6px;
+}
+
+.cancellation-page__refund-facts dt {
+  color: var(--color-cancellation-copy);
+  font-size: 10px;
+}
+
+.cancellation-page__refund-facts dd {
+  margin: 0;
+  color: var(--color-cancellation-text);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.cancellation-page__notice {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 58px;
+  padding: 0 16px;
+  border-radius: 10px;
+  background: var(--color-cancellation-accent-soft);
+}
+
+.cancellation-page__notice img {
+  width: 20px;
+  height: 20px;
+}
+
+.cancellation-page__notice div {
+  display: grid;
+  gap: 4px;
+}
+
+.cancellation-page__notice strong {
+  font-size: 12px;
+}
+
+.cancellation-page__refund-facts > p {
+  margin: 19px 0 0;
+  color: var(--color-cancellation-copy);
+  font-size: 10px;
+}
+
+.cancellation-page__progress {
+  position: relative;
+  min-height: 286px;
+  padding-left: 42px;
+  border-left: 1px solid var(--color-cancellation-border);
+}
+
+.cancellation-page__progress > img {
+  position: absolute;
+  top: 40px;
+  left: 41px;
+  width: 28px;
+  height: 174px;
+}
+
+.cancellation-page__progress ol {
+  display: grid;
+  gap: 25px;
+  margin: 29px 0 0 44px;
+  padding: 0;
+  list-style: none;
+}
+
+.cancellation-page__progress li {
+  display: grid;
+  gap: 5px;
+}
+
+.cancellation-page__progress li strong {
+  font-size: 14px;
+}
+
+.cancellation-page__progress li:nth-child(2) strong {
+  color: var(--color-cancellation-accent);
+}
+
+.cancellation-page__progress li:nth-child(3) strong {
+  color: var(--color-cancellation-copy);
+}
+
+.cancellation-page__progress > p {
+  margin: 27px 0 0;
+  color: var(--color-cancellation-copy);
+  font-size: 10px;
+}
+
+@media (max-width: 1311px) {
+  .cancellation-page {
+    width: calc(100% - 32px);
+  }
+
+  .cancellation-page__grid {
+    grid-template-columns: minmax(0, 820px) minmax(340px, 430px);
+  }
+
+  .cancellation-page--processing {
+    width: min(calc(100% - 64px), 1120px);
+  }
+}
+
+@media (max-width: 1023px) {
+  .cancellation-page {
+    height: auto;
+    min-height: 0;
+  }
+
+  .cancellation-page__heading {
+    height: auto;
+    margin-bottom: 20px;
+  }
+
+  .cancellation-page__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cancellation-page__review-panel,
+  .cancellation-page__summary {
+    height: auto;
+    min-height: 0;
+  }
+
+  .cancellation-page__review-panel {
+    grid-template-rows: auto;
+  }
+
+  .cancellation-page__summary {
+    position: static;
+  }
+
+  .cancellation-page--processing {
+    width: 100%;
+  }
+
+  .cancellation-page__refund {
+    height: auto;
+  }
+
+  .cancellation-page__refund-body {
+    grid-template-columns: 1fr;
+  }
+
+  .cancellation-page__refund-facts {
+    padding-right: 0;
+  }
+
+  .cancellation-page__progress {
+    margin-top: 28px;
+    padding: 24px 0 0 42px;
+    border-top: 1px solid var(--color-cancellation-border);
+    border-left: 0;
+  }
+
+  .cancellation-page__progress > img {
+    top: 64px;
+    left: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .cancellation-page {
+    width: calc(100% - 32px);
+    padding-top: 24px;
+    padding-bottom: 48px;
+  }
+
+  .cancellation-page__heading h1,
+  .cancellation-page__processing-heading h1 {
+    font-size: 30px;
+  }
+
+  .cancellation-page__heading > p:first-child,
+  .cancellation-page__processing-heading > p {
+    line-height: 1.6;
+  }
+
+  .cancellation-page__review-panel {
+    padding: 16px;
+  }
+
+  .cancellation-page__journey {
+    min-height: 280px;
+  }
+
+  .cancellation-page__route {
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 18px;
+  }
+
+  .cancellation-page__timeline {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .cancellation-page__policy {
+    padding: 16px;
+  }
+
+  .cancellation-page__policy-row {
+    grid-template-columns: 22px 1fr;
+    padding-block: 8px;
+  }
+
+  .cancellation-page__policy-row button {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .cancellation-page__consent {
+    min-height: 88px;
+    padding-block: 12px;
+  }
+
+  .cancellation-page__summary {
+    padding: 18px 16px;
+  }
+
+  .cancellation-page__payment-method small {
+    position: static;
+  }
+
+  .cancellation-page__selected-list {
+    display: grid;
+  }
+
+  .cancellation-page__selected-ticket {
+    grid-template-columns: 48px 22px minmax(0, 1fr);
+  }
+
+  .cancellation-page__selected-ticket i,
+  .cancellation-page__selected-ticket img:last-of-type,
+  .cancellation-page__selected-ticket small {
+    display: none;
+  }
+
+  .cancellation-page__pickup {
+    grid-template-columns: 22px 1fr;
+    padding-block: 12px;
+  }
+
+  .cancellation-page__pickup > span {
+    grid-column: 2;
+    width: 128px;
+  }
+
+  .cancellation-page__processing-heading {
+    height: auto;
+    margin-bottom: 22px;
+  }
+
+  .cancellation-page__refund {
+    padding: 18px 16px 24px;
+  }
+
+  .cancellation-page__refund-brand {
+    flex-wrap: wrap;
+    height: auto;
+    gap: 8px;
+  }
+
+  .cancellation-page__refund-brand i {
+    margin: 0 5px;
+  }
+
+  .cancellation-page__refund-brand small {
+    flex-basis: 100%;
+    margin-left: 0;
+  }
+
+  .cancellation-page__refund > h2 {
+    font-size: 25px;
+  }
+
+  .cancellation-page__refund-facts dl {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+}

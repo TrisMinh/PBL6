@@ -1,0 +1,156 @@
+.cancellation-selector {
+  margin: 0;
+  padding: 15px 19px 13px;
+  border: 1px solid var(--color-cancellation-border);
+  border-radius: 18px;
+  background: var(--color-cancellation-surface);
+}
+
+.cancellation-selector__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 25px;
+  margin-bottom: 8px;
+}
+
+.cancellation-selector legend {
+  padding: 0;
+  color: var(--color-cancellation-text);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.cancellation-selector__heading p {
+  margin: 0 71px 0 0;
+  color: var(--color-cancellation-accent);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.cancellation-selector__list {
+  display: grid;
+  gap: 8px;
+}
+
+.cancellation-selector__ticket {
+  position: relative;
+  display: grid;
+  grid-template-columns: 50px 22px 132px 1px 14px 1fr 22px;
+  align-items: center;
+  gap: 14px;
+  min-height: 68px;
+  padding: 0 13px;
+  border: 1px solid var(--color-cancellation-border-strong);
+  border-radius: 12px;
+  background: var(--color-cancellation-control);
+  color: var(--color-cancellation-text);
+  cursor: pointer;
+}
+
+.cancellation-selector__ticket:has(input:focus-visible) {
+  outline: 3px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.cancellation-selector__ticket input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+}
+
+.cancellation-selector__ticket > img:not(.cancellation-selector__check) {
+  width: 22px;
+  height: 22px;
+}
+
+.cancellation-selector__ticket > img:nth-of-type(2) {
+  width: 14px;
+  height: 14px;
+}
+
+.cancellation-selector__seat {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 34px;
+  border-radius: 17px;
+  background: var(--color-cancellation-accent-soft);
+  color: var(--color-cancellation-compact-accent);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.cancellation-selector__ticket strong {
+  color: var(--color-cancellation-text);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.cancellation-selector__divider {
+  width: 1px;
+  height: 32px;
+  background: var(--color-cancellation-border-strong);
+}
+
+.cancellation-selector__phone {
+  color: var(--color-cancellation-copy);
+  font-size: 11px;
+}
+
+.cancellation-selector__check {
+  width: 22px;
+  height: 22px;
+}
+
+.cancellation-selector__check--empty {
+  border: 1.5px solid var(--color-cancellation-accent);
+  border-radius: 7px;
+  background: var(--color-cancellation-surface);
+}
+
+@media (max-width: 700px) {
+  .cancellation-selector {
+    padding: 15px;
+  }
+
+  .cancellation-selector__heading {
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .cancellation-selector__heading p {
+    margin: 3px 0 0;
+    white-space: nowrap;
+  }
+
+  .cancellation-selector__ticket {
+    grid-template-columns: 44px 22px minmax(0, 1fr) 22px;
+    gap: 10px;
+    min-height: 76px;
+    padding-block: 8px;
+  }
+
+  .cancellation-selector__seat {
+    width: 44px;
+  }
+
+  .cancellation-selector__divider,
+  .cancellation-selector__ticket > img:nth-of-type(2) {
+    display: none;
+  }
+
+  .cancellation-selector__phone {
+    grid-column: 3;
+    margin-top: -8px;
+  }
+
+  .cancellation-selector__check {
+    grid-column: 4;
+    grid-row: 1 / span 2;
+  }
+}

@@ -1,0 +1,67 @@
+.account-tickets {
+  max-width: 1120px;
+  min-width: 0;
+  margin: auto;
+  padding: var(--space-section-inset) var(--space-page-gutter);
+}
+.account-tickets__heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-content-gap);
+}
+.account-tickets__heading h1 {
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+}
+.account-tickets__heading p {
+  flex-basis: 100%;
+  color: var(--color-text-secondary);
+}
+.account-tickets__filter {
+  display: grid;
+  max-width: 280px;
+  gap: var(--space-inline-gap);
+  margin-block: var(--space-content-gap);
+}
+.account-tickets__filter select {
+  min-height: var(--size-control-min);
+  color: var(--color-text-primary);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  padding: var(--space-inline-gap);
+}
+.account-tickets__list {
+  display: grid;
+  gap: var(--space-content-gap);
+  list-style: none;
+  padding: 0;
+}
+.account-tickets__item {
+  min-width: 0;
+  background: var(--color-bg-surface);
+  padding: var(--space-section-inset);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  overflow-wrap: anywhere;
+}
+.account-tickets__item h2 {
+  font-size: 1.25rem;
+}
+.account-tickets :where(a, select, button):focus-visible {
+  outline: 3px solid var(--color-focus-ring);
+  outline-offset: 3px;
+}
+.account-tickets__item a,
+.account-tickets__empty a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--size-control-min);
+}
+@media (min-width: 768px) {
+  .account-tickets__list {
+    grid-template-columns: 1fr 1fr;
+  }
+}
