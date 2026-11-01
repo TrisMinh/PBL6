@@ -1,0 +1,119 @@
+.operator-vip29__cabin {
+  position: relative;
+  flex: 0 0 380px;
+  height: 406px;
+  border: 1px solid #d1def0;
+  border-radius: 20px;
+  background: #f8f9fc;
+  font-family: Inter, var(--font-body);
+}
+.operator-vip29__description {
+  position: absolute;
+  right: 17px;
+  top: 13px;
+  color: #6e85a3;
+  font-size: 6.48px;
+  line-height: normal;
+}
+.operator-vip29__steering {
+  position: absolute;
+  left: 67px;
+  top: 23px;
+  width: 36px;
+  height: 36px;
+  background: #586d88;
+  mask: url("../../../assets/operator/vehicles/vip29/imgTint1.png") 0 0 / 36px
+    36px no-repeat;
+}
+.operator-vip29__seat {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 42px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: #1f529e;
+}
+.operator-vip29__seat > span {
+  display: block;
+  flex-shrink: 0;
+  width: 26px;
+  height: 28px;
+  background: #246feb;
+  mask: url("../../../assets/operator/vehicles/vip29/imgTint.png") 0 0 / 26px
+    28px no-repeat;
+}
+.operator-vip29__seat small {
+  display: block;
+  width: 42px;
+  height: 10px;
+  margin-top: 5px;
+  font-size: 8px;
+  font-weight: 600;
+  text-align: center;
+  line-height: normal;
+}
+.operator-vip29__seat--off {
+  color: #8c99ad;
+}
+.operator-vip29__seat--off > span {
+  background: #aab4c2;
+}
+.operator-vip29__seat:hover {
+  background: #e5edf9;
+}
+.operator-vip29__seat:focus-visible {
+  outline: 2px solid #1352c9;
+  outline-offset: 2px;
+}
+.operator-vehicles__detail--vip29 .operator-vehicles__rear {
+  margin-top: 20px;
+}
+.operator-vehicles__detail--vip29 .operator-vehicles__notice:empty {
+  display: none;
+}
+@media (max-width: 1300px) {
+  .operator-vehicles__detail--vip29 .operator-vehicles__route {
+    flex-wrap: wrap;
+  }
+  .operator-vehicles__detail--vip29 .operator-vehicles__assignment > div {
+    min-height: 38px;
+    height: auto;
+  }
+}
+@media (max-width: 1150px) and (min-width: 1051px), (max-width: 440px) {
+  .operator-vip29 {
+    width: 100%;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    padding-bottom: 4px;
+  }
+}
+
+.operator-vip29--limo24 .operator-vip29__cabin {
+  height: 422px;
+}
+.operator-vip29--limo24 .operator-vip29__steering {
+  top: 30px;
+}
+.operator-vip29--limo24 .operator-vip29__seat {
+  height: 40px;
+}
+.operator-vip29--limo24 .operator-vip29__seat small {
+  height: 8px;
+  margin-top: 4px;
+}
+.operator-vip29__cabin-title {
+  position: absolute;
+  left: 15px;
+  top: 13px;
+  font-size: 8.64px;
+  font-weight: 600;
+  line-height: normal;
+  color: #0e1e35;
+}

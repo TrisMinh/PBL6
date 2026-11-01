@@ -1,0 +1,55 @@
+.operator-trip-lists .operator-bookings__toolbar {
+  grid-template-columns:
+    minmax(0, 330fr) minmax(0, 220fr) minmax(0, 220fr)
+    minmax(0, 176fr) minmax(0, 160fr);
+}
+.operator-trip-lists .operator-bookings__panel td {
+  height: 64px;
+}
+.operator-trip-lists .operator-bookings__panel td:last-child button {
+  width: 120px;
+}
+.operator-trip-lists .operator-bookings__panel td:nth-last-child(2) strong {
+  font-size: 11px;
+}
+.operator-trip-lists .operator-bookings__pagination {
+  min-height: 74px;
+}
+.operator-trip-lists__unassigned {
+  color: #c9475a;
+}
+.operator-trip-lists__conflict {
+  color: #d91f2e;
+}
+.operator-bookings__dialog.operator-trip-lists__dialog {
+  width: min(900px, calc(100vw - 32px));
+}
+.operator-trip-lists__passengers {
+  overflow-x: auto;
+}
+.operator-trip-lists__passengers table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 620px;
+  font-size: 12px;
+  text-align: left;
+}
+.operator-trip-lists__passengers th {
+  background: #f4f7fb;
+  color: #49627f;
+}
+.operator-trip-lists__passengers th,
+.operator-trip-lists__passengers td {
+  padding: 12px;
+  border-bottom: 1px solid #d5e1ef;
+}
+@media (width < 1200px) {
+  .operator-trip-lists .operator-bookings__toolbar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (width < 600px) {
+  .operator-trip-lists .operator-bookings__toolbar {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

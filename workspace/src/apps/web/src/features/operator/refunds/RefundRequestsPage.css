@@ -1,0 +1,286 @@
+.operator-refunds {
+  background: #f7faff;
+  color: #10243e;
+}
+.operator-refunds img {
+  max-width: none;
+}
+.operator-refunds .operator-schedule__header h1 {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 600;
+}
+.operator-refunds__filters {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 330fr) minmax(0, 250fr) minmax(0, 176fr)
+    minmax(0, 176fr) 174px;
+  gap: 16px;
+  align-items: start;
+  min-height: 108px;
+  margin-top: 8px;
+  padding: 15px 19px;
+  border: 1px solid #d5e1ef;
+  border-radius: 12px;
+  background: white;
+}
+.operator-refunds__filters .field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.operator-refunds__filters .field__label {
+  color: #49627f;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+}
+.operator-refunds__filters input,
+.operator-refunds__filters select {
+  appearance: none;
+  width: 100%;
+  min-width: 0;
+  height: 48px;
+  padding: 0 16px;
+  border: 1px solid #b8cae0;
+  border-radius: 10px;
+  background: #fbfcfe;
+  color: #0b1f3a;
+  font-size: 14px;
+  line-height: 21px;
+}
+.operator-refunds__filters input::placeholder {
+  color: #0b1f3a;
+  opacity: 1;
+}
+.operator-refunds .operator-refunds__filters > .button {
+  height: 48px;
+  min-height: 48px;
+  margin-top: 28px;
+  border-radius: 10px;
+  background: #1f67e8;
+  border-color: #1f67e8;
+  font-size: 14px;
+}
+.operator-refunds .button--secondary {
+  background: #fbfcfe;
+  border-color: #8fb3e2;
+  color: #0b1f3a;
+  border-radius: 10px;
+  font-size: 13px;
+}
+.operator-refunds__policy {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  min-height: 72px;
+  margin-top: 16px;
+  padding: 14px 20px;
+  border-radius: 12px;
+  background: #eff6ff;
+}
+.operator-refunds__policy > div {
+  flex: 1;
+  min-width: 0;
+}
+.operator-refunds__policy h2 {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 21px;
+}
+.operator-refunds__policy p {
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 18px;
+  color: #3f536b;
+}
+.operator-refunds__policy > .button {
+  flex-shrink: 0;
+  width: 196px;
+  height: 44px;
+  padding: 0 8px;
+}
+.operator-refunds__card {
+  min-width: 0;
+  min-height: 680px;
+  margin-top: 16px;
+  padding: 19px;
+  border: 1px solid #d6e3f3;
+  border-radius: 12px;
+  background: white;
+}
+.operator-refunds__card > h2 {
+  display: flex;
+  align-items: center;
+  height: 48px;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 30px;
+}
+.operator-refunds__scroll {
+  overflow-x: auto;
+  width: 100%;
+  border-radius: 8px 8px 0 0;
+}
+.operator-refunds table {
+  table-layout: fixed;
+  border-spacing: 0;
+  width: 100%;
+  min-width: 1170px;
+  text-align: left;
+}
+.operator-refunds th {
+  height: 48px;
+  padding: 0 8px 0 0;
+  background: #fcfdff;
+  color: #5f738a;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 17px;
+}
+.operator-refunds td {
+  height: 80px;
+  padding: 0 8px 0 0;
+  border-bottom: 1px solid #d6e3f3;
+  vertical-align: middle;
+}
+.operator-refunds th:last-child,
+.operator-refunds td:last-child {
+  padding-right: 0;
+}
+.operator-refunds tr[data-selected] td {
+  background: #eff6ff;
+}
+.operator-refunds td strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+}
+.operator-refunds td small {
+  display: block;
+  margin-top: 3px;
+  color: #5f738a;
+  font-size: 10px;
+  line-height: 15px;
+}
+.operator-refunds td .operator-refunds__lead {
+  color: #1f66e5;
+}
+.operator-refunds td .button {
+  width: 124px;
+  height: 44px;
+  padding: 0 8px;
+  font-size: 13px;
+  line-height: 20px;
+}
+.operator-refunds__count {
+  display: flex;
+  align-items: center;
+  height: 52px;
+  color: #5f738a;
+  font-size: 12px;
+  line-height: 18px;
+}
+.operator-refunds__sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+.operator-refunds__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: #10243e66;
+}
+.operator-refunds__dialog {
+  position: fixed;
+  z-index: 101;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(720px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  padding: 28px;
+  border: 1px solid #d6e3f3;
+  border-radius: 14px;
+  background: white;
+  color: #10243e;
+  font-family: var(--font-body);
+}
+.operator-refunds__dialog h2 {
+  margin: 0 40px 12px 0;
+  font-size: 20px;
+}
+.operator-refunds__dialog p {
+  font-size: 13px;
+  line-height: 21px;
+  margin: 12px 0;
+}
+.operator-refunds__dialog .operator-refunds__close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 0;
+  min-height: 36px;
+  width: 36px;
+  font-size: 24px;
+}
+.operator-refunds__facts {
+  display: grid;
+  gap: 12px;
+  margin: 20px 0;
+}
+.operator-refunds__facts > div {
+  display: grid;
+  grid-template-columns: 160px minmax(0, 1fr);
+  gap: 16px;
+}
+.operator-refunds__facts dt {
+  color: #5f738a;
+  font-size: 12px;
+}
+.operator-refunds__facts dd {
+  margin: 0;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+.operator-refunds__demo {
+  color: #5f738a;
+}
+.operator-refunds button:focus-visible,
+.operator-refunds select:focus-visible,
+.operator-refunds__scroll:focus-visible {
+  outline: 2px solid #1f66e5;
+  outline-offset: 3px;
+}
+@media (max-width: 1250px) {
+  .operator-refunds__filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .operator-refunds__filters > .button {
+    margin-top: 0 !important;
+  }
+}
+@media (max-width: 700px) {
+  .operator-refunds__filters {
+    grid-template-columns: 1fr;
+  }
+  .operator-refunds__policy {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .operator-refunds__card {
+    padding: 12px;
+    min-height: 0;
+  }
+  .operator-refunds__facts > div {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+}

@@ -1,0 +1,186 @@
+.operator-conflicts__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgb(18 31 51 / 42%);
+}
+.operator-conflicts__dialog {
+  position: fixed;
+  z-index: 101;
+  top: min(160px, 16vh);
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(790px, calc(100vw - 32px));
+  max-height: calc(100dvh - min(160px, 16vh) - 24px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 20px;
+  border: 1px solid #dbe5f2;
+  border-radius: 8px;
+  background: white;
+  color: #1a293d;
+  font-family: var(--font-body);
+}
+.operator-conflicts__dialog > h2 {
+  margin: 0;
+  color: #0d1a2b;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 22px;
+}
+.operator-conflicts__dialog > p {
+  margin: 0;
+  color: #667d9c;
+  font-size: 10px;
+  line-height: 16px;
+}
+.operator-conflicts__dialog > .operator-conflicts__count {
+  color: #b0382e;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+}
+.operator-conflicts__card {
+  width: 100%;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border: 1px solid #dbe5f2;
+  border-radius: 8px;
+  background: white;
+  overflow-wrap: anywhere;
+}
+.operator-conflicts__card h3 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 19.5px;
+}
+.operator-conflicts__card p {
+  margin: 0;
+  font-size: 11px;
+  color: #667d9c;
+  line-height: 16.5px;
+}
+.operator-conflicts__dialog > .operator-conflicts__footnote {
+  font-size: 11px;
+  line-height: 16.5px;
+}
+.operator-conflicts__dialog > button {
+  width: 220px;
+  min-height: 44px;
+  flex-shrink: 0;
+  font-size: 12px;
+}
+.operator-conflicts__trigger {
+  display: block;
+  border: 0;
+  padding: 0;
+  margin-top: 8px;
+  background: transparent;
+  color: var(--op-muted);
+  font: inherit;
+  font-size: 10px;
+  cursor: pointer;
+  text-align: left;
+}
+.operator-conflicts__trigger:hover {
+  color: var(--color-bg-brand);
+  text-decoration: underline;
+}
+.operator-review__blocked ul {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 0;
+  color: #a63b33;
+  font-size: 11px;
+  font-weight: 600;
+}
+.operator-review__blocked li + li {
+  margin-top: 8px;
+}
+.operator-review__blocked > strong {
+  color: #a63b33;
+}
+@media (width < 600px) {
+  .operator-conflicts__dialog {
+    top: 24px;
+    max-height: calc(100dvh - 48px);
+    padding: 16px;
+  }
+  .operator-conflicts__card {
+    padding: 12px;
+  }
+  .operator-conflicts__dialog > button {
+    width: 100%;
+  }
+}
+
+.operator-review__blocked {
+  position: relative;
+}
+.operator-review__blocked .operator-conflicts__trigger::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+}
+.operator-review__blocked:has(.operator-conflicts__trigger:focus-visible) {
+  outline: 2px solid var(--color-bg-brand);
+  outline-offset: 3px;
+}
+.operator-review__blocked .operator-conflicts__trigger:focus-visible {
+}
+.operator-review__blocked ul {
+  line-height: 16.5px;
+}
+.operator-review__blocked-note {
+  padding-left: 48px;
+  min-height: 44px;
+}
+.operator-review:has(.operator-review__blocked) .operator-create__route-fields {
+  gap: 8px;
+}
+.operator-review:has(.operator-review__blocked) .operator-review__swap {
+  box-sizing: content-box;
+  padding: 7px;
+  border: 1px solid var(--op-control-border);
+  border-radius: 8px;
+  background: var(--op-action-soft);
+}
+.operator-review:has(.operator-review__blocked)
+  .operator-review__stops
+  > div
+  > p:only-child {
+  min-height: 59px;
+}
+.operator-review:has(.operator-review__blocked)
+  .operator-review__steps
+  li:not(:last-child)
+  b {
+  color: #1f63eb;
+}
+.operator-review:has(.operator-review__blocked)
+  .operator-review__actions
+  .button:disabled {
+  opacity: 0.4;
+}
+
+.operator-review .operator-review__blocked ul {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 0;
+  color: #a63b33;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 16.5px;
+}
+.operator-review .operator-review__blocked-note {
+  padding-left: 48px;
+  min-height: 44px;
+}
