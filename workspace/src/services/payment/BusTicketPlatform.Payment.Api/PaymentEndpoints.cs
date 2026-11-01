@@ -22,6 +22,8 @@ public static class PaymentEndpoints
         api.MapGet("/refunds/{refundId:guid}", GetRefundAsync);
         api.MapGet("/admin/payments", SearchPaymentsAsync);
         api.MapGet("/admin/refunds", SearchRefundsAsync);
+        api.MapGet("/operator/refunds", SearchRefundsAsync);
+        api.MapGet("/operator/refunds/{refundId:guid}", GetRefundAsync);
         api.MapGet("/operator/settlements", OperatorSettlementsAsync);
         api.MapGet("/admin/settlements", AdminSettlementsAsync);
         api.MapPost("/admin/payouts", PayoutAsync);

@@ -42,6 +42,16 @@ public sealed class TransportService(ITransportRepository store, ITransportEvent
         return Result<OrganizationDto>.Success(Map(org));
     }
 
+    public async Task<Result<IReadOnlyList<OrganizationDto>>> ListOrganizationsAsync(Actor actor, CancellationToken cancellationToken)
+    {
+        if (!actor.IsPlatformAdmin)
+        {
+            return Fail<IReadOnlyList<OrganizationDto>>(PlatformErrors.AccessDenied());
+        }
+        var organizations = await store.ListOrganizationsAsync(cancellationToken);
+        return Result<IReadOnlyList<OrganizationDto>>.Success(organizations.Select(Map).ToArray());
+    }
+
     public async Task<Result<OrganizationDto>> GetOrganizationAsync(Actor actor, Guid organizationId, CancellationToken cancellationToken)
     {
         if (!CanReadOrg(actor, organizationId))
@@ -457,7 +467,12 @@ public sealed class TransportService(ITransportRepository store, ITransportEvent
         var mapped = new List<TripDto>();
         foreach (var trip in items)
         {
-            mapped.Add(await MapTripAsync(trip, cancellationToken));
+            mapped.Add((await MapTripAsync(trip, cancellationToken)) with
+            {
+                RouteId = trip.RouteId,
+                BusId = trip.BusId,
+                DriverId = trip.DriverId
+            });
         }
 
         return Result<TripPageDto>.Success(Page(mapped, page, size, total));
@@ -715,6 +730,9 @@ public sealed class TransportService(ITransportRepository store, ITransportEvent
         return Result<TripDto>.Success(await MapTripAsync(updated, cancellationToken));
     }
 
+    public Task<IReadOnlyList<ExploreRouteDto>> ListExploreRoutesAsync(CancellationToken cancellationToken) =>
+        store.ListExploreRoutesAsync(cancellationToken);
+
     public async Task<Result<TripPageDto>> SearchAsync(TripSearchQuery query, CancellationToken cancellationToken)
     {
         if (query.PassengerCount is < 1 or > 10
@@ -768,6 +786,13 @@ public sealed class TransportService(ITransportRepository store, ITransportEvent
     private async Task<TripDto> MapTripAsync(TripRecord trip, CancellationToken cancellationToken)
     {
         var stops = await store.GetTripStopsAsync(trip.Id, cancellationToken);
+        var allowPayLater = false;
+        if (!string.IsNullOrWhiteSpace(trip.FareSnapshot))
+        {
+            using var fare = JsonDocument.Parse(trip.FareSnapshot);
+            allowPayLater = fare.RootElement.TryGetProperty("allowPayLater", out var allowed)
+                && allowed.ValueKind == JsonValueKind.True;
+        }
         return new TripDto(
             trip.Id,
             trip.OrganizationId,
@@ -785,7 +810,7 @@ public sealed class TransportService(ITransportRepository store, ITransportEvent
             DateTimeOffset.UtcNow,
             trip.PolicyVersion,
             stops,
-            trip.RowVersion);
+            trip.RowVersion) { AllowPayLater = allowPayLater };
     }
 
     private static bool IsAllowedTransition(string from, string to) => (from, to) switch

@@ -12,12 +12,15 @@ public static class TransportEndpoints
 {
     public static IEndpointRouteBuilder MapTransportEndpoints(this IEndpointRouteBuilder endpoints)
     {
+        endpoints.MapGet("/api/v1/explore/routes", async (HttpContext context, TransportService service) =>
+            Results.Json(await service.ListExploreRoutesAsync(context.RequestAborted), PlatformHttp.Json));
         endpoints.MapGet("/api/v1/trips", SearchAsync);
         endpoints.MapGet("/api/v1/trips/{tripId:guid}", GetTripAsync);
         endpoints.MapGet("/api/v1/trips/{tripId:guid}/stops", GetStopsAsync);
 
         var admin = endpoints.MapGroup("/api/v1/admin").RequireAuthorization();
         admin.MapPost("/organizations", CreateOrgAsync);
+        admin.MapGet("/organizations", ListOrgsAsync);
         admin.MapGet("/organizations/{organizationId:guid}", GetOrgAdminAsync);
 
         var op = endpoints.MapGroup("/api/v1/operator").RequireAuthorization();
@@ -92,6 +95,14 @@ public static class TransportEndpoints
 
     private static object ErrorEnvelopeBody(AppError error, Guid correlationId) =>
         BusTicketPlatform.BuildingBlocks.Http.ErrorEnvelope.From(error, correlationId);
+
+    private static async Task<IResult> ListOrgsAsync(HttpContext context, TransportService service)
+    {
+        var actor = ActorOf(context);
+        return actor is null
+            ? NeedUser(context.CorrelationId())
+            : (await service.ListOrganizationsAsync(actor, context.RequestAborted)).ToHttp(context.CorrelationId());
+    }
 
     private static async Task<IResult> GetOrgAdminAsync(HttpContext context, TransportService service, Guid organizationId)
     {

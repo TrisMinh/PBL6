@@ -9,6 +9,29 @@ public sealed class TransportRepository(TransportDatabaseOptions options, IIdGen
 {
     private static readonly JsonSerializerOptions Json = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 
+    // Public catalogue contains only published, sellable route endpoints, never customer records.
+    public async Task<IReadOnlyList<ExploreRouteDto>> ListExploreRoutesAsync(CancellationToken cancellationToken)
+    {
+        await using var connection = await OpenAsync(cancellationToken);
+        await using var command = new NpgsqlCommand("""
+            SELECT source.name, destination.name, COUNT(*)::integer, COUNT(DISTINCT t.organization_id)::integer
+            FROM trips t
+            JOIN stops source ON source.id = t.origin_stop_id
+            JOIN stops destination ON destination.id = t.destination_stop_id
+            WHERE t.sellable = TRUE AND t.status IN ('SCHEDULED', 'BOARDING') AND t.departure_at >= NOW()
+            GROUP BY source.name, destination.name
+            ORDER BY source.name, destination.name
+            LIMIT 500;
+            """, connection);
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        var results = new List<ExploreRouteDto>();
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            results.Add(new ExploreRouteDto(reader.GetString(0), reader.GetString(1), reader.GetInt32(2), reader.GetInt32(3)));
+        }
+        return results;
+    }
+
     public Task<OrganizationRecord?> GetOrganizationAsync(Guid id, CancellationToken cancellationToken) =>
         QuerySingleAsync(async cmd =>
         {
@@ -17,6 +40,16 @@ public sealed class TransportRepository(TransportDatabaseOptions options, IIdGen
                 FROM organizations WHERE id = @id;
                 """;
             cmd.Parameters.AddWithValue("id", id);
+        }, ReadOrg, cancellationToken);
+
+    public Task<IReadOnlyList<OrganizationRecord>> ListOrganizationsAsync(CancellationToken cancellationToken) =>
+        QueryListAsync(cmd =>
+        {
+            cmd.CommandText = """
+                SELECT id, code, name, support_email, support_phone, status, allow_pay_later, commission_rate, row_version
+                FROM organizations ORDER BY name;
+                """;
+            return Task.CompletedTask;
         }, ReadOrg, cancellationToken);
 
     public async Task InsertOrganizationAsync(OrganizationRecord org, CancellationToken cancellationToken)
@@ -576,7 +609,7 @@ public sealed class TransportRepository(TransportDatabaseOptions options, IIdGen
                     $"""
                      {TripSelect}
                      WHERE {filters}
-                     ORDER BY {order}
+                     ORDER BY {order}, t.id
                      OFFSET @offset LIMIT @limit
                      """,
                     connection);

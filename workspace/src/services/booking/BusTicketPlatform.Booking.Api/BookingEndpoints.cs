@@ -28,6 +28,7 @@ public static class BookingEndpoints
         api.MapPost("/tickets/{ticketId:guid}/check-in", CheckInAsync).RequireAuthorization();
         api.MapGet("/operator/trips/{tripId:guid}/manifest", ManifestAsync).RequireAuthorization();
         api.MapGet("/admin/bookings", SearchAsync).RequireAuthorization();
+        api.MapGet("/operator/bookings", SearchAsync).RequireAuthorization();
         api.MapPost("/internal/trips/published", ImportAsync);
         api.MapPost("/internal/payments/succeeded", PaymentSucceededAsync);
         return endpoints;

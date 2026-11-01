@@ -39,12 +39,24 @@ public sealed record TripDto(
     DateTimeOffset AvailabilityAsOf,
     string? PolicyVersion,
     IReadOnlyList<TripStopDto> Stops,
-    long RowVersion);
+    long RowVersion)
+{
+    public bool AllowPayLater { get; init; }
+
+    // Set only for authenticated operator inventory; not exposed by public trip searches.
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public Guid? RouteId { get; init; }
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public Guid? BusId { get; init; }
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public Guid? DriverId { get; init; }
+}
 public sealed record TripPageDto(int Page, int Size, long TotalElements, int TotalPages, IReadOnlyList<TripDto> Items);
 public sealed record ExpectedVersionRequest(long ExpectedVersion);
 public sealed record VersionedReasonRequest(string Reason, long ExpectedVersion);
 public sealed record TripTransitionRequest(long ExpectedVersion, string TargetStatus, string? Reason);
 public sealed record DriverAssignmentDto(Guid TripId, Guid DriverId, DateTimeOffset StartAt, DateTimeOffset EndAt, bool Active);
+public sealed record ExploreRouteDto(string Origin, string Destination, int TripCount, int OperatorCount);
 public sealed record TripSearchQuery(
     string Origin,
     string Destination,
@@ -65,7 +77,9 @@ public sealed record TripSearchQuery(
 
 public interface ITransportRepository
 {
+    Task<IReadOnlyList<ExploreRouteDto>> ListExploreRoutesAsync(CancellationToken cancellationToken);
     Task<OrganizationRecord?> GetOrganizationAsync(Guid id, CancellationToken cancellationToken);
+    Task<IReadOnlyList<OrganizationRecord>> ListOrganizationsAsync(CancellationToken cancellationToken);
     Task InsertOrganizationAsync(OrganizationRecord org, CancellationToken cancellationToken);
     Task UpdateOrganizationAsync(OrganizationRecord org, CancellationToken cancellationToken);
     Task<IReadOnlyList<BusRecord>> ListBusesAsync(Guid organizationId, CancellationToken cancellationToken);
