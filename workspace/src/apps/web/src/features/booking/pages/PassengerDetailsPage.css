@@ -1,0 +1,96 @@
+.passenger-details {
+  width: 100%;
+  margin-inline: auto;
+  padding: 31px 0 80px;
+  min-width: 0;
+}
+.passenger-details__heading {
+  height: 109px;
+  margin: 0;
+}
+.passenger-details__heading h1 {
+  font-family: var(--font-body);
+  font-size: 2.25rem;
+  line-height: 1.2;
+  margin: 13px 0 3px;
+}
+.passenger-details__heading p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+.passenger-details__steps {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0;
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  height: 16px;
+}
+.passenger-details__steps li:not(:last-child)::after {
+  content: "→";
+  margin-left: 8px;
+  color: var(--color-text-secondary);
+}
+.passenger-details__steps li,
+.passenger-details__steps a {
+  min-height: var(--size-control-min);
+  display: inline-flex;
+  align-items: center;
+}
+.passenger-details__steps li {
+  transform: translateY(-14px);
+}
+.passenger-details__steps a {
+  color: var(--color-text-secondary);
+  text-underline-offset: 4px;
+}
+.passenger-details__steps [aria-current="step"] {
+  color: var(--color-bg-brand);
+  font-weight: 600;
+}
+.passenger-details__body {
+  display: grid;
+  gap: 30px;
+  align-items: start;
+  min-width: 0;
+}
+.passenger-details__feedback {
+  padding: var(--space-control-inset);
+  border: 1px solid var(--color-status-error);
+  border-radius: var(--radius-control);
+  color: var(--color-status-error);
+  margin-bottom: var(--space-content-gap);
+  line-height: 1.5;
+}
+@media (min-width: 1024px) {
+  .passenger-details__body {
+    grid-template-columns: minmax(0, 820px) minmax(0, 430px);
+  }
+}
+
+@media (max-width: 1023px) {
+  .passenger-details {
+    padding-top: 24px;
+  }
+  .passenger-details__heading {
+    height: auto;
+    margin-bottom: 32px;
+  }
+  .passenger-details__steps {
+    height: auto;
+  }
+  .passenger-details__steps li {
+    transform: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .passenger-details__heading h1 {
+    font-size: 1.75rem;
+  }
+}

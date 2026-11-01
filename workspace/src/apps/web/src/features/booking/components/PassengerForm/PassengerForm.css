@@ -1,0 +1,163 @@
+.passenger-form {
+  min-width: 0;
+  padding: 23px;
+  border: 1px solid var(--color-border);
+  border-radius: 24px;
+  background: var(--color-bg-surface);
+  height: 730px;
+  overflow: hidden;
+}
+.passenger-form__fieldset {
+  display: grid;
+  grid-template-rows: 158px 158px 134px 178px;
+  gap: 18px;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.passenger-form__card {
+  position: relative;
+  min-width: 0;
+  padding: 16px 19px;
+  margin: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  background: var(--color-bg-editorial-surface);
+}
+.passenger-form__card--passenger {
+  height: 158px;
+}
+.passenger-form__card--pickup {
+  height: 134px;
+}
+.passenger-form__card--delivery {
+  height: 178px;
+}
+.passenger-form__card-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+.passenger-form__card-heading--stacked {
+  display: block;
+  margin-bottom: 12px;
+}
+.passenger-form__card-heading h2,
+.passenger-form__card-heading p {
+  margin: 0;
+}
+.passenger-form__card-heading h2,
+.passenger-form__section-title {
+  color: var(--color-text-primary);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 20px;
+}
+.passenger-form__card-heading p {
+  margin-top: 6px;
+  color: var(--color-text-muted);
+  font-size: 0.6875rem;
+}
+.passenger-form__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 58px;
+  min-height: 30px;
+  border-radius: 999px;
+  background: var(--color-bg-subtle);
+  color: var(--color-bg-brand);
+  font-size: 0.625rem;
+  font-weight: 600;
+}
+.passenger-form__description {
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  line-height: 1.5;
+  margin-block: var(--space-inline-gap) var(--space-content-gap);
+}
+.passenger-form__fields {
+  display: grid;
+  gap: 24px;
+}
+.passenger-form__input-wrap {
+  position: relative;
+  display: grid;
+  grid-template-areas: "label" "control" "error";
+  gap: var(--space-inline-gap);
+  min-width: 0;
+}
+.passenger-form__input-wrap .field {
+  gap: 8px;
+}
+.passenger-form__input-wrap .field__label {
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+}
+.passenger-form__control {
+  min-height: 52px;
+  min-width: 0;
+  padding-left: 48px;
+  border-color: var(--color-results-control-border);
+  font-size: 0.875rem;
+}
+.passenger-form__icon {
+  position: absolute;
+  top: 39px;
+  left: 15px;
+  width: 20px;
+  height: 20px;
+  pointer-events: none;
+  z-index: 1;
+}
+.passenger-form__chevron {
+  position: absolute;
+  right: 34px;
+  bottom: 29px;
+  width: 18px;
+  height: 18px;
+}
+.passenger-form__error-summary {
+  padding: var(--space-control-inset);
+  border: 1px solid var(--color-status-error);
+  border-radius: var(--radius-control);
+  color: var(--color-status-error);
+  line-height: 1.5;
+}
+.passenger-form__visually-hidden,
+.passenger-form__legacy-contact {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+@media (min-width: 768px) {
+  .passenger-form__fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 767px) {
+  .passenger-form {
+    height: auto;
+    overflow: visible;
+    padding: 12px;
+  }
+  .passenger-form__fieldset {
+    grid-template-rows: none;
+  }
+  .passenger-form__card--passenger,
+  .passenger-form__card--pickup,
+  .passenger-form__card--delivery {
+    height: auto;
+  }
+  .passenger-form__card {
+    padding: 16px;
+  }
+  .passenger-form__card-heading {
+    gap: 10px;
+  }
+}

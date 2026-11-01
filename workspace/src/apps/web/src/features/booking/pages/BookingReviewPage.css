@@ -1,0 +1,94 @@
+.booking-review-page {
+  width: 100%;
+  margin-inline: auto;
+  padding: 31px 0 80px;
+  min-width: 0;
+}
+.booking-review-page__heading {
+  height: 109px;
+  margin: 0;
+}
+.booking-review-page__heading h1 {
+  margin: 13px 0 3px;
+  font-family: var(--font-body);
+  font-size: 2.25rem;
+  line-height: 1.2;
+}
+.booking-review-page__heading p {
+  margin: 0;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+  font-size: 0.8125rem;
+}
+.booking-review-page__steps {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0;
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  height: 16px;
+}
+.booking-review-page__steps li:not(:last-child)::after {
+  content: "→";
+  margin-left: 8px;
+  color: var(--color-text-secondary);
+}
+.booking-review-page__steps li,
+.booking-review-page__steps a {
+  min-height: var(--size-control-min);
+  display: inline-flex;
+  align-items: center;
+}
+.booking-review-page__steps li {
+  transform: translateY(-14px);
+}
+.booking-review-page__steps a {
+  color: var(--color-bg-brand);
+}
+.booking-review-page__steps [aria-current="step"] {
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+.booking-review-page__body {
+  display: grid;
+  gap: 30px;
+  align-items: start;
+  min-width: 0;
+}
+.booking-review-page__feedback {
+  padding: var(--space-control-inset);
+  border: 1px solid var(--color-status-error);
+  border-radius: var(--radius-control);
+  color: var(--color-status-error);
+  line-height: 1.5;
+  margin-bottom: var(--space-content-gap);
+}
+@media (min-width: 1024px) {
+  .booking-review-page__body {
+    grid-template-columns: minmax(0, 820px) minmax(0, 430px);
+  }
+}
+
+@media (max-width: 1023px) {
+  .booking-review-page {
+    padding-top: 24px;
+  }
+  .booking-review-page__heading {
+    height: auto;
+    margin-bottom: 32px;
+  }
+  .booking-review-page__steps {
+    height: auto;
+  }
+  .booking-review-page__steps li {
+    transform: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .booking-review-page__heading h1 {
+    font-size: 1.75rem;
+  }
+}

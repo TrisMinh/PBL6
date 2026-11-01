@@ -1,0 +1,14 @@
+.booking-locked-feedback {
+  padding: var(--space-control-inset);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  color: var(--color-text-primary);
+  background: var(--color-bg-subtle);
+  line-height: 1.5;
+}
+.booking-locked-feedback a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--size-control-min);
+  color: var(--color-bg-brand);
+}

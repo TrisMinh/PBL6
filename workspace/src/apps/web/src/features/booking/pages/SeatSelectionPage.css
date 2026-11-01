@@ -1,0 +1,101 @@
+.seat-selection {
+  min-width: 0;
+  width: calc(100% + (2 * var(--space-page-gutter)));
+  margin-inline: calc(-1 * var(--space-page-gutter));
+}
+.seat-selection__heading h1 {
+  font-family: var(--font-display);
+  font-size: 2.375rem;
+  line-height: 1.2;
+  margin-block: 12px 28px;
+}
+.seat-selection__heading p {
+  color: var(--color-text-secondary);
+}
+.seat-selection__steps {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 0;
+  list-style: none;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+.seat-selection__steps li + li::before {
+  content: "›";
+  margin-right: 10px;
+  color: var(--color-text-muted);
+}
+.seat-selection__steps [aria-current] {
+  color: var(--color-bg-brand);
+  font-weight: 600;
+}
+.seat-selection__steps a {
+  display: inline-flex;
+  min-height: 24px;
+  align-items: center;
+  color: var(--color-text-secondary);
+}
+.seat-selection__steps a:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+.seat-selection__trip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-inline-gap) var(--space-section-inset);
+  align-items: center;
+  min-height: 86px;
+  padding: 22px;
+  margin-block: 0 34px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-bg-surface);
+}
+.seat-selection__trip span {
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+}
+.seat-selection__body {
+  display: grid;
+  gap: 50px;
+  align-items: start;
+  width: 1210px;
+  max-width: 100%;
+}
+.seat-selection__map {
+  min-width: 0;
+}
+.seat-selection__feedback {
+  padding: var(--space-control-inset);
+  margin-block: var(--space-content-gap);
+  border: 1px solid var(--color-status-warning);
+  border-radius: var(--radius-card);
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+}
+@media (min-width: 1024px) {
+  .seat-selection__body {
+    grid-template-columns: minmax(0, 800px) 360px;
+  }
+}
+@media (max-width: 1023px) {
+  .seat-selection {
+    width: 100%;
+    margin-inline: 0;
+  }
+  .seat-selection__body {
+    width: 100%;
+    gap: var(--space-section-inset);
+  }
+  .seat-selection__trip {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+@media (max-width: 767px) {
+  .seat-selection__heading h1 {
+    font-size: 2rem;
+  }
+}
