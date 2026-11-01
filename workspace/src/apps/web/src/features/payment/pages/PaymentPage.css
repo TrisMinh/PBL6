@@ -1,0 +1,115 @@
+.payment-page {
+  width: 100%;
+  max-width: 1280px;
+  min-width: 0;
+  margin-inline: auto;
+  padding: 30px 0 90px;
+}
+.payment-page__heading {
+  margin-bottom: 24px;
+}
+.payment-page__heading h1 {
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  line-height: 1.2;
+}
+.payment-page__heading nav {
+  min-height: 24px;
+}
+.payment-page--checkout {
+  padding-top: 14px;
+}
+.payment-page--checkout .payment-page__heading {
+  height: 126px;
+  margin: 0;
+}
+.payment-page--checkout .payment-page__heading h1 {
+  margin: 0;
+}
+.payment-page--return .payment-page__heading {
+  height: 110px;
+  min-height: 0;
+  margin: 0;
+}
+.payment-page--return .payment-page__heading p {
+  margin: 0;
+}
+.payment-page--return .payment-page__breadcrumb + h1 {
+  margin-top: 4px;
+}
+.payment-page--return .payment-result {
+  margin-top: 0;
+}
+.payment-page__breadcrumb {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  min-height: 20px;
+  font-size: 0.75rem;
+}
+.payment-page__breadcrumb + h1 {
+  margin: 10px 0 0;
+}
+.payment-page__heading p {
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+.payment-page__heading nav {
+  display: flex;
+  gap: var(--space-content-gap);
+  align-items: center;
+  flex-wrap: wrap;
+  font-size: 0.75rem;
+}
+.payment-page__heading a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--size-control-min);
+  color: var(--color-bg-brand);
+}
+.payment-page__heading .payment-page__breadcrumb a {
+  min-height: 20px;
+}
+.payment-page__checkout {
+  display: grid;
+  gap: var(--space-section-inset);
+  align-items: start;
+  min-width: 0;
+}
+.payment-page__feedback {
+  border: 1px solid var(--color-status-error);
+  border-radius: var(--radius-control);
+  color: var(--color-status-error);
+  padding: var(--space-control-inset);
+  line-height: 1.6;
+  margin-bottom: var(--space-content-gap);
+}
+@media (min-width: 1200px) {
+  .payment-page__checkout {
+    grid-template-columns: 820px 430px;
+    gap: 30px;
+  }
+  .payment-page--return {
+    max-width: 1120px;
+  }
+}
+@media (max-width: 1319px) {
+  .payment-page {
+    padding-inline: 20px;
+  }
+}
+@media (max-width: 1199px) {
+  .payment-page__checkout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .payment-page--checkout .payment-page__heading {
+    height: auto;
+    margin-bottom: 24px;
+  }
+}
+@media (max-width: 767px) {
+  .payment-page--return .payment-page__heading {
+    height: auto;
+    margin-bottom: 24px;
+  }
+}

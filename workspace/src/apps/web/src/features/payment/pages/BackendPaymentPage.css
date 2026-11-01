@@ -1,0 +1,61 @@
+.live-payment {
+  max-width: 880px;
+  padding: 32px;
+  margin-block: 32px;
+}
+.live-payment__receipt {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 26px;
+  margin: 28px 0;
+  border: 1px solid #d8e6ff;
+  border-radius: 14px;
+  background: #f4f8ff;
+}
+.live-payment__receipt > div {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.live-payment__receipt span {
+  font-size: 11px;
+  font-weight: 600;
+  color: #657b99;
+  letter-spacing: 0.05em;
+}
+.live-payment__receipt strong {
+  font-size: 24px;
+  color: #163764;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.live-payment__receipt small {
+  font-size: 13px;
+  color: #2563eb;
+}
+.live-payment > label {
+  max-width: 520px;
+  margin: 24px 0 18px;
+}
+.live-payment > .button {
+  min-height: 48px;
+  font-size: 14px;
+  padding-inline: 28px;
+}
+@media (max-width: 600px) {
+  .live-payment__receipt {
+    flex-direction: column;
+    padding: 20px;
+  }
+  .live-payment__receipt strong {
+    font-size: 22px;
+  }
+  .live-payment .live-api__heading {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .live-payment > .button {
+    width: 100%;
+  }
+}
