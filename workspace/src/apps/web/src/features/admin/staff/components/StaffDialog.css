@@ -1,0 +1,111 @@
+.staff-dialog__overlay {
+  position: fixed;
+  z-index: 70;
+  inset: 0;
+  background: rgb(16 36 62 / 36%);
+}
+
+.staff-dialog__content {
+  position: fixed;
+  z-index: 80;
+  top: 50%;
+  left: 50%;
+  width: min(calc(100% - 32px), 640px);
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  padding: var(--space-section-inset);
+  border-radius: var(--radius-card);
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-card);
+  transform: translate(-50%, -50%);
+}
+
+.staff-dialog__header,
+.staff-dialog__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-content-gap);
+}
+
+.staff-dialog__error {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--color-status-danger);
+  font-weight: 600;
+}
+
+.staff-dialog__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+}
+
+.staff-dialog__description {
+  margin: 8px 0 20px;
+  color: var(--color-text-secondary);
+}
+
+.staff-dialog__form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-content-gap);
+}
+
+.staff-dialog__field {
+  display: grid;
+  gap: var(--space-inline-gap);
+}
+
+.staff-dialog__field label {
+  color: var(--color-text-primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.staff-dialog__field select {
+  min-height: var(--size-control-min);
+  padding-inline: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  font: inherit;
+}
+
+.staff-dialog__field select:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.staff-dialog__actions {
+  grid-column: 1 / -1;
+  justify-content: flex-end;
+  padding-top: var(--space-inline-gap);
+}
+
+@media (width < 600px) {
+  .staff-dialog__content {
+    padding: var(--space-content-gap);
+  }
+
+  .staff-dialog__form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .staff-dialog__actions {
+    grid-column: auto;
+  }
+
+  .staff-dialog__actions .button {
+    flex: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .staff-dialog__content,
+  .staff-dialog__overlay {
+    animation: none;
+  }
+}

@@ -1,0 +1,159 @@
+.organization-dialog__overlay {
+  position: fixed;
+  z-index: 70;
+  inset: 0;
+  background: var(--color-admin-overlay);
+}
+
+.organization-dialog__content {
+  position: fixed;
+  z-index: 80;
+  top: 50%;
+  left: 50%;
+  width: min(calc(100% - 32px), 720px);
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  padding: var(--space-section-inset);
+  border-radius: var(--radius-card);
+  background: var(--color-admin-surface);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-admin-panel);
+  transform: translate(-50%, -50%);
+}
+.organization-dialog__content[data-pointer-focus="true"]:focus-visible {
+  outline-color: transparent;
+}
+
+.organization-dialog__header,
+.organization-dialog__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-content-gap);
+}
+
+.organization-dialog__error {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--color-status-danger);
+  font-weight: 600;
+}
+
+.organization-dialog__title {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 1.25rem;
+  line-height: 30px;
+  font-weight: 600;
+}
+.organization-dialog__header {
+  height: 32px;
+}
+.organization-dialog__header .button {
+  padding: 0;
+  margin-right: -10px;
+}
+.organization-dialog__content .button {
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 20px;
+  height: 44px;
+}
+.organization-dialog__content .field__label {
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--color-admin-label);
+}
+.organization-dialog__content .field__control {
+  height: 48px;
+  min-height: 48px;
+  border-radius: 8px;
+  border-color: var(--color-admin-border);
+  background: var(--color-admin-control);
+  font-size: 15px;
+  line-height: 22px;
+}
+.organization-dialog__content .field__control::placeholder {
+  color: var(--color-text-primary);
+}
+.organization-dialog__actions .button--secondary {
+  background: var(--color-admin-control);
+  border-color: var(--color-admin-border);
+  color: var(--color-text-primary);
+}
+
+.organization-dialog__description {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.organization-dialog__form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px 16px;
+  margin-top: 20px;
+}
+
+.organization-dialog__field {
+  display: grid;
+  gap: var(--space-inline-gap);
+}
+
+.organization-dialog__field label {
+  color: var(--color-text-primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.organization-dialog__field select {
+  min-height: var(--size-control-min);
+  padding-inline: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  font: inherit;
+}
+
+.organization-dialog__field select:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.organization-dialog__actions {
+  grid-column: 1 / -1;
+  justify-content: flex-end;
+  padding-top: 0;
+}
+.organization-dialog__actions .button {
+  min-width: 149px;
+}
+
+@media (width < 600px) {
+  .organization-dialog__content {
+    padding: var(--space-content-gap);
+  }
+
+  .organization-dialog__form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .organization-dialog__actions {
+    grid-column: auto;
+  }
+
+  .organization-dialog__actions .button {
+    min-width: 0;
+    flex: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .organization-dialog__content,
+  .organization-dialog__overlay {
+    animation: none;
+  }
+}

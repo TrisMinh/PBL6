@@ -1,0 +1,384 @@
+.staff-page {
+  display: grid;
+  gap: 24px;
+  width: min(100%, 1152px);
+  margin-inline: auto;
+}
+.staff-page__list-count {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+
+.staff-page__hero {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.staff-page__hero-copy {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  font-size: 14px;
+  line-height: 21px;
+  color: var(--color-text-muted);
+}
+
+.staff-page__hero-copy p,
+.staff-page__hero-copy h1,
+.staff-page__title-row h2,
+.staff-page__detail-card h2 {
+  margin: 0;
+}
+
+.staff-page__hero-copy h1 {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  line-height: 36px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.staff-page__eyebrow,
+.staff-page__meta {
+  color: var(--color-admin-eyebrow);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.staff-page__panel,
+.staff-page__detail-card {
+  padding: 24px 19px;
+  border: 1px solid var(--color-admin-border);
+  border-radius: 8px;
+  background: var(--color-admin-surface);
+  box-shadow: var(--shadow-admin-panel);
+}
+
+.staff-page__panel {
+  display: grid;
+  gap: var(--space-content-gap);
+}
+
+.staff-page__title-row,
+.staff-page__detail-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-content-gap);
+}
+
+.staff-page__status {
+  color: var(--color-text-primary);
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.staff-page__status--inactive {
+  color: var(--color-text-muted);
+}
+
+.staff-page__detail-actions a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--size-control-min);
+  color: var(--color-text-primary);
+  font-weight: 600;
+  padding-inline: 16px;
+  border: 1px solid var(--color-admin-border);
+  border-radius: 8px;
+  background: var(--color-admin-control);
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.staff-page__detail-actions {
+  justify-content: flex-start;
+}
+.staff-page__membership-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+.staff-page__membership-table th,
+.staff-page__membership-table td {
+  padding: 12px 10px;
+  font-size: 14px;
+}
+.staff-page__membership-table th {
+  background: var(--color-bg-subtle);
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+.staff-page__visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+.staff-page__mobile-label {
+  display: none;
+}
+
+.staff-page__detail-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-content-gap);
+}
+
+.staff-page__detail-card h2 {
+  margin-bottom: var(--space-content-gap);
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 30px;
+}
+
+.staff-page__detail-card dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px 20px;
+  margin: 0;
+}
+
+.staff-page__detail-card dt:nth-of-type(1),
+.staff-page__detail-card dt:nth-of-type(2),
+.staff-page__detail-card dt:nth-of-type(3) {
+  grid-row: 1;
+}
+.staff-page__detail-card dd:nth-of-type(1),
+.staff-page__detail-card dd:nth-of-type(2),
+.staff-page__detail-card dd:nth-of-type(3) {
+  grid-row: 2;
+}
+.staff-page__detail-card dt:nth-of-type(4),
+.staff-page__detail-card dt:nth-of-type(5),
+.staff-page__detail-card dt:nth-of-type(6) {
+  grid-row: 3;
+}
+.staff-page__detail-card dd:nth-of-type(4),
+.staff-page__detail-card dd:nth-of-type(5),
+.staff-page__detail-card dd:nth-of-type(6) {
+  grid-row: 4;
+}
+.staff-page__membership-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-top: 20px;
+}
+.staff-page__membership-actions a {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  padding-inline: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  color: var(--color-text-primary);
+  text-decoration: none;
+}
+.staff-page__membership-note {
+  margin: 16px 0 0;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.staff-page__detail-card dt {
+  margin-top: 8px;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+}
+
+.staff-page__detail-card dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 21px;
+}
+
+.staff-page__notice {
+  min-height: 1.5rem;
+  margin: 0;
+  color: var(--color-status-success);
+  font-weight: 600;
+}
+.staff-page__notice:empty {
+  display: none;
+}
+.staff-page__title-row h2 {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 30px;
+}
+.staff-page .button {
+  gap: 8px;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 20px;
+  min-height: 44px;
+}
+.staff-page .button--secondary {
+  color: var(--color-text-primary);
+  border-color: var(--color-admin-border);
+  background: var(--color-admin-control);
+}
+.staff-page__membership-actions {
+  margin-top: 16px;
+  gap: 13px;
+}
+.staff-page__membership-actions a {
+  font-size: 14px;
+}
+.staff-page__membership-note {
+  font-size: 14px;
+  line-height: 21px;
+}
+.staff-page__detail-grid {
+  gap: 20px;
+}
+.staff-page--detail {
+  row-gap: 20px;
+}
+.staff-page--detail .staff-page__hero {
+  margin-bottom: 4px;
+}
+.staff-page__detail-card dt {
+  margin-top: 0;
+  line-height: 18px;
+}
+.staff-page__detail-card dt:nth-of-type(n + 4) {
+  margin-top: 10px;
+}
+.staff-page__membership-table {
+  table-layout: fixed;
+}
+.staff-page__membership-table th {
+  background: var(--color-bg-page);
+  height: 44px;
+}
+.staff-page__membership-table td {
+  height: 60px;
+  padding-block: 0;
+}
+.staff-page__membership-table td:first-child {
+  font-weight: 600;
+}
+.staff-page__membership-actions a {
+  min-width: 149px;
+  font-weight: 600;
+}
+.staff-page__membership-actions .button {
+  min-width: 200px;
+}
+.staff-page__membership-actions .button:only-child {
+  min-width: 149px;
+}
+@media (min-width: 600px) {
+  .staff-page__title-row {
+    height: 40px;
+  }
+  .staff-page__title-row .button--primary {
+    position: relative;
+    isolation: isolate;
+    border-color: transparent;
+    background: transparent;
+  }
+  .staff-page__title-row .button--primary::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: 2px 0;
+    border-radius: 8px;
+    background: var(--color-bg-brand);
+  }
+}
+.staff-page__membership-table th:nth-child(1) {
+  width: 30%;
+}
+.staff-page__membership-table th:nth-child(2) {
+  width: 32%;
+}
+.staff-page__membership-table th:nth-child(3) {
+  width: 22%;
+}
+.staff-page__membership-table .button {
+  padding-inline: 0;
+  font-size: 13px;
+  font-weight: 400;
+}
+.staff-page .admin-data-table__view img {
+  display: none;
+}
+.staff-page .admin-data-table--figma .admin-data-table__row {
+  height: 56px;
+}
+
+@media (width < 900px) {
+  .staff-page__detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (width < 768px) {
+  .staff-page .admin-data-table--figma .admin-data-table__row {
+    height: auto;
+  }
+}
+
+@media (width < 600px) {
+  .staff-page__hero-copy {
+    padding: 0;
+  }
+
+  .staff-page__detail-card dl {
+    grid-template-columns: 1fr;
+  }
+  .staff-page__detail-card dt:nth-of-type(n),
+  .staff-page__detail-card dd:nth-of-type(n) {
+    grid-row: auto;
+  }
+  .staff-page__membership-actions {
+    flex-wrap: wrap;
+  }
+  .staff-page__membership-table,
+  .staff-page__membership-table tbody,
+  .staff-page__membership-table tr,
+  .staff-page__membership-table td {
+    display: block;
+  }
+  .staff-page__membership-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .staff-page__mobile-label {
+    display: block;
+    color: var(--color-text-secondary);
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .staff-page__panel {
+    padding: var(--space-content-gap);
+  }
+
+  .staff-page__title-row,
+  .staff-page__detail-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .staff-page__title-row .button,
+  .staff-page__detail-actions .button {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .staff-page * {
+    scroll-behavior: auto;
+  }
+}
