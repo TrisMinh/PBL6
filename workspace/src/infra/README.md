@@ -9,11 +9,36 @@ docker compose ps
 docker compose down -v   # reset volumes; local/test only
 ```
 
-Full platform (APIs + customer/backoffice web):
+Full platform (APIs + BLUE web + legacy backoffice):
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.apps.yml up -d --build --wait
 ```
+
+Open http://localhost:5173 for the current BLUE application from
+`workspace/src/apps/web`. Customer, operator and admin accounts all sign in here;
+the application sends each role to its workspace. The Compose service retains
+the name `customer-web` for compatibility. Port 5174 serves the separate legacy
+`backoffice-web`, not the BLUE operator/admin pages.
+
+The BLUE image installs the exact pnpm version and frozen lockfile, builds the
+static application with live APIs, then serves it through unprivileged Nginx.
+Nginx proxies `/api/` to `gateway:8080`, so the browser uses the same origin;
+no local `.env` or `localhost:5080` is baked into the image. Nested routes use
+React Router's `__spa-fallback.html`, including on refresh.
+
+After frontend changes, rebuild and replace only its container (with the stack
+already running):
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.apps.yml up -d --build --no-deps customer-web
+docker compose -f docker-compose.yml -f docker-compose.apps.yml logs --tail=100 customer-web
+```
+
+Stop a Vite dev server using port 5173 before starting the Docker web container.
+Check container status with `docker compose -f docker-compose.yml -f docker-compose.apps.yml ps`.
+Stop the stack without removing database volumes with
+`docker compose -f docker-compose.yml -f docker-compose.apps.yml down`.
 
 Or from `workspace/`: `./scripts/dev-docker.ps1`.
 

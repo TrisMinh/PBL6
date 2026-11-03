@@ -165,10 +165,8 @@ services:
 
   customer-web:
     build:
-      context: ../../..
-      dockerfile: workspace/src/infra/docker/web.Dockerfile
-      args:
-        APP: customer-web
+      context: ../apps/web
+      dockerfile: Dockerfile
     depends_on:
       gateway:
         condition: service_healthy
