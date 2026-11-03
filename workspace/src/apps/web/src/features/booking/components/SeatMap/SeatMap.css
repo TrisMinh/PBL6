@@ -172,6 +172,10 @@
   white-space: nowrap;
 }
 @media (max-width: 767px) {
+  .seat-map__decks {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+  }
   .seat-map {
     padding: var(--space-control-inset);
     min-height: 0;

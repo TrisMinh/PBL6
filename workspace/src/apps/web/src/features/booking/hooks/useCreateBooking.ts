@@ -1,6 +1,7 @@
 import { useMutation, type UseMutationResult } from "@tanstack/react-query";
 import { useEffect, useRef, type RefObject } from "react";
 import { useNavigate } from "react-router";
+import { isMockApi } from "@/shared/api/config";
 
 import { BookingRepositoryError } from "@/features/booking/repositories/bookingRepositoryError";
 import { httpBookingRepository } from "@/features/booking/repositories/httpBookingRepository";
@@ -14,6 +15,7 @@ export interface CreateBookingResult {
   create: () => void;
   isPending: boolean;
   error: BookingRepositoryError | null;
+  dismissError: () => void;
 }
 interface Attempt {
   mounted: boolean;
@@ -69,7 +71,7 @@ function finish(state: Attempt): void {
 }
 async function execute(variables: Variables): Promise<BookingCreationSummary> {
   const { source, key, controller } = variables;
-  if (Date.parse(source.expiresAt) <= Date.now())
+  if (isMockApi && Date.parse(source.expiresAt) <= Date.now())
     throw new BookingRepositoryError("HOLD_EXPIRED", 410);
   let valid = false;
   try {
@@ -86,7 +88,7 @@ async function execute(variables: Variables): Promise<BookingCreationSummary> {
     key,
     controller.signal,
   );
-  if (Date.parse(source.expiresAt) <= Date.now())
+  if (isMockApi && Date.parse(source.expiresAt) <= Date.now())
     throw new BookingRepositoryError("HOLD_EXPIRED", 410);
   if (
     booking.totalVnd !== source.totalVnd ||
@@ -136,6 +138,7 @@ export function useCreateBooking(draft: BookingDraft): CreateBookingResult {
       if (variables) mutation.mutate(variables);
     },
     isPending: mutation.isPending,
+    dismissError: mutation.reset,
     error: mutation.variables?.source === owner ? mutation.error : null,
   };
 }

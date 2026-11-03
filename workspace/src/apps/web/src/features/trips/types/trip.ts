@@ -15,6 +15,20 @@ export type VehicleType = "sleeper-34" | "cabin-22";
 export type TripAmenity = "wifi" | "charging" | "restroom" | "doorPickup";
 
 export interface Trip {
+  sellable?: boolean;
+  status?: string;
+  seatCountIsCapacity?: boolean;
+  policyVersion?: string | null;
+  allowPayLater?: boolean;
+  stops?: readonly {
+    id: string;
+    name: string;
+    address?: string | null;
+    sequence: number;
+    offsetMinutes: number;
+    pickupAllowed: boolean;
+    dropoffAllowed: boolean;
+  }[];
   id: string;
   origin: Location;
   destination: Location;
@@ -36,11 +50,20 @@ export interface TripSearch {
   destinationId: string;
   departureDate: string;
   passengerCount: number;
-  sort: "relevance" | "departure" | "price-asc" | "price-desc";
+  sort:
+    | "relevance"
+    | "departure"
+    | "price-asc"
+    | "price-desc"
+    | "duration-asc"
+    | "duration-desc";
 }
 
 export interface TripSearchInput extends TripSearch {
   filters?: {
+    organizationId?: string;
+    pickupStopId?: string;
+    dropoffStopId?: string;
     minFare?: number;
     maxFare?: number;
     departureHour?: string;

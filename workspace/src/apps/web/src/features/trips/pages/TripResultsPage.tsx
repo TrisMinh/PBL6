@@ -1,3 +1,4 @@
+import { isMockApi } from "@/shared/api/config";
 import type { ReactElement } from "react";
 import { Link, useSearchParams } from "react-router";
 
@@ -56,6 +57,9 @@ function parseFilterCriteria(params: URLSearchParams): TripFilterCriteria {
     return Number.isInteger(parsed) && parsed >= 0 ? parsed : undefined;
   };
   return {
+    organizationId: one("organizationId"),
+    pickupStopId: one("pickupStopId"),
+    dropoffStopId: one("dropoffStopId"),
     vehicleType: one("vehicleType"),
     departurePeriod,
     departureHour: one("departureHour"),
@@ -178,6 +182,7 @@ function SortPills({
     ["relevance", "Phù hợp nhất"],
     ["price-asc", "Giá thấp nhất"],
     ["departure", "Khởi hành sớm"],
+    ["duration-asc", "Thời gian ngắn nhất"],
   ] as const;
   return (
     <div className="trip-results__sort" aria-label="Sắp xếp kết quả">
@@ -431,6 +436,7 @@ function ValidResults({
     ...search,
     filters: parseFilterCriteria(searchParams),
   });
+  const filterCatalog = useTrips({ ...search, sort: "relevance" }, !isMockApi);
   const locations = useLocations();
   const originLabel =
     locations.data?.find((location) => location.id === search.originId)
@@ -447,7 +453,12 @@ function ValidResults({
         destinationLabel={destinationLabel}
       />
       <div className="trip-results__body">
-        <TripFilters searchParams={searchParams} onChange={onChange} />
+        <TripFilters
+          key={searchParams.toString()}
+          searchParams={searchParams}
+          onChange={onChange}
+          trips={filterCatalog.data ?? query.data ?? []}
+        />
         <ResultsState
           query={query}
           search={search}
@@ -501,6 +512,14 @@ function BookingFeedback({
       </p>
     );
   if (!booking.error) return null;
+  if (booking.error.code === "TRIP_NOT_SELLABLE")
+    return (
+      <PageState
+        title="Chuyến đã ngừng bán"
+        description="Chuyến vừa ngừng nhận đặt vé. Vui lòng tìm chuyến khác."
+        action={<EditSearch label="Tìm chuyến khác" />}
+      />
+    );
   if (booking.error.code === "ACCESS_REQUIRED")
     return (
       <p role="alert">

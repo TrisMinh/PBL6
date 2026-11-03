@@ -6,6 +6,7 @@ import type {
   SeatLayout,
 } from "@/features/booking/types/seat";
 import { Seat } from "@/shared/ui/Seat/Seat";
+import { presentationSeatLayout } from "@/features/booking/lib/presentationSeatLayout";
 
 import "./SeatMap.css";
 
@@ -160,9 +161,11 @@ function MockSeatMap(props: SeatMapProps): ReactElement {
     >
       <header className="seat-map__header">
         <h2 id={titleId}>
-          {props.layout.vehicleType === "sleeper-34"
-            ? "Limousine giường 34 chỗ"
-            : "Limousine 22 cabin"}
+          {!isMockApi
+            ? props.layout.trip.vehicleLabel
+            : props.layout.vehicleType === "sleeper-34"
+              ? "Limousine giường 34 chỗ"
+              : "Limousine 22 cabin"}
         </h2>
         <span className="seat-map__vehicle-chip">
           {props.layout.vehicleType === "sleeper-34"
@@ -174,6 +177,11 @@ function MockSeatMap(props: SeatMapProps): ReactElement {
         </span>
       </header>
       <SeatLegend />
+      {!isMockApi && (
+        <p className="seat-map__hint">
+          Sơ đồ minh họa theo mã ghế; vị trí thực tế tùy xe.
+        </p>
+      )}
       <SeatControls {...props} />
     </section>
   );
@@ -181,9 +189,13 @@ function MockSeatMap(props: SeatMapProps): ReactElement {
 
 export function SeatMap(props: SeatMapProps): ReactElement {
   if (isMockApi) return <MockSeatMap {...props} />;
+  const displayLayout = presentationSeatLayout(props.layout);
+  if (displayLayout) return <MockSeatMap {...props} layout={displayLayout} />;
   return (
-    <section aria-label="Danh sách ghế">
+    <section className="seat-map seat-map--basic" aria-label="Danh sách ghế">
+      <h2>Chọn ghế của bạn</h2>
       <p>Sắp xếp theo mã ghế; không mô tả vị trí thực tế trên xe.</p>
+      <SeatLegend />
       <fieldset
         disabled={props.isPending}
         style={{ display: "flex", flexWrap: "wrap", gap: 12 }}

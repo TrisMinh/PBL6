@@ -11,17 +11,22 @@ import { isMockApi } from "@/shared/api/config";
 export function LoginPage(): ReactElement {
   const { session, isHydrated } = useMockSession();
   const { state } = useLocation();
-  if (isHydrated && session)
+  if (isHydrated && session) {
+    const target = isMockApi
+      ? safeIntendedRedirect(state?.from, session.role)
+      : workspaceRedirect(state?.from);
     return (
       <Navigate
         replace
-        to={
-          isMockApi
-            ? safeIntendedRedirect(state?.from, session.role)
-            : workspaceRedirect(state?.from)
+        to={target}
+        state={
+          !isMockApi && target === state?.from && target.startsWith("/trips")
+            ? { bookingIntent: state?.bookingIntent }
+            : null
         }
       />
     );
+  }
   return (
     <AuthShell mode="login">
       <LoginForm />

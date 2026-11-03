@@ -98,7 +98,16 @@ export function useAuthAction(): AuthActionResult {
         const target = isMockApi
           ? safeIntendedRedirect(fromState(location.state), session.role)
           : workspaceRedirect(fromState(location.state));
-        void navigate(target, { replace: true });
+        const state = location.state as { bookingIntent?: unknown } | null;
+        void navigate(target, {
+          replace: true,
+          state:
+            !isMockApi &&
+            target === fromState(location.state) &&
+            target.startsWith("/trips")
+              ? { bookingIntent: state?.bookingIntent }
+              : null,
+        });
       }
     },
     onSettled: (_data, error) => {

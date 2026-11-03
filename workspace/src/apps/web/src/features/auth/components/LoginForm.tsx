@@ -100,8 +100,15 @@ export function LoginForm(): ReactElement {
         )}
       >
         <fieldset className="auth-page__fields" disabled={action.isPending}>
-          <legend className="auth-page__sr-only">Đăng nhập bằng email</legend>
+          <legend className="auth-page__sr-only">
+            Đăng nhập bằng email hoặc số điện thoại
+          </legend>
           <LoginFields form={form} />
+          {!isMockApi && action.error?.code === "INVALID_CREDENTIALS" && (
+            <p className="auth-page__lockout-hint">
+              Sai 5 lần liên tiếp sẽ bị khóa 15 phút.
+            </p>
+          )}
           <div className="auth-page__login-options">
             <label>
               <input type="checkbox" /> Ghi nhớ đăng nhập
@@ -128,8 +135,8 @@ function LoginFields({
       <Input
         className="auth-page__control auth-page__control--identity"
         label="Email hoặc số điện thoại"
-        placeholder="nhap@email.com"
-        type="email"
+        placeholder="Email hoặc số điện thoại"
+        type="text"
         autoComplete="username"
         maxLength={254}
         error={form.formState.errors.email?.message}

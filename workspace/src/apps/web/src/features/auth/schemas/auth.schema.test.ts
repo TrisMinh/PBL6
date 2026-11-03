@@ -17,6 +17,18 @@ const registration = {
   confirmPassword: login.password,
 };
 describe("auth validation", () => {
+  it.each(["0901234101", "+84901234101"])(
+    "accepts phone identifier %s only for login",
+    (phone) => {
+      expect(loginSchema.parse({ ...login, email: phone }).email).toBe(phone);
+      expect(
+        registerSchema.safeParse({ ...registration, email: phone }).success,
+      ).toBe(false);
+      expect(forgotPasswordSchema.safeParse({ email: phone }).success).toBe(
+        false,
+      );
+    },
+  );
   it("canonicalizes email while preserving password bytes", () => {
     expect(loginSchema.parse({ ...login, password: " BlueDemo2026 " })).toEqual(
       { email: "test+review@example.invalid", password: " BlueDemo2026 " },

@@ -6,6 +6,7 @@ import type { Seat, SeatLayout } from "@/features/booking/types/seat";
 export function getSelectedPassengerSeats(
   draft: BookingDraft,
   layout: SeatLayout,
+  requireAvailability = true,
 ): Pick<Seat, "id" | "code">[] | null {
   const ids = draft.selectedSeatIds;
   if (
@@ -23,7 +24,8 @@ export function getSelectedPassengerSeats(
     const seat = layout.items.find((item) => item.id === id);
     if (
       !seat ||
-      (isMockApi ? seat.status !== "held" : seat.status !== "available")
+      (requireAvailability &&
+        (isMockApi ? seat.status !== "held" : seat.status !== "available"))
     )
       return null;
     seats.push({ id: seat.id, code: seat.code });

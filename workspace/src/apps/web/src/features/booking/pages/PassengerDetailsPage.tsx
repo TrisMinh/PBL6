@@ -1,3 +1,5 @@
+import { isTripUnavailable } from "@/features/trips/lib/isTripUnavailable";
+import { TripUnavailableState } from "@/features/booking/components/TripUnavailableState";
 import { useId, type ReactElement } from "react";
 import { Link } from "react-router";
 
@@ -10,9 +12,9 @@ import {
 } from "@/features/booking/components/PassengerForm/PassengerForm";
 import { useBookingExpiry } from "@/features/booking/hooks/useBookingExpiry";
 import {
-  useHoldCountdown,
+  useDraftCountdown,
   type HoldCountdown,
-} from "@/features/booking/hooks/useHoldCountdown";
+} from "@/features/booking/hooks/useDraftCountdown";
 import {
   useReplacePassengers,
   type ReplacePassengersResult,
@@ -178,8 +180,10 @@ function LoadedPassengers(props: PassengerBookingProps): ReactElement {
 }
 function DraftPassengers({ draft }: { draft: BookingDraft }): ReactElement {
   const query = useSeats(draft.tripId);
-  const countdown = useHoldCountdown(draft.expiresAt);
+  const countdown = useDraftCountdown(draft.expiresAt);
   useBookingExpiry(draft, query.data, countdown.isExpired);
+  if (query.data && isTripUnavailable(query.data.trip))
+    return <TripUnavailableState />;
   if (query.data)
     return (
       <LoadedPassengers

@@ -13,6 +13,57 @@
   border-radius: 14px;
   background: #f4f8ff;
 }
+.live-payment__expired {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 24px;
+  border: 1px solid #fed7aa;
+  border-radius: 14px;
+  background: #fff7ed;
+  color: #7c2d12;
+}
+.live-payment__expired-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #ffedd5;
+  font-size: 24px;
+  font-weight: 700;
+}
+.live-payment__expired h2 {
+  margin: 0 0 10px;
+  font-size: 20px;
+}
+.live-payment__expired p {
+  margin: 8px 0;
+  line-height: 1.6;
+}
+.live-payment__expired-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 20px;
+}
+.live-payment .live-payment__find-trip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 12px 20px;
+  border-radius: 10px;
+  background: #2563eb;
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
+}
+.live-payment .live-payment__find-trip:hover {
+  background: #1d4ed8;
+  color: #fff;
+}
 .live-payment__receipt > div {
   display: flex;
   flex-direction: column;
@@ -37,6 +88,32 @@
 .live-payment > label {
   max-width: 520px;
   margin: 24px 0 18px;
+}
+.live-payment__countdown {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid #d8e6ff;
+  border-radius: 14px;
+  background: #f4f8ff;
+  color: #163764;
+}
+.live-payment__countdown p {
+  margin: 6px 0 0;
+  font-size: 14px;
+}
+.live-payment__countdown [role="timer"] {
+  font-size: 28px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.live-payment__countdown[data-expiring="true"] {
+  border-color: #fed7aa;
+  background: #fff7ed;
+  color: #9a3412;
 }
 .live-payment > .button {
   min-height: 48px;

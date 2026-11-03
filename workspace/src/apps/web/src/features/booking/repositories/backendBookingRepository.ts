@@ -60,8 +60,6 @@ function draftFor(id: string): BookingSession {
       401,
       "Phiên đặt vé không thuộc tài khoản hiện tại.",
     );
-  if (Date.parse(draft.expiresAt) <= Date.now())
-    throw new ApiError("HOLD_EXPIRED", 410, "Phiên đặt vé đã hết hạn.");
   return { ...draft, status: "active" };
 }
 export async function getLiveSeatLayout(
@@ -88,7 +86,8 @@ export async function getLiveSeatLayout(
         ? ("upper" as const)
         : ("lower" as const);
       const index = counters[deck]++;
-      const status = seat.status.toLowerCase();
+      const status =
+        seat.status === "BOOKED" ? "sold" : seat.status.toLowerCase();
       return {
         id: seat.id,
         code: seat.code,
@@ -106,7 +105,9 @@ export const backendBookingRepository: BookingRepository = {
   createSession: (tripId, passengerCount, options = {}) =>
     bookingAction(async () => {
       const user = owner();
-      await getBackendTrip(tripId, options.signal);
+      const trip = await getBackendTrip(tripId, options.signal);
+      if (!trip.sellable || !["SCHEDULED", "BOARDING"].includes(trip.status))
+        throw new ApiError("TRIP_NOT_SELLABLE", 422, "Chuyến đã ngừng bán.");
       const sessionId = crypto.randomUUID();
       sessionStorage.setItem(
         keyFor(sessionId),
@@ -118,7 +119,8 @@ export const backendBookingRepository: BookingRepository = {
         passengerCount,
         selectedSeatIds: [],
         passengers: [],
-        expiresAt: new Date(Date.now() + 15 * 60_000).toISOString(),
+        // Compatibility field for the shared mock session contract; not a live deadline.
+        expiresAt: new Date().toISOString(),
         totalVnd: 0,
         status: "active",
       };
@@ -137,6 +139,8 @@ export const backendBookingRepository: BookingRepository = {
         getLiveSeatLayout(draft.tripId, signal),
         getBackendTrip(draft.tripId, signal),
       ]);
+      if (!trip.sellable || !["SCHEDULED", "BOARDING"].includes(trip.status))
+        throw new ApiError("TRIP_NOT_SELLABLE", 422, "Chuyến đã ngừng bán.");
       if (seatIds.length > 6 || new Set(seatIds).size !== seatIds.length)
         throw new ApiError(
           "VALIDATION_ERROR",
@@ -159,6 +163,9 @@ export const backendBookingRepository: BookingRepository = {
       return {
         ...draft,
         selectedSeatIds: [...seatIds],
+        bookingAttemptKey: draft.bookingAttemptKey
+          ? crypto.randomUUID()
+          : undefined,
         totalVnd: trip.fare.amount * seatIds.length,
         passengers: draft.passengers.filter((passenger) =>
           seatIds.includes(passenger.seatId),
@@ -192,6 +199,8 @@ export const backendBookingRepository: BookingRepository = {
         JSON.parse(sessionStorage.getItem(keyFor(id)) ?? "null"),
       );
       const trip = await getBackendTrip(draft.tripId, signal);
+      if (!trip.sellable || !["SCHEDULED", "BOARDING"].includes(trip.status))
+        throw new ApiError("TRIP_NOT_SELLABLE", 422, "Chuyến đã ngừng bán.");
       const pickup = meta.pickupStopId
         ? trip.stops.find(
             (stop) => stop.id === meta.pickupStopId && stop.pickupAllowed,
@@ -224,22 +233,39 @@ export const backendBookingRepository: BookingRepository = {
         JSON.stringify({ ...meta, attempt, holdRequest }),
       );
       // Retry the SAME hold and booking requests after an ambiguous network failure.
-      const hold = meta.holdToken
-        ? await apiJson(
-            `/api/v1/seat-holds/${encodeURIComponent(meta.holdToken)}`,
-            holdSchema,
-            { signal },
-          )
-        : await apiJson(
-            `/api/v1/trips/${draft.tripId}/seat-holds`,
-            holdSchema,
-            {
+      const hold = await (
+        meta.holdToken
+          ? apiJson(
+              `/api/v1/seat-holds/${encodeURIComponent(meta.holdToken)}`,
+              holdSchema,
+              { signal },
+            )
+          : apiJson(`/api/v1/trips/${draft.tripId}/seat-holds`, holdSchema, {
               method: "POST",
               signal,
               idempotencyKey: `web-hold-${attempt}`,
               body: holdRequest,
-            },
+            })
+      ).catch((error: unknown) => {
+        // A definitive seat conflict created no hold. Allow a new selection;
+        // ambiguous network errors must retain the original retry request.
+        if (
+          !meta.holdToken &&
+          error instanceof ApiError &&
+          error.status === 409 &&
+          error.code.includes("SEAT")
+        ) {
+          sessionStorage.setItem(
+            keyFor(id),
+            JSON.stringify({
+              ...meta,
+              attempt: undefined,
+              holdRequest: undefined,
+            }),
           );
+        }
+        throw error;
+      });
       sessionStorage.setItem(
         keyFor(id),
         JSON.stringify({

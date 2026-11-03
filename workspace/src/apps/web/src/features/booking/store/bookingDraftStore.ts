@@ -10,6 +10,7 @@ import {
   type StateStorage,
 } from "zustand/middleware";
 import { z } from "zod";
+import { isMockApi } from "@/shared/api/config";
 
 import { paymentAttemptSchema } from "@/features/payment/schemas/payment.schema";
 import { bookingPassengerCountSchema } from "@/features/booking/schemas/passengerCount.schema";
@@ -72,7 +73,11 @@ function readPersistedDraft(
   storage: StateStorage,
 ): BookingDraft | null {
   const parsed = persistedDraftSchema.safeParse(value);
-  if (parsed.success && Date.parse(parsed.data.draft.expiresAt) > Date.now())
+  if (
+    parsed.success &&
+    ((!isMockApi && !parsed.data.draft.bookingId) ||
+      Date.parse(parsed.data.draft.expiresAt) > Date.now())
+  )
     return parsed.data.draft;
   void storage.removeItem(BOOKING_DRAFT_STORAGE_KEY);
   return null;

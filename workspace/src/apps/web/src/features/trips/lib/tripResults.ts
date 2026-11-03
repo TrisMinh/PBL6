@@ -27,6 +27,20 @@ export function selectVisibleTrips(
   const vehicle = tripSchema.shape.vehicleType.safeParse(filters.vehicleType);
   const visible = trips.filter(
     (trip) =>
+      (!filters.organizationId ||
+        trip.operator.id === filters.organizationId) &&
+      (!filters.pickupStopId ||
+        Boolean(
+          trip.stops?.some(
+            (stop) => stop.id === filters.pickupStopId && stop.pickupAllowed,
+          ),
+        )) &&
+      (!filters.dropoffStopId ||
+        Boolean(
+          trip.stops?.some(
+            (stop) => stop.id === filters.dropoffStopId && stop.dropoffAllowed,
+          ),
+        )) &&
       (!vehicle.success || trip.vehicleType === vehicle.data) &&
       matchesDeparturePeriod(trip, filters.departurePeriod) &&
       matchesDepartureHour(trip, filters.departureHour) &&
@@ -38,6 +52,13 @@ export function selectVisibleTrips(
         true),
   );
   return visible.sort((left, right) => {
+    if (sort === "duration-asc" || sort === "duration-desc") {
+      const duration = (trip: Trip): number =>
+        Date.parse(trip.arrivalTime) - Date.parse(trip.departureTime);
+      return (
+        (duration(left) - duration(right)) * (sort === "duration-desc" ? -1 : 1)
+      );
+    }
     if (sort === "price-asc") return left.fareVnd - right.fareVnd;
     if (sort === "price-desc") return right.fareVnd - left.fareVnd;
     if (sort === "departure")
@@ -47,6 +68,9 @@ export function selectVisibleTrips(
 }
 
 export interface TripFilterCriteria {
+  organizationId?: string;
+  pickupStopId?: string;
+  dropoffStopId?: string;
   vehicleType?: string;
   departurePeriod?: "morning" | "afternoon" | "evening";
   departureHour?: string;

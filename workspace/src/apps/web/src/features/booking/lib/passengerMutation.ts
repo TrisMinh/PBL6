@@ -1,4 +1,5 @@
 import { BookingRepositoryError } from "@/features/booking/repositories/bookingRepositoryError";
+import { isMockApi } from "@/shared/api/config";
 import { httpBookingRepository } from "@/features/booking/repositories/httpBookingRepository";
 import {
   createPassengerSchema,
@@ -47,7 +48,7 @@ export async function executePassengerMutation(
   variables: PassengerMutationVariables,
 ): Promise<BookingSession> {
   const { source, values, controller } = variables;
-  if (Date.parse(source.expiresAt) <= Date.now())
+  if (isMockApi && Date.parse(source.expiresAt) <= Date.now())
     throw new BookingRepositoryError("HOLD_EXPIRED", 410);
   const parsed = parseSubmission(source, values);
   const session = await httpBookingRepository.replacePassengers(

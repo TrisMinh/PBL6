@@ -384,3 +384,23 @@
     align-items: stretch;
   }
 }
+.trip-filters__group--route {
+  display: grid;
+  gap: 14px;
+}
+.trip-filters--live .trip-filters__desktop .trip-filters__sort-field {
+  display: block;
+}
+.trip-filters__group--route .trip-filters__label {
+  position: static;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  clip: auto;
+  clip-path: none;
+  white-space: normal;
+  font-size: 12px;
+}
+.trip-filters__periods:has(> button:nth-child(4)) {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}

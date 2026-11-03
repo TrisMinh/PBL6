@@ -1,5 +1,5 @@
 import type { ReactElement } from "react";
-import { useSessionClock } from "@/shared/lib/useSessionClock";
+import { useHoldCountdown } from "@/features/booking/hooks/useHoldCountdown";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router";
@@ -36,9 +36,27 @@ export function BackendPaymentPage(): ReactElement {
     enabled: guid.safeParse(bookingId).success,
     retry: false,
   });
-  const now = useSessionClock(query.data?.expiresAt);
+  const countdown = useHoldCountdown(query.data?.expiresAt ?? "");
+  const paymentExpired =
+    query.data?.status === "EXPIRED" ||
+    (query.data?.status === "PENDING_PAYMENT" && countdown.isExpired);
+  const remainingTime = `${Math.floor(countdown.remainingSeconds / 60)
+    .toString()
+    .padStart(2, "0")}:${(countdown.remainingSeconds % 60)
+    .toString()
+    .padStart(2, "0")}`;
   const mutation = useMutation({
     mutationFn: async () => {
+      if (
+        query.data?.status !== "PENDING_PAYMENT" ||
+        !Number.isFinite(Date.parse(query.data.expiresAt)) ||
+        Date.parse(query.data.expiresAt) <= Date.now()
+      )
+        throw new ApiError(
+          "BOOKING_EXPIRED",
+          409,
+          "Đơn không còn trong thời gian thanh toán. Vui lòng kiểm tra lại đơn.",
+        );
       const payment = await apiJson(
         `/api/v1/bookings/${bookingId}/payments`,
         paymentSchema,
@@ -108,48 +126,80 @@ export function BackendPaymentPage(): ReactElement {
               <strong>{formatCurrencyVnd(query.data.total)}</strong>
             </div>
           </div>
-          <p>
-            Thanh toán sẽ mở trên cổng VNPay. Vé được phát hành sau khi hệ thống
-            xác nhận giao dịch.
-          </p>
-          <label>
-            Phương thức thanh toán
-            <select
-              value={method}
-              disabled={mutation.isPending}
-              onChange={(e) => setMethod(e.target.value)}
+          {paymentExpired && (
+            <div className="live-payment__expired" role="alert">
+              <span className="live-payment__expired-icon" aria-hidden="true">
+                !
+              </span>
+              <div>
+                <h2>Đã hết thời gian giữ ghế</h2>
+                <p>
+                  Đơn này không thể tiếp tục thanh toán. Vui lòng tìm lại chuyến
+                  và chọn ghế để tạo đơn mới.
+                </p>
+                <p>
+                  Nếu bạn đã thanh toán, hãy kiểm tra trạng thái trong đơn đặt
+                  vé của mình.
+                </p>
+                <div className="live-payment__expired-actions">
+                  <Link to="/" className="live-payment__find-trip">
+                    Tìm chuyến khác
+                  </Link>
+                </div>
+              </div>
+            </div>
+          )}
+          {query.data.status === "PENDING_PAYMENT" && !paymentExpired && (
+            <div
+              className="live-payment__countdown"
+              data-expiring={countdown.remainingSeconds <= 60}
             >
-              <option value="VNPAY_QR">VNPay QR</option>
-              <option value="ATM_CARD">Thẻ ATM nội địa</option>
-              <option value="BANK_ACCOUNT">Tài khoản ngân hàng</option>
-              <option value="VNPAY">Cổng VNPay</option>
-            </select>
-          </label>
-          <Button
-            disabled={
-              query.data.status !== "PENDING_PAYMENT" ||
-              now === null ||
-              Date.parse(query.data.expiresAt) <= now
-            }
-            isLoading={mutation.isPending}
-            onClick={() => mutation.mutate()}
-          >
-            Thanh toán qua VNPay
-          </Button>
+              <div>
+                <strong>Thời gian giữ ghế còn lại</strong>
+                <p>Hoàn tất thanh toán trước khi hết hạn để giữ chỗ của bạn.</p>
+              </div>
+              <span role="timer" aria-label="Thời gian giữ ghế còn lại">
+                {remainingTime}
+              </span>
+            </div>
+          )}
+          {!paymentExpired && (
+            <>
+              <p>
+                Thanh toán sẽ mở trên cổng VNPay. Vé được phát hành sau khi hệ
+                thống xác nhận giao dịch.
+              </p>
+              <label>
+                Phương thức thanh toán
+                <select
+                  value={method}
+                  disabled={mutation.isPending}
+                  onChange={(e) => setMethod(e.target.value)}
+                >
+                  <option value="VNPAY_QR">VNPay QR</option>
+                  <option value="ATM_CARD">Thẻ ATM nội địa</option>
+                  <option value="BANK_ACCOUNT">Tài khoản ngân hàng</option>
+                  <option value="VNPAY">Cổng VNPay</option>
+                </select>
+              </label>
+              <Button
+                disabled={
+                  query.data.status !== "PENDING_PAYMENT" ||
+                  countdown.remainingSeconds === 0
+                }
+                isLoading={mutation.isPending}
+                onClick={() => mutation.mutate()}
+              >
+                Thanh toán qua VNPay
+              </Button>
+            </>
+          )}
         </>
       )}
       {mutation.isError && <ApiFailure error={mutation.error} />}
       {mutation.isSuccess && mutation.data === null && (
         <Link to="/account/tickets">Giao dịch đã hoàn tất. Xem vé</Link>
       )}
-      {query.data?.status === "PENDING_PAYMENT" &&
-        now !== null &&
-        Date.parse(query.data.expiresAt) <= now && (
-          <p role="status">
-            Đơn đã hết thời gian thanh toán. Vui lòng kiểm tra đơn hoặc chọn
-            chuyến mới.
-          </p>
-        )}
     </section>
   );
 }

@@ -5,6 +5,40 @@ import { backendAuthRepository } from "./backendAuthRepository";
 beforeEach(() => {
   sessionStorage.clear();
 });
+it.each([401, 423, 429])(
+  "uses login-specific messages for HTTP %s",
+  async (status) => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      Response.json(
+        {
+          error: {
+            code: status === 423 ? "ACCOUNT_LOCKED" : "INVALID_CREDENTIALS",
+            message: "Private backend message",
+          },
+        },
+        { status },
+      ),
+    );
+    try {
+      await backendAuthRepository.login({
+        email: "minh.anh@bluebus.test",
+        password: "WrongPassword123",
+      });
+      throw new Error("Expected rejected login");
+    } catch (error) {
+      expect(error).toHaveProperty("status", status);
+      const message = (error as Error).message;
+      expect(message).not.toContain("Phiên đăng nhập đã hết hạn");
+      expect(message).toContain(
+        status === 401
+          ? "Email/số điện thoại hoặc mật khẩu không đúng"
+          : status === 423
+            ? "Tài khoản đang bị khóa"
+            : "quá nhiều lần",
+      );
+    }
+  },
+);
 it("maps the login request and real JWT session to existing UI state", async () => {
   const fetcher = vi.spyOn(globalThis, "fetch").mockResolvedValue(
     Response.json({

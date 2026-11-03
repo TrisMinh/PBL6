@@ -17,6 +17,8 @@ export const operatorSummarySchema = z.object({
 export const tripSchema = z
   .object({
     id: nonemptyText,
+    sellable: z.boolean().optional(),
+    status: z.string().optional(),
     origin: locationSchema,
     destination: locationSchema,
     operator: operatorSummarySchema,
@@ -29,6 +31,22 @@ export const tripSchema = z
     vehicleLabel: nonemptyText,
     originStopName: nonemptyText,
     destinationStopName: nonemptyText,
+    seatCountIsCapacity: z.boolean().optional(),
+    policyVersion: z.string().nullish(),
+    allowPayLater: z.boolean().optional(),
+    stops: z
+      .array(
+        z.object({
+          id: nonemptyText,
+          name: nonemptyText,
+          address: z.string().nullish(),
+          sequence: z.number(),
+          offsetMinutes: z.number(),
+          pickupAllowed: z.boolean(),
+          dropoffAllowed: z.boolean(),
+        }),
+      )
+      .optional(),
     amenities: z.array(z.enum(["wifi", "charging", "restroom", "doorPickup"])),
   })
   .refine(

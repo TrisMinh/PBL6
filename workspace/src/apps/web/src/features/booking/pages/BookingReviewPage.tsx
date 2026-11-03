@@ -1,3 +1,5 @@
+import { isTripUnavailable } from "@/features/trips/lib/isTripUnavailable";
+import { TripUnavailableState } from "@/features/booking/components/TripUnavailableState";
 import {
   LiveBookingOptions,
   type LiveReviewContent,
@@ -10,9 +12,9 @@ import { BookingReview } from "@/features/booking/components/BookingReview/Booki
 import { BookingSummary } from "@/features/booking/components/BookingSummary/BookingSummary";
 import { useBookingExpiry } from "@/features/booking/hooks/useBookingExpiry";
 import {
-  useHoldCountdown,
+  useDraftCountdown,
   type HoldCountdown,
-} from "@/features/booking/hooks/useHoldCountdown";
+} from "@/features/booking/hooks/useDraftCountdown";
 import { useSeats } from "@/features/booking/hooks/useSeats";
 import { useCreateBooking } from "@/features/booking/hooks/useCreateBooking";
 import { canReviewBooking } from "@/features/booking/lib/bookingReview";
@@ -26,6 +28,10 @@ import {
 } from "@/shared/config/routes";
 import { Button } from "@/shared/ui/Button/Button";
 import { PageState } from "@/shared/ui/PageState/PageState";
+import {
+  DialogActionLink,
+  SeatStateDialog,
+} from "@/features/booking/components/SeatConflictDialog/SeatStateDialog";
 
 import "./BookingReviewPage.css";
 
@@ -122,15 +128,69 @@ function ReadyReview(props: ReviewProps): ReactElement {
       />
     </div>
   );
+  if (mutation.error?.code === "TRIP_NOT_SELLABLE")
+    return <TripUnavailableState />;
   return (
     <>
       <ReviewHeading draft={props.draft} />
-      {mutation.error &&
-        !["HOLD_EXPIRED", "ABORTED"].includes(mutation.error.code) && (
-          <p className="booking-review-page__feedback" role="alert">
-            Chưa thể xác nhận đặt vé. Vui lòng kiểm tra thông tin và thử lại.
-          </p>
+      <SeatStateDialog
+        open={Boolean(
+          mutation.error &&
+          !["HOLD_EXPIRED", "ABORTED"].includes(mutation.error.code),
         )}
+        variant="limit"
+        eyebrow="THÔNG BÁO ĐẶT VÉ"
+        title={
+          mutation.error?.code === "SEAT_CONFLICT"
+            ? "Ghế vừa được người khác chọn"
+            : "Chưa thể xác nhận đặt vé"
+        }
+        description={
+          mutation.error?.code === "SEAT_CONFLICT"
+            ? "Một hoặc nhiều ghế bạn chọn vừa được người khác giữ hoặc đặt. Vui lòng chọn lại ghế trống để tiếp tục."
+            : "Yêu cầu chưa hoàn tất. Vui lòng kiểm tra kết nối và thông tin trước khi thử lại."
+        }
+        statusLead={
+          mutation.error?.code === "SEAT_CONFLICT"
+            ? "Đơn đặt vé chưa được tạo"
+            : "Thông tin bạn nhập vẫn được giữ lại"
+        }
+        statusDetail={
+          mutation.error?.code === "SEAT_CONFLICT"
+            ? "Không giữ một phần số ghế bạn đã chọn."
+            : "Bạn có thể đóng thông báo để kiểm tra lại."
+        }
+        onClose={mutation.dismissError}
+        onFocusReturn={() =>
+          document
+            .querySelector<HTMLButtonElement>(".booking-summary > button")
+            ?.focus()
+        }
+        secondary={
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={mutation.dismissError}
+          >
+            Xem lại thông tin
+          </Button>
+        }
+        primary={
+          mutation.error?.code === "SEAT_CONFLICT" ? (
+            <DialogActionLink
+              to={bookingSeatsPath(props.draft.sessionId)}
+              variant="primary"
+              onClick={mutation.dismissError}
+            >
+              Chọn lại ghế
+            </DialogActionLink>
+          ) : (
+            <Button type="button" onClick={mutation.create}>
+              Thử lại
+            </Button>
+          )
+        }
+      />
       {isMockApi ? (
         renderContent()
       ) : (
@@ -149,7 +209,7 @@ function ReadyReview(props: ReviewProps): ReactElement {
 
 function DraftReview({ draft }: { draft: BookingDraft }): ReactElement {
   const query = useSeats(draft.tripId);
-  const countdown = useHoldCountdown(draft.expiresAt);
+  const countdown = useDraftCountdown(draft.expiresAt);
   useBookingExpiry(draft, query.data, countdown.isExpired);
   if (query.isPending)
     return (
@@ -170,6 +230,7 @@ function DraftReview({ draft }: { draft: BookingDraft }): ReactElement {
         }
       />
     );
+  if (isTripUnavailable(query.data.trip)) return <TripUnavailableState />;
   return (
     <ReviewContent
       draft={draft}

@@ -129,6 +129,44 @@
   padding: var(--space-control-inset);
   border-radius: var(--radius-control);
 }
+.auth-page .auth-page__lockout-hint {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.auth-page__lockout {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 18px;
+  border: 1px solid #fed7aa;
+  border-radius: 14px;
+  background: #fff7ed;
+  color: #7c2d12;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+.auth-page__lockout-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #ffedd5;
+  color: #9a3412;
+}
+.auth-page__lockout strong {
+  display: block;
+  font-size: 16px;
+  line-height: 1.5;
+}
+.auth-page__lockout p {
+  margin: 6px 0 0;
+  font-size: 14px;
+  line-height: 1.6;
+}
 .auth-page__success {
   line-height: 1.7;
 }

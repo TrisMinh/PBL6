@@ -1,4 +1,5 @@
 import { isMockApi } from "@/shared/api/config";
+import { isTripUnavailable } from "@/features/trips/lib/isTripUnavailable";
 import type { BookingDraft } from "@/features/booking/types/booking";
 import type { SeatLayout } from "@/features/booking/types/seat";
 import type { HoldCountdown } from "@/features/booking/hooks/useHoldCountdown";
@@ -8,9 +9,11 @@ export function canContinueBooking(
   layout: SeatLayout,
   countdown: HoldCountdown,
   isPending = false,
+  requireAvailability = true,
 ): boolean {
   return (
     !isPending &&
+    !isTripUnavailable(layout.trip) &&
     !countdown.isExpired &&
     countdown.remainingSeconds > 0 &&
     draft.selectedSeatIds.length === draft.passengerCount &&
@@ -20,7 +23,8 @@ export function canContinueBooking(
       layout.items.some(
         (seat) =>
           seat.id === id &&
-          (seat.status === "available" ||
+          (!requireAvailability ||
+            seat.status === "available" ||
             (isMockApi && seat.status === "held")),
       ),
     )

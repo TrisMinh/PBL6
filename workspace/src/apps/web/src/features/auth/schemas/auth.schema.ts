@@ -9,9 +9,22 @@ const password = z
   .string()
   .min(8, "Mật khẩu từ 8 ký tự.")
   .max(128, "Mật khẩu không quá 128 ký tự.");
-export const loginSchema = z.object({ email, password }).strict();
+const identifier = z
+  .string()
+  .trim()
+  .min(1, "Nhập email hoặc số điện thoại.")
+  .max(254, "Email hoặc số điện thoại quá dài.")
+  .refine(
+    (value) =>
+      z.email().safeParse(value).success ||
+      /^(?:0|\+84)[35789]\d{8}$/.test(value),
+    "Nhập email hoặc số điện thoại Việt Nam hợp lệ.",
+  )
+  .transform((value) => value.toLowerCase());
+export const loginSchema = z.object({ email: identifier, password }).strict();
 export const registerSchema = loginSchema
   .extend({
+    email,
     fullName: contactDraftSchema.shape.fullName,
     phone: contactDraftSchema.shape.phone,
     password: password

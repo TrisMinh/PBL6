@@ -79,14 +79,21 @@ describe("TripFilters", () => {
       within(sort)
         .getAllByRole("option")
         .map((option) => option.getAttribute("value")),
-    ).toEqual(["relevance", "price-asc", "price-desc", "departure"]);
+    ).toEqual([
+      "relevance",
+      "price-asc",
+      "price-desc",
+      "departure",
+      "duration-asc",
+      "duration-desc",
+    ]);
     const vehicle = within(panel()).getByRole("combobox", { name: "Loại xe" });
     expect(vehicle).toHaveValue("");
     expect(
       within(vehicle)
         .getAllByRole("option")
         .map((option) => option.textContent),
-    ).toEqual(["Tất cả 15 loại xe", "Giường nằm", "Cabin / phòng"]);
+    ).toEqual(["Tất cả loại xe", "Giường nằm", "Cabin / phòng"]);
     expect(onChange).not.toHaveBeenCalled();
   });
 

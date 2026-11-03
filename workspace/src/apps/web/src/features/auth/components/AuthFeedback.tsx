@@ -11,6 +11,28 @@ export function AuthError({
   error: BookingRepositoryError | null;
 }): ReactElement | null {
   if (!error || error.code === "ABORTED") return null;
+  if (!isMockApi && error.status === 423)
+    return (
+      <div className="auth-page__lockout" role="alert" aria-atomic="true">
+        <span className="auth-page__lockout-icon" aria-hidden="true">
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+          >
+            <rect x="5" y="10" width="14" height="11" rx="3" />
+            <path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3" />
+          </svg>
+        </span>
+        <div>
+          <strong>Tài khoản bị khóa</strong>
+          <p>Sai 5 lần: khóa 15 phút.</p>
+        </div>
+      </div>
+    );
   const text =
     error.code === "INVALID_CREDENTIALS"
       ? "Email hoặc mật khẩu mô phỏng chưa đúng. Kiểm tra và thử lại."

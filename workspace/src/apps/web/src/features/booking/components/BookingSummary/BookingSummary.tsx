@@ -98,16 +98,18 @@ function SummaryHeader({
   return (
     <header className="booking-summary__header">
       <h2 id={titleId}>{title}</h2>
-      <span
-        className="booking-summary__timer"
-        role="timer"
-        aria-label={
-          isMockApi ? "Thời gian giữ chỗ" : "Thời gian hoàn tất bản nháp"
-        }
-        aria-live="off"
-      >
-        {clock}
-      </span>
+      {isMockApi && (
+        <span
+          className="booking-summary__timer"
+          role="timer"
+          aria-label={
+            isMockApi ? "Thời gian giữ chỗ" : "Thời gian hoàn tất bản nháp"
+          }
+          aria-live="off"
+        >
+          {clock}
+        </span>
+      )}
     </header>
   );
 }
@@ -304,7 +306,15 @@ export function BookingSummary({
         type={formId ? "submit" : "button"}
         form={formId}
         isLoading={isActionPending ?? (Boolean(formId) && isPending)}
-        disabled={!canContinueBooking(draft, layout, countdown, isPending)}
+        disabled={
+          !canContinueBooking(
+            draft,
+            layout,
+            countdown,
+            isPending,
+            isMockApi || variant !== "review",
+          )
+        }
         onClick={onContinue}
       >
         {variant === "review"

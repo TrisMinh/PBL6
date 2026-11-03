@@ -1,5 +1,8 @@
 import { isMockApi } from "@/shared/api/config";
-import { type ReactElement } from "react";
+import { isTripUnavailable } from "@/features/trips/lib/isTripUnavailable";
+import { TripUnavailableState } from "@/features/booking/components/TripUnavailableState";
+import { useEffect, type ReactElement } from "react";
+import { keyFor } from "@/features/booking/repositories/backendBookingRepository";
 import { Link, useNavigate } from "react-router";
 
 import type { SeatFocus } from "@/features/booking/hooks/useSeatFocus";
@@ -15,7 +18,7 @@ import {
   SeatStateDialog,
 } from "@/features/booking/components/SeatConflictDialog/SeatStateDialog";
 import { releaseExpiredSeats } from "@/features/booking/hooks/useBookingExpiry";
-import { useHoldCountdown } from "@/features/booking/hooks/useHoldCountdown";
+import { useDraftCountdown } from "@/features/booking/hooks/useDraftCountdown";
 import {
   useReplaceSeats,
   type ReplaceSeatsResult,
@@ -222,6 +225,8 @@ function SeatBooking(props: SeatBookingProps): ReactElement {
     if (canContinueBooking(draft, layout, countdown, pending))
       void navigate(bookingPassengersPath(draft.sessionId));
   };
+  if (mutation.error?.code === "TRIP_NOT_SELLABLE")
+    return <TripUnavailableState />;
   return (
     <>
       <SeatHeading layout={layout} draft={draft} />
@@ -301,7 +306,36 @@ function SeatBooking(props: SeatBookingProps): ReactElement {
 }
 function DraftSeats({ draft }: { draft: BookingDraft }): ReactElement {
   const query = useSeats(draft.tripId);
-  const countdown = useHoldCountdown(draft.expiresAt);
+  const countdown = useDraftCountdown(draft.expiresAt);
+  useEffect(() => {
+    if (isMockApi || !query.data || query.isFetching || draft.bookingId) return;
+    const metadata = JSON.parse(
+      sessionStorage.getItem(keyFor(draft.sessionId)) ?? "{}",
+    );
+    // An unresolved request may own a real hold; never discard that ownership.
+    if (metadata.attempt || metadata.holdToken || metadata.bookingId) return;
+    const selectedSeatIds = draft.selectedSeatIds.filter((id) =>
+      query.data.items.some(
+        (seat) => seat.id === id && seat.status === "available",
+      ),
+    );
+    if (
+      selectedSeatIds.length === draft.selectedSeatIds.length ||
+      useBookingDraftStore.getState().draft !== draft
+    )
+      return;
+    useBookingDraftStore.getState().setDraft({
+      ...draft,
+      selectedSeatIds,
+      passengers: draft.passengers.filter((passenger) =>
+        selectedSeatIds.includes(passenger.seatId),
+      ),
+      totalVnd: query.data.trip.fareVnd * selectedSeatIds.length,
+      bookingAttemptKey: draft.bookingAttemptKey
+        ? crypto.randomUUID()
+        : undefined,
+    });
+  }, [draft, query.data, query.isFetching]);
   if (query.isPending)
     return (
       <section>
@@ -325,6 +359,7 @@ function DraftSeats({ draft }: { draft: BookingDraft }): ReactElement {
         }
       />
     );
+  if (isTripUnavailable(query.data.trip)) return <TripUnavailableState />;
   return (
     <SeatBooking
       draft={draft}
@@ -344,7 +379,7 @@ export function SeatSelectionPage(): ReactElement {
       {!isMockApi && (
         <p role="status">
           Ghế mới được chọn trong bản nháp. Hệ thống sẽ kiểm tra và giữ ghế khi
-          bạn xác nhận đặt vé. Thời gian đếm ngược là thời hạn bản nháp.
+          bạn xác nhận đặt vé.
         </p>
       )}
       {draft ? (

@@ -13,7 +13,10 @@ const accepted = z.object({
   operationId: z.string().uuid(),
   status: z.string(),
 });
-async function authAction<T>(action: () => Promise<T>): Promise<T> {
+async function authAction<T>(
+  action: () => Promise<T>,
+  login = false,
+): Promise<T> {
   try {
     return await action();
   } catch (error) {
@@ -28,7 +31,14 @@ async function authAction<T>(action: () => Promise<T>): Promise<T> {
               : "HTTP_ERROR",
         error.status,
       );
-      mapped.message = error.message;
+      mapped.message =
+        login && error.status === 401
+          ? "Email/số điện thoại hoặc mật khẩu không đúng. Vui lòng kiểm tra và thử lại."
+          : login && error.status === 423
+            ? "Tài khoản đang bị khóa. Vui lòng thử lại sau hoặc liên hệ hỗ trợ."
+            : login && error.status === 429
+              ? "Bạn đã thử đăng nhập quá nhiều lần. Vui lòng chờ rồi thử lại."
+              : error.message;
       throw mapped;
     }
     throw error;
@@ -50,7 +60,7 @@ export const backendAuthRepository: AuthRepository = {
       if (signal?.aborted)
         throw new ApiError("ABORTED", 0, "Yêu cầu đã được hủy.");
       return toUiSession(saveApiSession(session));
-    }),
+    }, true),
   register: (input, signal) =>
     authAction(async () => {
       await apiJson("/api/v1/auth/register", accepted, {

@@ -410,7 +410,7 @@ html:has(.customer-layout__header) {
     display: flex;
   }
 
-  .customer-layout__menu-button {
+  .customer-layout__header .customer-layout__menu-button {
     display: none;
   }
 }

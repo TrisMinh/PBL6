@@ -68,6 +68,39 @@ beforeEach(() => {
     user: { id: ids.user, roles: ["CUSTOMER"] },
   });
 });
+it("blocks starting a draft after sales close without creating a hold", async () => {
+  const request = vi
+    .spyOn(globalThis, "fetch")
+    .mockResolvedValue(Response.json({ ...trip, sellable: false }));
+  await expect(
+    backendBookingRepository.createSession(ids.trip, 1),
+  ).rejects.toMatchObject({
+    code: "TRIP_NOT_SELLABLE",
+  });
+  expect(request).toHaveBeenCalledTimes(1);
+  expect(useBookingDraftStore.getState().draft).toBeNull();
+});
+it("presents BOOKED inventory as sold while preserving the other seat states", async () => {
+  vi.spyOn(globalThis, "fetch").mockImplementation(async (input) =>
+    Response.json(
+      String(input).endsWith("/seats")
+        ? {
+            tripId: ids.trip,
+            seats: ["AVAILABLE", "HELD", "BOOKED", "DISABLED"].map(
+              (status, i) => ({ ...seat, code: `A${i + 1}`, status }),
+            ),
+          }
+        : trip,
+    ),
+  );
+  const layout = await backendBookingRepository.getSeats(ids.trip);
+  expect(layout.items.map((s) => s.status)).toEqual([
+    "available",
+    "held",
+    "sold",
+    "disabled",
+  ]);
+});
 it("adapts real inventory, drafts selections locally, then holds and creates using stable retry keys", async () => {
   const calls: { path: string; init?: RequestInit }[] = [];
   let failBooking = true;

@@ -1,4 +1,5 @@
 import { differenceInMinutes, parseISO } from "date-fns";
+import { isTripUnavailable } from "@/features/trips/lib/isTripUnavailable";
 import { useId, type ReactElement } from "react";
 
 import type { Trip } from "@/features/trips/types/trip";
@@ -127,7 +128,11 @@ function TripFare({
     <div className="trip-card__fare-row">
       <span className={seatsClassName} id={statusId}>
         <img alt="" aria-hidden src={ticketIcon} />
-        {soldOut ? "Hết chỗ" : `Còn ${trip.availableSeatCount} ghế`}
+        {trip.seatCountIsCapacity
+          ? `Xe ${trip.availableSeatCount} chỗ`
+          : soldOut
+            ? "Hết chỗ"
+            : `Còn ${trip.availableSeatCount} ghế`}
       </span>
       <span className="trip-card__fare">
         <strong>{formatCurrencyVnd(trip.fareVnd)}</strong>
@@ -160,15 +165,86 @@ export function TripCard({
       </p>
       <TripSchedule trip={trip} />
       <TripFare trip={trip} statusId={statusId} />
+      {trip.stops && (
+        <details className="trip-card__details">
+          <summary>Chi tiết chuyến & điểm đón trả</summary>
+          <div className="trip-card__details-body">
+            <p>
+              <strong>Tiện ích:</strong>{" "}
+              {trip.amenities
+                .map(
+                  (amenity) =>
+                    ({
+                      wifi: "Wi-Fi",
+                      charging: "Cổng sạc",
+                      restroom: "Nhà vệ sinh",
+                      doorPickup: "Đón tận nơi",
+                    })[amenity],
+                )
+                .join(" · ") || "Chưa có thông tin"}
+            </p>
+            <ol>
+              {[...trip.stops]
+                .sort((a, b) => a.sequence - b.sequence)
+                .map((stop) => (
+                  <li key={stop.id}>
+                    <div>
+                      <strong>{stop.name}</strong>
+                      <time
+                        dateTime={new Date(
+                          Date.parse(trip.departureTime) +
+                            stop.offsetMinutes * 60000,
+                        ).toISOString()}
+                      >
+                        {DISPLAY_TIME.format(
+                          new Date(
+                            Date.parse(trip.departureTime) +
+                              stop.offsetMinutes * 60000,
+                          ),
+                        )}
+                      </time>
+                    </div>
+                    {stop.address && <p>{stop.address}</p>}
+                    <span>
+                      {[
+                        stop.pickupAllowed && "Đón khách",
+                        stop.dropoffAllowed && "Trả khách",
+                      ]
+                        .filter(Boolean)
+                        .join(" · ") || "Điểm dừng"}
+                    </span>
+                  </li>
+                ))}
+            </ol>
+            <p>
+              <strong>Thanh toán:</strong>{" "}
+              {trip.allowPayLater
+                ? "Thanh toán trực tuyến hoặc thanh toán sau theo lựa chọn khi đặt vé."
+                : "Thanh toán trực tuyến."}
+            </p>
+            {trip.policyVersion && (
+              <p>
+                <strong>Hủy vé:</strong> Phí hủy và số tiền hoàn được hiển thị
+                theo đơn trước khi bạn xác nhận hủy vé.
+              </p>
+            )}
+            <p className="trip-card__inventory-note">
+              Chọn chuyến để kiểm tra ghế còn trống và giữ chỗ.
+            </p>
+          </div>
+        </details>
+      )}
       <Button
         className="trip-card__select"
         type="button"
-        disabled={disabled || trip.availableSeatCount === 0}
+        disabled={
+          disabled || trip.availableSeatCount === 0 || isTripUnavailable(trip)
+        }
         isLoading={isPending}
         aria-describedby={statusId}
         onClick={() => onSelect(trip)}
       >
-        Chọn chuyến
+        {isTripUnavailable(trip) ? "Đã ngừng bán" : "Chọn chuyến"}
       </Button>
     </article>
   );

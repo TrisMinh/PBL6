@@ -20,7 +20,14 @@ const tripSearchFieldsSchema = z.object({
     .transform(Number)
     .pipe(z.number().int().min(1).max(6)),
   sort: z
-    .enum(["relevance", "departure", "price-asc", "price-desc"])
+    .enum([
+      "relevance",
+      "departure",
+      "price-asc",
+      "price-desc",
+      "duration-asc",
+      "duration-desc",
+    ])
     .default("relevance"),
 });
 

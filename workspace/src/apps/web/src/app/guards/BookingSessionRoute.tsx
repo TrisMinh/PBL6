@@ -32,6 +32,10 @@ export function BookingSessionRoute(): ReactElement {
       : Boolean(bookingId && draft.bookingId === bookingId));
   if (!isHydrated || nowMs === null) return <GuardLoading />;
   const expiryMs = draft ? Date.parse(draft.expiresAt) : Number.NaN;
+  // Live drafts have no hold deadline. Setting bookingId during checkout must
+  // not turn their placeholder expiresAt into an expiry before navigation.
+  // The payment page loads and enforces the real booking deadline from BE.
+  const enforceExpiry = isMockApi;
   const isExactMatchingSeatRoute = Boolean(
     sessionId &&
     draft?.sessionId === sessionId &&
@@ -46,7 +50,7 @@ export function BookingSessionRoute(): ReactElement {
     !hasMatchingRoute ||
     !draft ||
     !Number.isFinite(expiryMs) ||
-    (expiryMs <= nowMs && !canShowExpiredSeatState)
+    (enforceExpiry && expiryMs <= nowMs && !canShowExpiredSeatState)
   ) {
     return <Navigate replace to={`${ROUTES.trips}?reason=expired`} />;
   }

@@ -1,4 +1,5 @@
 const ERROR_KEYS = {
+  TRIP_NOT_SELLABLE: "booking.errors.request",
   INVALID_CREDENTIALS: "auth.errors.credentials",
   STORAGE_UNAVAILABLE: "tickets.errors.storage",
   ACCESS_REQUIRED: "tickets.errors.access",

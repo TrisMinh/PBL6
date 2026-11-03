@@ -4,6 +4,7 @@ import {
   type UseMutationResult,
 } from "@tanstack/react-query";
 import { useState } from "react";
+import { isMockApi } from "@/shared/api/config";
 
 import {
   beginSeatMutation,
@@ -56,15 +57,22 @@ function replacement(
   id: string,
 ): string[] | null {
   const seat = layout.items.find((seat) => seat.id === id);
-  const selected = draft.selectedSeatIds.includes(id);
+  const currentIds = isMockApi
+    ? draft.selectedSeatIds
+    : draft.selectedSeatIds.filter((seatId) =>
+        layout.items.some(
+          (item) => item.id === seatId && item.status === "available",
+        ),
+      );
+  const selected = currentIds.includes(id);
   if (
     !seat ||
     (seat.status !== "available" && !(selected && seat.status === "held"))
   )
     return null;
   return selected
-    ? draft.selectedSeatIds.filter((seatId) => seatId !== id)
-    : [...draft.selectedSeatIds, id];
+    ? currentIds.filter((seatId) => seatId !== id)
+    : [...currentIds, id];
 }
 export function useReplaceSeats(
   draft: BookingDraft,

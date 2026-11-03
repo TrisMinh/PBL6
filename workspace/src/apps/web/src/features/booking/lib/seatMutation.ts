@@ -34,7 +34,7 @@ export function optimisticLayout(
   const items = layout.items.map((seat): Seat =>
     next.includes(seat.id)
       ? { ...seat, status: isMockApi ? "held" : seat.status }
-      : previous.includes(seat.id) && seat.status === "held"
+      : isMockApi && previous.includes(seat.id) && seat.status === "held"
         ? { ...seat, status: "available" }
         : seat,
   );

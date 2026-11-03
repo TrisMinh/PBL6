@@ -17,6 +17,12 @@ export function toTrip(trip: BackendTrip): Trip {
   });
   return {
     id: trip.id,
+    sellable: trip.sellable,
+    status: trip.status,
+    seatCountIsCapacity: true,
+    stops: trip.stops,
+    policyVersion: trip.policyVersion,
+    allowPayLater: trip.allowPayLater,
     origin: location(trip.origin),
     destination: location(trip.destination),
     operator: { id: trip.organizationId, name: trip.operatorName },
@@ -26,7 +32,13 @@ export function toTrip(trip: BackendTrip): Trip {
     fareVnd: trip.fare.amount,
     availableSeatCount: trip.availableSeatCount ?? 0,
     vehicleType: /22|cabin/i.test(trip.busType) ? "cabin-22" : "sleeper-34",
-    vehicleLabel: trip.busType,
+    vehicleLabel:
+      (
+        {
+          SLEEPER_34: "Giường nằm 34 chỗ",
+          CABIN_22: "Cabin 22 chỗ",
+        } as Record<string, string>
+      )[trip.busType] ?? trip.busType,
     originStopName:
       trip.stops.find((s) => s.pickupAllowed)?.name ?? trip.origin,
     destinationStopName:
@@ -100,13 +112,25 @@ export const backendTripRepository: TripRepository = {
       query.set("maxPrice", String(input.filters.maxFare));
     if (input.filters?.departureHour)
       query.set("departureTimeFrom", input.filters.departureHour);
+    for (const key of [
+      "organizationId",
+      "pickupStopId",
+      "dropoffStopId",
+    ] as const) {
+      const value = input.filters?.[key];
+      if (value) query.set(key, value);
+    }
     query.set(
       "sort",
       input.sort === "price-asc"
         ? "PRICE_ASC"
         : input.sort === "price-desc"
           ? "PRICE_DESC"
-          : "DEPARTURE_ASC",
+          : input.sort === "duration-asc"
+            ? "DURATION_ASC"
+            : input.sort === "duration-desc"
+              ? "DURATION_DESC"
+              : "DEPARTURE_ASC",
     );
     const items: Trip[] = [];
     for (let page = 0; ; page++) {
@@ -119,12 +143,6 @@ export const backendTripRepository: TripRepository = {
       items.push(...result.items.map(toTrip));
       if (page + 1 >= result.totalPages) break;
     }
-    return items.sort((a, b) =>
-      input.sort === "price-asc"
-        ? a.fareVnd - b.fareVnd
-        : input.sort === "price-desc"
-          ? b.fareVnd - a.fareVnd
-          : a.departureTime.localeCompare(b.departureTime),
-    );
+    return items;
   },
 };
