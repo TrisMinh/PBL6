@@ -1,0 +1,252 @@
+{
+  "info": {
+    "name": "PBL6 Round 3 - Auth Register and SeatHold",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "AUTH-01 Register valid pending account",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/register",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"fullName\":\"Round Three Auth User\",\"email\":\"r3.final.auth.one@example.test\",\"phone\":\"+84901999051\",\"password\":\"Test@12345\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Registration accepted without secrets',()=>{pm.response.to.have.status(202);const b=pm.response.json();pm.expect(b.status).to.eql('ACCEPTED');pm.expect(JSON.stringify(b)).not.to.match(/password|otp|code/i);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-02 duplicate email is safely rejected",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/register",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"fullName\":\"R3 Duplicate Email\",\"email\":\"r3.final.auth.one@example.test\",\"phone\":\"+84901999052\",\"password\":\"Test@12345\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Duplicate email rejected',()=>pm.expect(pm.response.code).to.be.oneOf([400,409,422]));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-03 duplicate phone is safely rejected",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/register",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"fullName\":\"R3 Duplicate Phone\",\"email\":\"r3.final.auth.three@example.test\",\"phone\":\"+84901999051\",\"password\":\"Test@12345\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Duplicate phone rejected',()=>pm.expect(pm.response.code).to.be.oneOf([400,409,422]));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-04 invalid registration rejected",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/register",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"fullName\":\"\",\"email\":\"bad-email\",\"phone\":\"123\",\"password\":\"123\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Invalid registration is rejected',()=>{pm.expect(pm.response.code).to.be.oneOf([400,422]);pm.expect(pm.response.json().error.code).to.be.oneOf(['VALIDATION_ERROR','PASSWORD_POLICY_VIOLATION']);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-05 fetch test OTP from Mailpit sandbox",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:8025/api/v1/search?query=to:r3.final.auth.one@example.test"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('OTP is available in sandbox inbox',()=>{pm.response.to.have.status(200);const m=pm.response.json().messages[0];pm.expect(m).to.exist;const match=m.Snippet.match(/challengeId=([^;]+); code=(\\d+)/);pm.expect(match).to.exist;pm.environment.set('r3AuthChallenge',match[1]);pm.environment.set('r3AuthOtp',match[2]);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-06 verify OTP correctly activates AUTH-01 user",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "r3-auth06-verify-one-fix2"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/verify",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"challengeId\":\"{{r3AuthChallenge}}\",\"code\":\"{{r3AuthOtp}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Valid OTP activates user and returns session',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json()).to.have.property('accessToken');});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AUTH-07 rate limit threshold is configuration-defined",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "r3-auth07-resend-one-fix2"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/resend-verification",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\":\"r3.final.auth.one@example.test\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Resend response is accepted; threshold remains configuration-defined',()=>pm.response.to.have.status(202));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "BOOK-01 list seats without token denied",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seats"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Unauthenticated seat list is denied',()=>pm.expect(pm.response.code).to.eql(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "BOOK-06 create hold without token denied",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "r3-book06-anon-fix2"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seat-holds",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"seatIds\":[\"01990a00-0000-7000-8000-000000000101\"],\"pickupStopId\":\"01990a00-0000-7000-8000-000000000201\",\"dropoffStopId\":\"01990a00-0000-7000-8000-000000000202\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Unauthenticated hold is denied',()=>pm.expect(pm.response.code).to.eql(401));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

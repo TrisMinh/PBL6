@@ -58,6 +58,7 @@ apply transport /baseline/transport/012_seed_driver.sql
 apply transport /baseline/transport/013_seed_amenities.sql
 apply booking /baseline/booking/010_synthetic_seed.sql
 apply booking /baseline/booking/013_more_seed_seats.sql
+apply booking /baseline/booking/014_seat_hold_policy_snapshot.sql
 
 echo "bootstrap complete"
 touch /tmp/bootstrap-ok

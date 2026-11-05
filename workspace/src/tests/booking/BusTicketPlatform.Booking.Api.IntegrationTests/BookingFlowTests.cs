@@ -86,8 +86,12 @@ public sealed class BookingFlowTests
 
         var hold = await Send(client, HttpMethod.Post, $"/api/v1/trips/{tripId}/seat-holds", new { seatIds = new[] { seatId }, pickupStopId = origin, dropoffStopId = dest }, token, Guid.CreateVersion7().ToString("N"));
         Assert.Equal(HttpStatusCode.Created, hold.Response.StatusCode);
+        Assert.Equal("cancel-mvp-v1", hold.Body.GetProperty("policySnapshot").GetProperty("policyVersion").GetString());
+        Assert.True(hold.Body.GetProperty("policySnapshot").GetProperty("allowPayLater").GetBoolean());
         var holdToken = hold.Body.GetProperty("holdToken").GetString();
         var total = hold.Body.GetProperty("seats")[0].GetProperty("price").GetProperty("amount").GetInt64();
+        var persistedHold = await Send(client, HttpMethod.Get, $"/api/v1/seat-holds/{holdToken}", null, token);
+        Assert.Equal("cancel-mvp-v1", persistedHold.Body.GetProperty("policySnapshot").GetProperty("policyVersion").GetString());
 
         var booking = await Send(client, HttpMethod.Post, "/api/v1/bookings", new
         {
@@ -146,6 +150,9 @@ public sealed class BookingFlowTests
             customerB,
             Guid.CreateVersion7().ToString("N"));
         Assert.Equal(HttpStatusCode.Conflict, atomicFailure.Response.StatusCode);
+        Assert.Equal("SEAT_UNAVAILABLE", atomicFailure.Body.GetProperty("error").GetProperty("code").GetString());
+        var affectedSeatCodes = atomicFailure.Body.GetProperty("error").GetProperty("details").GetProperty("affectedSeatCodes");
+        Assert.Equal("1A", Assert.Single(affectedSeatCodes.EnumerateArray()).GetString());
 
         var seats = await Send(client, HttpMethod.Get, $"/api/v1/trips/{trip.TripId}/seats", null, customerB);
         var unclaimed = seats.Body.GetProperty("seats").EnumerateArray().Single(item => item.GetProperty("id").GetGuid() == trip.SeatIds[1]);
@@ -286,7 +293,34 @@ public sealed class BookingFlowTests
         var trip = await ImportTrip(client, status: "CANCELLED");
         var customer = TestJwt.Mint(Guid.CreateVersion7(), ["CUSTOMER"]);
         var hold = await Send(client, HttpMethod.Post, $"/api/v1/trips/{trip.TripId}/seat-holds", HoldBody(trip, trip.SeatIds), customer, Guid.CreateVersion7().ToString("N"));
-        Assert.Equal(HttpStatusCode.UnprocessableEntity, hold.Response.StatusCode);
+        Assert.Equal(HttpStatusCode.Conflict, hold.Response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Departed_trip_snapshot_is_not_sellable()
+    {
+        var client = _fixture.CreateClient();
+        var trip = await ImportTrip(client, status: "DEPARTED");
+        var customer = TestJwt.Mint(Guid.CreateVersion7(), ["CUSTOMER"]);
+
+        var hold = await Send(client, HttpMethod.Post, $"/api/v1/trips/{trip.TripId}/seat-holds", HoldBody(trip, trip.SeatIds), customer, Guid.CreateVersion7().ToString("N"));
+
+        Assert.Equal(HttpStatusCode.Conflict, hold.Response.StatusCode);
+        Assert.Equal("TRIP_NOT_SELLABLE", hold.Body.GetProperty("error").GetProperty("code").GetString());
+    }
+
+    [Fact]
+    public async Task Closed_for_sale_trip_snapshot_is_not_sellable()
+    {
+        var client = _fixture.CreateClient();
+        var trip = await ImportTrip(client);
+        await ExecuteSql("UPDATE trip_snapshots SET sellable = false WHERE trip_id = @id", trip.TripId);
+        var customer = TestJwt.Mint(Guid.CreateVersion7(), ["CUSTOMER"]);
+
+        var hold = await Send(client, HttpMethod.Post, $"/api/v1/trips/{trip.TripId}/seat-holds", HoldBody(trip, trip.SeatIds), customer, Guid.CreateVersion7().ToString("N"));
+
+        Assert.Equal(HttpStatusCode.Conflict, hold.Response.StatusCode);
+        Assert.Equal("TRIP_NOT_SELLABLE", hold.Body.GetProperty("error").GetProperty("code").GetString());
     }
 
     [Fact]

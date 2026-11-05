@@ -1,0 +1,72 @@
+﻿{
+    "info":  {
+                 "name":  "Round 3 BOOK-09 create isolated hold for proactive expiry",
+                 "schema":  "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+             },
+    "item":  [
+                 {
+                     "request":  {
+                                     "body":  {
+                                                  "raw":  "{\"identifier\":\"seed.customer@example.test\",\"password\":\"CustomerPass1\"}",
+                                                  "mode":  "raw"
+                                              },
+                                     "method":  "POST",
+                                     "url":  "{{baseUrl}}/auth/login",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ]
+                                 },
+                     "name":  "Login customer",
+                     "event":  [
+                                   {
+                                       "script":  {
+                                                      "exec":  [
+                                                                   "pm.test(\u0027Customer login ok\u0027,()=\u003e{pm.response.to.have.status(200);pm.environment.set(\u0027reviewToken\u0027,pm.response.json().accessToken)});"
+                                                               ],
+                                                      "type":  "text/javascript"
+                                                  },
+                                       "listen":  "test"
+                                   }
+                               ]
+                 },
+                 {
+                     "request":  {
+                                     "body":  {
+                                                  "raw":  "{\"seatIds\":[\"01990a00-0000-7000-8000-000000000043\"],\"pickupStopId\":\"01990a00-0000-7000-8000-000000000004\",\"dropoffStopId\":\"01990a00-0000-7000-8000-000000000005\"}",
+                                                  "mode":  "raw"
+                                              },
+                                     "method":  "POST",
+                                     "url":  "{{baseUrl}}/trips/01990a00-0000-7000-8000-000000000007/seat-holds",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Authorization",
+                                                        "value":  "Bearer {{reviewToken}}"
+                                                    },
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    },
+                                                    {
+                                                        "key":  "Idempotency-Key",
+                                                        "value":  "review-book09-proactive-20261102"
+                                                    }
+                                                ]
+                                 },
+                     "name":  "Create hold for proactive expiry",
+                     "event":  [
+                                   {
+                                       "script":  {
+                                                      "exec":  [
+                                                                   "pm.test(\u0027Hold created and identifiers captured\u0027,()=\u003e{pm.response.to.have.status(201);const r=pm.response.json();pm.expect(r.holdToken).to.exist;pm.environment.set(\u0027reviewHoldToken\u0027,r.holdToken);pm.environment.set(\u0027reviewHoldId\u0027,r.id);console.log(\u0027HOLD_ID\u0027,r.id,\u0027TOKEN\u0027,r.holdToken)});"
+                                                               ],
+                                                      "type":  "text/javascript"
+                                                  },
+                                       "listen":  "test"
+                                   }
+                               ]
+                 }
+             ]
+}

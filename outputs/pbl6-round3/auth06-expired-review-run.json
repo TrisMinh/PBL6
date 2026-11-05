@@ -1,0 +1,582 @@
+{
+  "run": {
+    "meta": {
+      "collectionId": "91cb12b8-e718-427f-b72d-e9b00f1f03f2",
+      "collectionName": "Round 3 AUTH-06 expired OTP and login denial",
+      "started": 1793615732559,
+      "completed": 1793615732781,
+      "duration": 222
+    },
+    "summary": {
+      "iterations": {
+        "executed": 1,
+        "errors": 0
+      },
+      "executedRequests": {
+        "executed": 2,
+        "errors": 0
+      },
+      "prerequestScripts": {
+        "executed": 0,
+        "errors": 0
+      },
+      "postresponseScripts": {
+        "executed": 2,
+        "errors": 0
+      },
+      "tests": {
+        "executed": 3,
+        "failed": 0,
+        "passed": 3,
+        "skipped": 0
+      },
+      "timeStats": {
+        "responseAverage": 26,
+        "responseMin": 15,
+        "responseMax": 37,
+        "responseStandardDeviation": 11
+      }
+    },
+    "executions": [
+      {
+        "iterationCount": 0,
+        "requestExecuted": {
+          "id": "abc7471a-00bb-418c-b6c5-c127224deabd",
+          "name": "AUTH-06 expired OTP rejected",
+          "url": {
+            "protocol": "http",
+            "port": "5080",
+            "path": [
+              "api",
+              "v1",
+              "auth",
+              "verify"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Idempotency-Key",
+              "value": "r3-auth06-expired-review-20261102"
+            },
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.56.2",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "62a52463-ff49-45f0-bd71-b71e742d5b41",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:5080",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            },
+            {
+              "key": "Content-Length",
+              "value": "70",
+              "system": true
+            }
+          ],
+          "method": "POST",
+          "body": {
+            "mode": "raw",
+            "raw": "{\"challengeId\":\"01a19bd3-dafc-7835-bc13-1b124ed40ac7\",\"code\":\"548173\"}"
+          }
+        },
+        "response": {
+          "id": "ab3b0f46-546d-49f3-8f66-6af1c164dbc2",
+          "_details": {
+            "name": "Gone",
+            "detail": "Indicates that the resource requested is no longer available and will not be available again. This should be used when a resource has been intentionally removed and the resource should be purged. Upon receiving a 410 status code, the client should not request the resource again in the future. Clients such as search engines should remove the resource from their indices. Most use cases do not require clients and search engines to purge the resource, and a \"404 Not Found\" may be used instead.",
+            "code": 410,
+            "standardName": "Gone"
+          },
+          "status": "Gone",
+          "code": 410,
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Date",
+              "value": "Mon, 02 Nov 2026 10:35:31 GMT"
+            },
+            {
+              "key": "Server",
+              "value": "Kestrel"
+            },
+            {
+              "key": "Transfer-Encoding",
+              "value": "chunked"
+            },
+            {
+              "key": "X-Correlation-Id",
+              "value": "01a19bd4-1f93-7229-bca4-71e3a42ca000"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              101,
+              114,
+              114,
+              111,
+              114,
+              34,
+              58,
+              123,
+              34,
+              99,
+              111,
+              100,
+              101,
+              34,
+              58,
+              34,
+              86,
+              69,
+              82,
+              73,
+              70,
+              73,
+              67,
+              65,
+              84,
+              73,
+              79,
+              78,
+              95,
+              69,
+              88,
+              80,
+              73,
+              82,
+              69,
+              68,
+              34,
+              44,
+              34,
+              109,
+              101,
+              115,
+              115,
+              97,
+              103,
+              101,
+              34,
+              58,
+              34,
+              84,
+              104,
+              101,
+              32,
+              118,
+              101,
+              114,
+              105,
+              102,
+              105,
+              99,
+              97,
+              116,
+              105,
+              111,
+              110,
+              32,
+              99,
+              104,
+              97,
+              108,
+              108,
+              101,
+              110,
+              103,
+              101,
+              32,
+              104,
+              97,
+              115,
+              32,
+              101,
+              120,
+              112,
+              105,
+              114,
+              101,
+              100,
+              46,
+              34,
+              44,
+              34,
+              99,
+              111,
+              114,
+              114,
+              101,
+              108,
+              97,
+              116,
+              105,
+              111,
+              110,
+              73,
+              100,
+              34,
+              58,
+              34,
+              48,
+              49,
+              97,
+              49,
+              57,
+              98,
+              100,
+              52,
+              45,
+              49,
+              102,
+              57,
+              53,
+              45,
+              55,
+              101,
+              49,
+              52,
+              45,
+              56,
+              54,
+              54,
+              99,
+              45,
+              50,
+              54,
+              52,
+              100,
+              53,
+              54,
+              98,
+              57,
+              50,
+              53,
+              55,
+              49,
+              34,
+              125,
+              125
+            ]
+          },
+          "cookies": [],
+          "responseTime": 37,
+          "responseSize": 148,
+          "downloadedBytes": 148
+        },
+        "tests": [
+          {
+            "name": "Expired OTP rejected with client error",
+            "status": "passed"
+          },
+          {
+            "name": "Expired OTP returns an error envelope",
+            "status": "passed"
+          }
+        ],
+        "errors": []
+      },
+      {
+        "iterationCount": 0,
+        "requestExecuted": {
+          "id": "576f6ba2-8b82-4e4d-85bc-8b910a250b1a",
+          "name": "AUTH-06 account remains pending",
+          "url": {
+            "protocol": "http",
+            "port": "5080",
+            "path": [
+              "api",
+              "v1",
+              "auth",
+              "login"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.56.2",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "9e9beaae-17ad-4d0e-bbeb-b61519069c58",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:5080",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            },
+            {
+              "key": "Content-Length",
+              "value": "78",
+              "system": true
+            }
+          ],
+          "method": "POST",
+          "body": {
+            "mode": "raw",
+            "raw": "{\"identifier\":\"pbl6.r3.auth06.review@example.test\",\"password\":\"CorrectHorse1\"}"
+          }
+        },
+        "response": {
+          "id": "ba087ebf-9a35-44a6-9d85-da1527dcfa14",
+          "_details": {
+            "name": "Unauthorized",
+            "detail": "Similar to 403 Forbidden, but specifically for use when authentication is possible but has failed or not yet been provided. The response must include a WWW-Authenticate header field containing a challenge applicable to the requested resource.",
+            "code": 401,
+            "standardName": "Unauthorized"
+          },
+          "status": "Unauthorized",
+          "code": 401,
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Date",
+              "value": "Mon, 02 Nov 2026 10:35:31 GMT"
+            },
+            {
+              "key": "Server",
+              "value": "Kestrel"
+            },
+            {
+              "key": "Transfer-Encoding",
+              "value": "chunked"
+            },
+            {
+              "key": "X-Correlation-Id",
+              "value": "01a19bd4-2002-7200-baab-919befb56c1a"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              101,
+              114,
+              114,
+              111,
+              114,
+              34,
+              58,
+              123,
+              34,
+              99,
+              111,
+              100,
+              101,
+              34,
+              58,
+              34,
+              73,
+              78,
+              86,
+              65,
+              76,
+              73,
+              68,
+              95,
+              67,
+              82,
+              69,
+              68,
+              69,
+              78,
+              84,
+              73,
+              65,
+              76,
+              83,
+              34,
+              44,
+              34,
+              109,
+              101,
+              115,
+              115,
+              97,
+              103,
+              101,
+              34,
+              58,
+              34,
+              84,
+              104,
+              101,
+              32,
+              99,
+              114,
+              101,
+              100,
+              101,
+              110,
+              116,
+              105,
+              97,
+              108,
+              115,
+              32,
+              97,
+              114,
+              101,
+              32,
+              110,
+              111,
+              116,
+              32,
+              118,
+              97,
+              108,
+              105,
+              100,
+              46,
+              34,
+              44,
+              34,
+              99,
+              111,
+              114,
+              114,
+              101,
+              108,
+              97,
+              116,
+              105,
+              111,
+              110,
+              73,
+              100,
+              34,
+              58,
+              34,
+              48,
+              49,
+              97,
+              49,
+              57,
+              98,
+              100,
+              52,
+              45,
+              50,
+              48,
+              48,
+              50,
+              45,
+              55,
+              53,
+              48,
+              98,
+              45,
+              56,
+              53,
+              52,
+              57,
+              45,
+              101,
+              48,
+              56,
+              54,
+              54,
+              50,
+              54,
+              54,
+              48,
+              55,
+              57,
+              102,
+              34,
+              125,
+              125
+            ]
+          },
+          "cookies": [],
+          "responseTime": 15,
+          "responseSize": 138,
+          "downloadedBytes": 138
+        },
+        "tests": [
+          {
+            "name": "Expired account still cannot login",
+            "status": "passed"
+          }
+        ],
+        "errors": []
+      }
+    ],
+    "runError": null
+  }
+}

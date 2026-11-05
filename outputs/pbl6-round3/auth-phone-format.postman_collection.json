@@ -1,0 +1,64 @@
+﻿{
+    "info":  {
+                 "name":  "Round 3 phone format acceptance",
+                 "schema":  "https://schema.getpostman.com/collection/v2.1.0/collection.json"
+             },
+    "item":  [
+                 {
+                     "request":  {
+                                     "body":  {
+                                                  "raw":  "{\"fullName\":\"R3 Phone Format\",\"email\":\"pbl6.r3.phone.local@example.test\",\"phone\":\"0901000997\",\"password\":\"CorrectHorse1\"}",
+                                                  "mode":  "raw"
+                                              },
+                                     "method":  "POST",
+                                     "url":  "{{baseUrl}}/auth/register",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ]
+                                 },
+                     "name":  "Register phone local 0 prefix",
+                     "event":  [
+                                   {
+                                       "script":  {
+                                                      "exec":  [
+                                                                   "pm.test(\u0027Valid phone format accepted as pending registration\u0027,()=\u003e{pm.response.to.have.status(202);pm.expect(pm.response.json().status).to.eql(\u0027ACCEPTED\u0027)});"
+                                                               ],
+                                                      "type":  "text/javascript"
+                                                  },
+                                       "listen":  "test"
+                                   }
+                               ]
+                 },
+                 {
+                     "request":  {
+                                     "body":  {
+                                                  "raw":  "{\"fullName\":\"R3 Phone Format\",\"email\":\"pbl6.r3.phone.e164@example.test\",\"phone\":\"+849000009998\",\"password\":\"CorrectHorse1\"}",
+                                                  "mode":  "raw"
+                                              },
+                                     "method":  "POST",
+                                     "url":  "{{baseUrl}}/auth/register",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ]
+                                 },
+                     "name":  "Register phone E164 +84",
+                     "event":  [
+                                   {
+                                       "script":  {
+                                                      "exec":  [
+                                                                   "pm.test(\u0027Valid phone format accepted as pending registration\u0027,()=\u003e{pm.response.to.have.status(202);pm.expect(pm.response.json().status).to.eql(\u0027ACCEPTED\u0027)});"
+                                                               ],
+                                                      "type":  "text/javascript"
+                                                  },
+                                       "listen":  "test"
+                                   }
+                               ]
+                 }
+             ]
+}

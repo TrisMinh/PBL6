@@ -1,5 +1,6 @@
 using BusTicketPlatform.BuildingBlocks.Ids;
 using BusTicketPlatform.Identity.Application;
+using BusTicketPlatform.Identity.Domain;
 using Npgsql;
 
 namespace BusTicketPlatform.Identity.Infrastructure.Persistence;
@@ -23,7 +24,7 @@ public sealed class IdentityRepository(IdentityDatabaseOptions options, IIdGener
             return FindByNormalizedEmailAsync(trimmed.ToUpperInvariant(), cancellationToken);
         }
 
-        return FindByNormalizedPhoneAsync(trimmed, cancellationToken);
+        return FindByNormalizedPhoneAsync(IdentityNormalizer.NormalizePhone(trimmed), cancellationToken);
     }
 
     public async Task InsertUserAsync(UserRecord user, CancellationToken cancellationToken)

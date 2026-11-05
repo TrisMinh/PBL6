@@ -1,4 +1,5 @@
 using BusTicketPlatform.BuildingBlocks.Ids;
+using System.Text.Json;
 
 namespace BusTicketPlatform.Booking.Application;
 
@@ -12,7 +13,7 @@ public sealed record OperationAccepted(Guid OperationId, string Status, string? 
 public sealed record TripSeatDto(Guid Id, string Code, string Type, string Status, MoneyDto Price, long RowVersion);
 public sealed record TripSeatListDto(Guid TripId, IReadOnlyList<TripSeatDto> Seats, DateTimeOffset AvailabilityAsOf, DateTimeOffset ServerTime);
 public sealed record CreateSeatHoldRequest(IReadOnlyList<Guid> SeatIds, Guid PickupStopId, Guid DropoffStopId);
-public sealed record SeatHoldDto(string HoldToken, Guid TripId, string Status, IReadOnlyList<TripSeatDto> Seats, DateTimeOffset ExpiresAt, DateTimeOffset ServerTime);
+public sealed record SeatHoldDto(string HoldToken, Guid TripId, string Status, IReadOnlyList<TripSeatDto> Seats, DateTimeOffset ExpiresAt, DateTimeOffset ServerTime, JsonElement PolicySnapshot);
 public sealed record BookingContact(string FullName, string Email, string Phone);
 public sealed record PassengerInput(Guid SeatId, string FullName, string? DocumentType, string? DocumentNumber, Guid PickupStopId, Guid DropoffStopId);
 public sealed record CreateBookingRequest(string HoldToken, BookingContact Contact, IReadOnlyList<PassengerInput> Passengers, long ExpectedTotal, string Currency, string PaymentChannel);
@@ -53,7 +54,7 @@ public interface IBookingRepository
     Task ExpireHoldsAsync(CancellationToken cancellationToken);
     Task<IReadOnlyList<InventorySeat>> ListSeatsAsync(Guid tripId, CancellationToken cancellationToken);
     Task<TripSnapshot?> GetTripAsync(Guid tripId, CancellationToken cancellationToken);
-    Task<SeatHoldRecord?> CreateHoldAsync(SeatHoldRecord hold, IReadOnlyList<Guid> seatIds, CancellationToken cancellationToken);
+    Task<SeatHoldCreationResult> CreateHoldAsync(SeatHoldRecord hold, IReadOnlyList<Guid> seatIds, CancellationToken cancellationToken);
     Task<SeatHoldRecord?> GetHoldByTokenHashAsync(string tokenHash, CancellationToken cancellationToken);
     Task ReleaseHoldAsync(Guid holdId, CancellationToken cancellationToken);
     Task<BookingRecord?> CreateBookingAsync(BookingRecord booking, IReadOnlyList<BookingItemRecord> items, IReadOnlyList<PassengerRecord> passengers, Guid holdId, CancellationToken cancellationToken);
@@ -76,8 +77,9 @@ public interface IBookingRepository
 }
 
 public sealed record InventorySeat(Guid Id, Guid TripId, Guid SourceSeatId, string Code, string Type, int Deck, int Row, int Column, long Price, string Status, long RowVersion);
-public sealed record TripSnapshot(Guid TripId, Guid OrganizationId, Guid OriginStopId, Guid DestinationStopId, DateTimeOffset DepartureAt, bool Sellable, string Status, string Currency, bool AllowPayLater, string PolicyVersion, Guid? DriverUserId);
-public sealed record SeatHoldRecord(Guid Id, Guid TripId, Guid CustomerId, string IdempotencyKey, string TokenHash, string TokenPlain, string Status, long TotalAmount, string Currency, DateTimeOffset CreatedAt, DateTimeOffset ExpiresAt, IReadOnlyList<InventorySeat> Seats);
+public sealed record TripSnapshot(Guid TripId, Guid OrganizationId, Guid OriginStopId, Guid DestinationStopId, DateTimeOffset DepartureAt, bool Sellable, string Status, string Currency, bool AllowPayLater, string PolicyVersion, Guid? DriverUserId, JsonElement PolicySnapshot);
+public sealed record SeatHoldRecord(Guid Id, Guid TripId, Guid CustomerId, string IdempotencyKey, string TokenHash, string TokenPlain, string Status, long TotalAmount, string Currency, DateTimeOffset CreatedAt, DateTimeOffset ExpiresAt, IReadOnlyList<InventorySeat> Seats, JsonElement PolicySnapshot);
+public sealed record SeatHoldCreationResult(SeatHoldRecord? Hold, IReadOnlyList<string> UnavailableSeatCodes);
 public sealed record BookingItemRecord(Guid Id, Guid BookingId, Guid TripSeatId, Guid SourceSeatId, string SeatCode, long UnitPrice);
 public sealed record PassengerRecord(Guid Id, Guid BookingItemId, string FullName, Guid PickupStopId, Guid DropoffStopId, string? DocumentType, byte[]? DocumentCipher, string? Last4);
 public sealed record BookingRecord(

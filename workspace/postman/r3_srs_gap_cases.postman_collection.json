@@ -1,0 +1,84 @@
+{
+  "info": {
+    "name": "PBL6 Round 3 SRS gap checks for SeatHold",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Login seeded customer",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "http://localhost:5080/api/v1/auth/login",
+        "body": { "mode": "raw", "raw": "{\"identifier\":\"seed.customer@example.test\",\"password\":\"CustomerPass1\"}" }
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Seed customer login',()=>{pm.response.to.have.status(200);pm.environment.set('r3SrsToken',pm.response.json().accessToken);});"] } }]
+    },
+    {
+      "name": "Select booked and available seat fixtures",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{r3SrsToken}}" }],
+        "url": "http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seats"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Seat list returns price and availability timestamp',()=>{pm.response.to.have.status(200);const b=pm.response.json();pm.expect(b.availabilityAsOf).to.be.a('string').and.not.empty;pm.expect(b.seats.every(x=>x.price&&Number.isInteger(x.price.amount))).to.eql(true);const booked=b.seats.find(x=>x.status==='BOOKED');const available=b.seats.filter(x=>x.status==='AVAILABLE');pm.expect(booked,'BOOKED fixture').to.exist;pm.expect(available.length,'two AVAILABLE fixtures').to.be.at.least(2);pm.environment.set('r3BookedSeatId',booked.id);pm.environment.set('r3BookedSeatCode',booked.code);pm.environment.set('r3AvailableSeat1',available[0].id);pm.environment.set('r3AvailableSeat2',available[1].id);});"] } }]
+    },
+    {
+      "name": "BOOK-04 booked seat also fails atomically and identifies affected code",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{r3SrsToken}}" },
+          { "key": "Idempotency-Key", "value": "r3-srs-booked-{{$guid}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": "http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seat-holds",
+        "body": { "mode": "raw", "raw": "{\"seatIds\":[\"{{r3AvailableSeat1}}\",\"{{r3BookedSeatId}}\"],\"pickupStopId\":\"01990a00-0000-7000-8000-000000000004\",\"dropoffStopId\":\"01990a00-0000-7000-8000-000000000005\"}" }
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('BOOKED seat returns SEAT_UNAVAILABLE and affected seat code',()=>{pm.response.to.have.status(409);const e=pm.response.json().error;pm.expect(e.code).to.eql('SEAT_UNAVAILABLE');pm.expect(e.details.affectedSeatCodes).to.include(pm.environment.get('r3BookedSeatCode'));});"] } }]
+    },
+    {
+      "name": "BOOK-10 First request records the idempotency key",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{r3SrsToken}}" },
+          { "key": "Idempotency-Key", "value": "{{r3SrsIdempotencyKey}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": "http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seat-holds",
+        "body": { "mode": "raw", "raw": "{\"seatIds\":[\"{{r3AvailableSeat1}}\"],\"pickupStopId\":\"01990a00-0000-7000-8000-000000000004\",\"dropoffStopId\":\"01990a00-0000-7000-8000-000000000005\"}" }
+      },
+      "event": [
+        { "listen": "prerequest", "script": { "type": "text/javascript", "exec": ["pm.environment.set('r3SrsIdempotencyKey','r3-srs-idem-'+pm.variables.replaceIn('{{$guid}}'));"] } },
+        { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Initial idempotent hold is created',()=>{pm.response.to.have.status(201);pm.environment.set('r3SrsHoldToken',pm.response.json().holdToken);});"] } }
+      ]
+    },
+    {
+      "name": "BOOK-10 Same idempotency key with different content conflicts",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{r3SrsToken}}" },
+          { "key": "Idempotency-Key", "value": "{{r3SrsIdempotencyKey}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": "http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seat-holds",
+        "body": { "mode": "raw", "raw": "{\"seatIds\":[\"{{r3AvailableSeat2}}\"],\"pickupStopId\":\"01990a00-0000-7000-8000-000000000004\",\"dropoffStopId\":\"01990a00-0000-7000-8000-000000000005\"}" }
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Payload change returns IDEMPOTENCY_CONFLICT without a new command',()=>{pm.response.to.have.status(409);pm.expect(pm.response.json().error.code).to.eql('IDEMPOTENCY_CONFLICT');});"] } }]
+    },
+    {
+      "name": "Release BOOK-10 first hold",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{r3SrsToken}}" },
+          { "key": "Idempotency-Key", "value": "r3-srs-release-{{$guid}}" }
+        ],
+        "url": "http://localhost:5080/api/v1/seat-holds/{{r3SrsHoldToken}}"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('BOOK-10 hold cleanup',()=>pm.response.to.have.status(204));"] } }]
+    }
+  ]
+}

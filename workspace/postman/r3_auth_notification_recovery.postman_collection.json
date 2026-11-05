@@ -1,0 +1,25 @@
+{
+  "info": { "name": "PBL6 Round 3 SRS resend after notification provider recovery", "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json" },
+  "item": [
+    {
+      "name": "AUTH-08 Retry OTP after notification provider recovery",
+      "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Idempotency-Key", "value": "r3-provider-recovery-{{$guid}}" }], "url": "http://localhost:5080/api/v1/auth/resend-verification", "body": { "mode": "raw", "raw": "{\"email\":\"{{r3OutageEmail}}\"}" } },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Pending account can request notification again',()=>pm.response.to.have.status(202));"] } }]
+    },
+    {
+      "name": "Read recovered OTP from Mailpit",
+      "request": { "method": "GET", "url": "http://localhost:8025/api/v1/search?query=to:{{r3OutageEmail}}" },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Recovered provider delivered OTP',()=>{pm.response.to.have.status(200);const m=pm.response.json().messages[0];pm.expect(m).to.exist;const c=m.Snippet.match(/challengeId=([^;]+); code=(\\d+)/);pm.expect(c).to.exist;pm.environment.set('r3OutageChallengeId',c[1]);pm.environment.set('r3OutageOtp',c[2]);});"] } }]
+    },
+    {
+      "name": "Verify recovered OTP",
+      "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Idempotency-Key", "value": "r3-provider-verify-{{$guid}}" }], "url": "http://localhost:5080/api/v1/auth/verify", "body": { "mode": "raw", "raw": "{\"challengeId\":\"{{r3OutageChallengeId}}\",\"code\":\"{{r3OutageOtp}}\"}" } },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Recovered OTP activates account',()=>pm.response.to.have.status(200));"] } }]
+    },
+    {
+      "name": "Login after notification recovery",
+      "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "http://localhost:5080/api/v1/auth/login", "body": { "mode": "raw", "raw": "{\"identifier\":\"{{r3OutageEmail}}\",\"password\":\"Test@12345\"}" } },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Account is usable after resend',()=>pm.response.to.have.status(200));"] } }]
+    }
+  ]
+}

@@ -19,6 +19,7 @@ public static class BookingInfrastructureExtensions
         services.AddSingleton(options);
         services.AddSingleton<SqlBaselineMigrator>();
         services.AddHostedService<SqlBaselineHostedService>();
+        services.AddHostedService<SeatHoldExpiryHostedService>();
         services.AddSingleton<IIdempotencyStore, IdempotencyStore>();
         services.AddSingleton<IBookingRepository, BookingRepository>();
         services.AddSingleton<OutboxWriter>();

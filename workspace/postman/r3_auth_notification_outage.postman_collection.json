@@ -1,0 +1,15 @@
+{
+  "info": { "name": "PBL6 Round 3 SRS notification provider failure", "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json" },
+  "item": [
+    {
+      "name": "AUTH-08 Register during notification provider outage",
+      "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "http://localhost:5080/api/v1/auth/register", "body": { "mode": "raw", "raw": "{\"fullName\":\"SRS Notification Outage\",\"email\":\"{{r3OutageEmail}}\",\"phone\":\"{{r3OutagePhone}}\",\"password\":\"Test@12345\"}" } },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Registration remains accepted when email delivery fails',()=>pm.response.to.have.status(202));"] } }]
+    },
+    {
+      "name": "AUTH-08 Account remains pending during notification outage",
+      "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "http://localhost:5080/api/v1/auth/login", "body": { "mode": "raw", "raw": "{\"identifier\":\"{{r3OutageEmail}}\",\"password\":\"Test@12345\"}" } },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Notification error did not silently activate account',()=>{pm.expect(pm.response.code).to.eql(401);pm.expect(pm.response.text()).not.to.include('accessToken');});"] } }]
+    }
+  ]
+}

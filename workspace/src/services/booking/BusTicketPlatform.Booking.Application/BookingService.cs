@@ -86,14 +86,15 @@ public sealed class BookingService(IBookingRepository store, IBookingEvents even
             trip.Currency,
             DateTimeOffset.UtcNow,
             DateTimeOffset.UtcNow.AddMinutes(10),
-            []);
-        var created = await store.CreateHoldAsync(hold, request.SeatIds.ToArray(), cancellationToken);
-        if (created is null)
+            [],
+            trip.PolicySnapshot);
+        var creation = await store.CreateHoldAsync(hold, request.SeatIds.ToArray(), cancellationToken);
+        if (creation.Hold is null)
         {
-            return Result<SeatHoldDto>.Failure(PlatformErrors.SeatUnavailable());
+            return Result<SeatHoldDto>.Failure(PlatformErrors.SeatUnavailable(creation.UnavailableSeatCodes));
         }
 
-        return Result<SeatHoldDto>.Success(MapHold(created));
+        return Result<SeatHoldDto>.Success(MapHold(creation.Hold));
     }
 
     public async Task<Result<SeatHoldDto>> GetHoldAsync(Actor actor, string token, CancellationToken cancellationToken)
@@ -237,7 +238,7 @@ public sealed class BookingService(IBookingRepository store, IBookingEvents even
         var created = await store.CreateBookingAsync(booking, items, passengers, hold.Id, cancellationToken);
         if (created is null)
         {
-            return Result<BookingDto>.Failure(PlatformErrors.SeatUnavailable());
+            return Result<BookingDto>.Failure(PlatformErrors.SeatUnavailable([]));
         }
 
         await events.BookingCreatedAsync(created, correlationId, cancellationToken);
@@ -581,7 +582,7 @@ public sealed class BookingService(IBookingRepository store, IBookingEvents even
         new(seat.Id, seat.Code, seat.Type, seat.Status, new MoneyDto(seat.Price, "VND"), seat.RowVersion);
 
     private static SeatHoldDto MapHold(SeatHoldRecord hold) =>
-        new(hold.TokenPlain, hold.TripId, hold.Status, hold.Seats.Select(MapSeat).ToArray(), hold.ExpiresAt, DateTimeOffset.UtcNow);
+        new(hold.TokenPlain, hold.TripId, hold.Status, hold.Seats.Select(MapSeat).ToArray(), hold.ExpiresAt, DateTimeOffset.UtcNow, hold.PolicySnapshot);
 
     private static BookingDto MapBooking(BookingRecord booking) =>
         new(booking.Id, booking.Code, booking.CustomerId, booking.TripId, booking.Status, booking.PaymentChannel, new BookingContact(booking.ContactName, booking.ContactEmail, booking.ContactPhone), booking.Subtotal, booking.Discount, booking.Fee, booking.Total, booking.Currency, booking.ExpiresAt, booking.Items, booking.RowVersion);

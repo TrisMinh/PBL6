@@ -1,0 +1,74 @@
+﻿{
+    "info":  {
+                 "name":  "Round 3 AUTH-02/03 duplicate identity real fixture",
+                 "schema":  "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+             },
+    "item":  [
+                 {
+                     "name":  "AUTH-02 duplicate active email",
+                     "request":  {
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "url":  "{{baseUrl}}/auth/register",
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\"fullName\": \"Duplicate Email Probe\", \"email\": \"seed.customer@example.test\", \"phone\": \"+849000000201\", \"password\": \"CorrectHorse1\"}",
+                                                  "options":  {
+                                                                  "raw":  {
+                                                                              "language":  "json"
+                                                                          }
+                                                              }
+                                              }
+                                 },
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "type":  "text/javascript",
+                                                      "exec":  [
+                                                                   "pm.test(\u0027Duplicate email is rejected with 4xx\u0027,()=\u003epm.expect(pm.response.code).to.be.within(400,499));"
+                                                               ]
+                                                  }
+                                   }
+                               ]
+                 },
+                 {
+                     "name":  "AUTH-03 duplicate active phone",
+                     "request":  {
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "url":  "{{baseUrl}}/auth/register",
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\"fullName\": \"Duplicate Phone Probe\", \"email\": \"pbl6.r3.duplicate.phone@example.test\", \"phone\": \"+849000000099\", \"password\": \"CorrectHorse1\"}",
+                                                  "options":  {
+                                                                  "raw":  {
+                                                                              "language":  "json"
+                                                                          }
+                                                              }
+                                              }
+                                 },
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "type":  "text/javascript",
+                                                      "exec":  [
+                                                                   "pm.test(\u0027Duplicate phone is rejected with 4xx\u0027,()=\u003epm.expect(pm.response.code).to.be.within(400,499));"
+                                                               ]
+                                                  }
+                                   }
+                               ]
+                 }
+             ]
+}

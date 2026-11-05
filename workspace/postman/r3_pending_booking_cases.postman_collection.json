@@ -1,0 +1,551 @@
+{
+  "info": {
+    "name": "PBL6 R3 Pending SeatHold cases on pbl6-r2",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Login Customer 1",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\":\"seed.customer@example.test\",\"password\":\"CustomerPass1\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Customer 1 login',()=>pm.response.to.have.status(200));pm.environment.set('r3c1',pm.response.json().accessToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Login Customer 2",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identifier\":\"pbl6.r3.customer.two@example.test\",\"password\":\"CorrectHorse1\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Customer 2 login',()=>pm.response.to.have.status(200));pm.environment.set('r3c2',pm.response.json().accessToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "BOOK-01 Read trip seats and statuses",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{r3c1}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seats"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+            "pm.test('Seat list includes status, reference price, and freshness timestamp',()=>{pm.response.to.have.status(200);const b=pm.response.json();pm.expect(b.seats.length).to.be.above(0);pm.expect(b.availabilityAsOf).to.be.a('string').and.not.empty;pm.expect(b.serverTime).to.be.a('string').and.not.empty;const states=[...new Set(b.seats.map(x=>x.status))];pm.expect(states).to.include('AVAILABLE');pm.expect(states).to.include('BOOKED');pm.expect(b.seats.every(x=>['AVAILABLE','HELD','BOOKED','DISABLED'].includes(x.status))).to.eql(true);pm.expect(b.seats.every(x=>Number.isInteger(x.price.amount)&&x.price.currency==='VND')).to.eql(true);pm.environment.set('r3seatA','01990a00-0000-7000-8000-000000000043');pm.environment.set('r3seatB','01990a00-0000-7000-8000-000000000044');});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "BOOK-02 Create one-seat hold",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{r3c1}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "r3-book02-one-seat-{{$guid}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seat-holds",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"seatIds\":[\"01990a00-0000-7000-8000-000000000043\"],\"pickupStopId\":\"01990a00-0000-7000-8000-000000000004\",\"dropoffStopId\":\"01990a00-0000-7000-8000-000000000005\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "console.log('BOOK02 response '+pm.response.text());pm.test('One seat hold returns token, expiry, seat price and policy snapshot',()=>{pm.response.to.have.status(201);const b=pm.response.json();pm.expect(b.holdToken).to.be.a('string').and.not.empty;pm.expect(b.expiresAt).to.be.a('string');pm.expect(b.seats).to.have.length(1);pm.expect(b.seats[0].price).to.exist;pm.expect(b.policySnapshot).to.be.an('object');pm.expect(b.policySnapshot.policyVersion).to.be.a('string').and.not.empty;pm.expect(b.policySnapshot).to.have.property('allowPayLater');pm.environment.set('r3hold02',b.holdToken);});if(pm.response.code===201)pm.environment.set('r3hold02',pm.response.json().holdToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Release BOOK-02 test hold",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{r3c1}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "r3-book02-release-{{$guid}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/seat-holds/{{r3hold02}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('BOOK-02 hold cleaned up',()=>pm.expect(pm.response.code).to.be.oneOf([204,404]));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "BOOK-03 Hold multiple seats",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{r3c1}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "r3-book03-multiseat-{{$guid}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seat-holds",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"seatIds\":[\"01990a00-0000-7000-8000-000000000043\",\"01990a00-0000-7000-8000-000000000044\"],\"pickupStopId\":\"01990a00-0000-7000-8000-000000000004\",\"dropoffStopId\":\"01990a00-0000-7000-8000-000000000005\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Both seats held atomically with one hold token',()=>{pm.response.to.have.status(201);const b=pm.response.json();pm.expect(b.holdToken).to.be.a('string');pm.expect(b.seats).to.have.length(2);pm.expect(b.seats.every(x=>x.status==='HELD')).to.eql(true);pm.environment.set('r3hold03',b.holdToken);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Release BOOK-03 test hold",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{r3c1}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "r3-book03-release-{{$guid}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/seat-holds/{{r3hold03}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('BOOK-03 test hold cleaned up',()=>pm.response.to.have.status(204));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "BOOK-04 Customer 2 holds seat A",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{r3c2}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "r3-book04-c2-hold-{{$guid}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seat-holds",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"seatIds\":[\"01990a00-0000-7000-8000-000000000043\"],\"pickupStopId\":\"01990a00-0000-7000-8000-000000000004\",\"dropoffStopId\":\"01990a00-0000-7000-8000-000000000005\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Customer 2 holds contested seat',()=>{pm.response.to.have.status(201);pm.environment.set('r3hold04',pm.response.json().holdToken);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "BOOK-04 Customer 1 multiseat attempt is all-or-nothing",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{r3c1}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "r3-book04-c1-conflict-{{$guid}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seat-holds",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"seatIds\":[\"01990a00-0000-7000-8000-000000000044\",\"01990a00-0000-7000-8000-000000000043\"],\"pickupStopId\":\"01990a00-0000-7000-8000-000000000004\",\"dropoffStopId\":\"01990a00-0000-7000-8000-000000000005\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+            "pm.test('Conflict returns affected held seat code',()=>{pm.response.to.have.status(409);const e=pm.response.json().error;pm.expect(e.code).to.eql('SEAT_UNAVAILABLE');pm.expect(e.details.affectedSeatCodes).to.include('2A');});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "BOOK-04 Verify available seat was not partially held",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{r3c1}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seats"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('All-or-nothing preserved seat B',()=>{pm.response.to.have.status(200);const x=pm.response.json().seats.find(s=>s.id===pm.environment.get('r3seatB'));pm.expect(x.status).to.eql('AVAILABLE');});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Release BOOK-04 Customer 2 hold",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{r3c2}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "r3-book04-release-{{$guid}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/seat-holds/{{r3hold04}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Contested seat hold cleaned up',()=>pm.response.to.have.status(204));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "BOOK-05 Concurrent requests from two customers",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:5080/ready"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const url='http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seat-holds';const body=JSON.stringify({seatIds:['01990a00-0000-7000-8000-000000000043'],pickupStopId:'01990a00-0000-7000-8000-000000000004',dropoffStopId:'01990a00-0000-7000-8000-000000000005'});const headers=(t,k)=>({'Authorization':'Bearer '+t,'Idempotency-Key':k,'Content-Type':'application/json'});let result=[];const done=(err,res)=>{result.push({err:!!err,code:res&&res.code,body:res&&res.json()});if(result.length===2){pm.test('Concurrent seat hold: exactly one winner and one conflict',()=>{pm.expect(result.every(x=>!x.err)).to.eql(true);pm.expect(result.map(x=>x.code).sort()).to.eql([201,409]);});const win=result.find(x=>x.code===201);if(win&&win.body&&win.body.holdToken){pm.sendRequest({url:'http://localhost:5080/api/v1/seat-holds/'+win.body.holdToken,method:'DELETE',header:headers(pm.environment.get('r3c1'),'r3-book05-cleanup-'+Date.now())},(e,r)=>console.log('race cleanup',e&&e.message,r&&r.code));}}};pm.sendRequest({url,method:'POST',header:headers(pm.environment.get('r3c1'),'r3-book05-c1-fix1-'+Date.now()),body:{mode:'raw',raw:body}},done);pm.sendRequest({url,method:'POST',header:headers(pm.environment.get('r3c2'),'r3-book05-c2-fix1-'+Date.now()),body:{mode:'raw',raw:body}},done);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "BOOK-06 Unauthenticated hold remains denied",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "r3-book06-anon-followup-fix1"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seat-holds",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"seatIds\":[\"01990a00-0000-7000-8000-000000000043\"],\"pickupStopId\":\"01990a00-0000-7000-8000-000000000004\",\"dropoffStopId\":\"01990a00-0000-7000-8000-000000000005\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('No token returns 401',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "BOOK-07 Hold on cancelled trip",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{r3c1}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "r3-book07-cancelled-{{$guid}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/trips/01a18b07-9a75-756d-8f13-0d5e8c90a025/seat-holds",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"seatIds\":[\"01a18b07-9f35-70ac-af07-934a5f14e04b\"],\"pickupStopId\":\"01990a00-0000-7000-8000-000000000004\",\"dropoffStopId\":\"01990a00-0000-7000-8000-000000000005\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Cancelled trip rejected as 409 not sellable',()=>{pm.response.to.have.status(409);pm.expect(pm.response.json().error.code).to.eql('TRIP_NOT_SELLABLE');});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "BOOK-08 First idempotent hold request",
+      "event": [{ "listen": "prerequest", "script": { "type": "text/javascript", "exec": ["pm.environment.set('r3Book08IdempotencyKey','r3-book08-'+pm.variables.replaceIn('{{$guid}}'));"] } }],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{r3c1}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "{{r3Book08IdempotencyKey}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seat-holds",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"seatIds\":[\"01990a00-0000-7000-8000-000000000044\"],\"pickupStopId\":\"01990a00-0000-7000-8000-000000000004\",\"dropoffStopId\":\"01990a00-0000-7000-8000-000000000005\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Initial idempotent hold is created',()=>{pm.response.to.have.status(201);pm.environment.set('r3hold08first',pm.response.json().holdToken);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "BOOK-08 Replay identical key and body",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{r3c1}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "{{r3Book08IdempotencyKey}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seat-holds",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"seatIds\":[\"01990a00-0000-7000-8000-000000000044\"],\"pickupStopId\":\"01990a00-0000-7000-8000-000000000004\",\"dropoffStopId\":\"01990a00-0000-7000-8000-000000000005\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Replay returns the same hold token',()=>{pm.response.to.have.status(201);pm.expect(pm.response.json().holdToken).to.eql(pm.environment.get('r3hold08first'));});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Release BOOK-08 test hold",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{r3c1}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "r3-book08-release-{{$guid}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/seat-holds/{{r3hold08first}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('BOOK-08 test hold cleaned up',()=>pm.response.to.have.status(204));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "BOOK-09 Expired hold auto releases its seat",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{r3c2}}"
+          }
+        ],
+        "url": "http://localhost:5080/api/v1/trips/01990a00-0000-7000-8000-000000000007/seats"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Naturally expired hold seat is automatically available',()=>{pm.response.to.have.status(200);const s=pm.response.json().seats.find(x=>x.id==='01990a00-0000-7000-8000-000000000041');pm.expect(s.status).to.eql('AVAILABLE');});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -40,10 +40,14 @@ public static class PlatformErrors
         new(ErrorCodes.ResourceConflict, message, StatusCodes.Conflict);
 
     public static AppError TripNotSellable() =>
-        new(ErrorCodes.TripNotSellable, "The trip is not sellable.", StatusCodes.Unprocessable);
+        new(ErrorCodes.TripNotSellable, "The trip is not sellable.", StatusCodes.Conflict);
 
-    public static AppError SeatUnavailable() =>
-        new(ErrorCodes.SeatUnavailable, "One or more seats are not available.", StatusCodes.Conflict);
+    public static AppError SeatUnavailable(IReadOnlyList<string> affectedSeatCodes) =>
+        new(
+            ErrorCodes.SeatUnavailable,
+            "One or more seats are not available.",
+            StatusCodes.Conflict,
+            new Dictionary<string, object> { ["affectedSeatCodes"] = affectedSeatCodes });
 
     public static AppError SeatHoldExpired() =>
         new(ErrorCodes.SeatHoldExpired, "The seat hold has expired.", StatusCodes.Gone);

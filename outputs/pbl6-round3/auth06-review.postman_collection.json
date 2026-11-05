@@ -1,0 +1,162 @@
+﻿{
+    "info":  {
+                 "name":  "Round 3 AUTH-06 wrong OTP and login rejection",
+                 "schema":  "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+             },
+    "item":  [
+                 {
+                     "name":  "AUTH-06 register pending verification probe",
+                     "request":  {
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "url":  "{{baseUrl}}/auth/register",
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\"fullName\": \"R3 OTP Probe\", \"email\": \"pbl6.r3.auth06.review@example.test\", \"phone\": \"+849000009875\", \"password\": \"CorrectHorse1\"}",
+                                                  "options":  {
+                                                                  "raw":  {
+                                                                              "language":  "json"
+                                                                          }
+                                                              }
+                                              }
+                                 },
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "type":  "text/javascript",
+                                                      "exec":  [
+                                                                   "pm.test(\u0027Pending account registration accepted\u0027,()=\u003e{pm.response.to.have.status(202);pm.environment.set(\u0027otpChallengeId\u0027,pm.response.json().operationId)});"
+                                                               ]
+                                                  }
+                                   }
+                               ]
+                 },
+                 {
+                     "name":  "AUTH-06 get OTP email",
+                     "request":  {
+                                     "method":  "GET",
+                                     "header":  [
+
+                                                ],
+                                     "url":  "http://localhost:8025/api/v1/messages"
+                                 },
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "type":  "text/javascript",
+                                                      "exec":  [
+                                                                   "pm.test(\u0027Mailpit contains OTP probe message\u0027,()=\u003e{pm.response.to.have.status(200);const m=pm.response.json().messages.find(x=\u003ex.To.some(y=\u003ey.Address===\u0027pbl6.r3.auth06.review@example.test\u0027)\u0026\u0026x.Subject===\u0027Verify your email\u0027);pm.expect(m).to.exist;pm.environment.set(\u0027otpMailId\u0027,m.ID)});"
+                                                               ]
+                                                  }
+                                   }
+                               ]
+                 },
+                 {
+                     "name":  "AUTH-06 read OTP email",
+                     "request":  {
+                                     "method":  "GET",
+                                     "header":  [
+
+                                                ],
+                                     "url":  "http://localhost:8025/api/v1/message/{{otpMailId}}"
+                                 },
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "type":  "text/javascript",
+                                                      "exec":  [
+                                                                   "pm.test(\u0027OTP challenge captured from delivered email\u0027,()=\u003e{pm.response.to.have.status(200);const t=pm.response.json().Text;const id=t.match(/challengeId=([0-9a-f-]+)/i);const code=t.match(/code=([0-9]{6})/i);pm.expect(id).to.exist;pm.expect(code).to.exist;pm.environment.set(\u0027otpChallengeId\u0027,id[1]);pm.environment.set(\u0027otpCode\u0027,code[1])});"
+                                                               ]
+                                                  }
+                                   }
+                               ]
+                 },
+                 {
+                     "name":  "AUTH-06 incorrect OTP is rejected",
+                     "request":  {
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    },
+                                                    {
+                                                        "key":  "Idempotency-Key",
+                                                        "value":  "pbl6-r3-otp-wrong-0001"
+                                                    }
+                                                ],
+                                     "url":  "{{baseUrl}}/auth/verify",
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\"challengeId\": \"{{otpChallengeId}}\", \"code\": \"000000\"}",
+                                                  "options":  {
+                                                                  "raw":  {
+                                                                              "language":  "json"
+                                                                          }
+                                                              }
+                                              }
+                                 },
+                     "event":  [
+                                   {
+                                       "listen":  "prerequest",
+                                       "script":  {
+                                                      "type":  "text/javascript",
+                                                      "exec":  [
+                                                                   "const c=pm.environment.get(\u0027otpCode\u0027);pm.request.body.update(JSON.stringify({challengeId:pm.environment.get(\u0027otpChallengeId\u0027),code:c===\u0027000000\u0027?\u0027111111\u0027:\u0027000000\u0027}));"
+                                                               ]
+                                                  }
+                                   },
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "type":  "text/javascript",
+                                                      "exec":  [
+                                                                   "pm.test(\u0027Wrong OTP is rejected\u0027,()=\u003e{pm.expect(pm.response.code).to.be.within(400,499);pm.expect(pm.response.json().error).to.have.property(\u0027code\u0027)});"
+                                                               ]
+                                                  }
+                                   }
+                               ]
+                 },
+                 {
+                     "name":  "AUTH-11 pending account cannot login",
+                     "request":  {
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "url":  "{{baseUrl}}/auth/login",
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\"identifier\": \"pbl6.r3.auth06.review@example.test\", \"password\": \"CorrectHorse1\"}",
+                                                  "options":  {
+                                                                  "raw":  {
+                                                                              "language":  "json"
+                                                                          }
+                                                              }
+                                              }
+                                 },
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "type":  "text/javascript",
+                                                      "exec":  [
+                                                                   "pm.test(\u0027Unverified account receives no session\u0027,()=\u003e{pm.expect(pm.response.code).to.be.within(400,499);pm.expect(pm.response.text()).not.to.include(\u0027accessToken\u0027)});"
+                                                               ]
+                                                  }
+                                   }
+                               ]
+                 }
+             ]
+}

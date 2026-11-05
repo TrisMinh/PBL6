@@ -23,6 +23,7 @@ public sealed class SqlBaselineMigrator(BookingDatabaseOptions options)
 
         await ApplyFileAsync(connection, "sql.shared", "000_integration_tables.sql", cancellationToken);
         await ApplyFileAsync(connection, "sql.booking", "001_initial.sql", cancellationToken);
+        await ApplyFileAsync(connection, "sql.booking.policySnapshot", "014_seat_hold_policy_snapshot.sql", cancellationToken);
     }
 
     private static async Task ApplyFileAsync(

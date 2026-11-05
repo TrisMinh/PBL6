@@ -15,5 +15,6 @@
   <ItemGroup>
     <EmbeddedResource Include="..\..\..\..\..\docs\database\_shared\000_integration_tables.sql" LogicalName="sql.shared" />
     <EmbeddedResource Include="..\..\..\..\..\docs\database\booking\001_initial.sql" LogicalName="sql.booking" />
+    <EmbeddedResource Include="..\..\..\..\..\docs\database\booking\014_seat_hold_policy_snapshot.sql" LogicalName="sql.booking.policySnapshot" />
   </ItemGroup>
 </Project>

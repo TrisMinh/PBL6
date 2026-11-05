@@ -1,0 +1,72 @@
+﻿{
+    "info":  {
+                 "name":  "Round 3 BOOK-09 natural expiry setup",
+                 "schema":  "https://schema.getpostman.com/collection/v2.1.0/collection.json"
+             },
+    "item":  [
+                 {
+                     "request":  {
+                                     "body":  {
+                                                  "raw":  "{\"identifier\":\"seed.customer@example.test\",\"password\":\"CustomerPass1\"}",
+                                                  "mode":  "raw"
+                                              },
+                                     "method":  "POST",
+                                     "url":  "{{baseUrl}}/auth/login",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ]
+                                 },
+                     "name":  "Login customer",
+                     "event":  [
+                                   {
+                                       "script":  {
+                                                      "exec":  [
+                                                                   "pm.test(\u0027Login customer\u0027,()=\u003e{pm.response.to.have.status(200);pm.environment.set(\u0027naturalToken\u0027,pm.response.json().accessToken)});"
+                                                               ],
+                                                      "type":  "text/javascript"
+                                                  },
+                                       "listen":  "test"
+                                   }
+                               ]
+                 },
+                 {
+                     "request":  {
+                                     "body":  {
+                                                  "raw":  "{\"seatIds\":[\"01990a00-0000-7000-8000-000000000022\"],\"pickupStopId\":\"01990a00-0000-7000-8000-000000000004\",\"dropoffStopId\":\"01990a00-0000-7000-8000-000000000005\"}",
+                                                  "mode":  "raw"
+                                              },
+                                     "method":  "POST",
+                                     "url":  "{{baseUrl}}/trips/01990a00-0000-7000-8000-000000000007/seat-holds",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Authorization",
+                                                        "value":  "Bearer {{naturalToken}}"
+                                                    },
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    },
+                                                    {
+                                                        "key":  "Idempotency-Key",
+                                                        "value":  "r3-natural-expiry-20261102-1130"
+                                                    }
+                                                ]
+                                 },
+                     "name":  "Create hold and record expiry",
+                     "event":  [
+                                   {
+                                       "script":  {
+                                                      "exec":  [
+                                                                   "pm.test(\u0027Natural-expiry hold created for seat 1B\u0027,()=\u003e{pm.response.to.have.status(201);pm.expect(pm.response.json().holdToken).to.exist;console.log(\u0027EXPIRES_AT\u0027,pm.response.json().expiresAt)});"
+                                                               ],
+                                                      "type":  "text/javascript"
+                                                  },
+                                       "listen":  "test"
+                                   }
+                               ]
+                 }
+             ]
+}

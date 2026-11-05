@@ -102,6 +102,47 @@ public sealed class AuthFlowTests
     }
 
     [Fact]
+    public async Task Local_phone_registration_and_login_use_canonical_e164_identity()
+    {
+        var client = _fixture.CreateClient();
+        var (email, e164Phone, password, name) = IdentityTestData.NewUser();
+        var localPhone = $"0{e164Phone[3..]}";
+
+        var register = await IdentityTestData.SendAsync(client, HttpMethod.Post, "/api/v1/auth/register", new
+        {
+            fullName = name,
+            email,
+            phone = localPhone,
+            password
+        });
+        Assert.Equal(HttpStatusCode.Accepted, register.Response.StatusCode);
+
+        var notice = _fixture.Mailbox.LastFor(email);
+        Assert.NotNull(notice);
+        var verify = await IdentityTestData.SendAsync(
+            client,
+            HttpMethod.Post,
+            "/api/v1/auth/verify",
+            new { challengeId = notice.ChallengeId, code = notice.Code },
+            idempotency: IdentityTestData.IdempotencyKey());
+        Assert.Equal(HttpStatusCode.OK, verify.Response.StatusCode);
+
+        var localLogin = await IdentityTestData.SendAsync(client, HttpMethod.Post, "/api/v1/auth/login", new
+        {
+            identifier = localPhone,
+            password
+        });
+        Assert.Equal(HttpStatusCode.OK, localLogin.Response.StatusCode);
+
+        var e164Login = await IdentityTestData.SendAsync(client, HttpMethod.Post, "/api/v1/auth/login", new
+        {
+            identifier = e164Phone,
+            password
+        });
+        Assert.Equal(HttpStatusCode.OK, e164Login.Response.StatusCode);
+    }
+
+    [Fact]
     public async Task Register_rejects_duplicate_active_identity_and_weak_passwords()
     {
         var client = _fixture.CreateClient();

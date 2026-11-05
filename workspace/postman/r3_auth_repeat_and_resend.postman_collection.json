@@ -1,0 +1,70 @@
+{
+  "info": { "name": "PBL6 Round 3 SRS registration replay and AUTH-06 resend", "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json" },
+  "item": [
+    {
+      "name": "AUTH-01 Register valid account",
+      "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "http://localhost:5080/api/v1/auth/register", "body": { "mode": "raw", "raw": "{\"fullName\":\"SRS Round Four Replay\",\"email\":\"{{r3AuthEmail}}\",\"phone\":\"{{r3AuthPhone}}\",\"password\":\"Test@12345\"}" } },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Valid registration is accepted',()=>pm.response.to.have.status(202));"] } }]
+    },
+    {
+      "name": "AUTH-01 Repeat identical registration request",
+      "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "http://localhost:5080/api/v1/auth/register", "body": { "mode": "raw", "raw": "{\"fullName\":\"SRS Round Four Replay\",\"email\":\"{{r3AuthEmail}}\",\"phone\":\"{{r3AuthPhone}}\",\"password\":\"Test@12345\"}" } },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Repeated registration is safely handled without a second account',()=>pm.response.to.have.status(202));"] } }]
+    },
+    {
+      "name": "Read latest OTP from Mailpit",
+      "request": { "method": "GET", "url": "http://localhost:8025/api/v1/search?query=to:{{r3AuthEmail}}" },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Latest verification OTP is available',()=>{pm.response.to.have.status(200);const m=pm.response.json().messages[0];pm.expect(m).to.exist;const c=m.Snippet.match(/challengeId=([^;]+); code=(\\d+)/);pm.expect(c).to.exist;pm.environment.set('r3AuthChallengeId',c[1]);pm.environment.set('r3AuthOtp',c[2]);});"] } }]
+    },
+    {
+      "name": "Verify replayed registration challenge",
+      "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Idempotency-Key", "value": "r3-auth-repeat-verify-{{$guid}}" }], "url": "http://localhost:5080/api/v1/auth/verify", "body": { "mode": "raw", "raw": "{\"challengeId\":\"{{r3AuthChallengeId}}\",\"code\":\"{{r3AuthOtp}}\"}" } },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Latest challenge activates the single pending account',()=>{pm.response.to.have.status(200);pm.environment.set('r3AuthToken',pm.response.json().accessToken);});"] } }]
+    },
+    {
+      "name": "Login after repeated registration",
+      "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "http://localhost:5080/api/v1/auth/login", "body": { "mode": "raw", "raw": "{\"identifier\":\"{{r3AuthEmail}}\",\"password\":\"Test@12345\"}" } },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Repeated registration leaves one usable account',()=>pm.response.to.have.status(200));"] } }]
+    },
+    {
+      "name": "AUTH-06 Register pending account for resend check",
+      "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "http://localhost:5080/api/v1/auth/register", "body": { "mode": "raw", "raw": "{\"fullName\":\"SRS Round Four Resend\",\"email\":\"{{r3ResendEmail}}\",\"phone\":\"{{r3ResendPhone}}\",\"password\":\"Test@12345\"}" } },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Resend probe registration is accepted',()=>pm.response.to.have.status(202));"] } }]
+    },
+    {
+      "name": "AUTH-06 Read OTP for invalid-code probe",
+      "request": { "method": "GET", "url": "http://localhost:8025/api/v1/search?query=to:{{r3ResendEmail}}" },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('OTP probe message is available',()=>{pm.response.to.have.status(200);const m=pm.response.json().messages[0];pm.expect(m).to.exist;const c=m.Snippet.match(/challengeId=([^;]+); code=(\\d+)/);pm.expect(c).to.exist;pm.environment.set('r3ResendChallengeId',c[1]);});"] } }]
+    },
+    {
+      "name": "AUTH-06 Reject wrong OTP",
+      "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Idempotency-Key", "value": "r3-auth06-wrong-{{$guid}}" }], "url": "http://localhost:5080/api/v1/auth/verify", "body": { "mode": "raw", "raw": "{\"challengeId\":\"{{r3ResendChallengeId}}\",\"code\":\"000000\"}" } },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Wrong OTP is rejected',()=>pm.expect(pm.response.code).to.be.within(400,499));"] } }]
+    },
+    {
+      "name": "AUTH-06 Pending account cannot login after wrong OTP",
+      "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "http://localhost:5080/api/v1/auth/login", "body": { "mode": "raw", "raw": "{\"identifier\":\"{{r3ResendEmail}}\",\"password\":\"Test@12345\"}" } },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Pending account receives no session',()=>{pm.expect(pm.response.code).to.be.within(400,499);pm.expect(pm.response.text()).not.to.include('accessToken');});"] } }]
+    },
+    {
+      "name": "AUTH-06 Resend verification OTP",
+      "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Idempotency-Key", "value": "r3-auth06-resend-{{$guid}}" }], "url": "http://localhost:5080/api/v1/auth/resend-verification", "body": { "mode": "raw", "raw": "{\"email\":\"{{r3ResendEmail}}\"}" } },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Pending user can request another OTP',()=>pm.response.to.have.status(202));"] } }]
+    },
+    {
+      "name": "AUTH-06 Read resent OTP",
+      "request": { "method": "GET", "url": "http://localhost:8025/api/v1/search?query=to:{{r3ResendEmail}}" },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Resent OTP is delivered',()=>{pm.response.to.have.status(200);const m=pm.response.json().messages[0];pm.expect(m).to.exist;const c=m.Snippet.match(/challengeId=([^;]+); code=(\\d+)/);pm.expect(c).to.exist;pm.environment.set('r3ResendChallengeId',c[1]);pm.environment.set('r3ResendOtp',c[2]);});"] } }]
+    },
+    {
+      "name": "AUTH-06 Verify resent OTP and login",
+      "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Idempotency-Key", "value": "r3-auth06-resent-verify-{{$guid}}" }], "url": "http://localhost:5080/api/v1/auth/verify", "body": { "mode": "raw", "raw": "{\"challengeId\":\"{{r3ResendChallengeId}}\",\"code\":\"{{r3ResendOtp}}\"}" } },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Resent OTP activates account and returns session',()=>{pm.response.to.have.status(200);pm.environment.set('r3ResendToken',pm.response.json().accessToken);});"] } }]
+    },
+    {
+      "name": "AUTH-06 Login after resent OTP",
+      "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "http://localhost:5080/api/v1/auth/login", "body": { "mode": "raw", "raw": "{\"identifier\":\"{{r3ResendEmail}}\",\"password\":\"Test@12345\"}" } },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Account can login after OTP resend',()=>pm.response.to.have.status(200));"] } }]
+    }
+  ]
+}

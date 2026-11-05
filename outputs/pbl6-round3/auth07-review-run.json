@@ -1,0 +1,1532 @@
+{
+  "run": {
+    "meta": {
+      "collectionId": "9a4592de-d272-4403-83d1-2663e5c66028",
+      "collectionName": "Round 3 AUTH-07 real rate-limit verification",
+      "started": 1793615654005,
+      "completed": 1793615655916,
+      "duration": 1911
+    },
+    "summary": {
+      "iterations": {
+        "executed": 1,
+        "errors": 0
+      },
+      "executedRequests": {
+        "executed": 7,
+        "errors": 0
+      },
+      "prerequestScripts": {
+        "executed": 0,
+        "errors": 0
+      },
+      "postresponseScripts": {
+        "executed": 7,
+        "errors": 0
+      },
+      "tests": {
+        "executed": 9,
+        "failed": 0,
+        "passed": 9,
+        "skipped": 0
+      },
+      "timeStats": {
+        "responseAverage": 181.71428571428572,
+        "responseMin": 48,
+        "responseMax": 731,
+        "responseStandardDeviation": 227.7685004470951
+      }
+    },
+    "executions": [
+      {
+        "iterationCount": 0,
+        "requestExecuted": {
+          "id": "088103b3-1521-4f75-bcf2-b6892a57cfd9",
+          "name": "AUTH-07 register resend-limit probe",
+          "url": {
+            "protocol": "http",
+            "port": "5080",
+            "path": [
+              "api",
+              "v1",
+              "auth",
+              "register"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.56.2",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "487a3ef0-4c33-4119-aa76-65f40cfc9326",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:5080",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            },
+            {
+              "key": "Content-Length",
+              "value": "134",
+              "system": true
+            }
+          ],
+          "method": "POST",
+          "body": {
+            "mode": "raw",
+            "raw": "{\"fullName\": \"R3 Resend Probe\", \"email\": \"pbl6.r3.review20261102@example.test\", \"phone\": \"+849000009876\", \"password\": \"CorrectHorse1\"}",
+            "options": {
+              "raw": {
+                "language": "json"
+              }
+            }
+          }
+        },
+        "response": {
+          "id": "0d132d59-6f1a-460d-a6cd-ccc7ea6fecac",
+          "_details": {
+            "name": "Accepted",
+            "detail": "The request has been accepted for processing, but the processing has not been completed. The request might or might not eventually be acted upon, as it might be disallowed when processing actually takes place.",
+            "code": 202,
+            "standardName": "Accepted"
+          },
+          "status": "Accepted",
+          "code": 202,
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Date",
+              "value": "Mon, 02 Nov 2026 10:34:13 GMT"
+            },
+            {
+              "key": "Server",
+              "value": "Kestrel"
+            },
+            {
+              "key": "Transfer-Encoding",
+              "value": "chunked"
+            },
+            {
+              "key": "X-Correlation-Id",
+              "value": "01a19bd2-ecf4-7d47-8729-8d2b6e8a9f2c"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              111,
+              112,
+              101,
+              114,
+              97,
+              116,
+              105,
+              111,
+              110,
+              73,
+              100,
+              34,
+              58,
+              34,
+              48,
+              49,
+              97,
+              49,
+              57,
+              98,
+              100,
+              50,
+              45,
+              101,
+              101,
+              53,
+              101,
+              45,
+              55,
+              55,
+              48,
+              102,
+              45,
+              97,
+              100,
+              53,
+              97,
+              45,
+              100,
+              98,
+              55,
+              48,
+              53,
+              97,
+              49,
+              57,
+              101,
+              99,
+              100,
+              51,
+              34,
+              44,
+              34,
+              115,
+              116,
+              97,
+              116,
+              117,
+              115,
+              34,
+              58,
+              34,
+              65,
+              67,
+              67,
+              69,
+              80,
+              84,
+              69,
+              68,
+              34,
+              125
+            ]
+          },
+          "cookies": [],
+          "responseTime": 731,
+          "responseSize": 74,
+          "downloadedBytes": 74
+        },
+        "tests": [
+          {
+            "name": "Resend probe registration accepted",
+            "status": "passed"
+          }
+        ],
+        "errors": []
+      },
+      {
+        "iterationCount": 0,
+        "requestExecuted": {
+          "id": "ac2381d6-72b3-4610-8d8f-8f80935697fb",
+          "name": "AUTH-07 resend verification attempt 1",
+          "url": {
+            "protocol": "http",
+            "port": "5080",
+            "path": [
+              "api",
+              "v1",
+              "auth",
+              "resend-verification"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Idempotency-Key",
+              "value": "pbl6-r3-review-20261102-1"
+            },
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.56.2",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "9f38ff69-301d-41ad-be32-fe404752dc9f",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:5080",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            },
+            {
+              "key": "Content-Length",
+              "value": "48",
+              "system": true
+            }
+          ],
+          "method": "POST",
+          "body": {
+            "mode": "raw",
+            "raw": "{\"email\": \"pbl6.r3.review20261102@example.test\"}",
+            "options": {
+              "raw": {
+                "language": "json"
+              }
+            }
+          }
+        },
+        "response": {
+          "id": "a055afc1-ede4-48c8-ad4b-875d9d8b721d",
+          "_details": {
+            "name": "Accepted",
+            "detail": "The request has been accepted for processing, but the processing has not been completed. The request might or might not eventually be acted upon, as it might be disallowed when processing actually takes place.",
+            "code": 202,
+            "standardName": "Accepted"
+          },
+          "status": "Accepted",
+          "code": 202,
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Date",
+              "value": "Mon, 02 Nov 2026 10:34:14 GMT"
+            },
+            {
+              "key": "Server",
+              "value": "Kestrel"
+            },
+            {
+              "key": "Transfer-Encoding",
+              "value": "chunked"
+            },
+            {
+              "key": "X-Correlation-Id",
+              "value": "01a19bd2-f001-74b4-acf0-8a4120f443c5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              111,
+              112,
+              101,
+              114,
+              97,
+              116,
+              105,
+              111,
+              110,
+              73,
+              100,
+              34,
+              58,
+              34,
+              48,
+              49,
+              97,
+              49,
+              57,
+              98,
+              100,
+              50,
+              45,
+              102,
+              48,
+              52,
+              57,
+              45,
+              55,
+              51,
+              98,
+              56,
+              45,
+              97,
+              54,
+              100,
+              49,
+              45,
+              55,
+              99,
+              57,
+              56,
+              99,
+              53,
+              56,
+              97,
+              56,
+              100,
+              52,
+              98,
+              34,
+              44,
+              34,
+              115,
+              116,
+              97,
+              116,
+              117,
+              115,
+              34,
+              58,
+              34,
+              65,
+              67,
+              67,
+              69,
+              80,
+              84,
+              69,
+              68,
+              34,
+              125
+            ]
+          },
+          "cookies": [],
+          "responseTime": 182,
+          "responseSize": 74,
+          "downloadedBytes": 74
+        },
+        "tests": [
+          {
+            "name": "First request accepted",
+            "status": "passed"
+          }
+        ],
+        "errors": []
+      },
+      {
+        "iterationCount": 0,
+        "requestExecuted": {
+          "id": "5200fa3a-231f-4547-b1e7-4cc3d88641ae",
+          "name": "AUTH-07 resend verification attempt 2",
+          "url": {
+            "protocol": "http",
+            "port": "5080",
+            "path": [
+              "api",
+              "v1",
+              "auth",
+              "resend-verification"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Idempotency-Key",
+              "value": "pbl6-r3-review-20261102-2"
+            },
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.56.2",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "34eaddca-70a7-48e9-b75c-4aea090b5eaf",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:5080",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            },
+            {
+              "key": "Content-Length",
+              "value": "48",
+              "system": true
+            }
+          ],
+          "method": "POST",
+          "body": {
+            "mode": "raw",
+            "raw": "{\"email\": \"pbl6.r3.review20261102@example.test\"}",
+            "options": {
+              "raw": {
+                "language": "json"
+              }
+            }
+          }
+        },
+        "response": {
+          "id": "82768e55-dbef-4f0a-9b33-4ca1b909aa24",
+          "_details": {
+            "name": "Accepted",
+            "detail": "The request has been accepted for processing, but the processing has not been completed. The request might or might not eventually be acted upon, as it might be disallowed when processing actually takes place.",
+            "code": 202,
+            "standardName": "Accepted"
+          },
+          "status": "Accepted",
+          "code": 202,
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Date",
+              "value": "Mon, 02 Nov 2026 10:34:14 GMT"
+            },
+            {
+              "key": "Server",
+              "value": "Kestrel"
+            },
+            {
+              "key": "Transfer-Encoding",
+              "value": "chunked"
+            },
+            {
+              "key": "X-Correlation-Id",
+              "value": "01a19bd2-f106-72f5-aac3-1e90bfdef5b3"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              111,
+              112,
+              101,
+              114,
+              97,
+              116,
+              105,
+              111,
+              110,
+              73,
+              100,
+              34,
+              58,
+              34,
+              48,
+              49,
+              97,
+              49,
+              57,
+              98,
+              100,
+              50,
+              45,
+              102,
+              49,
+              49,
+              55,
+              45,
+              55,
+              54,
+              56,
+              98,
+              45,
+              57,
+              97,
+              99,
+              56,
+              45,
+              101,
+              102,
+              54,
+              50,
+              50,
+              101,
+              52,
+              51,
+              50,
+              48,
+              54,
+              50,
+              34,
+              44,
+              34,
+              115,
+              116,
+              97,
+              116,
+              117,
+              115,
+              34,
+              58,
+              34,
+              65,
+              67,
+              67,
+              69,
+              80,
+              84,
+              69,
+              68,
+              34,
+              125
+            ]
+          },
+          "cookies": [],
+          "responseTime": 93,
+          "responseSize": 74,
+          "downloadedBytes": 74
+        },
+        "tests": [
+          {
+            "name": "Attempt 2 below configured threshold accepted",
+            "status": "passed"
+          }
+        ],
+        "errors": []
+      },
+      {
+        "iterationCount": 0,
+        "requestExecuted": {
+          "id": "b58d7e82-6eed-4723-b756-b984d52f19c5",
+          "name": "AUTH-07 resend verification attempt 3",
+          "url": {
+            "protocol": "http",
+            "port": "5080",
+            "path": [
+              "api",
+              "v1",
+              "auth",
+              "resend-verification"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Idempotency-Key",
+              "value": "pbl6-r3-review-20261102-3"
+            },
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.56.2",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "db3a31cd-e175-4de6-ba39-c9cd006b90a5",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:5080",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            },
+            {
+              "key": "Content-Length",
+              "value": "48",
+              "system": true
+            }
+          ],
+          "method": "POST",
+          "body": {
+            "mode": "raw",
+            "raw": "{\"email\": \"pbl6.r3.review20261102@example.test\"}",
+            "options": {
+              "raw": {
+                "language": "json"
+              }
+            }
+          }
+        },
+        "response": {
+          "id": "cd6a010e-3b64-4020-a203-28b569f4a52b",
+          "_details": {
+            "name": "Accepted",
+            "detail": "The request has been accepted for processing, but the processing has not been completed. The request might or might not eventually be acted upon, as it might be disallowed when processing actually takes place.",
+            "code": 202,
+            "standardName": "Accepted"
+          },
+          "status": "Accepted",
+          "code": 202,
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Date",
+              "value": "Mon, 02 Nov 2026 10:34:14 GMT"
+            },
+            {
+              "key": "Server",
+              "value": "Kestrel"
+            },
+            {
+              "key": "Transfer-Encoding",
+              "value": "chunked"
+            },
+            {
+              "key": "X-Correlation-Id",
+              "value": "01a19bd2-f1be-7368-b51d-cbeb1354fb3f"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              111,
+              112,
+              101,
+              114,
+              97,
+              116,
+              105,
+              111,
+              110,
+              73,
+              100,
+              34,
+              58,
+              34,
+              48,
+              49,
+              97,
+              49,
+              57,
+              98,
+              100,
+              50,
+              45,
+              102,
+              49,
+              99,
+              54,
+              45,
+              55,
+              97,
+              55,
+              48,
+              45,
+              97,
+              49,
+              52,
+              100,
+              45,
+              50,
+              100,
+              54,
+              97,
+              51,
+              48,
+              55,
+              102,
+              99,
+              48,
+              53,
+              102,
+              34,
+              44,
+              34,
+              115,
+              116,
+              97,
+              116,
+              117,
+              115,
+              34,
+              58,
+              34,
+              65,
+              67,
+              67,
+              69,
+              80,
+              84,
+              69,
+              68,
+              34,
+              125
+            ]
+          },
+          "cookies": [],
+          "responseTime": 74,
+          "responseSize": 74,
+          "downloadedBytes": 74
+        },
+        "tests": [
+          {
+            "name": "Attempt 3 below configured threshold accepted",
+            "status": "passed"
+          }
+        ],
+        "errors": []
+      },
+      {
+        "iterationCount": 0,
+        "requestExecuted": {
+          "id": "656b703c-ef92-4264-a4a7-517266c65217",
+          "name": "AUTH-07 resend verification attempt 4",
+          "url": {
+            "protocol": "http",
+            "port": "5080",
+            "path": [
+              "api",
+              "v1",
+              "auth",
+              "resend-verification"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Idempotency-Key",
+              "value": "pbl6-r3-review-20261102-4"
+            },
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.56.2",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "ea1b8e38-deff-48b3-a630-5e83b9ed054c",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:5080",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            },
+            {
+              "key": "Content-Length",
+              "value": "48",
+              "system": true
+            }
+          ],
+          "method": "POST",
+          "body": {
+            "mode": "raw",
+            "raw": "{\"email\": \"pbl6.r3.review20261102@example.test\"}",
+            "options": {
+              "raw": {
+                "language": "json"
+              }
+            }
+          }
+        },
+        "response": {
+          "id": "03f31882-9ea2-4d5b-8889-25923422315c",
+          "_details": {
+            "name": "Accepted",
+            "detail": "The request has been accepted for processing, but the processing has not been completed. The request might or might not eventually be acted upon, as it might be disallowed when processing actually takes place.",
+            "code": 202,
+            "standardName": "Accepted"
+          },
+          "status": "Accepted",
+          "code": 202,
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Date",
+              "value": "Mon, 02 Nov 2026 10:34:14 GMT"
+            },
+            {
+              "key": "Server",
+              "value": "Kestrel"
+            },
+            {
+              "key": "Transfer-Encoding",
+              "value": "chunked"
+            },
+            {
+              "key": "X-Correlation-Id",
+              "value": "01a19bd2-f259-7a8a-8247-768da2852e17"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              111,
+              112,
+              101,
+              114,
+              97,
+              116,
+              105,
+              111,
+              110,
+              73,
+              100,
+              34,
+              58,
+              34,
+              48,
+              49,
+              97,
+              49,
+              57,
+              98,
+              100,
+              50,
+              45,
+              102,
+              50,
+              54,
+              53,
+              45,
+              55,
+              54,
+              56,
+              100,
+              45,
+              97,
+              51,
+              99,
+              101,
+              45,
+              55,
+              55,
+              53,
+              57,
+              51,
+              102,
+              55,
+              53,
+              53,
+              53,
+              99,
+              97,
+              34,
+              44,
+              34,
+              115,
+              116,
+              97,
+              116,
+              117,
+              115,
+              34,
+              58,
+              34,
+              65,
+              67,
+              67,
+              69,
+              80,
+              84,
+              69,
+              68,
+              34,
+              125
+            ]
+          },
+          "cookies": [],
+          "responseTime": 74,
+          "responseSize": 74,
+          "downloadedBytes": 74
+        },
+        "tests": [
+          {
+            "name": "Attempt 4 below configured threshold accepted",
+            "status": "passed"
+          }
+        ],
+        "errors": []
+      },
+      {
+        "iterationCount": 0,
+        "requestExecuted": {
+          "id": "b7a40ac0-59d8-4891-a0e5-7812f5dd7b7a",
+          "name": "AUTH-07 resend verification attempt 5",
+          "url": {
+            "protocol": "http",
+            "port": "5080",
+            "path": [
+              "api",
+              "v1",
+              "auth",
+              "resend-verification"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Idempotency-Key",
+              "value": "pbl6-r3-review-20261102-5"
+            },
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.56.2",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "579c4492-d0f4-4705-98e4-4de5b2882bd4",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:5080",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            },
+            {
+              "key": "Content-Length",
+              "value": "48",
+              "system": true
+            }
+          ],
+          "method": "POST",
+          "body": {
+            "mode": "raw",
+            "raw": "{\"email\": \"pbl6.r3.review20261102@example.test\"}",
+            "options": {
+              "raw": {
+                "language": "json"
+              }
+            }
+          }
+        },
+        "response": {
+          "id": "45985d59-412c-4cf2-b616-79cbc0d5e553",
+          "_details": {
+            "name": "Accepted",
+            "detail": "The request has been accepted for processing, but the processing has not been completed. The request might or might not eventually be acted upon, as it might be disallowed when processing actually takes place.",
+            "code": 202,
+            "standardName": "Accepted"
+          },
+          "status": "Accepted",
+          "code": 202,
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Date",
+              "value": "Mon, 02 Nov 2026 10:34:14 GMT"
+            },
+            {
+              "key": "Server",
+              "value": "Kestrel"
+            },
+            {
+              "key": "Transfer-Encoding",
+              "value": "chunked"
+            },
+            {
+              "key": "X-Correlation-Id",
+              "value": "01a19bd2-f2f5-79d3-86c2-3fe7a3dcef68"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              111,
+              112,
+              101,
+              114,
+              97,
+              116,
+              105,
+              111,
+              110,
+              73,
+              100,
+              34,
+              58,
+              34,
+              48,
+              49,
+              97,
+              49,
+              57,
+              98,
+              100,
+              50,
+              45,
+              102,
+              50,
+              102,
+              101,
+              45,
+              55,
+              102,
+              51,
+              99,
+              45,
+              57,
+              55,
+              55,
+              101,
+              45,
+              48,
+              97,
+              97,
+              98,
+              99,
+              98,
+              97,
+              102,
+              48,
+              100,
+              99,
+              55,
+              34,
+              44,
+              34,
+              115,
+              116,
+              97,
+              116,
+              117,
+              115,
+              34,
+              58,
+              34,
+              65,
+              67,
+              67,
+              69,
+              80,
+              84,
+              69,
+              68,
+              34,
+              125
+            ]
+          },
+          "cookies": [],
+          "responseTime": 70,
+          "responseSize": 74,
+          "downloadedBytes": 74
+        },
+        "tests": [
+          {
+            "name": "Attempt 5 below configured threshold accepted",
+            "status": "passed"
+          }
+        ],
+        "errors": []
+      },
+      {
+        "iterationCount": 0,
+        "requestExecuted": {
+          "id": "75a8acf2-49ea-4534-8612-ed45d8b18b27",
+          "name": "AUTH-07 resend verification attempt 6",
+          "url": {
+            "protocol": "http",
+            "port": "5080",
+            "path": [
+              "api",
+              "v1",
+              "auth",
+              "resend-verification"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Idempotency-Key",
+              "value": "pbl6-r3-review-20261102-6"
+            },
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.56.2",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "a7365bdc-5375-416e-b29f-20156ac6af73",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:5080",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            },
+            {
+              "key": "Content-Length",
+              "value": "48",
+              "system": true
+            }
+          ],
+          "method": "POST",
+          "body": {
+            "mode": "raw",
+            "raw": "{\"email\": \"pbl6.r3.review20261102@example.test\"}",
+            "options": {
+              "raw": {
+                "language": "json"
+              }
+            }
+          }
+        },
+        "response": {
+          "id": "d798df03-1005-4fc0-be6c-56123108958c",
+          "_details": {
+            "name": "Too Many Requests",
+            "detail": "The user has sent too many requests in a given amount of time. Intended for use with rate limiting schemes. Proposed in an Internet-Draft.",
+            "code": 429,
+            "standardName": "Too Many Requests"
+          },
+          "status": "Too Many Requests",
+          "code": 429,
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Date",
+              "value": "Mon, 02 Nov 2026 10:34:14 GMT"
+            },
+            {
+              "key": "Server",
+              "value": "Kestrel"
+            },
+            {
+              "key": "Retry-After",
+              "value": "900"
+            },
+            {
+              "key": "Transfer-Encoding",
+              "value": "chunked"
+            },
+            {
+              "key": "X-Correlation-Id",
+              "value": "01a19bd2-f391-757e-957e-7e2990376470"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              101,
+              114,
+              114,
+              111,
+              114,
+              34,
+              58,
+              123,
+              34,
+              99,
+              111,
+              100,
+              101,
+              34,
+              58,
+              34,
+              82,
+              65,
+              84,
+              69,
+              95,
+              76,
+              73,
+              77,
+              73,
+              84,
+              69,
+              68,
+              34,
+              44,
+              34,
+              109,
+              101,
+              115,
+              115,
+              97,
+              103,
+              101,
+              34,
+              58,
+              34,
+              84,
+              111,
+              111,
+              32,
+              109,
+              97,
+              110,
+              121,
+              32,
+              114,
+              101,
+              113,
+              117,
+              101,
+              115,
+              116,
+              115,
+              46,
+              34,
+              44,
+              34,
+              99,
+              111,
+              114,
+              114,
+              101,
+              108,
+              97,
+              116,
+              105,
+              111,
+              110,
+              73,
+              100,
+              34,
+              58,
+              34,
+              48,
+              49,
+              97,
+              49,
+              57,
+              98,
+              100,
+              50,
+              45,
+              102,
+              51,
+              57,
+              52,
+              45,
+              55,
+              98,
+              49,
+              50,
+              45,
+              97,
+              102,
+              54,
+              101,
+              45,
+              50,
+              51,
+              56,
+              53,
+              54,
+              53,
+              57,
+              48,
+              99,
+              99,
+              52,
+              49,
+              34,
+              125,
+              125
+            ]
+          },
+          "cookies": [],
+          "responseTime": 48,
+          "responseSize": 119,
+          "downloadedBytes": 119
+        },
+        "tests": [
+          {
+            "name": "Configured threshold rejects sixth request",
+            "status": "passed"
+          },
+          {
+            "name": "429 includes positive Retry-After",
+            "status": "passed"
+          },
+          {
+            "name": "429 error code is RATE_LIMITED",
+            "status": "passed"
+          }
+        ],
+        "errors": []
+      }
+    ],
+    "runError": null
+  }
+}

@@ -1,6 +1,7 @@
 using BusTicketPlatform.Booking.Application;
 using BusTicketPlatform.BuildingBlocks.Ids;
 using Npgsql;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 
 namespace BusTicketPlatform.Booking.Infrastructure.Persistence;
@@ -210,7 +211,8 @@ public sealed class BookingRepository(BookingDatabaseOptions options, IIdGenerat
                    sellable, status, currency,
                    COALESCE(fare_policy_snapshot->>'allowPayLater', 'false') = 'true',
                    COALESCE(fare_policy_snapshot->>'policyVersion', 'cancel-mvp-v1'),
-                   NULLIF(fare_policy_snapshot->>'driverUserId', '')::uuid
+                   NULLIF(fare_policy_snapshot->>'driverUserId', '')::uuid,
+                   COALESCE(fare_policy_snapshot, '{}'::jsonb)::text
             FROM trip_snapshots WHERE trip_id = @id;
             """, connection);
         command.Parameters.AddWithValue("id", tripId);
@@ -220,6 +222,8 @@ public sealed class BookingRepository(BookingDatabaseOptions options, IIdGenerat
             return null;
         }
 
+        using var policyDocument = JsonDocument.Parse(reader.GetString(11));
+        var policySnapshot = policyDocument.RootElement.Clone();
         return new TripSnapshot(
             reader.GetGuid(0),
             reader.GetGuid(1),
@@ -231,41 +235,48 @@ public sealed class BookingRepository(BookingDatabaseOptions options, IIdGenerat
             reader.GetString(7),
             reader.GetBoolean(8),
             reader.GetString(9),
-            reader.IsDBNull(10) ? null : reader.GetGuid(10));
+            reader.IsDBNull(10) ? null : reader.GetGuid(10),
+            policySnapshot);
     }
 
-    public async Task<SeatHoldRecord?> CreateHoldAsync(SeatHoldRecord hold, IReadOnlyList<Guid> seatIds, CancellationToken cancellationToken)
+    public async Task<SeatHoldCreationResult> CreateHoldAsync(SeatHoldRecord hold, IReadOnlyList<Guid> seatIds, CancellationToken cancellationToken)
     {
         await using var connection = await OpenAsync(cancellationToken);
         await using var tx = await connection.BeginTransactionAsync(cancellationToken);
         await using (var lockSeats = new NpgsqlCommand("""
-            SELECT id, price FROM trip_seats
-            WHERE trip_id = @trip AND id = ANY(@ids) AND status = 'AVAILABLE'
+            SELECT id, seat_code, status, price FROM trip_seats
+            WHERE trip_id = @trip AND id = ANY(@ids)
             FOR UPDATE;
             """, connection, tx))
         {
             lockSeats.Parameters.AddWithValue("trip", hold.TripId);
             lockSeats.Parameters.AddWithValue("ids", seatIds.ToArray());
             await using var reader = await lockSeats.ExecuteReaderAsync(cancellationToken);
-            var prices = new Dictionary<Guid, long>();
+            var seatsById = new Dictionary<Guid, (string Code, string Status, long Price)>();
             while (await reader.ReadAsync(cancellationToken))
             {
-                prices[reader.GetGuid(0)] = reader.GetInt64(1);
+                seatsById[reader.GetGuid(0)] = (reader.GetString(1), reader.GetString(2), reader.GetInt64(3));
             }
 
             await reader.CloseAsync();
-            if (prices.Count != seatIds.Count)
+            var unavailableSeatCodes = seatIds
+                .Where(seatsById.ContainsKey)
+                .Where(id => !string.Equals(seatsById[id].Status, "AVAILABLE", StringComparison.Ordinal))
+                .Select(id => seatsById[id].Code)
+                .Distinct(StringComparer.Ordinal)
+                .ToArray();
+            if (unavailableSeatCodes.Length > 0 || seatsById.Count != seatIds.Count)
             {
                 await tx.RollbackAsync(cancellationToken);
-                return null;
+                return new SeatHoldCreationResult(null, unavailableSeatCodes);
             }
 
-            var total = prices.Values.Sum();
+            var total = seatsById.Values.Sum(seat => seat.Price);
             await using (var insert = new NpgsqlCommand("""
                 INSERT INTO seat_holds (
                   id, trip_id, customer_id_external, idempotency_key, hold_token_hash, status, total_amount, currency,
-                  created_at, expires_at)
-                VALUES (@id, @trip, @customer, @idem, @hash, 'ACTIVE', @total, @currency, NOW(), NOW() + INTERVAL '10 minutes')
+                  created_at, expires_at, policy_snapshot)
+                VALUES (@id, @trip, @customer, @idem, @hash, 'ACTIVE', @total, @currency, NOW(), NOW() + INTERVAL '10 minutes', CAST(@policy AS jsonb))
                 RETURNING created_at, expires_at;
                 """, connection, tx))
             {
@@ -276,6 +287,7 @@ public sealed class BookingRepository(BookingDatabaseOptions options, IIdGenerat
                 insert.Parameters.AddWithValue("hash", hold.TokenHash);
                 insert.Parameters.AddWithValue("total", total);
                 insert.Parameters.AddWithValue("currency", hold.Currency);
+                insert.Parameters.AddWithValue("policy", hold.PolicySnapshot.GetRawText());
                 await using var created = await insert.ExecuteReaderAsync(cancellationToken);
                 await created.ReadAsync(cancellationToken);
                 var createdAt = new DateTimeOffset(DateTime.SpecifyKind(created.GetDateTime(0), DateTimeKind.Utc));
@@ -301,7 +313,9 @@ public sealed class BookingRepository(BookingDatabaseOptions options, IIdGenerat
 
                 await tx.CommitAsync(cancellationToken);
                 var seats = await ListSeatsByIds(seatIds, cancellationToken);
-                return hold with { TotalAmount = total, CreatedAt = createdAt, ExpiresAt = expires, Seats = seats };
+                return new SeatHoldCreationResult(
+                    hold with { TotalAmount = total, CreatedAt = createdAt, ExpiresAt = expires, Seats = seats },
+                    []);
             }
         }
     }
@@ -310,7 +324,8 @@ public sealed class BookingRepository(BookingDatabaseOptions options, IIdGenerat
     {
         await using var connection = await OpenAsync(cancellationToken);
         await using var command = new NpgsqlCommand("""
-            SELECT id, trip_id, customer_id_external, idempotency_key, hold_token_hash, status, total_amount, currency, created_at, expires_at
+            SELECT id, trip_id, customer_id_external, idempotency_key, hold_token_hash, status, total_amount, currency, created_at, expires_at,
+                   COALESCE(policy_snapshot, '{}'::jsonb)::text
             FROM seat_holds WHERE hold_token_hash = @hash;
             """, connection);
         command.Parameters.AddWithValue("hash", tokenHash);
@@ -330,12 +345,14 @@ public sealed class BookingRepository(BookingDatabaseOptions options, IIdGenerat
         var currency = reader.GetString(7);
         var created = new DateTimeOffset(DateTime.SpecifyKind(reader.GetDateTime(8), DateTimeKind.Utc));
         var expires = new DateTimeOffset(DateTime.SpecifyKind(reader.GetDateTime(9), DateTimeKind.Utc));
+        using var policyDocument = JsonDocument.Parse(reader.GetString(10));
+        var policySnapshot = policyDocument.RootElement.Clone();
         await reader.CloseAsync();
         var seats = await QuerySeats("""
             SELECT s.id, s.trip_id, s.source_seat_id_external, s.seat_code, s.seat_type, s.deck, s.row_no, s.column_no, s.price, s.status, s.row_version
             FROM trip_seats s JOIN seat_hold_items i ON i.trip_seat_id = s.id WHERE i.seat_hold_id = @trip
             """, holdId, cancellationToken);
-        return new SeatHoldRecord(holdId, tripId, customer, idem, hash, "", status, total, currency, created, expires, seats);
+        return new SeatHoldRecord(holdId, tripId, customer, idem, hash, "", status, total, currency, created, expires, seats, policySnapshot);
     }
 
     public async Task ReleaseHoldAsync(Guid holdId, CancellationToken cancellationToken)

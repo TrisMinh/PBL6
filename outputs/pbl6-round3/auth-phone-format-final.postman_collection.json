@@ -1,0 +1,92 @@
+﻿{
+    "info":  {
+                 "name":  "Round 3 AUTH phone format acceptance and canonical duplicate",
+                 "schema":  "https://schema.getpostman.com/collection/v2.1.0/collection.json"
+             },
+    "item":  [
+                 {
+                     "request":  {
+                                     "body":  {
+                                                  "raw":  "{\"fullName\":\"R3 Phone Format\",\"email\":\"pbl6.r3.phone.local.20261102@example.test\",\"phone\":\"0901000997\",\"password\":\"CorrectHorse1\"}",
+                                                  "mode":  "raw"
+                                              },
+                                     "method":  "POST",
+                                     "url":  "{{baseUrl}}/auth/register",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ]
+                                 },
+                     "name":  "Register local 0-prefixed mobile",
+                     "event":  [
+                                   {
+                                       "script":  {
+                                                      "exec":  [
+                                                                   "pm.test(\u0027Register local 0-prefixed mobile\u0027,()=\u003e{pm.response.to.have.status(202);if(202===409)pm.expect(pm.response.json().error.code).to.eql(\u0027IDENTITY_ALREADY_USED\u0027)});"
+                                                               ],
+                                                      "type":  "text/javascript"
+                                                  },
+                                       "listen":  "test"
+                                   }
+                               ]
+                 },
+                 {
+                     "request":  {
+                                     "body":  {
+                                                  "raw":  "{\"fullName\":\"R3 Phone Format\",\"email\":\"pbl6.r3.phone.e164.20261102@example.test\",\"phone\":\"+849000009997\",\"password\":\"CorrectHorse1\"}",
+                                                  "mode":  "raw"
+                                              },
+                                     "method":  "POST",
+                                     "url":  "{{baseUrl}}/auth/register",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ]
+                                 },
+                     "name":  "Register E.164 mobile",
+                     "event":  [
+                                   {
+                                       "script":  {
+                                                      "exec":  [
+                                                                   "pm.test(\u0027Register E.164 mobile\u0027,()=\u003e{pm.response.to.have.status(202);if(202===409)pm.expect(pm.response.json().error.code).to.eql(\u0027IDENTITY_ALREADY_USED\u0027)});"
+                                                               ],
+                                                      "type":  "text/javascript"
+                                                  },
+                                       "listen":  "test"
+                                   }
+                               ]
+                 },
+                 {
+                     "request":  {
+                                     "body":  {
+                                                  "raw":  "{\"fullName\":\"R3 Phone Format\",\"email\":\"pbl6.r3.phone.duplicate.20261102@example.test\",\"phone\":\"+84901000997\",\"password\":\"CorrectHorse1\"}",
+                                                  "mode":  "raw"
+                                              },
+                                     "method":  "POST",
+                                     "url":  "{{baseUrl}}/auth/register",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ]
+                                 },
+                     "name":  "Reject same local number in E.164 form",
+                     "event":  [
+                                   {
+                                       "script":  {
+                                                      "exec":  [
+                                                                   "pm.test(\u0027Reject same local number in E.164 form\u0027,()=\u003e{pm.response.to.have.status(409);if(409===409)pm.expect(pm.response.json().error.code).to.eql(\u0027IDENTITY_ALREADY_USED\u0027)});"
+                                                               ],
+                                                      "type":  "text/javascript"
+                                                  },
+                                       "listen":  "test"
+                                   }
+                               ]
+                 }
+             ]
+}

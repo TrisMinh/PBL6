@@ -1,0 +1,96 @@
+﻿{
+    "info":  {
+                 "name":  "Round 3 BOOK-01 DISABLED and BOOK-07 DEPARTED",
+                 "schema":  "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+             },
+    "item":  [
+                 {
+                     "request":  {
+                                     "body":  {
+                                                  "raw":  "{\"identifier\":\"seed.customer@example.test\",\"password\":\"CustomerPass1\"}",
+                                                  "mode":  "raw"
+                                              },
+                                     "method":  "POST",
+                                     "url":  "{{baseUrl}}/auth/login",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ]
+                                 },
+                     "name":  "Login customer",
+                     "event":  [
+                                   {
+                                       "script":  {
+                                                      "exec":  [
+                                                                   "pm.test(\u0027Customer login ok\u0027,()=\u003e{pm.response.to.have.status(200);pm.environment.set(\u0027reviewToken\u0027,pm.response.json().accessToken)});"
+                                                               ],
+                                                      "type":  "text/javascript"
+                                                  },
+                                       "listen":  "test"
+                                   }
+                               ]
+                 },
+                 {
+                     "request":  {
+                                     "method":  "GET",
+                                     "url":  "{{baseUrl}}/trips/01990a00-0000-7000-8000-000000000007/seats",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Authorization",
+                                                        "value":  "Bearer {{reviewToken}}"
+                                                    }
+                                                ]
+                                 },
+                     "name":  "BOOK-01 sees DISABLED status",
+                     "event":  [
+                                   {
+                                       "script":  {
+                                                      "exec":  [
+                                                                   "pm.test(\u0027Seat endpoint serializes DISABLED fixture\u0027,()=\u003e{pm.response.to.have.status(200);const s=pm.response.json().seats;pm.expect(s.some(x=\u003ex.code===\u00271B\u0027\u0026\u0026x.status===\u0027DISABLED\u0027)).to.eql(true);pm.expect(s.some(x=\u003ex.status===\u0027AVAILABLE\u0027)).to.eql(true);pm.expect(s.some(x=\u003ex.status===\u0027BOOKED\u0027)).to.eql(true)});"
+                                                               ],
+                                                      "type":  "text/javascript"
+                                                  },
+                                       "listen":  "test"
+                                   }
+                               ]
+                 },
+                 {
+                     "request":  {
+                                     "body":  {
+                                                  "raw":  "{\"seatIds\":[\"01a18b06-7de0-70e3-9240-eddb86a03f8f\"],\"pickupStopId\":\"01990a00-0000-7000-8000-000000000004\",\"dropoffStopId\":\"01990a00-0000-7000-8000-000000000005\"}",
+                                                  "mode":  "raw"
+                                              },
+                                     "method":  "POST",
+                                     "url":  "{{baseUrl}}/trips/01a18b06-7537-78b0-8952-4413bcadc98d/seat-holds",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Authorization",
+                                                        "value":  "Bearer {{reviewToken}}"
+                                                    },
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    },
+                                                    {
+                                                        "key":  "Idempotency-Key",
+                                                        "value":  "review-book07-departed-20261102"
+                                                    }
+                                                ]
+                                 },
+                     "name":  "BOOK-07 rejects DEPARTED trip",
+                     "event":  [
+                                   {
+                                       "script":  {
+                                                      "exec":  [
+                                                                   "pm.test(\u0027DEPARTED trip rejected with 409 TRIP_NOT_SELLABLE\u0027,()=\u003e{pm.response.to.have.status(409);pm.expect(pm.response.json().error.code).to.eql(\u0027TRIP_NOT_SELLABLE\u0027)});"
+                                                               ],
+                                                      "type":  "text/javascript"
+                                                  },
+                                       "listen":  "test"
+                                   }
+                               ]
+                 }
+             ]
+}

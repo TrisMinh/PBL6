@@ -1,0 +1,84 @@
+﻿{
+    "info":  {
+                 "name":  "BOOK-09 confirm natural expiry released before follow-up request",
+                 "schema":  "https://schema.getpostman.com/collection/v2.1.0/collection.json"
+             },
+    "item":  [
+                 {
+                     "request":  {
+                                     "body":  {
+                                                  "raw":  "{\"identifier\":\"seed.customer@example.test\",\"password\":\"CustomerPass1\"}",
+                                                  "mode":  "raw"
+                                              },
+                                     "method":  "POST",
+                                     "url":  "{{baseUrl}}/auth/login",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ]
+                                 },
+                     "name":  "Login customer",
+                     "event":  [
+                                   {
+                                       "script":  {
+                                                      "exec":  [
+                                                                   "pm.test(\u0027Login customer\u0027,()=\u003e{pm.response.to.have.status(200);pm.environment.set(\u0027naturalToken\u0027,pm.response.json().accessToken)});"
+                                                               ],
+                                                      "type":  "text/javascript"
+                                                  },
+                                       "listen":  "test"
+                                   }
+                               ]
+                 },
+                 {
+                     "request":  {
+                                     "method":  "GET",
+                                     "url":  "{{baseUrl}}/seat-holds/JiuU2Z0KHXygRwfgwYYOMmeBRzImV5u9Z9OVseLe2yg",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Authorization",
+                                                        "value":  "Bearer {{naturalToken}}"
+                                                    }
+                                                ]
+                                 },
+                     "name":  "Read naturally expired hold",
+                     "event":  [
+                                   {
+                                       "script":  {
+                                                      "exec":  [
+                                                                   "pm.test(\u0027Hold naturally expired before this API request\u0027,()=\u003e{pm.response.to.have.status(200);pm.expect(pm.response.json().status).to.eql(\u0027EXPIRED\u0027)});"
+                                                               ],
+                                                      "type":  "text/javascript"
+                                                  },
+                                       "listen":  "test"
+                                   }
+                               ]
+                 },
+                 {
+                     "request":  {
+                                     "method":  "GET",
+                                     "url":  "{{baseUrl}}/trips/01990a00-0000-7000-8000-000000000007/seats",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Authorization",
+                                                        "value":  "Bearer {{naturalToken}}"
+                                                    }
+                                                ]
+                                 },
+                     "name":  "Read seat after worker sweep",
+                     "event":  [
+                                   {
+                                       "script":  {
+                                                      "exec":  [
+                                                                   "pm.test(\u0027Seat 1B is available after natural expiry\u0027,()=\u003e{pm.response.to.have.status(200);const seat=pm.response.json().seats.find(x=\u003ex.code===\u00271B\u0027);pm.expect(seat.status).to.eql(\u0027AVAILABLE\u0027)});"
+                                                               ],
+                                                      "type":  "text/javascript"
+                                                  },
+                                       "listen":  "test"
+                                   }
+                               ]
+                 }
+             ]
+}

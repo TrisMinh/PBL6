@@ -1,0 +1,2 @@
+AUTH_CASE_EMAIL=srs.r4.4cf57befa5@example.test
+AUTH_CASE_PHONE=0901543740

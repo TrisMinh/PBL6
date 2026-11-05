@@ -1,0 +1,519 @@
+{
+  "run": {
+    "meta": {
+      "collectionId": "0b68ed9a-3d3a-4956-bd3e-998bcddf3eb9",
+      "collectionName": "Round 3 phone format acceptance",
+      "started": 1793617697020,
+      "completed": 1793617697634,
+      "duration": 614
+    },
+    "summary": {
+      "iterations": {
+        "executed": 1,
+        "errors": 0
+      },
+      "executedRequests": {
+        "executed": 2,
+        "errors": 0
+      },
+      "prerequestScripts": {
+        "executed": 0,
+        "errors": 0
+      },
+      "postresponseScripts": {
+        "executed": 2,
+        "errors": 0
+      },
+      "tests": {
+        "executed": 2,
+        "failed": 1,
+        "passed": 1,
+        "skipped": 0
+      },
+      "timeStats": {
+        "responseAverage": 209,
+        "responseMin": 96,
+        "responseMax": 322,
+        "responseStandardDeviation": 113
+      }
+    },
+    "executions": [
+      {
+        "iterationCount": 0,
+        "requestExecuted": {
+          "id": "55087466-eb36-49b8-888e-90088c35f428",
+          "name": "Register phone local 0 prefix",
+          "url": {
+            "protocol": "http",
+            "port": "5080",
+            "path": [
+              "api",
+              "v1",
+              "auth",
+              "register"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.56.2",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "82426489-6f12-4f30-a344-5093a225501f",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:5080",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            },
+            {
+              "key": "Content-Length",
+              "value": "121",
+              "system": true
+            }
+          ],
+          "method": "POST",
+          "body": {
+            "mode": "raw",
+            "raw": "{\"fullName\":\"R3 Phone Format\",\"email\":\"pbl6.r3.phone.local@example.test\",\"phone\":\"0901000997\",\"password\":\"CorrectHorse1\"}"
+          }
+        },
+        "response": {
+          "id": "b16c6888-ee47-41f7-b0a5-bf1a56132871",
+          "_details": {
+            "name": "Bad Request",
+            "detail": "The request cannot be fulfilled due to bad syntax.",
+            "code": 400,
+            "standardName": "Bad Request"
+          },
+          "status": "Bad Request",
+          "code": 400,
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Date",
+              "value": "Mon, 02 Nov 2026 11:08:17 GMT"
+            },
+            {
+              "key": "Server",
+              "value": "Kestrel"
+            },
+            {
+              "key": "Transfer-Encoding",
+              "value": "chunked"
+            },
+            {
+              "key": "X-Correlation-Id",
+              "value": "01a19bf2-194e-710b-8393-0d0509f6763c"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              101,
+              114,
+              114,
+              111,
+              114,
+              34,
+              58,
+              123,
+              34,
+              99,
+              111,
+              100,
+              101,
+              34,
+              58,
+              34,
+              86,
+              65,
+              76,
+              73,
+              68,
+              65,
+              84,
+              73,
+              79,
+              78,
+              95,
+              69,
+              82,
+              82,
+              79,
+              82,
+              34,
+              44,
+              34,
+              109,
+              101,
+              115,
+              115,
+              97,
+              103,
+              101,
+              34,
+              58,
+              34,
+              80,
+              104,
+              111,
+              110,
+              101,
+              32,
+              105,
+              115,
+              32,
+              105,
+              110,
+              118,
+              97,
+              108,
+              105,
+              100,
+              46,
+              34,
+              44,
+              34,
+              99,
+              111,
+              114,
+              114,
+              101,
+              108,
+              97,
+              116,
+              105,
+              111,
+              110,
+              73,
+              100,
+              34,
+              58,
+              34,
+              48,
+              49,
+              97,
+              49,
+              57,
+              98,
+              102,
+              50,
+              45,
+              49,
+              57,
+              55,
+              54,
+              45,
+              55,
+              51,
+              57,
+              97,
+              45,
+              98,
+              48,
+              48,
+              52,
+              45,
+              100,
+              49,
+              56,
+              100,
+              49,
+              99,
+              101,
+              100,
+              98,
+              101,
+              48,
+              49,
+              34,
+              44,
+              34,
+              100,
+              101,
+              116,
+              97,
+              105,
+              108,
+              115,
+              34,
+              58,
+              123,
+              34,
+              102,
+              105,
+              101,
+              108,
+              100,
+              34,
+              58,
+              34,
+              112,
+              104,
+              111,
+              110,
+              101,
+              34,
+              125,
+              125,
+              125
+            ]
+          },
+          "cookies": [],
+          "responseTime": 96,
+          "responseSize": 150,
+          "downloadedBytes": 150
+        },
+        "tests": [
+          {
+            "name": "Valid phone format accepted as pending registration",
+            "error": {
+              "name": "AssertionError",
+              "index": 0,
+              "test": "Valid phone format accepted as pending registration",
+              "message": "expected response to have status code 202 but got 400",
+              "stack": "AssertionError: expected response to have status code 202 but got 400\n   at Object.eval sandbox-script.js:1:1)"
+            },
+            "status": "failed"
+          }
+        ],
+        "errors": []
+      },
+      {
+        "iterationCount": 0,
+        "requestExecuted": {
+          "id": "1d0f5903-efd7-4063-8a7a-2597ac838979",
+          "name": "Register phone E164 +84",
+          "url": {
+            "protocol": "http",
+            "port": "5080",
+            "path": [
+              "api",
+              "v1",
+              "auth",
+              "register"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.56.2",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "9f098467-fb15-458e-bb84-f5ce5a4ce412",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:5080",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            },
+            {
+              "key": "Content-Length",
+              "value": "123",
+              "system": true
+            }
+          ],
+          "method": "POST",
+          "body": {
+            "mode": "raw",
+            "raw": "{\"fullName\":\"R3 Phone Format\",\"email\":\"pbl6.r3.phone.e164@example.test\",\"phone\":\"+849000009998\",\"password\":\"CorrectHorse1\"}"
+          }
+        },
+        "response": {
+          "id": "0ee0fe1d-3d05-42a1-b67f-8885c3525042",
+          "_details": {
+            "name": "Accepted",
+            "detail": "The request has been accepted for processing, but the processing has not been completed. The request might or might not eventually be acted upon, as it might be disallowed when processing actually takes place.",
+            "code": 202,
+            "standardName": "Accepted"
+          },
+          "status": "Accepted",
+          "code": 202,
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Date",
+              "value": "Mon, 02 Nov 2026 11:08:17 GMT"
+            },
+            {
+              "key": "Server",
+              "value": "Kestrel"
+            },
+            {
+              "key": "Transfer-Encoding",
+              "value": "chunked"
+            },
+            {
+              "key": "X-Correlation-Id",
+              "value": "01a19bf2-19f4-784d-9985-0d5518273411"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              111,
+              112,
+              101,
+              114,
+              97,
+              116,
+              105,
+              111,
+              110,
+              73,
+              100,
+              34,
+              58,
+              34,
+              48,
+              49,
+              97,
+              49,
+              57,
+              98,
+              102,
+              50,
+              45,
+              49,
+              97,
+              57,
+              56,
+              45,
+              55,
+              100,
+              57,
+              49,
+              45,
+              57,
+              49,
+              50,
+              100,
+              45,
+              97,
+              57,
+              55,
+              50,
+              55,
+              55,
+              98,
+              51,
+              100,
+              53,
+              49,
+              99,
+              34,
+              44,
+              34,
+              115,
+              116,
+              97,
+              116,
+              117,
+              115,
+              34,
+              58,
+              34,
+              65,
+              67,
+              67,
+              69,
+              80,
+              84,
+              69,
+              68,
+              34,
+              125
+            ]
+          },
+          "cookies": [],
+          "responseTime": 322,
+          "responseSize": 74,
+          "downloadedBytes": 74
+        },
+        "tests": [
+          {
+            "name": "Valid phone format accepted as pending registration",
+            "status": "passed"
+          }
+        ],
+        "errors": []
+      }
+    ],
+    "runError": null
+  }
+}

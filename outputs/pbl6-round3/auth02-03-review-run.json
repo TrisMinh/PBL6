@@ -1,0 +1,576 @@
+{
+  "run": {
+    "meta": {
+      "collectionId": "51f5b7df-d595-40a0-9d85-c67739b1e422",
+      "collectionName": "Round 3 AUTH-02/03 duplicate identity real fixture",
+      "started": 1793615897832,
+      "completed": 1793615898028,
+      "duration": 196
+    },
+    "summary": {
+      "iterations": {
+        "executed": 1,
+        "errors": 0
+      },
+      "executedRequests": {
+        "executed": 2,
+        "errors": 0
+      },
+      "prerequestScripts": {
+        "executed": 0,
+        "errors": 0
+      },
+      "postresponseScripts": {
+        "executed": 2,
+        "errors": 0
+      },
+      "tests": {
+        "executed": 2,
+        "failed": 0,
+        "passed": 2,
+        "skipped": 0
+      },
+      "timeStats": {
+        "responseAverage": 16,
+        "responseMin": 7,
+        "responseMax": 25,
+        "responseStandardDeviation": 9
+      }
+    },
+    "executions": [
+      {
+        "iterationCount": 0,
+        "requestExecuted": {
+          "id": "75fafee5-6754-4574-9e4d-f19f88f7924e",
+          "name": "AUTH-02 duplicate active email",
+          "url": {
+            "protocol": "http",
+            "port": "5080",
+            "path": [
+              "api",
+              "v1",
+              "auth",
+              "register"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.56.2",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "f6a1d4ef-f5fe-4277-8d05-6d694c4a2efc",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:5080",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            },
+            {
+              "key": "Content-Length",
+              "value": "131",
+              "system": true
+            }
+          ],
+          "method": "POST",
+          "body": {
+            "mode": "raw",
+            "raw": "{\"fullName\": \"Duplicate Email Probe\", \"email\": \"seed.customer@example.test\", \"phone\": \"+849000000201\", \"password\": \"CorrectHorse1\"}",
+            "options": {
+              "raw": {
+                "language": "json"
+              }
+            }
+          }
+        },
+        "response": {
+          "id": "3a1789ce-c5db-42ce-a28b-e1656c40aaf3",
+          "_details": {
+            "name": "Conflict",
+            "detail": "Indicates that the request could not be processed because of conflict in the request, such as an edit conflict.",
+            "code": 409,
+            "standardName": "Conflict"
+          },
+          "status": "Conflict",
+          "code": 409,
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Date",
+              "value": "Mon, 02 Nov 2026 10:38:17 GMT"
+            },
+            {
+              "key": "Server",
+              "value": "Kestrel"
+            },
+            {
+              "key": "Transfer-Encoding",
+              "value": "chunked"
+            },
+            {
+              "key": "X-Correlation-Id",
+              "value": "01a19bd6-a52f-7bda-831e-9ca78a0ed254"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              101,
+              114,
+              114,
+              111,
+              114,
+              34,
+              58,
+              123,
+              34,
+              99,
+              111,
+              100,
+              101,
+              34,
+              58,
+              34,
+              73,
+              68,
+              69,
+              78,
+              84,
+              73,
+              84,
+              89,
+              95,
+              65,
+              76,
+              82,
+              69,
+              65,
+              68,
+              89,
+              95,
+              85,
+              83,
+              69,
+              68,
+              34,
+              44,
+              34,
+              109,
+              101,
+              115,
+              115,
+              97,
+              103,
+              101,
+              34,
+              58,
+              34,
+              84,
+              104,
+              97,
+              116,
+              32,
+              105,
+              100,
+              101,
+              110,
+              116,
+              105,
+              116,
+              121,
+              32,
+              99,
+              97,
+              110,
+              110,
+              111,
+              116,
+              32,
+              98,
+              101,
+              32,
+              117,
+              115,
+              101,
+              100,
+              46,
+              34,
+              44,
+              34,
+              99,
+              111,
+              114,
+              114,
+              101,
+              108,
+              97,
+              116,
+              105,
+              111,
+              110,
+              73,
+              100,
+              34,
+              58,
+              34,
+              48,
+              49,
+              97,
+              49,
+              57,
+              98,
+              100,
+              54,
+              45,
+              97,
+              53,
+              51,
+              48,
+              45,
+              55,
+              56,
+              56,
+              50,
+              45,
+              98,
+              51,
+              101,
+              99,
+              45,
+              51,
+              55,
+              55,
+              99,
+              55,
+              51,
+              56,
+              54,
+              97,
+              54,
+              102,
+              101,
+              34,
+              125,
+              125
+            ]
+          },
+          "cookies": [],
+          "responseTime": 25,
+          "responseSize": 139,
+          "downloadedBytes": 139
+        },
+        "tests": [
+          {
+            "name": "Duplicate email is rejected with 4xx",
+            "status": "passed"
+          }
+        ],
+        "errors": []
+      },
+      {
+        "iterationCount": 0,
+        "requestExecuted": {
+          "id": "1a6158f1-b66f-4de5-9a79-e4496dc83c57",
+          "name": "AUTH-03 duplicate active phone",
+          "url": {
+            "protocol": "http",
+            "port": "5080",
+            "path": [
+              "api",
+              "v1",
+              "auth",
+              "register"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.56.2",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "82c7912b-e222-447a-80c6-34dac7bb5852",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:5080",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            },
+            {
+              "key": "Content-Length",
+              "value": "141",
+              "system": true
+            }
+          ],
+          "method": "POST",
+          "body": {
+            "mode": "raw",
+            "raw": "{\"fullName\": \"Duplicate Phone Probe\", \"email\": \"pbl6.r3.duplicate.phone@example.test\", \"phone\": \"+849000000099\", \"password\": \"CorrectHorse1\"}",
+            "options": {
+              "raw": {
+                "language": "json"
+              }
+            }
+          }
+        },
+        "response": {
+          "id": "7654101e-a65e-467d-a239-dc28595f217b",
+          "_details": {
+            "name": "Conflict",
+            "detail": "Indicates that the request could not be processed because of conflict in the request, such as an edit conflict.",
+            "code": 409,
+            "standardName": "Conflict"
+          },
+          "status": "Conflict",
+          "code": 409,
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Date",
+              "value": "Mon, 02 Nov 2026 10:38:17 GMT"
+            },
+            {
+              "key": "Server",
+              "value": "Kestrel"
+            },
+            {
+              "key": "Transfer-Encoding",
+              "value": "chunked"
+            },
+            {
+              "key": "X-Correlation-Id",
+              "value": "01a19bd6-a580-7506-87e1-9f73537453fa"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              101,
+              114,
+              114,
+              111,
+              114,
+              34,
+              58,
+              123,
+              34,
+              99,
+              111,
+              100,
+              101,
+              34,
+              58,
+              34,
+              73,
+              68,
+              69,
+              78,
+              84,
+              73,
+              84,
+              89,
+              95,
+              65,
+              76,
+              82,
+              69,
+              65,
+              68,
+              89,
+              95,
+              85,
+              83,
+              69,
+              68,
+              34,
+              44,
+              34,
+              109,
+              101,
+              115,
+              115,
+              97,
+              103,
+              101,
+              34,
+              58,
+              34,
+              84,
+              104,
+              97,
+              116,
+              32,
+              105,
+              100,
+              101,
+              110,
+              116,
+              105,
+              116,
+              121,
+              32,
+              99,
+              97,
+              110,
+              110,
+              111,
+              116,
+              32,
+              98,
+              101,
+              32,
+              117,
+              115,
+              101,
+              100,
+              46,
+              34,
+              44,
+              34,
+              99,
+              111,
+              114,
+              114,
+              101,
+              108,
+              97,
+              116,
+              105,
+              111,
+              110,
+              73,
+              100,
+              34,
+              58,
+              34,
+              48,
+              49,
+              97,
+              49,
+              57,
+              98,
+              100,
+              54,
+              45,
+              97,
+              53,
+              56,
+              49,
+              45,
+              55,
+              97,
+              55,
+              51,
+              45,
+              97,
+              55,
+              98,
+              49,
+              45,
+              55,
+              99,
+              97,
+              56,
+              54,
+              56,
+              52,
+              101,
+              48,
+              56,
+              56,
+              52,
+              34,
+              125,
+              125
+            ]
+          },
+          "cookies": [],
+          "responseTime": 7,
+          "responseSize": 139,
+          "downloadedBytes": 139
+        },
+        "tests": [
+          {
+            "name": "Duplicate phone is rejected with 4xx",
+            "status": "passed"
+          }
+        ],
+        "errors": []
+      }
+    ],
+    "runError": null
+  }
+}
