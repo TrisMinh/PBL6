@@ -44,6 +44,10 @@
   gap: 16px;
   margin-bottom: 22px;
 }
+.live-schedule__card--highlighted .operator-schedule__card {
+  border-color: #6a9eec;
+  box-shadow: 0 0 0 3px #e8f0ff;
+}
 .live-schedule__stats > div {
   display: flex;
   flex-direction: column;

@@ -1,6 +1,6 @@
-import { useState, type ReactElement } from "react";
+import { useCallback, useEffect, useState, type ReactElement } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link, useNavigate, useSearchParams } from "react-router";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router";
 import { ScheduleCard } from "./schedule/SchedulePage";
 import type { ScheduleTrip } from "./schedule/schedule.schema";
 import { getLiveRows, liveQueryKey } from "@/shared/api/liveRequest";
@@ -14,6 +14,7 @@ import { Button } from "@/shared/ui/Button/Button";
 import type { ApiRow } from "@/shared/api/fields";
 import { LiveDriverAssignments } from "./LiveDriverAssignments";
 import { LiveOrganizationProfile } from "./LiveOrganizationProfile";
+import { Toast } from "@/shared/ui/Toast/Toast";
 import "./LiveOperatorSchedule.css";
 
 function localParts(value: unknown): { date: string; time: string } {
@@ -37,9 +38,25 @@ function localParts(value: unknown): { date: string; time: string } {
 }
 export function LiveOperatorSchedule(): ReactElement {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [publicationNotice, setPublicationNotice] = useState(
+    () => typeof location.state?.publishedTripId === "string",
+  );
+  const closePublicationNotice = useCallback(
+    () => setPublicationNotice(false),
+    [],
+  );
+  useEffect(() => {
+    if (!publicationNotice) return;
+    void navigate(`${location.pathname}${location.search}`, {
+      replace: true,
+      state: null,
+    });
+  }, [publicationNotice, navigate, location.pathname, location.search]);
   const [params, setParams] = useSearchParams();
+  const highlightedId = params.get("highlight") ?? "";
   const [search, setSearch] = useState("");
-  const [date, setDate] = useState("");
+  const [date, setDate] = useState(params.get("date") ?? "");
   const [status, setStatus] = useState("");
   const [origin, setOrigin] = useState("");
   const [destination, setDestination] = useState("");
@@ -47,6 +64,14 @@ export function LiveOperatorSchedule(): ReactElement {
   const query = useQuery({
     queryKey: liveQueryKey("operator-schedule"),
     queryFn: ({ signal }) => getLiveRows("/api/v1/operator/trips", signal),
+    refetchInterval: (q) => {
+      const trip = q.state.data?.find((row) => row.id === highlightedId);
+      return highlightedId &&
+        !q.state.error &&
+        (!trip || (trip.status === "SCHEDULED" && trip.sellable !== true))
+        ? 2000
+        : false;
+    },
     retry: false,
   });
   const buses = useQuery({
@@ -88,15 +113,21 @@ export function LiveOperatorSchedule(): ReactElement {
         .map((row) => String(row.destination)),
     ),
   ].sort((a, b) => a.localeCompare(b, "vi"));
-  const filtered = rows.filter(
-    (row) =>
-      (!origin || row.origin === origin) &&
-      (!destination || row.destination === destination) &&
-      (!date || localParts(row.departureAt).date === date) &&
-      (!status || row.status === status) &&
-      (!search ||
-        normalizeSearch(JSON.stringify(row)).includes(normalizeSearch(search))),
-  );
+  const filtered = rows
+    .filter(
+      (row) =>
+        (!origin || row.origin === origin) &&
+        (!destination || row.destination === destination) &&
+        (!date || localParts(row.departureAt).date === date) &&
+        (!status || row.status === status) &&
+        (!search ||
+          normalizeSearch(JSON.stringify(row)).includes(
+            normalizeSearch(search),
+          )),
+    )
+    .sort(
+      (a, b) => Number(b.id === highlightedId) - Number(a.id === highlightedId),
+    );
   const pages = Math.max(1, Math.ceil(filtered.length / 5));
   const page = Math.min(requestedPage, pages - 1);
   const reset = (): void => {
@@ -162,6 +193,12 @@ export function LiveOperatorSchedule(): ReactElement {
           ＋ Tạo chuyến mới
         </Link>
       </header>
+      {publicationNotice && (
+        <Toast
+          message="Đã phát hành chuyến thành công"
+          onClose={closePublicationNotice}
+        />
+      )}
       <div className="live-schedule__stats">
         <div>
           <span>Tổng chuyến</span>
@@ -303,7 +340,14 @@ export function LiveOperatorSchedule(): ReactElement {
             />
           ) : filtered.length ? (
             filtered.slice(page * 5, (page + 1) * 5).map((row) => (
-              <div className="live-schedule__card" key={String(row.id)}>
+              <div
+                className={
+                  row.id === highlightedId
+                    ? "live-schedule__card live-schedule__card--highlighted"
+                    : "live-schedule__card"
+                }
+                key={String(row.id)}
+              >
                 <div className="live-schedule__card-date">
                   {new Date(String(row.departureAt)).toLocaleDateString(
                     "vi-VN",
@@ -319,7 +363,13 @@ export function LiveOperatorSchedule(): ReactElement {
                 <ScheduleCard
                   trip={card(row)}
                   displayCode={shortId(String(row.id))}
-                  statusLabel={stateLabel(String(row.status))}
+                  statusLabel={
+                    row.status === "SCHEDULED"
+                      ? row.sellable === true
+                        ? "Đang bán"
+                        : "Đang mở bán…"
+                      : stateLabel(String(row.status))
+                  }
                   showPassengerCount={Boolean(bookings.data)}
                   onOpen={() =>
                     void navigate(
