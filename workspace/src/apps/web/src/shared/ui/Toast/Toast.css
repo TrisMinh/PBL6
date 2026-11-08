@@ -1,0 +1,67 @@
+.app-toast {
+  position: fixed;
+  z-index: 100;
+  top: 24px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: min(420px, calc(100vw - 32px));
+  padding: 16px 18px;
+  border: 1px solid #c3e7d3;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 8px 28px #152d501a;
+  color: #147349;
+  animation: app-toast-in 180ms ease-out;
+}
+.app-toast > svg {
+  flex-shrink: 0;
+}
+.app-toast > span {
+  color: #152d50;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+.app-toast .app-toast__close {
+  display: grid;
+  place-items: center;
+  flex: 0 0 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #64748b;
+  font-size: 22px;
+}
+.app-toast > button:focus-visible {
+  outline: 2px solid #8cb7ff;
+  outline-offset: 2px;
+}
+@keyframes app-toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .app-toast {
+    animation: none;
+  }
+}
+.app-toast[data-tone="error"] {
+  border-color: #fecaca;
+  color: #dc2626;
+}
+@media (max-width: 700px) {
+  .app-toast {
+    top: 16px;
+    right: 16px;
+  }
+}
