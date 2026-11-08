@@ -39,7 +39,11 @@ public static class IdentityEndpoints
         HttpContext http)
     {
         var result = await auth.RegisterAsync(
-            new RegisterCommand(body.FullName, body.Email, body.Phone, body.Password),
+            new RegisterCommand(
+                body.FullName ?? string.Empty,
+                body.Email ?? string.Empty,
+                body.Phone ?? string.Empty,
+                body.Password ?? string.Empty),
             http.CorrelationId(),
             http.RequestAborted);
         return result.ToHttp(http.CorrelationId(), StatusCodes.Status202Accepted);

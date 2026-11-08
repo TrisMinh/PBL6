@@ -1,0 +1,1609 @@
+{
+  "info": {
+    "_postman_id": "f1929ec9-8d0a-4dc2-a144-928ae9b89016",
+    "name": "PBL6 API Test Report Final - Auth and SeatHold",
+    "description": "Maps the 16 cases in Software testing/API_Test_Report.xlsx (AUTH-01..07 and BOOK-01..09). AUTH-06 and BOOK-09 use local database time-shift fixtures to avoid natural OTP/hold TTL waits; BOOK-09 waits at most 20 seconds for the 15-second proactive expiry worker. Only newly generated test rows are changed. Requires local API, Mailpit, Docker Compose PostgreSQL and seeded fixtures.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5080/api/v1"
+    },
+    {
+      "key": "mailpitUrl",
+      "value": "http://localhost:8025"
+    },
+    {
+      "key": "apiOrigin",
+      "value": "http://localhost:5080"
+    },
+    {
+      "key": "holdTripId",
+      "value": "01990a00-0000-7000-8000-000000000007"
+    },
+    {
+      "key": "seatId2A",
+      "value": "01990a00-0000-7000-8000-000000000043"
+    },
+    {
+      "key": "seatId2B",
+      "value": "01990a00-0000-7000-8000-000000000044"
+    },
+    {
+      "key": "seatId1B",
+      "value": "01990a00-0000-7000-8000-000000000022"
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth (AUTH-01 to AUTH-07)",
+      "item": [
+        {
+          "name": "AUTH-01 - Register valid synthetic customer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"fullName\":\"PBL6 API Test Customer\",\"email\":\"{{authEmail}}\",\"phone\":\"{{authPhone}}\",\"password\":\"CorrectHorse1\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const s=Date.now().toString();pm.collectionVariables.set('authRunSuffix',s);pm.collectionVariables.set('authEmail','pbl6.api.auth.'+s+'@example.test');pm.collectionVariables.set('authPhone','+8490'+s.slice(-7));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('AUTH-01 registration accepted',()=>{pm.response.to.have.status(202);const b=pm.response.json();pm.expect(b.status).to.eql('ACCEPTED');pm.collectionVariables.set('auth01OperationId',b.operationId)});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AUTH-02 - Reject active duplicate email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"fullName\":\"Seed Duplicate Email\",\"email\":\"seed.customer@example.test\",\"phone\":\"+849000000052\",\"password\":\"CorrectHorse1\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('AUTH-02 duplicate email rejected',()=>pm.expect(pm.response.code).to.be.oneOf([400,409,422]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AUTH-03 - Reject existing phone",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"fullName\":\"Duplicate Phone\",\"email\":\"pbl6.api.phone.{{authRunSuffix}}@example.test\",\"phone\":\"+849000000099\",\"password\":\"CorrectHorse1\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('AUTH-03 duplicate phone rejected',()=>pm.expect(pm.response.code).to.be.oneOf([400,409,422]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AUTH-04 - Reject invalid registration email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"fullName\":\"Ph?m Th? Dung\",\"email\":\"an.nguyen@\",\"phone\":\"0901000003\",\"password\":\"Test@12345\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('AUTH-04 invalid input returns 400 VALIDATION_ERROR',()=>{pm.response.to.have.status(400);pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR')});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AUTH-04 - Reject missing full name",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"dung.pham@pbl6.test\",\"phone\":\"0901000003\",\"password\":\"Test@12345\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('AUTH-04 invalid input returns 400 VALIDATION_ERROR',()=>{pm.response.to.have.status(400);pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR')});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AUTH-04 - Reject missing email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"fullName\":\"Ph?m Th? Dung\",\"phone\":\"0901000003\",\"password\":\"Test@12345\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('AUTH-04 invalid input returns 400 VALIDATION_ERROR',()=>{pm.response.to.have.status(400);pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR')});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AUTH-04 - Reject invalid phone",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"fullName\":\"Ph?m Th? Dung\",\"email\":\"dung.pham@pbl6.test\",\"phone\":\"12345\",\"password\":\"Test@12345\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('AUTH-04 invalid input returns 400 VALIDATION_ERROR',()=>{pm.response.to.have.status(400);pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR')});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AUTH-04 - Reject weak password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"fullName\":\"Ph?m Th? Dung\",\"email\":\"dung.pham@pbl6.test\",\"phone\":\"0901000003\",\"password\":\"123\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('AUTH-04 invalid input returns 400 VALIDATION_ERROR',()=>{pm.response.to.have.status(400);pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR')});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AUTH-05 - Fetch OTP from Mailpit",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{mailpitUrl}}/api/v1/search?query=to:{{authEmail}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('AUTH-05 verification OTP is available',()=>{pm.response.to.have.status(200);const m=pm.response.json().messages[0];pm.expect(m).to.exist;const x=(m.Snippet||m.Text||'').match(/challengeId=([^;]+);\\s*code=(\\d+)/);pm.expect(x).to.exist;pm.collectionVariables.set('auth05ChallengeId',x[1]);pm.collectionVariables.set('auth05Otp',x[2])});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AUTH-05 - Verify OTP and activate account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "auth05-{{authRunSuffix}}"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/verify",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"challengeId\":\"{{auth05ChallengeId}}\",\"code\":\"{{auth05Otp}}\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('AUTH-05 correct OTP activates account',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().accessToken).to.be.a('string');pm.expect(pm.response.json().refreshToken).to.be.a('string')});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AUTH-05 - Login after OTP activation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"identifier\":\"{{authEmail}}\",\"password\":\"CorrectHorse1\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('AUTH-05 activated account can log in',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().accessToken).to.be.a('string')});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AUTH-06 - Register pending OTP account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"fullName\":\"PBL6 OTP Probe\",\"email\":\"{{auth06Email}}\",\"phone\":\"{{auth06Phone}}\",\"password\":\"CorrectHorse1\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const s=Date.now().toString();pm.collectionVariables.set('auth06Suffix',s);pm.collectionVariables.set('auth06Email','pbl6.api.auth06.'+s+'@example.test');pm.collectionVariables.set('auth06Phone','+8491'+s.slice(-7));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('AUTH-06 pending account accepted',()=>{pm.response.to.have.status(202);pm.collectionVariables.set('auth06OperationId',pm.response.json().operationId)});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AUTH-06 - Find pending account email",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{mailpitUrl}}/api/v1/messages"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('AUTH-06 email found',()=>{pm.response.to.have.status(200);const m=pm.response.json().messages.find(x=>x.To.some(y=>y.Address===pm.collectionVariables.get('auth06Email')));pm.expect(m).to.exist;pm.collectionVariables.set('auth06MailId',m.ID)});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AUTH-06 - Read OTP challenge",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{mailpitUrl}}/api/v1/message/{{auth06MailId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('AUTH-06 challenge extracted',()=>{pm.response.to.have.status(200);const t=pm.response.json().Text;const i=t.match(/challengeId=([0-9a-f-]+)/i),c=t.match(/code=([0-9]{6})/i);pm.expect(i).to.exist;pm.expect(c).to.exist;pm.collectionVariables.set('auth06ChallengeId',i[1]);pm.collectionVariables.set('auth06Otp',c[1]);for(let n=0;n<i[1].length;n+=12)console.log('AUTH06_CHALLENGE_PART'+(Math.floor(n/12)+1)+'='+i[1].slice(n,n+12));console.log('AUTH06_CODE='+c[1])});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AUTH-06 - Reject incorrect OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "auth06-wrong-{{auth06Suffix}}"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/verify",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"challengeId\":\"{{auth06ChallengeId}}\",\"code\":\"000000\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const c=pm.collectionVariables.get('auth06Otp');pm.request.body.update(JSON.stringify({challengeId:pm.collectionVariables.get('auth06ChallengeId'),code:c==='000000'?'111111':'000000'}));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('AUTH-06 incorrect OTP returns validation error',()=>{pm.expect(pm.response.code).to.be.within(400,499);pm.expect(pm.response.json().error.code).to.be.a('string')});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AUTH-06 - Pending account login denied",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"identifier\":\"{{auth06Email}}\",\"password\":\"CorrectHorse1\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('AUTH-06 pending account receives no session',()=>{pm.expect(pm.response.code).to.be.within(400,499);pm.expect(pm.response.text()).not.to.include('accessToken')});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AUTH-07 - Register resend-limit account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"fullName\":\"PBL6 Resend Probe\",\"email\":\"{{auth07Email}}\",\"phone\":\"{{auth07Phone}}\",\"password\":\"CorrectHorse1\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const s=Date.now().toString();pm.collectionVariables.set('auth07Suffix',s);pm.collectionVariables.set('auth07Email','pbl6.api.auth07.'+s+'@example.test');pm.collectionVariables.set('auth07Phone','+8492'+s.slice(-7));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('AUTH-07 probe registration accepted',()=>pm.response.to.have.status(202));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AUTH-07 - Resend attempt 1",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "auth07-{{auth07Suffix}}-1"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/resend-verification",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"{{auth07Email}}\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('AUTH-07 resend 1 accepted',()=>pm.response.to.have.status(202));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AUTH-07 - Resend attempt 2",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "auth07-{{auth07Suffix}}-2"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/resend-verification",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"{{auth07Email}}\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('AUTH-07 resend 2 accepted',()=>pm.response.to.have.status(202));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AUTH-07 - Resend attempt 3",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "auth07-{{auth07Suffix}}-3"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/resend-verification",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"{{auth07Email}}\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('AUTH-07 resend 3 accepted',()=>pm.response.to.have.status(202));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AUTH-07 - Resend attempt 4",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "auth07-{{auth07Suffix}}-4"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/resend-verification",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"{{auth07Email}}\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('AUTH-07 resend 4 accepted',()=>pm.response.to.have.status(202));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AUTH-07 - Resend attempt 5",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "auth07-{{auth07Suffix}}-5"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/resend-verification",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"{{auth07Email}}\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('AUTH-07 resend 5 accepted',()=>pm.response.to.have.status(202));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AUTH-07 - Resend attempt 6 (expect 429)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "auth07-{{auth07Suffix}}-6"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/resend-verification",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"{{auth07Email}}\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('AUTH-07 sixth resend is limited and has Retry-After',()=>{pm.response.to.have.status(429);pm.expect(pm.response.json().error.code).to.eql('RATE_LIMITED');pm.expect(Number(pm.response.headers.get('Retry-After'))).to.be.above(0)});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AUTH-06 - Reject expired OTP fixture",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "auth06-expired-{{$guid}}"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/verify",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"challengeId\":\"{{auth06ChallengeId}}\",\"code\":\"{{auth06Otp}}\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('AUTH-06 expired OTP returns 410 VERIFICATION_EXPIRED',()=>{pm.response.to.have.status(410);pm.expect(pm.response.json().error.code).to.eql('VERIFICATION_EXPIRED')});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "SeatHold (BOOK-01 to BOOK-09)",
+      "item": [
+        {
+          "name": "Setup - Login Customer 1",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"identifier\":\"seed.customer@example.test\",\"password\":\"CustomerPass1\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Customer 1 login',()=>pm.response.to.have.status(200));pm.collectionVariables.set('r3c1',pm.response.json().accessToken);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Setup - Login Customer 2",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"identifier\":\"pbl6.r3.customer.two@example.test\",\"password\":\"CorrectHorse1\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Customer 2 login',()=>pm.response.to.have.status(200));pm.collectionVariables.set('r3c2',pm.response.json().accessToken);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "BOOK-01 - Read seat list and statuses",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{r3c1}}"
+              }
+            ],
+            "url": "{{baseUrl}}/trips/01990a00-0000-7000-8000-000000000007/seats"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('BOOK-01 returns seat statuses, timestamps and prices',()=>{pm.response.to.have.status(200);const b=pm.response.json();pm.expect(b.seats.length).above(0);pm.expect(b.availabilityAsOf).to.be.a('string');pm.expect(b.serverTime).to.be.a('string');pm.expect(b.seats.some(s=>s.status==='AVAILABLE')).to.eql(true);pm.expect(b.seats.some(s=>s.status==='BOOKED')).to.eql(true);pm.expect(b.seats.every(s=>['AVAILABLE','HELD','BOOKED','DISABLED'].includes(s.status))).to.eql(true);pm.expect(b.seats.every(s=>Number.isInteger(s.price.amount)&&s.price.currency==='VND')).to.eql(true);pm.collectionVariables.set('r3seatA','01990a00-0000-7000-8000-000000000043');pm.collectionVariables.set('r3seatB','01990a00-0000-7000-8000-000000000044')});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "BOOK-02 Create one-seat hold",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{r3c1}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "book02-{{$guid}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/trips/{{holdTripId}}/seat-holds",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"seatIds\":[\"{{seatId2A}}\"],\"pickupStopId\":\"01990a00-0000-7000-8000-000000000004\",\"dropoffStopId\":\"01990a00-0000-7000-8000-000000000005\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('BOOK02 response '+pm.response.text());pm.test('One seat hold returns token, expiry, seat price and policy snapshot',()=>{pm.response.to.have.status(201);const b=pm.response.json();pm.expect(b.holdToken).to.be.a('string').and.not.empty;pm.expect(b.expiresAt).to.be.a('string');pm.expect(b.seats).to.have.length(1);pm.expect(b.seats[0].price).to.exist;pm.expect(b.policySnapshot).to.be.an('object');pm.expect(b.policySnapshot.policyVersion).to.be.a('string').and.not.empty;pm.expect(b.policySnapshot).to.have.property('allowPayLater');pm.collectionVariables.set('r3hold02',b.holdToken);});if(pm.response.code===201)pm.collectionVariables.set('r3hold02',pm.response.json().holdToken);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Release BOOK-02 test hold",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{r3c1}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "r3-book02-release-{{$guid}}"
+              }
+            ],
+            "url": "{{baseUrl}}/seat-holds/{{r3hold02}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('BOOK-02 hold cleaned up',()=>pm.expect(pm.response.code).to.be.oneOf([204,404]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "BOOK-03 Hold multiple seats",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{r3c1}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "book03-{{$guid}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/trips/{{holdTripId}}/seat-holds",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"seatIds\":[\"{{seatId2A}}\",\"{{seatId2B}}\"],\"pickupStopId\":\"01990a00-0000-7000-8000-000000000004\",\"dropoffStopId\":\"01990a00-0000-7000-8000-000000000005\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Both seats held atomically with one hold token',()=>{pm.response.to.have.status(201);const b=pm.response.json();pm.expect(b.holdToken).to.be.a('string');pm.expect(b.seats).to.have.length(2);pm.expect(b.seats.every(x=>x.status==='HELD')).to.eql(true);pm.collectionVariables.set('r3hold03',b.holdToken);});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Release BOOK-03 test hold",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{r3c1}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "r3-book03-release-{{$guid}}"
+              }
+            ],
+            "url": "{{baseUrl}}/seat-holds/{{r3hold03}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('BOOK-03 test hold cleaned up',()=>pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "BOOK-04 Customer 2 holds seat A",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{r3c2}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "book04-c2-{{$guid}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/trips/{{holdTripId}}/seat-holds",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"seatIds\":[\"{{seatId2A}}\"],\"pickupStopId\":\"01990a00-0000-7000-8000-000000000004\",\"dropoffStopId\":\"01990a00-0000-7000-8000-000000000005\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Customer 2 holds contested seat',()=>{pm.response.to.have.status(201);pm.collectionVariables.set('r3hold04',pm.response.json().holdToken);});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "BOOK-04 Customer 1 multiseat attempt is all-or-nothing",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{r3c1}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "book04-c1-{{$guid}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/trips/{{holdTripId}}/seat-holds",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"seatIds\":[\"{{seatId2B}}\",\"{{seatId2A}}\"],\"pickupStopId\":\"01990a00-0000-7000-8000-000000000004\",\"dropoffStopId\":\"01990a00-0000-7000-8000-000000000005\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Conflict returns affected held seat code',()=>{pm.response.to.have.status(409);const e=pm.response.json().error;pm.expect(e.code).to.eql('SEAT_UNAVAILABLE');pm.expect(e.details.affectedSeatCodes).to.include('2A');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "BOOK-04 Verify available seat was not partially held",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{r3c1}}"
+              }
+            ],
+            "url": "{{baseUrl}}/trips/{{holdTripId}}/seats"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('All-or-nothing preserved seat B',()=>{pm.response.to.have.status(200);const x=pm.response.json().seats.find(s=>s.id===pm.variables.get('seatId2B'));pm.expect(x.status).to.eql('AVAILABLE');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Release BOOK-04 Customer 2 hold",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{r3c2}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "r3-book04-release-{{$guid}}"
+              }
+            ],
+            "url": "{{baseUrl}}/seat-holds/{{r3hold04}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Contested seat hold cleaned up',()=>pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "BOOK-05 Concurrent requests from two customers",
+          "request": {
+            "method": "GET",
+            "url": "{{apiOrigin}}/ready"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const base=pm.variables.get('baseUrl'),trip=pm.variables.get('holdTripId'),seat=pm.variables.get('seatId2A');const url=base+'/trips/'+trip+'/seat-holds';const body=JSON.stringify({seatIds:[seat],pickupStopId:'01990a00-0000-7000-8000-000000000004',dropoffStopId:'01990a00-0000-7000-8000-000000000005'});const headers=(t,k)=>({'Authorization':'Bearer '+t,'Idempotency-Key':k,'Content-Type':'application/json'});let result=[];const done=(err,res)=>{result.push({err:!!err,code:res&&res.code,body:res&&res.json()});if(result.length===2){pm.test('Concurrent seat hold: exactly one winner and one conflict',()=>{pm.expect(result.every(x=>!x.err)).to.eql(true);pm.expect(result.map(x=>x.code).sort()).to.eql([201,409]);});const win=result.find(x=>x.code===201);if(win&&win.body&&win.body.holdToken){pm.sendRequest({url:base+'/seat-holds/'+win.body.holdToken,method:'DELETE',header:headers(pm.collectionVariables.get('r3c1'),'r3-book05-cleanup-'+Date.now())},(e,r)=>console.log('race cleanup',e&&e.message,r&&r.code));}}};pm.sendRequest({url,method:'POST',header:headers(pm.collectionVariables.get('r3c1'),'r3-book05-c1-'+Date.now()),body:{mode:'raw',raw:body}},done);pm.sendRequest({url,method:'POST',header:headers(pm.collectionVariables.get('r3c2'),'r3-book05-c2-'+Date.now()),body:{mode:'raw',raw:body}},done);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "BOOK-06 Unauthenticated hold remains denied",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "book06-anon-{{$guid}}"
+              }
+            ],
+            "url": "{{baseUrl}}/trips/{{holdTripId}}/seat-holds",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"seatIds\":[\"{{seatId2A}}\"],\"pickupStopId\":\"01990a00-0000-7000-8000-000000000004\",\"dropoffStopId\":\"01990a00-0000-7000-8000-000000000005\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('No token returns 401',()=>pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "BOOK-07 Hold on cancelled trip",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{r3c1}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "book07-cancel-{{$guid}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/trips/01a18b07-9a75-756d-8f13-0d5e8c90a025/seat-holds",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"seatIds\":[\"01a18b07-9f35-70ac-af07-934a5f14e04b\"],\"pickupStopId\":\"01990a00-0000-7000-8000-000000000004\",\"dropoffStopId\":\"01990a00-0000-7000-8000-000000000005\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Cancelled trip rejected as 409 not sellable',()=>{pm.response.to.have.status(409);pm.expect(pm.response.json().error.code).to.eql('TRIP_NOT_SELLABLE');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "BOOK-08 First idempotent hold request",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if(!pm.collectionVariables.get('book08IdempotencyKey'))pm.collectionVariables.set('book08IdempotencyKey','book08-'+pm.variables.replaceIn('{{$guid}}'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Initial idempotent hold is created',()=>{pm.response.to.have.status(201);pm.collectionVariables.set('r3hold08first',pm.response.json().holdToken);});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{r3c1}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{book08IdempotencyKey}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/trips/{{holdTripId}}/seat-holds",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"seatIds\":[\"{{seatId2B}}\"],\"pickupStopId\":\"01990a00-0000-7000-8000-000000000004\",\"dropoffStopId\":\"01990a00-0000-7000-8000-000000000005\"}"
+            }
+          }
+        },
+        {
+          "name": "BOOK-08 Replay identical key and body",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{r3c1}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{book08IdempotencyKey}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/trips/{{holdTripId}}/seat-holds",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"seatIds\":[\"{{seatId2B}}\"],\"pickupStopId\":\"01990a00-0000-7000-8000-000000000004\",\"dropoffStopId\":\"01990a00-0000-7000-8000-000000000005\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Replay returns the same hold token',()=>{pm.response.to.have.status(201);pm.expect(pm.response.json().holdToken).to.eql(pm.collectionVariables.get('r3hold08first'));});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Release BOOK-08 test hold",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{r3c1}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "r3-book08-release-{{$guid}}"
+              }
+            ],
+            "url": "{{baseUrl}}/seat-holds/{{r3hold08first}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('BOOK-08 test hold cleaned up',()=>pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "request": {
+            "body": {
+              "raw": "{\"seatIds\":[\"01a18b06-7de0-70e3-9240-eddb86a03f8f\"],\"pickupStopId\":\"01990a00-0000-7000-8000-000000000004\",\"dropoffStopId\":\"01990a00-0000-7000-8000-000000000005\"}",
+              "mode": "raw"
+            },
+            "method": "POST",
+            "url": "{{baseUrl}}/trips/01a18b06-7537-78b0-8952-4413bcadc98d/seat-holds",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{r3c1}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "book07-departed-{{$guid}}"
+              }
+            ]
+          },
+          "name": "BOOK-07 - Reject hold on departed trip",
+          "event": [
+            {
+              "script": {
+                "exec": [
+                  "pm.test('DEPARTED trip rejected with 409 TRIP_NOT_SELLABLE',()=>{pm.response.to.have.status(409);pm.expect(pm.response.json().error.code).to.eql('TRIP_NOT_SELLABLE')});"
+                ],
+                "type": "text/javascript"
+              },
+              "listen": "test"
+            }
+          ]
+        },
+        {
+          "name": "BOOK-09 - Create hold for accelerated expiry fixture",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{r3c1}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{book09IdempotencyKey}}"
+              }
+            ],
+            "url": "{{baseUrl}}/trips/{{holdTripId}}/seat-holds",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"seatIds\":[\"{{seatId1C}}\"],\"pickupStopId\":\"01990a00-0000-7000-8000-000000000004\",\"dropoffStopId\":\"01990a00-0000-7000-8000-000000000005\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('BOOK-09 test hold created for local expiry fixture',()=>{pm.response.to.have.status(201);const b=pm.response.json();pm.expect(b.expiresAt).to.be.a('string');pm.expect(b.holdToken).to.be.a('string').and.not.empty;pm.collectionVariables.set('book09HoldToken',b.holdToken);for(let i=0;i<b.holdToken.length;i+=12)console.log('BOOK09_PART'+(Math.floor(i/12)+1)+'='+b.holdToken.slice(i,i+12))});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "BOOK-09 - Read seats after accelerated expiry fixture",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{r3c1}}"
+              }
+            ],
+            "url": "{{baseUrl}}/trips/{{holdTripId}}/seats"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('BOOK-09 lazy expiry releases 1C test seat',()=>{pm.response.to.have.status(200);const s=pm.response.json().seats.find(x=>x.id===pm.variables.get('seatId1C'));pm.expect(s.status).to.eql('AVAILABLE')});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "BOOK-09 - Read hold after accelerated expiry fixture",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{r3c1}}"
+              }
+            ],
+            "url": "{{baseUrl}}/seat-holds/{{book09HoldToken}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('BOOK-09 hold status is EXPIRED',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().status).to.eql('EXPIRED')});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "BOOK-09 - Create proactive hold fixture",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{r3c1}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{book09IdempotencyKey}}"
+              }
+            ],
+            "url": "{{baseUrl}}/trips/{{holdTripId}}/seat-holds",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"seatIds\":[\"{{seatId1B}}\"],\"pickupStopId\":\"01990a00-0000-7000-8000-000000000004\",\"dropoffStopId\":\"01990a00-0000-7000-8000-000000000005\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('BOOK-09 proactive hold created for worker expiry fixture',()=>{pm.response.to.have.status(201);const b=pm.response.json();pm.expect(b.expiresAt).to.be.a('string');pm.expect(b.holdToken).to.be.a('string').and.not.empty;pm.collectionVariables.set('book09ProactiveHoldToken',b.holdToken);for(let i=0;i<b.holdToken.length;i+=12)console.log('BOOK09_PROACTIVE_PART'+(Math.floor(i/12)+1)+'='+b.holdToken.slice(i,i+12))});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "BOOK-09 - Read seats after proactive expiry fixture",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{r3c1}}"
+              }
+            ],
+            "url": "{{baseUrl}}/trips/{{holdTripId}}/seats"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('BOOK-09 proactive expiry releases 1B test seat',()=>{pm.response.to.have.status(200);const s=pm.response.json().seats.find(x=>x.id===pm.variables.get('seatId1B'));pm.expect(s.status).to.eql('AVAILABLE')});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "BOOK-09 - Read proactive hold after expiry fixture",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{r3c1}}"
+              }
+            ],
+            "url": "{{baseUrl}}/seat-holds/{{book09ProactiveHoldToken}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('BOOK-09 proactive hold status is EXPIRED',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().status).to.eql('EXPIRED')});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "event": []
+}

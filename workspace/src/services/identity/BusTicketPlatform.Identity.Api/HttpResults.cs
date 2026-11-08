@@ -109,7 +109,7 @@ public static class HttpResults
     }
 }
 
-public sealed record RegisterRequest(string FullName, string Email, string Phone, string Password);
+public sealed record RegisterRequest(string? FullName, string? Email, string? Phone, string? Password);
 public sealed record VerificationRequest(Guid ChallengeId, string Code);
 public sealed record EmailRequest(string Email);
 public sealed record LoginRequest(string Identifier, string Password);

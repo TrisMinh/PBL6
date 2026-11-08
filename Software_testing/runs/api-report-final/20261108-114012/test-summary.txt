@@ -1,0 +1,41 @@
+API Test Report: FAIL (10/16 test case pass)
+PASS AUTH-01
+PASS AUTH-02
+PASS AUTH-03
+PASS AUTH-04
+  - PASS Reject invalid registration email (HTTP 400 Bad Request)
+  - PASS Reject missing full name (HTTP 400 Bad Request)
+  - PASS Reject missing email (HTTP 400 Bad Request)
+  - PASS Reject invalid phone (HTTP 400 Bad Request)
+  - PASS Reject weak password (HTTP 400 Bad Request)
+PASS AUTH-05
+  - PASS Fetch OTP from Mailpit (HTTP 200 OK)
+  - PASS Verify OTP and activate account (HTTP 200 OK)
+  - PASS Login after OTP activation (HTTP 200 OK)
+PASS AUTH-06
+  - PASS Register pending OTP account (HTTP 202 Accepted)
+  - PASS Find pending account email (HTTP 200 OK)
+  - PASS Read OTP challenge (HTTP 200 OK)
+  - PASS Reject incorrect OTP (HTTP 422 Unprocessable Entity)
+  - PASS Pending account login denied (HTTP 401 Unauthorized)
+  - PASS Reject expired OTP fixture (HTTP 410 Gone)
+PASS AUTH-07
+  - PASS Register resend-limit account (HTTP 202 Accepted)
+  - PASS Resend attempt 1 (HTTP 202 Accepted)
+  - PASS Resend attempt 2 (HTTP 202 Accepted)
+  - PASS Resend attempt 3 (HTTP 202 Accepted)
+  - PASS Resend attempt 4 (HTTP 202 Accepted)
+  - PASS Resend attempt 5 (HTTP 202 Accepted)
+  - PASS Resend attempt 6 (expect 429) (HTTP 429 Too Many Requests)
+PASS BOOK-01
+FAIL BOOK-02
+FAIL BOOK-03
+FAIL BOOK-04
+FAIL BOOK-05
+FAIL BOOK-06
+PASS BOOK-07
+FAIL BOOK-08
+PASS BOOK-09
+  - PASS Create hold for accelerated expiry fixture (HTTP 201 Created)
+  - PASS Read seats after accelerated expiry fixture (HTTP 200 OK)
+  - PASS Read hold after accelerated expiry fixture (HTTP 200 OK)

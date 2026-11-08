@@ -127,7 +127,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BusTicketPlatform.Reporting
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "application", "application", "{18B9CCF9-2C11-39C8-E5D9-CBC569F6A3E3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BusTicketPlatform.AuthBooking.UnitTests", "src\tests\application\BusTicketPlatform.AuthBooking.UnitTests\BusTicketPlatform.AuthBooking.UnitTests.csproj", "{267582C5-AA34-4AF0-A5C4-D60EC8B6D01B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BusTicketPlatform.Services.UnitTests", "src\tests\application\BusTicketPlatform.Services.UnitTests\BusTicketPlatform.Services.UnitTests.csproj", "{267582C5-AA34-4AF0-A5C4-D60EC8B6D01B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

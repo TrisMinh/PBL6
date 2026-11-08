@@ -52,6 +52,7 @@ apply reporting /baseline/reporting/011_seed_occupancy.sql
 
 apply identity /baseline/identity/010_synthetic_seed.sql
 apply identity /baseline/identity/011_dev_login_seed.sql
+apply identity /baseline/identity/012_api_test_fixtures.sql
 apply transport /baseline/transport/010_synthetic_seed.sql
 apply transport /baseline/transport/011_more_seed_seats.sql
 apply transport /baseline/transport/012_seed_driver.sql
@@ -59,6 +60,7 @@ apply transport /baseline/transport/013_seed_amenities.sql
 apply booking /baseline/booking/010_synthetic_seed.sql
 apply booking /baseline/booking/013_more_seed_seats.sql
 apply booking /baseline/booking/014_seat_hold_policy_snapshot.sql
+apply booking /baseline/booking/015_api_test_fixtures.sql
 
 echo "bootstrap complete"
 touch /tmp/bootstrap-ok

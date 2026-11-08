@@ -192,8 +192,33 @@ public sealed class AuthFlowTests
             phone = weakUser.Phone,
             password = "short"
         });
-        Assert.Equal(HttpStatusCode.UnprocessableEntity, weak.Response.StatusCode);
-        Assert.Equal("PASSWORD_POLICY_VIOLATION", weak.Body.GetProperty("error").GetProperty("code").GetString());
+        Assert.Equal(HttpStatusCode.BadRequest, weak.Response.StatusCode);
+        Assert.Equal("VALIDATION_ERROR", weak.Body.GetProperty("error").GetProperty("code").GetString());
+    }
+
+    [Fact]
+    public async Task Register_missing_required_fields_returns_validation_error_instead_of_server_error()
+    {
+        var client = _fixture.CreateClient();
+        var missingName = IdentityTestData.NewUser();
+        var missingNameResponse = await IdentityTestData.SendAsync(client, HttpMethod.Post, "/api/v1/auth/register", new
+        {
+            email = missingName.Email,
+            phone = missingName.Phone,
+            password = missingName.Password
+        });
+        var missingEmail = IdentityTestData.NewUser();
+        var missingEmailResponse = await IdentityTestData.SendAsync(client, HttpMethod.Post, "/api/v1/auth/register", new
+        {
+            fullName = missingEmail.Name,
+            phone = missingEmail.Phone,
+            password = missingEmail.Password
+        });
+
+        Assert.Equal(HttpStatusCode.BadRequest, missingNameResponse.Response.StatusCode);
+        Assert.Equal("VALIDATION_ERROR", missingNameResponse.Body.GetProperty("error").GetProperty("code").GetString());
+        Assert.Equal(HttpStatusCode.BadRequest, missingEmailResponse.Response.StatusCode);
+        Assert.Equal("VALIDATION_ERROR", missingEmailResponse.Body.GetProperty("error").GetProperty("code").GetString());
     }
 
     [Fact]

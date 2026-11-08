@@ -25,24 +25,24 @@ public sealed class AuthService(
 
     public async Task<Result<AcceptedResponse>> RegisterAsync(RegisterCommand command, Guid correlationId, CancellationToken cancellationToken)
     {
-        if (!IdentityNormalizer.IsFullName(command.FullName))
+        if (string.IsNullOrWhiteSpace(command.FullName) || !IdentityNormalizer.IsFullName(command.FullName))
         {
             return Result<AcceptedResponse>.Failure(IdentityErrors.Validation("Full name is invalid.", "fullName"));
         }
 
-        if (!IdentityNormalizer.IsEmail(command.Email))
+        if (string.IsNullOrWhiteSpace(command.Email) || !IdentityNormalizer.IsEmail(command.Email))
         {
             return Result<AcceptedResponse>.Failure(IdentityErrors.Validation("Email is invalid.", "email"));
         }
 
-        if (!IdentityNormalizer.IsPhone(command.Phone))
+        if (string.IsNullOrWhiteSpace(command.Phone) || !IdentityNormalizer.IsPhone(command.Phone))
         {
             return Result<AcceptedResponse>.Failure(IdentityErrors.Validation("Phone is invalid.", "phone"));
         }
 
         if (!PasswordPolicy.IsSatisfied(command.Password))
         {
-            return Result<AcceptedResponse>.Failure(IdentityErrors.PasswordPolicy());
+            return Result<AcceptedResponse>.Failure(IdentityErrors.Validation("Password does not meet the policy.", "password"));
         }
 
         var email = IdentityNormalizer.NormalizeEmail(command.Email);

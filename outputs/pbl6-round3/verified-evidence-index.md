@@ -33,5 +33,5 @@ All JSON reports above are Postman CLI exports. `auth06-review.postman_collectio
 
 The 16 report rows are all Passed based on their own Round 2/3 execution evidence. The 30 requests / 27 assertions are the baseline runs only; the corrective runs above overlap those cases and are listed separately rather than added as if they were unique cases. The numeric AUTH-07 threshold above describes this running local configuration only; the SRS requires rate limiting but does not set a universal numeric threshold. Round 2 history remains in the original workbook and its earlier status columns are preserved in the Round 3 workbook.
 
-Report: `C:\Users\minht\Downloads\Test_Report_API_Round3_Verified.xlsx`  
-Manual steps: `docs/testing/manual-round3-verification-vi.md`
+Report: `Software testing/API_Test_Report.xlsx`  
+Manual steps: `Software testing/manual-round3-verification-vi.md`
