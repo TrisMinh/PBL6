@@ -125,6 +125,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "reporting", "reporting", "{
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BusTicketPlatform.Reporting.Api.IntegrationTests", "src\tests\reporting\BusTicketPlatform.Reporting.Api.IntegrationTests\BusTicketPlatform.Reporting.Api.IntegrationTests.csproj", "{D07A4831-49B1-401B-A106-90502CBB5C96}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "application", "application", "{18B9CCF9-2C11-39C8-E5D9-CBC569F6A3E3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BusTicketPlatform.AuthBooking.UnitTests", "src\tests\application\BusTicketPlatform.AuthBooking.UnitTests\BusTicketPlatform.AuthBooking.UnitTests.csproj", "{267582C5-AA34-4AF0-A5C4-D60EC8B6D01B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -603,6 +607,18 @@ Global
 		{D07A4831-49B1-401B-A106-90502CBB5C96}.Release|x64.Build.0 = Release|Any CPU
 		{D07A4831-49B1-401B-A106-90502CBB5C96}.Release|x86.ActiveCfg = Release|Any CPU
 		{D07A4831-49B1-401B-A106-90502CBB5C96}.Release|x86.Build.0 = Release|Any CPU
+		{267582C5-AA34-4AF0-A5C4-D60EC8B6D01B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{267582C5-AA34-4AF0-A5C4-D60EC8B6D01B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{267582C5-AA34-4AF0-A5C4-D60EC8B6D01B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{267582C5-AA34-4AF0-A5C4-D60EC8B6D01B}.Debug|x64.Build.0 = Debug|Any CPU
+		{267582C5-AA34-4AF0-A5C4-D60EC8B6D01B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{267582C5-AA34-4AF0-A5C4-D60EC8B6D01B}.Debug|x86.Build.0 = Debug|Any CPU
+		{267582C5-AA34-4AF0-A5C4-D60EC8B6D01B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{267582C5-AA34-4AF0-A5C4-D60EC8B6D01B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{267582C5-AA34-4AF0-A5C4-D60EC8B6D01B}.Release|x64.ActiveCfg = Release|Any CPU
+		{267582C5-AA34-4AF0-A5C4-D60EC8B6D01B}.Release|x64.Build.0 = Release|Any CPU
+		{267582C5-AA34-4AF0-A5C4-D60EC8B6D01B}.Release|x86.ActiveCfg = Release|Any CPU
+		{267582C5-AA34-4AF0-A5C4-D60EC8B6D01B}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -668,5 +684,7 @@ Global
 		{5D44BBDC-931B-4EB2-A672-91F858CB8CC3} = {202827DD-3FD7-DA77-1B95-3EDAC595C4A2}
 		{1E75330F-A7F7-5D5E-252D-8BF6068F1C6E} = {CB270875-5CCA-EDEC-AC65-D24A3CE17778}
 		{D07A4831-49B1-401B-A106-90502CBB5C96} = {1E75330F-A7F7-5D5E-252D-8BF6068F1C6E}
+		{18B9CCF9-2C11-39C8-E5D9-CBC569F6A3E3} = {CB270875-5CCA-EDEC-AC65-D24A3CE17778}
+		{267582C5-AA34-4AF0-A5C4-D60EC8B6D01B} = {18B9CCF9-2C11-39C8-E5D9-CBC569F6A3E3}
 	EndGlobalSection
 EndGlobal
