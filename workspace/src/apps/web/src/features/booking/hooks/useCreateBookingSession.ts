@@ -1,5 +1,5 @@
 import { useMutation, type UseMutationResult } from "@tanstack/react-query";
-import { useEffect, useRef, type RefObject } from "react";
+import { useCallback, useEffect, useRef, type RefObject } from "react";
 import { useLocation, useNavigate } from "react-router";
 import { z } from "zod";
 import { isMockApi } from "@/shared/api/config";
@@ -91,6 +91,7 @@ function unlockAttempt(attempt: Attempt): void {
 }
 function useSessionMutation(
   attempt: RefObject<Attempt>,
+  replace: boolean,
 ): UseMutationResult<BookingSession, BookingRepositoryError, Variables> {
   const navigate = useNavigate();
   const location = useLocation();
@@ -123,16 +124,18 @@ function useSessionMutation(
       if (!current(attempt, variables)) return;
       useBookingDraftStore.getState().setDraft(session);
       completeAttempt(attempt.current);
-      navigate(bookingSeatsPath(session.sessionId));
+      navigate(bookingSeatsPath(session.sessionId), { replace });
     },
     onSettled: (_data, _error, variables) => {
       if (current(attempt, variables)) unlockAttempt(attempt.current);
     },
   });
 }
-export function useCreateBookingSession(): CreateBookingSessionResult {
+export function useCreateBookingSession({
+  replace = false,
+}: { replace?: boolean } = {}): CreateBookingSessionResult {
   const attempt = useAttempt();
-  const mutation = useSessionMutation(attempt);
+  const mutation = useSessionMutation(attempt, replace);
   const { mutate } = mutation;
   const location = useLocation();
   const navigate = useNavigate();
@@ -169,10 +172,13 @@ export function useCreateBookingSession(): CreateBookingSessionResult {
     attempt,
     mutate,
   ]);
-  const createSession = (tripId: string, passengerCount: number): void => {
-    const variables = begin(attempt.current, tripId, passengerCount);
-    if (variables) mutation.mutate(variables);
-  };
+  const createSession = useCallback(
+    (tripId: string, passengerCount: number): void => {
+      const variables = begin(attempt.current, tripId, passengerCount);
+      if (variables) mutate(variables);
+    },
+    [attempt, mutate],
+  );
   return {
     createSession,
     retry: () => {

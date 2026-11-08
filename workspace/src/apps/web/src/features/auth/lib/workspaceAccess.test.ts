@@ -45,6 +45,11 @@ describe("workspace navigation", () => {
       workspaceRedirect("/operator/trips", session([], "ACTIVE", [])),
     ).toBe("/account/tickets");
   });
+  it("keeps the trip and passenger count when returning to a direct seat link", () => {
+    const path =
+      "/trips/019b3000-0000-7000-8000-000000007001/seats?passengerCount=2";
+    expect(workspaceRedirect(path, session([], "ACTIVE", []))).toBe(path);
+  });
   it.each([
     "https://evil.test",
     "//evil.test",

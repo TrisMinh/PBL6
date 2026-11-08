@@ -16,7 +16,12 @@ export function CustomerSessionRoute(): ReactElement {
       <Navigate
         replace
         to={ROUTES.login}
-        state={{ from: safeIntendedRedirect(location.pathname, "customer") }}
+        state={{
+          from: safeIntendedRedirect(
+            location.pathname + location.search,
+            "customer",
+          ),
+        }}
       />
     );
   if (session.role !== "customer")

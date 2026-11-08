@@ -57,6 +57,7 @@ describe("routeConfig", () => {
         "/",
         "/*",
         "/trips",
+        "/trips/:tripId/seats",
         "/explore",
         "/explore/:provinceSlug",
         "/login",
@@ -95,7 +96,10 @@ describe("routeConfig", () => {
         expect(entry.ancestors[0]).toBe("./routes/layouts/customer.tsx");
         expect(
           entry.ancestors.includes("./routes/guards/customer-session.tsx"),
-        ).toBe(entry.path === "/account/tickets");
+        ).toBe(
+          entry.path === "/account/tickets" ||
+            entry.path === "/trips/:tripId/seats",
+        );
         const needsBookingSession =
           entry.path.startsWith("/booking/") ||
           entry.path === "/payment/:bookingId/vnpay";
@@ -132,7 +136,10 @@ describe.each(
     const title = metadata.find((item) => "title" in item);
     if (path === "/")
       expect(title).toEqual({ title: "Đặt vé xe online nhanh chóng | BLUE" });
-    else if (path === "/booking/:sessionId/seats")
+    else if (
+      path === "/booking/:sessionId/seats" ||
+      path === "/trips/:tripId/seats"
+    )
       expect(title).toEqual({ title: "Chọn ghế | BLUE" });
     else if (path === "/booking/:sessionId/passengers")
       expect(title).toEqual({ title: "Thông tin hành khách | BLUE" });

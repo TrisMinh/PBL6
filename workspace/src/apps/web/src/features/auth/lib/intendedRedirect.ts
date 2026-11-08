@@ -39,6 +39,15 @@ export function safeIntendedRedirect(
   const url = new URL(input, "https://blue.invalid");
   if (url.pathname === ROUTES.trips)
     return validTripQuery(url) ? input : fallback;
+  if (/^\/trips\/[A-Za-z0-9_-]{1,128}\/seats$/.test(url.pathname)) {
+    const query = [...url.searchParams];
+    return query.length <= 1 &&
+      query.every(
+        ([key, value]) => key === "passengerCount" && /^[1-6]$/.test(value),
+      )
+      ? input
+      : fallback;
+  }
   if (url.search) return fallback;
   const publicPath =
     [ROUTES.home, ROUTES.accountTickets, ROUTES.ticketLookup].some(

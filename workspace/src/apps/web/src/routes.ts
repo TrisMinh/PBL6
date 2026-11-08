@@ -60,6 +60,7 @@ export default [
     route(ROUTES.ticketLookup, "./routes/tickets/lookup.tsx"),
     layout("./routes/guards/customer-session.tsx", [
       route(ROUTES.accountTickets, "./routes/account/tickets.tsx"),
+      route("/trips/:tripId/seats", "./routes/booking/trip-seats.tsx"),
     ]),
     route("/tickets/:ticketCode", "./routes/tickets/detail.tsx"),
     route("/bookings/:bookingCode/cancel", "./routes/bookings/cancel.tsx"),

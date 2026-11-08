@@ -52,6 +52,7 @@ export function workspaceRedirect(
   if (
     /^\/(?:operator|admin)\//.test(url.pathname) ||
     /^\/(?:booking|bookings|payment|tickets)\//.test(url.pathname) ||
+    /^\/trips\/[A-Za-z0-9_-]{1,128}\/seats$/.test(url.pathname) ||
     ["/", "/trips", "/explore", "/account/tickets"].includes(url.pathname)
   )
     return url.pathname + url.search;

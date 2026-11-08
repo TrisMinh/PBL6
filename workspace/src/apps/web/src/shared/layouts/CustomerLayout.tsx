@@ -184,12 +184,10 @@ export function CustomerLayout(): ReactElement {
     location.pathname === ROUTES.register ||
     location.pathname === ROUTES.forgotPassword;
   const isHome = location.pathname === ROUTES.home;
-  const isSeatFrame = Boolean(
-    matchPath(
-      { path: "/booking/:sessionId/seats", end: true },
-      location.pathname,
-    ),
-  );
+  const isSeatFrame = [
+    "/booking/:sessionId/seats",
+    "/trips/:tripId/seats",
+  ].some((path) => Boolean(matchPath({ path, end: true }, location.pathname)));
   const isPassengerOrReviewFrame = [
     "/booking/:sessionId/passengers",
     "/booking/:sessionId/review",
