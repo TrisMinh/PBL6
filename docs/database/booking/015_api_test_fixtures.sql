@@ -17,11 +17,15 @@ insert into seat_holds (
 ) on conflict (id) do nothing;
 
 insert into seat_hold_items (seat_hold_id, trip_seat_id, seat_code, unit_price)
-values (
+select
   '01990a00-0000-7000-8000-000000000051',
-  '01990a00-0000-7000-8000-000000000021',
-  '1A', 150000
-) on conflict (seat_hold_id, trip_seat_id) do nothing;
+  ts.id,
+  ts.seat_code,
+  150000
+from trip_seats ts
+where ts.trip_id = '01990a00-0000-7000-8000-000000000007'
+  and ts.seat_code = '1A'
+on conflict (seat_hold_id, trip_seat_id) do nothing;
 
 insert into bookings (
   id, booking_code, seat_hold_id, trip_id, organization_id_external, customer_id_external,
@@ -45,21 +49,27 @@ insert into bookings (
 insert into booking_items (
   id, booking_id, trip_seat_id, source_seat_id_external, seat_code,
   unit_price, discount_amount, line_total, created_at
-) values (
+)
+select
   '01990a00-0000-7000-8000-000000000053',
   '01990a00-0000-7000-8000-000000000052',
-  '01990a00-0000-7000-8000-000000000021',
-  '01990a00-0000-7000-8000-000000000013',
-  '1A', 150000, 0, 150000,
+  ts.id,
+  ts.source_seat_id_external,
+  ts.seat_code,
+  150000, 0, 150000,
   timestamptz '2026-01-01 00:00:00+00'
-) on conflict (id) do nothing;
+from trip_seats ts
+where ts.trip_id = '01990a00-0000-7000-8000-000000000007'
+  and ts.seat_code = '1A'
+on conflict (id) do nothing;
 
 update trip_seats
 set status = 'BOOKED',
     active_hold_id = null,
     active_booking_item_id = '01990a00-0000-7000-8000-000000000053',
     updated_at = timestamptz '2026-01-01 00:01:00+00'
-where id = '01990a00-0000-7000-8000-000000000021';
+where trip_id = '01990a00-0000-7000-8000-000000000007'
+  and seat_code = '1A';
 
 -- Fixed test-only departed trip referenced by BOOK-07 in the collection.
 insert into trip_snapshots (

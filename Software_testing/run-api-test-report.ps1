@@ -2,6 +2,7 @@
 param(
     [string]$BaseUrl = 'http://localhost:5080',
     [string]$MailpitUrl = 'http://localhost:8025',
+    [string]$RoundLabel = 'Verification rerun',
     [string[]]$Request = @(),
     [switch]$SkipHealthCheck
 )
@@ -333,7 +334,14 @@ foreach ($line in [System.IO.File]::ReadAllLines($runLog)) {
         if (-not $caseResults.Contains($currentCaseId)) {
             $caseResults[$currentCaseId] = [System.Collections.Generic.List[object]]::new()
         }
-        $currentDetail = [pscustomobject]@{ Name = $detailName; Passed = $false; Assertion = $null; Http = [System.Collections.Generic.List[string]]::new() }
+        $currentDetail = [pscustomobject]@{
+            Name = $detailName
+            Passed = $false
+            Assertion = $null
+            Http = [System.Collections.Generic.List[string]]::new()
+            Requests = [System.Collections.Generic.List[string]]::new()
+            Errors = [System.Collections.Generic.List[string]]::new()
+        }
         $caseResults[$currentCaseId].Add($currentDetail)
         continue
     }
@@ -350,16 +358,28 @@ foreach ($line in [System.IO.File]::ReadAllLines($runLog)) {
             if (-not $currentDetail.Http.Contains($httpResult)) { $currentDetail.Http.Add($httpResult) }
         }
     }
+    if ($null -ne $currentDetail -and $line -match '^\s*(GET|POST|PUT|PATCH|DELETE)\s+https?://.+') {
+        $requestLine = $line.Trim()
+        if (-not $currentDetail.Requests.Contains($requestLine)) { $currentDetail.Requests.Add($requestLine) }
+    }
     if ($null -ne $currentDetail -and $line -match '^\s*Pass\s+') {
         $currentDetail.Passed = $true
         $currentDetail.Assertion = $line.Trim() -replace '^Pass\s+', ''
+    }
+    if ($null -ne $currentDetail -and $line -match '^\s*Fail\s+') {
+        $currentDetail.Passed = $false
+        $currentDetail.Errors.Add($line.Trim() -replace '^Fail\s+', '')
     }
     if ($line -match 'inside ".*?/\s*((?:AUTH|BOOK)-\d{2})\s+-\s+(.+?)"\s*$') {
         $failedId = $Matches[1]
         $failedName = $Matches[2].Trim()
         if ($caseResults.Contains($failedId)) {
             $failedDetail = $caseResults[$failedId] | Where-Object { $_.Name -eq $failedName } | Select-Object -Last 1
-            if ($failedDetail) { $failedDetail.Passed = $false } else { $unmappedFailure = $true }
+            if ($failedDetail) {
+                $failedDetail.Passed = $false
+                $failedDetail.Errors.Add($line.Trim())
+            }
+            else { $unmappedFailure = $true }
         }
         else { $unmappedFailure = $true }
     }
@@ -409,7 +429,7 @@ $summaryLines.Add("# Kết quả kiểm thử API")
 $summaryLines.Add('')
 $summaryLines.Add("**Tổng kết: $(if ($overallPassed) { 'PASS' } else { 'FAIL' }) — $passedCases/$totalCases test case đạt.**")
 $summaryLines.Add('')
-$summaryLines.Add('| Mã TC | Tên test case | Kết quả mong đợi (API Test Report) | Kết quả trả về | Pass/Fail |')
+$summaryLines.Add('| Mã TC | Tên test case | Kết quả mong đợi | Kết quả trả về | Pass/Fail |')
 $summaryLines.Add('|---|---|---|---|---|')
 foreach ($id in $caseResults.Keys) {
     $details = $caseResults[$id]
@@ -454,11 +474,68 @@ for ($lineIndex = 0; $lineIndex -lt $rawLogLines.Length; $lineIndex++) {
 [System.IO.File]::WriteAllLines($runLog, $cleanLogLines, [System.Text.UTF8Encoding]::new($false))
 
 $summaryPath = Join-Path $runOutput 'test-summary.md'
+$summaryLines.Insert(1, "**Vòng chạy: $RoundLabel**")
 [System.IO.File]::WriteAllLines($summaryPath, $summaryLines, [System.Text.UTF8Encoding]::new($false))
+
+$caseRows = [System.Collections.Generic.List[object]]::new()
+$logRows = [System.Collections.Generic.List[object]]::new()
+foreach ($id in $caseResults.Keys) {
+    $details = $caseResults[$id]
+    $metadata = $caseMetadata[$id]
+    $functionName = if ($id.StartsWith('AUTH-')) { 'Đăng ký & kích hoạt tài khoản' } else { 'Xem ghế & giữ ghế (SeatHold)' }
+    $actualParts = [System.Collections.Generic.List[string]]::new()
+    foreach ($detail in $details) {
+        $http = if ($detail.Http.Count -gt 0) { 'HTTP ' + ($detail.Http -join ', ') } else { 'Không ghi nhận HTTP status' }
+        $assertion = if ($detail.Assertion) { '; ' + $detail.Assertion } else { '' }
+        $actualParts.Add("$($detail.Name): $http$assertion")
+        $errorText = if ($detail.Errors.Count -gt 0) { $detail.Errors -join ' | ' } elseif (-not $detail.Passed) { 'Assertion không đạt; xem postman-cli.log.' } else { '' }
+        $logRows.Add([ordered]@{
+            Round = $RoundLabel
+            Function = $functionName
+            TestCase = $id
+            Result = if ($detail.Passed) { 'Passed' } else { 'Failed' }
+            Assertion = [string]$detail.Assertion
+            Error = $errorText
+            Request = $detail.Requests -join ' | '
+        })
+    }
+    $caseRows.Add([ordered]@{
+        Round = $RoundLabel
+        Function = $functionName
+        TestCase = $id
+        Name = [string]$metadata.Name
+        Expected = [string]$metadata.Expected
+        Actual = $actualParts -join ' | '
+        Result = if ($caseOutcomes[$id]) { 'Passed' } else { 'Failed' }
+    })
+}
+$excelPayload = [ordered]@{
+    round = $RoundLabel
+    generatedAt = (Get-Date).ToString('yyyy-MM-dd HH:mm:ss zzz')
+    totalCases = $totalCases
+    passed = $passedCases
+    failed = $totalCases - $passedCases
+    pending = 0
+    cases = @($caseRows)
+    logs = @($logRows)
+}
+$payloadPath = Join-Path $env:TEMP "pbl6-api-report-$timestamp.json"
+$excelPath = Join-Path $runOutput 'api-test-log.xlsx'
+$exporterPath = Join-Path $PSScriptRoot 'export-api-test-report.py'
+if (-not (Test-Path -LiteralPath $exporterPath -PathType Leaf)) { throw "Excel exporter not found: $exporterPath" }
+[System.IO.File]::WriteAllText($payloadPath, ($excelPayload | ConvertTo-Json -Depth 12), [System.Text.UTF8Encoding]::new($false))
+$pythonCommand = Get-Command python -ErrorAction Stop
+& $pythonCommand.Source $exporterPath --input-json $payloadPath --output $excelPath
+$excelExitCode = $LASTEXITCODE
+Remove-Item -LiteralPath $payloadPath -Force -ErrorAction SilentlyContinue
+if ($excelExitCode -ne 0 -or -not (Test-Path -LiteralPath $excelPath -PathType Leaf)) {
+    throw 'Could not create the API Excel report.'
+}
 $resultLabel = if ($overallPassed) { "PASS — $passedCases/$totalCases test case" } else { "FAIL — $passedCases/$totalCases test case passed" }
 Write-Host $resultLabel
 Write-Host "Report: $summaryPath"
 Write-Host "Log: $runLog"
+Write-Host "Excel: $excelPath"
 if ($script:PostmanFailures -gt 0) {
     Write-Host 'Runner: FAIL (xem log để biết chi tiết)'
     exit 1

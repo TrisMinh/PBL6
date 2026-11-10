@@ -32,16 +32,7 @@ insert into users (
     timestamptz '2026-01-01 00:00:00+00',
     timestamptz '2026-01-01 00:00:00+00'
   )
-on conflict (id) do update set
-  full_name = excluded.full_name,
-  email = excluded.email,
-  normalized_email = excluded.normalized_email,
-  phone = excluded.phone,
-  normalized_phone = excluded.normalized_phone,
-  password_hash = excluded.password_hash,
-  status = excluded.status,
-  email_verified_at = excluded.email_verified_at,
-  updated_at = excluded.updated_at;
+on conflict do nothing;
 
 insert into user_roles (id, user_id, role_id, organization_id_external, active, created_at)
 select fixture.id, fixture.user_id, r.id, null, true, timestamptz '2026-01-01 00:00:00+00'
@@ -49,5 +40,6 @@ from (values
   ('01990a00-0000-7000-8000-000000000031'::uuid, '01990a00-0000-7000-8000-000000000024'::uuid),
   ('01990a00-0000-7000-8000-000000000032'::uuid, '01990a00-0000-7000-8000-000000000025'::uuid)
 ) as fixture(id, user_id)
+join users u on u.id = fixture.user_id
 join roles r on r.code = 'CUSTOMER'
 on conflict (id) do nothing;
