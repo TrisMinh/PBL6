@@ -39,61 +39,6 @@ function Test-TcpPortInUse {
     }
 }
 
-function Set-DBeaverConnection {
-    param([Parameter(Mandatory)][int]$Port)
-
-    $workspace = Join-Path $env:APPDATA 'DBeaverData\workspace6\General\.dbeaver'
-    $path = Join-Path $workspace 'data-sources.json'
-    New-Item -ItemType Directory -Path $workspace -Force | Out-Null
-
-    if (Test-Path -LiteralPath $path) {
-        $data = Get-Content -LiteralPath $path -Raw | ConvertFrom-Json
-    }
-    else {
-        $data = [pscustomobject]@{
-            folders = [pscustomobject]@{}
-            connections = [pscustomobject]@{}
-            'connection-types' = [pscustomobject]@{}
-        }
-    }
-
-    $connectionId = 'postgres-jdbc-pbl6-local'
-    $providerProperties = [pscustomobject]@{}
-    $providerProperties | Add-Member -MemberType NoteProperty -Name '@dbeaver-show-non-default-db@' -Value 'true' -Force
-    $configuration = [pscustomobject]@{
-        host = '127.0.0.1'
-        port = [string]$Port
-        database = 'booking'
-        url = "jdbc:postgresql://127.0.0.1:$Port/booking"
-        configurationType = 'MANUAL'
-        type = 'dev'
-        'provider-properties' = $providerProperties
-        user = 'platform'
-        'auth-model' = 'native'
-    }
-    $connection = [pscustomobject]@{
-        provider = 'postgresql'
-        driver = 'postgres-jdbc'
-        name = 'PBL6 - PostgreSQL (all databases)'
-        'save-password' = $false
-        configuration = $configuration
-    }
-
-    $data.connections | Add-Member -MemberType NoteProperty -Name $connectionId -Value $connection -Force
-    if (-not $data.'connection-types'.dev) {
-        $data.'connection-types' | Add-Member -MemberType NoteProperty -Name dev -Value ([pscustomobject]@{
-            name = 'Development'
-            color = '255,255,255'
-            colorDark = '255,255,255'
-            description = 'Local development database'
-            'auto-commit' = $true
-        }) -Force
-    }
-
-    $data | ConvertTo-Json -Depth 30 | Set-Content -LiteralPath $path -Encoding utf8
-    Write-Host "Configured DBeaver connection 'PBL6 - PostgreSQL (all databases)' on 127.0.0.1:$Port."
-}
-
 $workspaceRoot = Split-Path -Parent $PSScriptRoot
 $infra = Join-Path $workspaceRoot 'src\infra'
 $composeBase = Join-Path $infra 'docker-compose.yml'
@@ -134,16 +79,18 @@ if ($existingVolume) {
     throw "A pbl6-local PostgreSQL volume already exists. This setup script is for a fresh database and will not overwrite existing data. Existing volume: $existingVolume"
 }
 
-if (-not (Get-Command dbeaver -ErrorAction SilentlyContinue) -and -not (Test-Path (Join-Path $env:LOCALAPPDATA 'DBeaver\dbeaver.exe'))) {
-    Invoke-WingetInstall -PackageId 'DBeaver.DBeaver.Community'
-}
-
 $postgresHostPort = 5432
 while (Test-TcpPortInUse -Port $postgresHostPort) {
     $postgresHostPort++
     if ($postgresHostPort -gt 5499) { throw 'Could not find a free local PostgreSQL port between 5432 and 5499.' }
 }
 $env:POSTGRES_HOST_PORT = [string]$postgresHostPort
+$pgAdminHostPort = 5050
+while (Test-TcpPortInUse -Port $pgAdminHostPort) {
+    $pgAdminHostPort++
+    if ($pgAdminHostPort -gt 5099) { throw 'Could not find a free local pgAdmin port between 5050 and 5099.' }
+}
+$env:PGADMIN_HOST_PORT = [string]$pgAdminHostPort
 $infraEnv = Join-Path $infra '.env'
 if (Test-Path -LiteralPath $infraEnv) {
     $infraEnvLines = @(Get-Content -LiteralPath $infraEnv)
@@ -155,10 +102,18 @@ if (Test-Path -LiteralPath $infraEnv) {
         }
     }
     if (-not $matchedHostPort) { $infraEnvLines += "POSTGRES_HOST_PORT=$postgresHostPort" }
+    $matchedPgAdminPort = $false
+    for ($index = 0; $index -lt $infraEnvLines.Count; $index++) {
+        if ($infraEnvLines[$index] -match '^\s*PGADMIN_HOST_PORT\s*=') {
+            $infraEnvLines[$index] = "PGADMIN_HOST_PORT=$pgAdminHostPort"
+            $matchedPgAdminPort = $true
+        }
+    }
+    if (-not $matchedPgAdminPort) { $infraEnvLines += "PGADMIN_HOST_PORT=$pgAdminHostPort" }
     Set-Content -LiteralPath $infraEnv -Value $infraEnvLines -Encoding utf8
 }
 else {
-    Set-Content -LiteralPath $infraEnv -Value "POSTGRES_HOST_PORT=$postgresHostPort" -Encoding utf8
+    Set-Content -LiteralPath $infraEnv -Value @("POSTGRES_HOST_PORT=$postgresHostPort", "PGADMIN_HOST_PORT=$pgAdminHostPort") -Encoding utf8
 }
 
 Write-Host "Downloading container images and building the local API stack (PostgreSQL host port $postgresHostPort)..."
@@ -171,8 +126,6 @@ finally {
     Pop-Location
 }
 if ($composeExitCode -ne 0) { throw "Docker Compose setup failed (exit code $composeExitCode)." }
-
-Set-DBeaverConnection -Port $postgresHostPort
 
 Write-Host 'Checking that the six logical databases and the AUTH/SeatHold demo fixtures were created...'
 $databaseCheck = @"
@@ -219,13 +172,11 @@ if (-not $ready) { throw 'Database is seeded, but API Gateway did not become rea
 Write-Host ''
 Write-Host 'PBL6 demo environment is ready.'
 Write-Host "Databases: $($databases.Trim())"
-Write-Host "DBeaver: connection 'PBL6 - PostgreSQL (all databases)' at 127.0.0.1:$postgresHostPort (user platform, password postgres)."
+Write-Host "pgAdmin: http://localhost:$pgAdminHostPort (login admin@example.com / postgres)."
+Write-Host 'In pgAdmin, open the preloaded server PBL6 - PostgreSQL; PostgreSQL credentials are platform / postgres.'
 Write-Host 'API Gateway: http://localhost:5080/ready'
 Write-Host 'Customer web: http://localhost:5173'
 Write-Host 'Mailpit: http://localhost:8025'
 Write-Host 'AUTH-02 duplicate email: seed.customer@example.test (ACTIVE)'
 Write-Host 'Seat demo: trip 01990a00-0000-7000-8000-000000000007; 1A BOOKED; 2A/2B AVAILABLE.'
 Write-Host 'This script sets up the environment; it does not run the Postman test collection.'
-if (Get-Process -Name dbeaver -ErrorAction SilentlyContinue) {
-    Write-Host 'DBeaver was already open; close and reopen it to load the new connection.'
-}
