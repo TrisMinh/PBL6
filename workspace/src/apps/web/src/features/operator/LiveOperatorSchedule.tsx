@@ -39,20 +39,22 @@ function localParts(value: unknown): { date: string; time: string } {
 export function LiveOperatorSchedule(): ReactElement {
   const navigate = useNavigate();
   const location = useLocation();
-  const [publicationNotice, setPublicationNotice] = useState(
-    () => typeof location.state?.publishedTripId === "string",
+  const [publicationTripId, setPublicationTripId] = useState<string>(() =>
+    typeof location.state?.publishedTripId === "string"
+      ? location.state.publishedTripId
+      : "",
   );
   const closePublicationNotice = useCallback(
-    () => setPublicationNotice(false),
+    () => setPublicationTripId(""),
     [],
   );
   useEffect(() => {
-    if (!publicationNotice) return;
+    if (!publicationTripId) return;
     void navigate(`${location.pathname}${location.search}`, {
       replace: true,
       state: null,
     });
-  }, [publicationNotice, navigate, location.pathname, location.search]);
+  }, [publicationTripId, navigate, location.pathname, location.search]);
   const [params, setParams] = useSearchParams();
   const highlightedId = params.get("highlight") ?? "";
   const [search, setSearch] = useState("");
@@ -102,6 +104,9 @@ export function LiveOperatorSchedule(): ReactElement {
       </>
     );
   const rows = query.data ?? [];
+  const publishedTrip = rows.find((row) => row.id === publicationTripId);
+  const saleReady =
+    publishedTrip?.status === "SCHEDULED" && publishedTrip.sellable === true;
   const statuses = [...new Set(rows.map((row) => String(row.status)))];
   const origins = [...new Set(rows.map((row) => String(row.origin)))].sort(
     (a, b) => a.localeCompare(b, "vi"),
@@ -193,11 +198,8 @@ export function LiveOperatorSchedule(): ReactElement {
           ＋ Tạo chuyến mới
         </Link>
       </header>
-      {publicationNotice && (
-        <Toast
-          message="Đã phát hành chuyến thành công"
-          onClose={closePublicationNotice}
-        />
+      {saleReady && (
+        <Toast message="Chuyến đã mở bán" onClose={closePublicationNotice} />
       )}
       <div className="live-schedule__stats">
         <div>
