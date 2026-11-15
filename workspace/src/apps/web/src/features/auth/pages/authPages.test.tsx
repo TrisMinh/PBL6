@@ -6,7 +6,7 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
-import { delay, http, HttpResponse } from "msw";
+import { http, HttpResponse } from "msw";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router";
 import type { ReactElement } from "react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
@@ -57,6 +57,16 @@ function fill(
   });
 }
 describe("auth forms through real HTTP", () => {
+  it("shows named social providers and keeps customer demo credentials separate from staff", () => {
+    mount();
+    expect(
+      screen.getByRole("button", { name: "Đăng nhập bằng Google" }),
+    ).toHaveTextContent("Google");
+    expect(
+      screen.getByRole("button", { name: "Đăng nhập bằng Facebook" }),
+    ).toHaveTextContent("Facebook");
+    expect(screen.queryByText(/Admin: admin@/)).not.toBeInTheDocument();
+  });
   it.each([
     ["/login", "TÀI KHOẢN KHÁCH HÀNG", "Đăng nhập để tiếp tục"],
     [
@@ -142,10 +152,14 @@ describe("auth forms through real HTTP", () => {
   });
   it("rapid submit sends one request and unmount suppresses stale session", async () => {
     let calls = 0;
+    let release = (): void => undefined;
+    const responseGate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
     server.use(
       http.post("/api/v1/auth/login", async () => {
         calls++;
-        await delay(60);
+        await responseGate;
         return HttpResponse.json({
           userId: "mock-customer",
           role: "customer",
@@ -161,19 +175,24 @@ describe("auth forms through real HTTP", () => {
     fireEvent.click(button);
     await waitFor(() => expect(calls).toBe(1));
     cleanup();
+    release();
     await new Promise((resolve) => setTimeout(resolve, 80));
     expect(sessionStorage.getItem(MOCK_SESSION_STORAGE_KEY)).toBeNull();
   });
   it("provider error is explicit and retry succeeds", async () => {
+    server.use(
+      http.post("/api/v1/auth/oauth", () => HttpResponse.error(), {
+        once: true,
+      }),
+    );
     mount();
-    fireEvent.change(screen.getByLabelText("Kịch bản đăng nhập mô phỏng"), {
-      target: { value: "error" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: "Đăng nhập bằng Google" }));
+    expect(
+      screen.queryByText(/Kịch bản đăng nhập mô phỏng/),
+    ).not.toBeInTheDocument();
+    fireEvent.click(
+      screen.getByRole("button", { name: "Đăng nhập bằng Google" }),
+    );
     expect(await screen.findByRole("alert")).toBeVisible();
-    fireEvent.change(screen.getByLabelText("Kịch bản đăng nhập mô phỏng"), {
-      target: { value: "success" },
-    });
     fireEvent.click(
       screen.getByRole("button", { name: "Đăng nhập bằng Facebook" }),
     );
@@ -198,6 +217,7 @@ describe("auth forms through real HTTP", () => {
     fireEvent.change(screen.getByLabelText("Xác nhận mật khẩu"), {
       target: { value: "BlueDemo2026" },
     });
+    fireEvent.click(screen.getByRole("checkbox", { name: /Tôi đồng ý/ }));
     fireEvent.click(screen.getByRole("button", { name: "Tạo tài khoản" }));
     expect(await screen.findByRole("status")).toHaveTextContent(
       "Yêu cầu mô phỏng đã được tiếp nhận",

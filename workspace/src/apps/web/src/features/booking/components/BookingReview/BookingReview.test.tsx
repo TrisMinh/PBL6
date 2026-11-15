@@ -67,5 +67,7 @@ it("reviews trusted trip, seat identities, contact and expandable mock cancellat
     screen.getByText("Giá cuối cùng được xác nhận bởi hệ thống BLUE"),
   ).toBeVisible();
   expect(screen.getByText("Có mặt 06:40")).toBeVisible();
-  expect(document.querySelectorAll(".booking-review img")).toHaveLength(10);
+  expect(
+    screen.getByRole("img", { name: "Ảnh minh họa xe của BLUE Express" }),
+  ).toBeVisible();
 });

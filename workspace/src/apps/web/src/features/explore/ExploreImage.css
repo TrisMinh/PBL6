@@ -1,0 +1,13 @@
+.explore-discovery__image {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  aspect-ratio: 3 / 2;
+  background: var(--color-bg-subtle);
+}
+
+.explore-discovery__image img {
+  position: absolute;
+  display: block;
+  max-width: none;
+}

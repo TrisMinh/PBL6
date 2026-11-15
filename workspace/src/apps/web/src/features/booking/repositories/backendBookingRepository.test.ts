@@ -1,4 +1,5 @@
 import { beforeEach, expect, it, vi } from "vitest";
+vi.hoisted(() => vi.resetModules());
 vi.mock("@/shared/api/config", () => ({ isMockApi: false, apiBaseUrl: "" }));
 import { backendBookingRepository } from "./backendBookingRepository";
 import { saveApiSession } from "@/shared/api/session";

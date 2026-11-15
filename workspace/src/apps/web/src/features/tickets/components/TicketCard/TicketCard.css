@@ -276,3 +276,180 @@
     display: none;
   }
 }
+
+.ticket-card--mock {
+  height: auto;
+}
+
+.ticket-card--mock .ticket-card__header {
+  height: auto;
+  margin: 0;
+  padding: 20px 28px 17px;
+  background: linear-gradient(104deg, #e8f2ff, #fbfdff 75%);
+}
+
+.ticket-card--mock .ticket-card__brand {
+  gap: 10px;
+}
+.ticket-card--mock .ticket-card__brand > span:last-child {
+  color: var(--color-text-secondary);
+}
+.ticket-card--mock .ticket-card__brand strong {
+  color: var(--color-text-primary);
+}
+.ticket-card--mock .ticket-card__header h2 {
+  font: 700 clamp(22px, 3vw, 32px)/1.25 var(--font-body);
+}
+.ticket-card--mock .ticket-card__header p {
+  margin: 5px 0 0;
+}
+
+.ticket-card--mock .ticket-card__body {
+  height: auto;
+  grid-template-columns: minmax(0, 1fr) minmax(226px, 28%);
+}
+
+.ticket-card--mock .ticket-card__content {
+  padding: 21px 28px 22px;
+}
+.ticket-card--mock .ticket-card__journey {
+  padding-bottom: 15px;
+}
+.ticket-card--mock .ticket-card__journey h3 {
+  margin: 0 0 9px;
+}
+.ticket-card--mock .ticket-card__schedule time {
+  font: 700 28px/1.25 var(--font-body);
+}
+.ticket-card--mock .ticket-card__schedule p {
+  margin: 4px 0 0;
+  font-weight: 600;
+}
+.ticket-card--mock .ticket-card__schedule span {
+  font-size: 12px;
+}
+.ticket-card--mock .ticket-card__timeline::before {
+  content: none;
+}
+
+.ticket-card--mock .ticket-card__facts {
+  gap: 12px 14px;
+  margin: 0;
+  padding-block: 14px;
+}
+
+.ticket-card--mock .ticket-card__facts dt {
+  margin-bottom: 3px;
+}
+.ticket-card--mock .ticket-card__notice {
+  gap: 10px;
+  margin: 0;
+  padding: 10px 13px;
+  background: #eefaf3;
+}
+
+.ticket-card__boarding-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.ticket-card__boarding-tip svg {
+  flex: none;
+  margin-top: 1px;
+  color: var(--color-brand-shell-strong);
+}
+.ticket-card--mock .ticket-card__policy {
+  margin: 7px 0 0;
+}
+.ticket-card--mock .ticket-card__stub {
+  align-content: center;
+  gap: 12px;
+  padding: 18px;
+  background: #edf4ff;
+}
+
+.ticket-card--mock .ticket-card__marker > img {
+  width: min(172px, 100%);
+  height: auto;
+  image-rendering: pixelated;
+  border: 1px solid var(--color-border-shell);
+  border-radius: 10px;
+  background: white;
+}
+
+.ticket-card--mock .ticket-card__code {
+  padding: 5px 10px;
+  border-radius: 7px;
+  background: white;
+  font: 700 14px var(--font-body);
+}
+
+.ticket-card--mock[data-status="cancelled"] {
+  border-top-color: #a1283d;
+}
+.ticket-card--mock[data-status="cancelled"] .ticket-card__notice {
+  border-color: #cf8796;
+  background: #fff1f4;
+}
+.ticket-card--mock[data-status="cancelled"] .ticket-card__notice svg {
+  color: #a1283d;
+}
+
+.ticket-card__inactive {
+  display: grid;
+  width: 76px;
+  height: 76px;
+  place-items: center;
+  border-radius: 16px;
+  background: #fbe4e9;
+  color: #a1283d;
+}
+
+.ticket-card--mock .ticket-card__links {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 9px;
+  padding: 12px 24px;
+  border-top: 1px solid var(--color-border-shell);
+  background: var(--color-bg-editorial-surface);
+}
+
+.ticket-card--mock .ticket-card__links a {
+  padding-inline: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.ticket-card--mock .ticket-card__links a:hover {
+  background: var(--color-bg-subtle);
+}
+.ticket-card--mock .ticket-card__links .ticket-card__cancel-action {
+  color: #a1283d;
+}
+.ticket-card--mock .ticket-card__links .ticket-card__cancel-action:hover {
+  background: #fff0f3;
+}
+
+@media (min-width: 960px) {
+  .ticket-card--mock .ticket-card__facts {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  .ticket-card--mock .ticket-card__body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ticket-card--mock .ticket-card__header,
+  .ticket-card--mock .ticket-card__content {
+    padding-inline: 16px;
+  }
+  .ticket-card--mock .ticket-card__links {
+    justify-content: flex-start;
+  }
+}

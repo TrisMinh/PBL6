@@ -1,0 +1,177 @@
+.trip-highlights__amenities {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 12px;
+  color: #1957b7;
+  font-size: 11px;
+}
+.trip-highlights__amenities span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 27px;
+  padding: 4px 8px;
+  border: 1px solid #1b58c4;
+  border-radius: 7px;
+  background: #2165d7;
+  color: white;
+  box-shadow: 0 2px 4px rgb(20 57 112 / 12%);
+  font-weight: 600;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+.trip-highlights__amenities svg {
+  flex-shrink: 0;
+}
+.trip-highlights__amenities [data-kind="charging"] {
+  border-color: #6032ac;
+  background: #7140bf;
+  color: white;
+}
+.trip-highlights__amenities [data-kind="pickup"] {
+  border-color: #0e634d;
+  background: #14755d;
+  color: white;
+}
+.trip-highlights__amenities [data-kind="ticket"] {
+  border-color: #1b455e;
+  background: #23536e;
+  color: white;
+}
+.trip-highlights__offer {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 8px;
+  border: 1px dashed #a9cdf8;
+  border-radius: 8px;
+  background: #f0f6ff;
+  color: #195bbd;
+  font: 500 11px/1.5 var(--font-body);
+  text-align: left;
+  cursor: pointer;
+}
+.trip-highlights__offer strong {
+  margin-left: auto;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: white;
+  color: #134bab;
+  font-size: 10px;
+}
+.trip-highlights__offer:hover {
+  background: #e2eeff;
+  border-color: #2874e8;
+}
+.trip-highlights__offer:focus-visible {
+  outline: 3px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+.trip-offer__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 110;
+  background: rgb(11 35 69 / 35%);
+}
+.trip-offer__dialog {
+  position: fixed;
+  z-index: 111;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(460px, calc(100vw - 40px));
+  max-height: calc(100vh - 48px);
+  overflow: auto;
+  padding: 30px;
+  border: 1px solid #cfe0fb;
+  border-radius: 20px;
+  background: white;
+  box-shadow: 0 24px 70px #0b234533;
+  font-family: var(--font-body);
+}
+.trip-offer__icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 13px;
+  background: #eaf3ff;
+  color: #2266d7;
+}
+.trip-offer__dialog h2 {
+  margin: 20px 0 10px;
+  font: 700 23px/1.3 var(--font-body);
+}
+.trip-offer__dialog > p {
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--color-text-secondary);
+}
+.trip-offer__code {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 22px 0;
+  padding: 15px;
+  border: 1px dashed #8cb5ed;
+  border-radius: 10px;
+  background: #f2f7ff;
+}
+.trip-offer__code span {
+  font-size: 10px;
+  color: #537297;
+}
+.trip-offer__code code {
+  font: 700 21px var(--font-body);
+  color: #195bbd;
+  user-select: all;
+}
+.trip-offer__dialog ul {
+  padding-left: 18px;
+  margin: 0 0 22px;
+  font-size: 12px;
+  line-height: 1.9;
+}
+.trip-offer__dialog .trip-offer__note {
+  margin: 0 0 22px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: #fff7e8;
+  color: #805d20;
+  font-size: 11px;
+}
+.trip-offer__dialog > .button {
+  width: 100%;
+  min-height: 46px;
+}
+.trip-offer__close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 8px;
+  background: #f1f5fb;
+  color: #4e6583;
+  cursor: pointer;
+}
+.trip-offer__close:focus-visible {
+  outline: 3px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.trip-offer__dialog ul li + li {
+  margin-top: 7px;
+}
+.trip-offer__dialog > p:not(.trip-offer__note) {
+  margin: 0;
+  line-height: 1.8;
+}

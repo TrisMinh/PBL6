@@ -3,7 +3,6 @@ WORKDIR /app
 COPY workspace/src/infra/docker/web-package.json ./package.json
 COPY workspace/src/packages ./src/packages
 COPY workspace/src/apps/customer-web ./src/apps/customer-web
-COPY workspace/src/apps/backoffice-web ./src/apps/backoffice-web
 RUN npm install
 ARG APP
 RUN npm run build -w "@busticket/${APP}"

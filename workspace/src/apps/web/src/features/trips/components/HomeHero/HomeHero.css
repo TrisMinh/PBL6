@@ -1,3 +1,9 @@
+@property --home-hero-light-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
 .home-hero {
   --home-hero-inset: var(--space-section-inset);
   --home-hero-height: 650px;
@@ -14,6 +20,54 @@
   border: var(--home-hero-border-width) solid var(--color-border);
   border-radius: 24px;
   background: var(--color-bg-hero-placeholder);
+}
+
+.home-hero__border-glow {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  border-radius: inherit;
+  filter: blur(7px);
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+.home-hero::after,
+.home-hero__border-glow::before {
+  position: absolute;
+  z-index: 2;
+  inset: -2px;
+  padding: 4px;
+  border-radius: inherit;
+  background: conic-gradient(
+    from var(--home-hero-light-angle),
+    transparent 0deg 225deg,
+    var(--color-hero-edge-glow) 255deg,
+    var(--color-hero-edge-blue) 284deg,
+    var(--color-hero-edge-cyan) 310deg,
+    var(--color-on-brand-white) 325deg 341deg,
+    var(--color-hero-edge-highlight) 349deg,
+    transparent 360deg
+  );
+  mask:
+    linear-gradient(var(--color-on-brand-white) 0 0) content-box,
+    linear-gradient(var(--color-on-brand-white) 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+  content: "";
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .home-hero::after,
+  .home-hero__border-glow::before {
+    animation: home-hero-border-light 5s linear infinite;
+  }
+}
+
+@keyframes home-hero-border-light {
+  to {
+    --home-hero-light-angle: 360deg;
+  }
 }
 
 .home-hero__image {

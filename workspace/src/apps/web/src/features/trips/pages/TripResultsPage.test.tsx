@@ -98,7 +98,7 @@ describe("TripResultsPage", () => {
         "Miền Đông mới",
         "Bến xe Đà Lạt",
         "Còn 6 ghế",
-        "320.000 ₫",
+        "320.000 đ",
       ],
       [
         "An Lạc",
@@ -109,7 +109,7 @@ describe("TripResultsPage", () => {
         "Miền Đông mới",
         "Bến xe Đà Lạt",
         "Còn 12 ghế",
-        "280.000 ₫",
+        "280.000 đ",
       ],
       [
         "Thiên Việt",
@@ -120,7 +120,7 @@ describe("TripResultsPage", () => {
         "Bến xe Q.5",
         "Trung tâm Đà Lạt",
         "Còn 4 ghế",
-        "390.000 ₫",
+        "390.000 đ",
       ],
       [
         "Minh Châu",
@@ -131,7 +131,7 @@ describe("TripResultsPage", () => {
         "Miền Đông mới",
         "Bến xe Đà Lạt",
         "Còn 9 ghế",
-        "330.000 ₫",
+        "330.000 đ",
       ],
       [
         "Cao Nguyên",
@@ -142,7 +142,7 @@ describe("TripResultsPage", () => {
         "Bến xe An Sương",
         "Bến xe Đà Lạt",
         "Còn 15 ghế",
-        "275.000 ₫",
+        "275.000 đ",
       ],
       [
         "Đồi Xanh",
@@ -153,7 +153,7 @@ describe("TripResultsPage", () => {
         "Miền Đông mới",
         "Trung tâm Đà Lạt",
         "Còn 7 ghế",
-        "350.000 ₫",
+        "350.000 đ",
       ],
     ];
     expect(articles).toHaveLength(expected.length);
@@ -247,8 +247,18 @@ describe("TripResultsPage", () => {
     expect(request).toHaveBeenCalledTimes(1);
   });
 
+  it("opens all trips with a search form when there is no core query", () => {
+    renderResults("");
+    expect(
+      screen.getByRole("heading", { name: "Tất cả chuyến xe" }),
+    ).toBeVisible();
+    expect(
+      screen.getByRole("region", { name: "Tìm kiếm chuyến xe" }),
+    ).toBeVisible();
+    expect(screen.getAllByRole("article")).toHaveLength(6);
+  });
+
   it.each([
-    "",
     core.replace("destinationId=loc-dalat", "destinationId=loc-hcm"),
     core.replace("2099-01-01", "2020-01-01"),
     core.replace("passengerCount=2", "passengerCount=7"),

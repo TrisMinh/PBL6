@@ -1,4 +1,5 @@
 import type { ReactElement } from "react";
+import { Toast } from "@/shared/ui/Toast/Toast";
 import { Link, useSearchParams } from "react-router";
 
 import type { BookingRepositoryError } from "@/features/booking/repositories/bookingRepositoryError";
@@ -92,8 +93,18 @@ function ResolvedReturn({
           <span aria-current="page">Xác nhận</span>
         </nav>
         <h1>{HEADINGS[query.data.status]}</h1>
-        <p role="status">Kết quả được xác nhận từ giao dịch mô phỏng đã tạo.</p>
+        <p role="status">
+          {query.data.status === "success"
+            ? "Vé điện tử đã sẵn sàng cho hành trình của bạn."
+            : "Theo dõi kết quả giao dịch và lựa chọn bước tiếp theo."}
+        </p>
       </header>
+      {query.data.status === "success" && (
+        <Toast
+          tone="success"
+          message="Thanh toán thành công. Vé của bạn đã được phát hành."
+        />
+      )}
       <PaymentResultCard
         result={query.data}
         isFetching={query.isFetching}

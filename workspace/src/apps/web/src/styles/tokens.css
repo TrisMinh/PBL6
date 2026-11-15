@@ -1,6 +1,28 @@
 :root {
+  --color-auth-lockout-border: #fed7aa;
+  --color-auth-lockout-surface: #fff7ed;
+  --color-auth-lockout-copy: #7c2d12;
+  --color-auth-lockout-icon-surface: #ffedd5;
+  --color-auth-lockout-icon: #9a3412;
+  --color-search-action: #2563eb;
+  --color-search-option-active: #eff5ff;
+  --color-search-option-icon: #eef4ff;
+  --color-results-focus: #69a5ff;
+  --color-results-expanded-border: #dbe7ff;
+  --color-results-expanded-surface: #f2f7ff;
+  --shadow-search-dropdown: 0 12px 32px rgb(25 50 85 / 14%);
   --color-bg-page: #f7faff;
   --color-bg-brand: #1f66e5;
+  --color-action-hover: #1557c9;
+  --color-action-danger-hover: #b02a3d;
+  --color-action-secondary: #fbfcfe;
+  --color-action-secondary-hover: #eaf2fe;
+  --color-action-secondary-border: #8fb3e2;
+  --color-action-secondary-text: #0b1f3a;
+  --color-action-disabled: #a9bde0;
+  --color-action-secondary-disabled: #eef2f7;
+  --color-action-disabled-border: #d7e2ef;
+  --color-action-disabled-text: #8798ac;
   --color-bg-surface: #fcfdff;
   --color-bg-subtle: #eff6ff;
   --color-text-primary: #10243e;
@@ -83,6 +105,9 @@
   --color-results-text: #081934;
   --color-results-text-secondary: #5c6d89;
   --color-results-text-muted: #5c6d89;
+  --color-results-field-label: #5c6d89;
+  --color-results-vehicle-copy: #1f3352;
+  --color-results-terminal-muted: #5c6d89;
   --color-results-accent: #1b6eea;
   --color-results-active: #071a2f;
   --color-results-border: #d6dfee;
@@ -138,4 +163,44 @@
   --space-content-gap: 16px;
   --space-section-inset: 24px;
   --size-control-min: 44px;
+}
+
+/* Desktop visual refinement tokens. */
+:root {
+  --color-on-brand-white: #fff;
+  --color-social-instagram-purple: #6833cf;
+  --color-social-instagram-pink: #c21d73;
+  --color-social-instagram-orange: #c9441a;
+  --color-social-facebook: #0866ff;
+  --color-social-linkedin: #0a66c2;
+  --shadow-route-card-hover: 0 8px 24px #173c6b26;
+  --color-hero-edge-glow: rgb(38 124 255 / 35%);
+  --color-hero-edge-blue: #2587ff;
+  --color-hero-edge-cyan: #55d9ff;
+  --color-hero-edge-highlight: #7ae6ff;
+  --shadow-account-avatar: 0 0 0 3px #edf4ff, 0 3px 8px rgb(30 84 166 / 14%);
+  --shadow-account-avatar-active:
+    0 0 0 4px #dceaff, 0 4px 10px rgb(30 84 166 / 20%);
+  --color-account-avatar-border: #286be2;
+  --color-account-avatar-border-active: #124cb8;
+  --color-account-logout-text: #a1283d;
+  --color-account-logout-surface: #fff0f3;
+  --color-account-avatar-surface: #f0f6ff;
+  --shadow-results-view: 0 5px 15px rgb(14 43 82 / 5%);
+  --color-results-view-surface: #f8fbff;
+  --color-results-view-icon: #1957b7;
+  --color-results-view-text: #4b6280;
+  --color-results-view-soft: #eaf2ff;
+  --color-results-view-active: #1955b8;
+  --color-results-view-border: #d7e4f5;
+  --color-results-view-disabled: #e9f1fb;
+  --color-trip-rating-text: #895505;
+  --color-auth-back-border: #bfd5f7;
+  --color-auth-home-surface: #f2f7ff;
+  --color-auth-home-text: #1754b4;
+  --color-auth-back-text: #2266d7;
+  --color-auth-home-hover-surface: #e5efff;
+  --color-auth-back-surface: #f5f9ff;
+  --color-auth-home-hover-border: #2165d7;
+  --color-auth-home-hover-text: #174faf;
 }

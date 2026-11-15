@@ -37,7 +37,10 @@ describe("createMeta", () => {
 
 describe("robots policy", () => {
   it("allows public pages and blocks private route families without inventing a sitemap URL", async () => {
-    const robots = await readFile("public/robots.txt", "utf8");
+    const robots = (await readFile("public/robots.txt", "utf8")).replace(
+      /\r\n/g,
+      "\n",
+    );
 
     expect(robots).toContain("User-agent: *\nAllow: /");
     expect(robots).toContain("Disallow: /admin/");

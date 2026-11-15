@@ -1,5 +1,8 @@
 import { useEffect, useRef, type ReactElement, type ReactNode } from "react";
 import { Link } from "react-router";
+import { isMockApi } from "@/shared/api/config";
+import { OperatorSidebar } from "./components/OperatorSidebar";
+import "./schedule/SchedulePage.css";
 import { ApiError } from "@/shared/api/error";
 import { ApiFailure } from "@/shared/api/ResourcePage";
 import { vietnamLocal, type Trip, type Route } from "./tripWorkflow";
@@ -48,7 +51,7 @@ export function TripWorkflowShell({
   review?: boolean;
   children: ReactNode;
 }): ReactElement {
-  return (
+  const content = (
     <section className="operator-trip-workflow operator-create">
       <header className="operator-trip-workflow__header">
         <h1>{title}</h1>
@@ -88,6 +91,14 @@ export function TripWorkflowShell({
       </ol>
       {children}
     </section>
+  );
+  return isMockApi ? (
+    <div className="operator-schedule operator-trip-workflow-shell">
+      <OperatorSidebar />
+      <main className="operator-trip-workflow-main">{content}</main>
+    </div>
+  ) : (
+    content
   );
 }
 export function TripFact({
@@ -152,12 +163,15 @@ export function CancellationPolicy(): ReactElement {
   );
 }
 export function PublicTripLink({ trip }: { trip: Trip }): ReactElement {
+  const origin =
+    import.meta.env.VITE_CUSTOMER_ORIGIN ??
+    `http://${typeof window === "undefined" ? "localhost" : window.location.hostname}:5173`;
   return (
-    <Link
+    <a
       className="button button--secondary"
-      to={`/trips?${new URLSearchParams({ originId: trip.origin, destinationId: trip.destination, departureDate: vietnamLocal(trip.departureAt).slice(0, 10), passengerCount: "1", organizationId: trip.organizationId })}`}
+      href={`${origin}/trips?${new URLSearchParams({ originId: trip.origin, destinationId: trip.destination, departureDate: vietnamLocal(trip.departureAt).slice(0, 10), passengerCount: "1", organizationId: trip.organizationId })}`}
     >
       Xem chuyến bên khách hàng
-    </Link>
+    </a>
   );
 }

@@ -1,8 +1,7 @@
-import * as Dialog from "@radix-ui/react-dialog";
 import { useQuery } from "@tanstack/react-query";
-import { useRef, useState, type ReactElement, type FormEvent } from "react";
+import { useState, type ReactElement, type FormEvent } from "react";
 import { useNavigate, useSearchParams } from "react-router";
-import { BrandLogo } from "@/shared/ui/BrandLogo/BrandLogo";
+import { OperatorSidebar } from "../components/OperatorSidebar";
 import { Button } from "@/shared/ui/Button/Button";
 import { PageState } from "@/shared/ui/PageState/PageState";
 import { getSchedule } from "./scheduleRepository";
@@ -21,14 +20,6 @@ import passengerIcon from "@/assets/operator/schedule/imgIconPassenger.svg";
 import boardingDot from "@/assets/operator/schedule/imgStatusDot.svg";
 import scheduledDot from "@/assets/operator/schedule/imgStatusDot1.svg";
 import draftDot from "@/assets/operator/schedule/imgStatusDot2.svg";
-import tripsIcon from "@/assets/operator/schedule/imgFrame1.svg";
-import bookingsIcon from "@/assets/operator/schedule/imgFrame2.svg";
-import routesIcon from "@/assets/operator/schedule/imgFrame3.svg";
-import seatsIcon from "@/assets/operator/schedule/imgFrame4.svg";
-import driversIcon from "@/assets/operator/schedule/imgFrame5.svg";
-import reportsIcon from "@/assets/operator/schedule/imgFrame6.svg";
-import membersIcon from "@/assets/operator/schedule/imgFrame7.svg";
-import cancellationsIcon from "@/assets/operator/schedule/imgFrame8.svg";
 import createIcon from "@/assets/operator/schedule/imgIconCalendarPlus.svg";
 import "./SchedulePage.css";
 
@@ -49,31 +40,6 @@ const ASSIGNMENTS = [
   ["missing", "Thiếu phương tiện"],
   ["conflict", "Có xung đột"],
 ] as const;
-const GROUPS = [
-  {
-    title: "VẬN HÀNH",
-    links: [
-      ["Chuyến đi", tripsIcon],
-      ["Đặt chỗ & giao dịch", bookingsIcon],
-      ["Hủy vé & hoàn tiền", cancellationsIcon],
-    ],
-  },
-  {
-    title: "TÀI NGUYÊN",
-    links: [
-      ["Tuyến & điểm dừng", routesIcon],
-      ["Xe & sơ đồ ghế", seatsIcon],
-      ["Tài xế", driversIcon],
-    ],
-  },
-  {
-    title: "QUẢN TRỊ",
-    links: [
-      ["Báo cáo", reportsIcon],
-      ["Tổ chức & thành viên", membersIcon],
-    ],
-  },
-];
 
 function SelectField({
   label,
@@ -241,8 +207,6 @@ export function SchedulePage(): ReactElement {
   const [assignment, setAssignment] = useState(
     params.get("assignment") ?? "complete",
   );
-  const [notice, setNotice] = useState<string | null>(null);
-  const lastTrigger = useRef<HTMLElement | null>(null);
   const query = useQuery({
     queryKey: ["operator", "schedule-preview"],
     queryFn: ({ signal }) => getSchedule(signal),
@@ -287,69 +251,12 @@ export function SchedulePage(): ReactElement {
       return next;
     });
   };
-  const unavailable = (label: string): void => {
-    lastTrigger.current =
-      document.activeElement instanceof HTMLElement
-        ? document.activeElement
-        : null;
-    setNotice(
-      `${label} thuộc màn Operator khác và chưa được triển khai trong bản xem trước này.`,
-    );
-  };
   return (
     <div className="operator-schedule">
       <a className="operator-schedule__skip" href="#operator-schedule-main">
         Đến lịch chuyến
       </a>
-      <aside
-        className="operator-schedule__sidebar"
-        aria-label="Điều hướng Operator"
-      >
-        <div className="operator-schedule__brand">
-          <BrandLogo placement="header" />
-        </div>
-        <nav>
-          {GROUPS.map((group) => (
-            <section key={group.title}>
-              <h2>{group.title}</h2>
-              {group.links.map(([label, icon]) => (
-                <button
-                  type="button"
-                  key={label}
-                  aria-current={label === "Chuyến đi" ? "page" : undefined}
-                  onClick={() =>
-                    label === "Chuyến đi"
-                      ? reset()
-                      : label === "Đặt chỗ & giao dịch"
-                        ? navigate("/operator/bookings")
-                        : label === "Tuyến & điểm dừng"
-                          ? navigate("/operator/routes")
-                          : label === "Xe & sơ đồ ghế"
-                            ? navigate("/operator/vehicles")
-                            : label === "Hủy vé & hoàn tiền"
-                              ? navigate("/operator/refund-requests")
-                              : label === "Tài xế"
-                                ? navigate("/operator/drivers")
-                                : label === "Báo cáo"
-                                  ? navigate("/operator/reports")
-                                  : unavailable(label ?? "Màn hình")
-                  }
-                >
-                  <img src={icon} width={16} height={16} alt="" />
-                  {label}
-                </button>
-              ))}
-            </section>
-          ))}
-        </nav>
-        <div className="operator-schedule__account">
-          <span>OP</span>
-          <div>
-            <strong>Nhân viên</strong>
-            <small>BlueLine Co.</small>
-          </div>
-        </div>
-      </aside>
+      <OperatorSidebar />
       <main id="operator-schedule-main" className="operator-schedule__main">
         <header className="operator-schedule__header">
           <h1>Lịch chuyến</h1>
@@ -532,29 +439,6 @@ export function SchedulePage(): ReactElement {
           </section>
         </div>
       </main>
-      <Dialog.Root
-        open={notice !== null}
-        onOpenChange={(open) => {
-          if (!open) setNotice(null);
-        }}
-      >
-        <Dialog.Portal>
-          <Dialog.Overlay className="operator-schedule__overlay" />
-          <Dialog.Content
-            className="operator-schedule__dialog"
-            onCloseAutoFocus={(event) => {
-              event.preventDefault();
-              lastTrigger.current?.focus();
-            }}
-          >
-            <Dialog.Title>Màn hình đang được phát triển</Dialog.Title>
-            <Dialog.Description>{notice}</Dialog.Description>
-            <Dialog.Close asChild>
-              <Button>Đóng</Button>
-            </Dialog.Close>
-          </Dialog.Content>
-        </Dialog.Portal>
-      </Dialog.Root>
     </div>
   );
 }

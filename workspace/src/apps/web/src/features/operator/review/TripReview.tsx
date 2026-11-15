@@ -67,6 +67,7 @@ export function TripReviewPage(): ReactElement {
     },
     onSuccess: () => {
       void client.invalidateQueries({ queryKey: ["live-api"] });
+      void client.invalidateQueries({ queryKey: ["operator", "schedule-preview"] });
       void navigate(
         `/operator/trips?${new URLSearchParams({
           highlight: tripId,

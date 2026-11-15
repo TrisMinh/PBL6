@@ -9,12 +9,43 @@
   color: var(--color-text-primary);
   font-family: var(--font-body);
 }
+.operator-trip-workflow-main {
+  min-width: 0;
+}
+.operator-trip-workflow .operator-create__swap {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 0;
+  border: 1px solid var(--op-border);
+  border-radius: 8px;
+  background: var(--op-action-soft);
+}
+.operator-trip-workflow .operator-create__route-fields .operator-create__field {
+  min-height: 64px;
+  padding: 8px 13px;
+  gap: 6px;
+}
+.operator-trip-workflow
+  .operator-create__route-fields
+  .operator-create__field
+  > span {
+  font-size: 9px;
+  text-transform: uppercase;
+}
+.operator-trip-workflow
+  .operator-create__route-fields
+  .operator-create__field
+  select {
+  font-size: 12px;
+}
 .operator-trip-workflow__header {
   display: flex;
   align-items: center;
   gap: 16px;
   min-height: 68px;
-  padding: 16px 20px;
+  padding: 12px 20px;
   background: #fff;
   border: 1px solid var(--op-border);
   border-radius: 10px;
@@ -26,10 +57,13 @@
 .operator-trip-workflow .operator-create__save-status {
   font-size: 12px;
 }
+.operator-trip-workflow .operator-create__back {
+  min-height: 40px;
+}
 .operator-trip-workflow .operator-create__steps {
-  margin-top: 12px;
-  height: auto;
-  min-height: 76px;
+  margin-top: 8px;
+  height: 72px;
+  min-height: 72px;
 }
 .operator-trip-workflow .operator-create__steps li {
   position: relative;
@@ -51,22 +85,22 @@
   color: var(--op-copy);
 }
 .operator-trip-workflow .operator-create__steps strong {
-  font-size: 13px;
+  font-size: 12px;
 }
 .operator-trip-workflow .operator-create__steps small {
-  font-size: 11px;
+  font-size: 9px;
 }
 .operator-trip-workflow .operator-create__columns {
-  grid-template-columns: minmax(0, 2fr) minmax(290px, 1fr);
+  grid-template-columns: minmax(0, 790fr) minmax(290px, 404fr);
   align-items: start;
 }
 .operator-trip-workflow .operator-create__panel {
-  padding: 22px;
-  border-radius: 10px;
+  padding: 20px;
+  border-radius: 8px;
 }
 .operator-trip-workflow .operator-create__panel h2 {
   margin: 0;
-  font: 600 19px/1.4 var(--font-display);
+  font: 600 18px/1.4 var(--font-display);
 }
 .operator-trip-workflow .operator-create__panel > p {
   font-size: 12px;
@@ -571,5 +605,32 @@
 @media (prefers-reduced-motion: reduce) {
   .operator-trip-workflow__publish-spinner {
     animation: none;
+  }
+}
+@media (min-width: 1200px) {
+  .operator-trip-workflow__times {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 126px;
+  }
+  .operator-trip-workflow__times > .operator-review__fact {
+    grid-column: auto;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    min-height: 64px;
+    padding: 8px 12px;
+    gap: 6px;
+  }
+  .operator-trip-workflow__times .operator-create__field {
+    min-height: 64px;
+    padding: 8px 12px;
+    gap: 6px;
+  }
+  .operator-trip-workflow__times .operator-create__field input {
+    min-height: 22px;
+    font-size: 12px;
+  }
+  .operator-trip-workflow__times .operator-trip-workflow__datetime {
+    grid-template-columns: minmax(0, 1fr) 74px;
+    gap: 6px;
   }
 }

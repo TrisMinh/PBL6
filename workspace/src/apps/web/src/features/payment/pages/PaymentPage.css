@@ -27,9 +27,8 @@
   margin: 0;
 }
 .payment-page--return .payment-page__heading {
-  height: 110px;
   min-height: 0;
-  margin: 0;
+  margin: 0 0 24px;
 }
 .payment-page--return .payment-page__heading p {
   margin: 0;
@@ -86,7 +85,7 @@
 }
 @media (min-width: 1200px) {
   .payment-page__checkout {
-    grid-template-columns: 820px 430px;
+    grid-template-columns: minmax(0, 820px) minmax(0, 430px);
     gap: 30px;
   }
   .payment-page--return {

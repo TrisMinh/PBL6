@@ -4,7 +4,6 @@ import { Link } from "react-router";
 import failureShield from "@/assets/payment/failure-shield.svg";
 import processingSafety from "@/assets/payment/processing-safety.svg";
 import progressRail from "@/assets/payment/progress-rail.svg";
-import statusDot from "@/assets/payment/status-dot.svg";
 import { useSeats } from "@/features/booking/hooks/useSeats";
 import { useHoldCountdown } from "@/features/booking/hooks/useHoldCountdown";
 import { useBookingDraftStore } from "@/features/booking/store/bookingDraftStore";
@@ -16,7 +15,12 @@ import { paymentVnPayPath, ticketPath, ROUTES } from "@/shared/config/routes";
 import { formatCurrencyVnd } from "@/shared/lib/formatCurrencyVnd";
 import { formatDateTime } from "@/shared/lib/formatDateTime";
 import { Button } from "@/shared/ui/Button/Button";
-import { BrandLogo } from "@/shared/ui/BrandLogo/BrandLogo";
+import { CheckCircle } from "@phosphor-icons/react/dist/csr/CheckCircle";
+import { Clock } from "@phosphor-icons/react/dist/csr/Clock";
+import { XCircle } from "@phosphor-icons/react/dist/csr/XCircle";
+import { Ticket } from "@phosphor-icons/react/dist/csr/Ticket";
+import { ArrowRight } from "@phosphor-icons/react/dist/csr/ArrowRight";
+import tripPhoto from "@/assets/operator/schedule/imgTripVehicleThumbnail.png";
 
 import "./PaymentResultCard.css";
 
@@ -41,44 +45,58 @@ function JourneyHeader({ result }: { result: PaymentResult }): ReactElement {
   const query = useSeats(result.tripId);
   return (
     <header className="payment-result__journey">
-      <div className="payment-result__reference">
-        <BrandLogo placement="header" className="payment-result__brand" />
-        {result.status === "pending" ? (
-          <img src={statusDot} alt="" aria-hidden="true" />
-        ) : null}
-        <strong>{STATUS_EYEBROWS[result.status]}</strong>
-        <span className="payment-result__booking-code">
-          <span aria-hidden="true">MÃ </span>
-          <span>{result.bookingCode}</span>
-        </span>
+      <img
+        className="payment-result__trip-photo"
+        src={tripPhoto}
+        alt="Ảnh xe minh họa cho hành trình"
+      />
+      <div className="payment-result__journey-info">
+        <div className="payment-result__reference">
+          <span className="payment-result__status-badge">
+            {result.status === "success" ? (
+              <CheckCircle size={20} weight="fill" aria-hidden="true" />
+            ) : result.status === "pending" ? (
+              <Clock size={20} aria-hidden="true" />
+            ) : (
+              <XCircle size={20} aria-hidden="true" />
+            )}
+            <strong>{STATUS_EYEBROWS[result.status]}</strong>
+          </span>
+          <span className="payment-result__booking-code">
+            Mã đặt vé <b>{result.bookingCode}</b>
+          </span>
+        </div>
+        {query.data ? (
+          <>
+            <h2>
+              {query.data.trip.origin.displayName} →{" "}
+              {query.data.trip.destination.displayName}
+            </h2>
+            <p>
+              {formatDateTime(
+                query.data.trip.departureTime,
+                "HH:mm dd/MM/yyyy",
+              )}{" "}
+              · {query.data.trip.operator.name}
+            </p>
+          </>
+        ) : (
+          <>
+            <h2>Thông tin chuyến đi</h2>
+            {query.isError ? (
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => void query.refetch()}
+              >
+                Tải lại hành trình
+              </Button>
+            ) : (
+              <p role="status">Đang tải hành trình…</p>
+            )}
+          </>
+        )}
       </div>
-      {query.data ? (
-        <>
-          <h2>
-            {query.data.trip.origin.province} →{" "}
-            {query.data.trip.destination.province}
-          </h2>
-          <p>
-            {formatDateTime(query.data.trip.departureTime, "HH:mm dd/MM/yyyy")}{" "}
-            · {query.data.trip.operator.name}
-          </p>
-        </>
-      ) : (
-        <>
-          <h2>Thông tin chuyến đi</h2>
-          {query.isError ? (
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => void query.refetch()}
-            >
-              Tải lại hành trình
-            </Button>
-          ) : (
-            <p role="status">Đang tải hành trình…</p>
-          )}
-        </>
-      )}
     </header>
   );
 }
@@ -88,11 +106,13 @@ function PaymentDetails({ result }: { result: PaymentResult }): ReactElement {
     <section aria-label="Chi tiết giao dịch">
       <h3>{recovery ? "Giao dịch cần xử lý" : "Chi tiết giao dịch"}</h3>
       <dl className="payment-result__details">
-        <div>
-          <dt>Trạng thái</dt>
-          <dd>{LABELS[result.status]}</dd>
-        </div>
-        <div>
+        {result.status !== "success" && (
+          <div>
+            <dt>Trạng thái</dt>
+            <dd>{LABELS[result.status]}</dd>
+          </div>
+        )}
+        <div className="payment-result__amount-row">
           <dt>Số tiền</dt>
           <dd>{formatCurrencyVnd(result.amountVnd)}</dd>
         </div>
@@ -101,24 +121,24 @@ function PaymentDetails({ result }: { result: PaymentResult }): ReactElement {
           <dd>VNPay mô phỏng</dd>
         </div>
         <div>
-          <dt>Thời điểm tạo giao dịch</dt>
+          <dt>Thời gian giao dịch</dt>
           <dd>{formatDateTime(result.createdAt, "HH:mm dd/MM/yyyy")}</dd>
         </div>
       </dl>
-      <p className="payment-result__safety">
-        <img
-          src={recovery ? failureShield : processingSafety}
-          alt=""
-          aria-hidden="true"
-        />
-        <span>
-          {result.status === "success"
-            ? "Đã xác nhận dữ liệu giao dịch và phát hành vé mô phỏng."
-            : recovery
+      {result.status !== "success" && (
+        <p className="payment-result__safety">
+          <img
+            src={recovery ? failureShield : processingSafety}
+            alt=""
+            aria-hidden="true"
+          />
+          <span>
+            {recovery
               ? "Nếu tài khoản đã bị trừ tiền, đừng thanh toán lại. Hãy kiểm tra giao dịch trước để tránh thanh toán hai lần."
               : "Chưa phát hành vé. Không thực hiện lại giao dịch khi đang chờ xác nhận."}
-        </span>
-      </p>
+          </span>
+        </p>
+      )}
       <p className="payment-result__notice">
         Đây là môi trường mô phỏng; không thu tiền thật.
       </p>
@@ -132,9 +152,18 @@ function TicketLinks({ result }: { result: PaymentResult }): ReactElement {
       <ul className="payment-result__tickets">
         {result.tickets.map((ticket) => (
           <li key={ticket.ticketId}>
-            <span>Ghế {ticket.seatCode}</span>
-            <Link to={ticketPath(ticket.ticketCode)}>
-              Xem vé {ticket.ticketCode}
+            <span className="payment-result__ticket-icon">
+              <Ticket size={24} aria-hidden="true" />
+            </span>
+            <div className="payment-result__ticket-info">
+              <strong>Ghế {ticket.seatCode}</strong>
+              <span>{ticket.ticketCode}</span>
+            </div>
+            <Link
+              aria-label={`Xem vé ${ticket.ticketCode}`}
+              to={ticketPath(ticket.ticketCode)}
+            >
+              Xem vé <ArrowRight size={16} aria-hidden="true" />
             </Link>
           </li>
         ))}
@@ -209,17 +238,18 @@ export function PaymentResultCard(props: Props): ReactElement {
     >
       <JourneyHeader result={props.result} />
       <div className="payment-result__body">
-        <div>
-          <PaymentDetails result={props.result} />
-          {props.result.status === "success" && (
+        <div className="payment-result__main">
+          {props.result.status === "success" ? (
             <TicketLinks result={props.result} />
+          ) : (
+            <PaymentProgress status={props.result.status} />
           )}
         </div>
         <aside className="payment-result__sidebar">
-          <PaymentProgress status={props.result.status} />
-          <RecoveryActions {...props} />
+          <PaymentDetails result={props.result} />
         </aside>
       </div>
+      <RecoveryActions {...props} />
     </article>
   );
 }

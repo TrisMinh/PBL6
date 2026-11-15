@@ -1,5 +1,14 @@
 import { http, HttpResponse, type HttpHandler } from "msw";
 import { z } from "zod";
+import {
+  browserMockStorage,
+  type MockStorage,
+} from "@/mocks/state/mockSnapshot";
+import {
+  organizationSchema,
+  staffSchema,
+  membershipSchema,
+} from "@/features/admin/schemas/adminResponse.schema";
 
 import { parseAdminListParams } from "@/features/admin/schemas/adminListParams.schema";
 import type { AdminListParams } from "@/features/admin/schemas/adminListParams.schema";
@@ -35,6 +44,7 @@ interface ListOptions<T> {
 }
 
 interface AdminContext {
+  save?: () => void;
   db: MockDb;
   now: () => number;
   allowScenarios: boolean;
@@ -320,6 +330,7 @@ async function handleCreate<T extends AdminEntity, TBody extends object>(
     return adminProblem("VALIDATION_ERROR", instance);
   const item = options.build(body, serverFields(context, options));
   options.items.push(item);
+  context.save?.();
   return adminJson(structuredClone(item), 201);
 }
 
@@ -355,6 +366,7 @@ async function handleUpdate<T extends AdminEntity, TBody extends object>(
     }),
   };
   options.items[index] = item;
+  context.save?.();
   return adminJson(structuredClone(item));
 }
 
@@ -416,6 +428,7 @@ export function createAdminHandlers(
     id?: () => string;
     delay?: (milliseconds: number) => Promise<void>;
     allowScenarios?: boolean;
+    storage?: MockStorage;
   } = {},
 ): HttpHandler[] {
   const data = createCollections();
@@ -434,7 +447,64 @@ export function createAdminHandlers(
       : [],
   );
   const idempotency = new Map<string, { body: string; result: Membership }>();
+  const storage =
+    options.storage ?? (options.db ? undefined : browserMockStorage);
+  const archiveKey = "blue-mock-admin-db";
+  const archiveSchema = z.object({
+    version: z.literal(1),
+    organizations: z.array(organizationSchema).max(1000),
+    staff: z.array(staffSchema).max(2000),
+    memberships: z.array(membershipSchema).max(4000),
+    idempotency: z
+      .array(
+        z.tuple([
+          z.string(),
+          z.object({ body: z.string(), result: membershipSchema }),
+        ]),
+      )
+      .max(1000),
+  });
+  try {
+    const raw = storage?.getItem(archiveKey);
+    if (raw) {
+      if (raw.length > 2000000) throw new Error("Archive too large");
+      const archive = archiveSchema.parse(JSON.parse(raw));
+      if (
+        archive.memberships.some(
+          (m) =>
+            !archive.staff.some((s) => s.id === m.staffId) ||
+            !archive.organizations.some((o) => o.id === m.organizationId),
+        )
+      )
+        throw new Error("Orphan membership");
+      data.organizations = archive.organizations;
+      data.staff = archive.staff;
+      memberships.splice(0, memberships.length, ...archive.memberships);
+      archive.idempotency.forEach(([key, value]) =>
+        idempotency.set(key, value),
+      );
+    }
+  } catch {
+    storage?.removeItem(archiveKey);
+  }
+  function save(): void {
+    try {
+      storage?.setItem(
+        archiveKey,
+        JSON.stringify({
+          version: 1,
+          organizations: data.organizations,
+          staff: data.staff,
+          memberships,
+          idempotency: [...idempotency],
+        }),
+      );
+    } catch {
+      /* In-memory demo remains usable when storage is denied. */
+    }
+  }
   const context: AdminContext = {
+    save,
     db: options.db ?? mockDb,
     now: options.now ?? Date.now,
     id: options.id ?? (() => crypto.randomUUID()),
@@ -527,6 +597,7 @@ export function createAdminHandlers(
       };
       memberships.push(result);
       idempotency.set(key, { body: serialized, result });
+      save();
       return adminJson(result, 201);
     }),
     http.put(
@@ -556,6 +627,7 @@ export function createAdminHandlers(
             item.organizationId === body.organizationId,
         );
         if (staff) staff.role = body.role;
+        save();
         return adminJson(result);
       },
     ),

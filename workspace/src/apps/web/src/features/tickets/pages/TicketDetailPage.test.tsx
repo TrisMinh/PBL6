@@ -91,7 +91,7 @@ describe("TicketDetailPage access and projection", () => {
   it("uses the exact local ticket assets and bounded presentation-only QR", async () => {
     const code = await grant();
     mount(code);
-    expect(await screen.findByText("QUÉT KHI LÊN XE")).toBeVisible();
+    expect(await screen.findByText("MÃ VÉ ĐIỆN TỬ")).toBeVisible();
     const marker = screen.getByRole("img", {
       name: "Mã vé minh họa, không dùng để quét",
     });
@@ -100,7 +100,9 @@ describe("TicketDetailPage access and projection", () => {
       expect.stringMatching(/ticket-qr\.png$/),
     );
     expect(marker).toHaveAttribute("data-presentation-only", "true");
-    expect(screen.getByText("Sẵn sàng để quét")).toBeVisible();
+    expect(
+      screen.getByText("Nên đến điểm đón sớm và mang giấy tờ cần thiết."),
+    ).toBeVisible();
   });
   it("keeps loading and safe error retry without raw server content", async () => {
     const code = await grant();

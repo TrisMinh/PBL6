@@ -17,6 +17,7 @@ import { isCompleteBookingSession } from "@/mocks/state/bookingCheckout";
 import { requireActiveSession } from "@/mocks/state/bookingSeats";
 import { mockDb, type MockDb } from "@/mocks/state/mockDb";
 import { paymentReturnPath } from "@/shared/config/routes";
+import { isMockApi } from "@/shared/api/config";
 
 export interface PaymentHandlerOptions {
   db?: MockDb;
@@ -118,10 +119,7 @@ export function createPaymentHandlers(
   const context: PaymentContext = {
     db: options.db ?? mockDb,
     now: options.now ?? Date.now,
-    allowScenarios:
-      options.allowScenarios ??
-      (!import.meta.env.PROD &&
-        (import.meta.env.DEV || import.meta.env.MODE === "test")),
+    allowScenarios: options.allowScenarios ?? isMockApi,
   };
   return [
     http.post(PATH, async ({ request }) => {

@@ -1,221 +1,66 @@
-# BLUE — Travel v3 Frontend
+# BLUE Travel v3 — Desktop frontend
 
-Frontend React cho nền tảng đặt vé xe BLUE, gồm website khách hàng và trang quản trị. Source hiện có trọn luồng mock tìm chuyến → giữ ghế → hành khách → review → VNPay → tra cứu/vé điện tử → hủy một phần, cùng đăng nhập, lịch sử vé và các module quản trị. Dữ liệu, thanh toán và hoàn tiền chỉ được mô phỏng trong development/test; ứng dụng không kết nối backend hoặc ngân hàng thật.
+Customer, Operator và Admin là **ba web desktop riêng**, dùng chung source/design primitives trong thư mục này. Không triển khai native mobile app trong đợt hoàn thiện này.
 
-## Chạy nhanh
+## Chuẩn bị
 
-Yêu cầu Node.js `24.22.0` và pnpm `10.34.7`. Kiểm tra trước khi chạy:
-
-```powershell
-node --version
-pnpm --version
-```
-
-Nếu chưa có pnpm, tải và cài đúng phiên bản bằng npm (được cài kèm Node.js):
+Dùng Node `24.22.0`, pnpm `10.34.7`. Tại thư mục này chạy `pnpm install --frozen-lockfile`.
+Nếu muốn dùng đúng runtime mà không thay phiên bản toàn máy:
 
 ```powershell
-npm install --global pnpm@10.34.7
-pnpm --version
+npm exec --yes --package=node@24.22.0 --package=pnpm@10.34.7 -- pnpm install --frozen-lockfile
 ```
 
-Sau khi có đúng phiên bản Node.js và pnpm, mở PowerShell tại thư mục dự án:
+## Chạy từng web
+
+Tại `workspace/`, mỗi lệnh chạy trong một terminal:
 
 ```powershell
-cd D:\HK7\Figma\FE
-pnpm install --frozen-lockfile
-pnpm dev
+npm run dev:customer
+npm run dev:operator
+npm run dev:admin
 ```
 
-Nếu lưu dự án ở vị trí khác, thay đường dẫn trong lệnh `cd` tương ứng. Mở [http://localhost:5173](http://localhost:5173); dùng `Ctrl+C` để dừng. Dự án hiện không cần file `.env`, backend hay database để chạy chế độ development vì API được mô phỏng bằng MSW.
+| Web | Địa chỉ | Tài khoản demo | Mật khẩu |
+|---|---|---|---|
+| Customer | http://127.0.0.1:5173 | test+review@example.invalid | BlueDemo2026 |
+| Operator | http://127.0.0.1:5174 | operator@blue.example.invalid | BlueDemo2026 |
+| Admin | http://127.0.0.1:5175 | admin@blue.example.invalid | BlueDemo2026 |
 
-Lưu ý: `.npmrc` bật `engine-strict=true`, nên cài dependency bằng phiên bản Node khác `24.22.0` sẽ bị từ chối. Xem phần chuẩn bị môi trường bên dưới nếu cần đổi Node.
+Staff có trang đăng nhập riêng. Customer không chứa route Operator/Admin; các web staff không chứa luồng đặt vé khách. Phiên đăng nhập tách theo origin. Các thư mục `../customer-web`, `../operator-web`, `../admin-web` có package/lệnh riêng, source dùng chung ở đây để tránh ba bản sao bị lệch nhau.
 
-## Phạm vi sản phẩm theo kế hoạch
+Mặc định hoàn toàn mock, không cần BE, database hoặc VNPay thật. Đăng nhập Google/Facebook, thanh toán và hỗ trợ đều là mô phỏng. Không nhập thông tin ngân hàng thật. Khi cần tích hợp sau này, đặt `VITE_API_MODE=live` tường minh rồi build lại; chưa nghiệm thu live trong đợt này.
 
-- Khách hàng tìm chuyến, chọn ghế, nhập thông tin, thanh toán VNPay mô phỏng, xem vé và yêu cầu hủy/hoàn một phần.
-- Khách có thể đặt vé không cần đăng nhập; đăng ký, đăng nhập và đăng nhập Google/Facebook đều được mô phỏng.
-- Một tài khoản super admin quản lý dữ liệu và giao dịch qua giao diện admin.
-- Responsive từ 360px đến màn hình desktop lớn. Không xây native mobile app, cổng nhà xe hoặc cổng tài xế.
+## Dữ liệu và kịch bản
 
-## Stack đã chốt
+- 630 chuyến demo trên 12 cặp điểm đi/đến có chiều, trong 7 ngày; nhiều khung giờ, giá, loại xe và tồn ghế.
+- Customer có lịch sử được tạo qua các mutation mock thật: 4 booking/payment, 6 vé, gồm vé hủy một phần và hoàn tiền đang xử lý. Tài khoản demo chỉ thấy 5 vé thuộc quyền; vé của tài khoản khác được lọc.
+- Có thể đặt vé mới, tra cứu bằng email, chọn ghế/hành khách, thanh toán và hủy. Mock lưu theo phiên trình duyệt; tải lại vẫn giữ dữ liệu.
+- Google/Facebook có thành công/lỗi thử lại. Đăng ký rồi xác minh/reset dùng mã demo `123456`; tài khoản demo mới được lưu dạng digest mật khẩu, không lưu plaintext. Chỉ dùng mật khẩu thử nghiệm.
+- Checkout VNPay giữ giao diện Travel v3, thêm cổng mô phỏng QR/ATM/thẻ quốc tế, 6 ngân hàng mẫu và kết quả thành công/chờ/thất bại/hủy. Không kết nối ngân hàng.
+- Operator có tuyến/điểm dừng, xe/sơ đồ ghế, tài xế, chuyến nháp/review/publish, booking/manifest, hủy/hoàn, báo cáo, tổ chức/thành viên và đối soát. Dữ liệu tổ chức/thành viên và đối soát demo được lưu theo phiên.
+- Admin có tổ chức, thành viên, booking, payment, refund; bộ lọc URL, modal tạo/sửa, trạng thái tải/rỗng/lỗi/403/404. Tổ chức/nhân viên/phân quyền tạo mới được lưu qua reload.
+- Xóa dữ liệu trang/sessionStorage để reset demo. Trong test thuần chức năng có thể dùng `VITE_DEMO_HISTORY=off` để không seed lịch sử Customer.
 
-- React, Vite, TypeScript strict, pnpm.
-- React Router Framework Mode với `ssr: false`; prerender các route công khai ổn định.
-- Tailwind CSS cho utility/responsive; CSS tùy chỉnh bắt buộc theo BEM.
-- Radix UI, Phosphor Icons, TanStack Query, Zustand, React Hook Form, Zod, MSW, date-fns.
-- ESLint, Prettier, Vitest, Testing Library, Playwright, Husky và lint-staged.
+## Build và kiểm thử
 
-Runtime nền đã được khóa ở Node `24.22.0` và pnpm `10.34.7`. Phiên bản package trực tiếp được khóa chính xác trong `package.json` và `pnpm-lock.yaml`.
+Tại `workspace/`: `npm run build:web` build tuần tự cả ba web. Hoặc tại từng thư mục app chạy `npm run build`.
+Artifact tương ứng ở `customer-web/dist/client`, `operator-web/dist/client`, `admin-web/dist/client`. `npm run preview` tại từng app phục vụ SPA/deep-link trên cổng riêng.
 
-## Chạy dự án trên Windows
-
-### 1. Chuẩn bị môi trường
-
-Cài đúng các phiên bản sau:
-
-- Node.js `24.22.0`, được khai báo trong `.nvmrc`.
-- pnpm `10.34.7`, được khai báo trong `package.json`.
-- Git để Husky cài pre-commit hook khi cài dependency.
-
-Kiểm tra máy có NVM hay không:
+Tại thư mục `web/`:
 
 ```powershell
-Get-Command nvm -ErrorAction SilentlyContinue
+pnpm typecheck
+pnpm lint
+pnpm test --maxWorkers=2
+pnpm exec playwright test --config playwright.portals.config.ts --project=desktop
+pnpm exec playwright test tests/e2e/figma-fidelity.spec.ts tests/e2e/customer-booking.spec.ts tests/e2e/cancellation.spec.ts tests/e2e/accessibility.spec.ts --project=w1440 --workers=1
 ```
 
-Nếu lệnh trên hiển thị đường dẫn của `nvm`, chạy:
+`playwright.portals.config.ts` kiểm thử ba **bản build** riêng trên 5273/5274/5275; cần build trước. Manifest `all` chỉ dùng cho regression harness cũ, không phải app triển khai mặc định. Không chạy song song typegen/build nhiều target trên cùng source.
 
-```powershell
-nvm install 24.22.0
-nvm use 24.22.0
-node --version
-```
+## Thiết kế và tài liệu
 
-Kết quả cuối phải là `v24.22.0`.
+[Travel v3](https://www.figma.com/design/OCkWSOZQ8Pq8AejXccajpO/Travel-v3): Customer Desktop `7:5`, Operator Desktop `7:7`, Admin Desktop `7:11`. Dùng assets local, shared UI/tokens và các state đã mapping.
 
-Nếu lệnh kiểm tra không hiển thị gì hoặc PowerShell báo `nvm is not recognized`, máy chưa cài NVM. Không chạy tiếp bằng Node phiên bản cũ. Hãy cài trực tiếp Node.js `24.22.0` từ trang phát hành chính thức của Node.js, đóng toàn bộ cửa sổ PowerShell, mở lại PowerShell rồi chạy:
-
-```powershell
-node --version
-```
-
-Chỉ tiếp tục khi kết quả là `v24.22.0`.
-
-Kích hoạt đúng phiên bản pnpm:
-
-```powershell
-corepack enable
-corepack prepare pnpm@10.34.7 --activate
-pnpm --version
-```
-
-Kết quả cuối phải là `10.34.7`. Nếu máy không có lệnh `corepack`, chạy `npm install --global pnpm@10.34.7`.
-
-### 2. Cài dependency
-
-Mở PowerShell tại thư mục dự án rồi cài đúng dependency trong lockfile:
-
-```powershell
-cd D:\HK7\Figma\FE
-pnpm install --frozen-lockfile
-```
-
-### 3. Khởi động frontend
-
-```powershell
-pnpm dev
-```
-
-Mở [http://localhost:5173](http://localhost:5173) trên trình duyệt. Giữ cửa sổ PowerShell đang chạy. Nhấn `Ctrl+C` khi muốn dừng server.
-
-Frontend tự khởi động Mock Service Worker trong môi trường development. Bạn không cần chạy backend, database hoặc VNPay thật. Dữ liệu thay đổi và phiên đăng nhập mock được lưu theo tab trình duyệt bằng `sessionStorage`.
-
-### 4. Đăng nhập tài khoản demo
-
-| Vai trò     | Email                           | Mật khẩu       | Trang đăng nhập                         |
-| ------------ | ------------------------------- | ---------------- | ------------------------------------------ |
-| Khách hàng | `test+review@example.invalid` | `BlueDemo2026` | `/login`                                 |
-| Super admin  | `admin@blue.example.invalid`  | `BlueDemo2026` | `/login?redirectTo=/admin/organizations` |
-
-Đây là credential công khai chỉ dùng cho dữ liệu mock. Không nhập mật khẩu thật vào ứng dụng.
-
-## Kiểm tra chất lượng
-
-Chạy các lệnh sau tại `D:\HK7\Figma\FE` khi cần kiểm tra thay đổi:
-
-| Lệnh                         | Mục đích                                                               |
-| ----------------------------- | ------------------------------------------------------------------------- |
-| `pnpm format:check`         | Kiểm tra định dạng Prettier.                                          |
-| `pnpm lint`                 | Kiểm tra ESLint và không cho phép warning.                            |
-| `pnpm typecheck`            | Sinh type cho route và kiểm tra TypeScript.                             |
-| `pnpm test`                 | Chạy toàn bộ unit/integration test một lần.                          |
-| `pnpm test:coverage`        | Chạy test và xuất báo cáo coverage.                                  |
-| `pnpm test:e2e --workers=1` | Chạy Playwright E2E ổn định trên năm viewport.                      |
-| `pnpm build`                | Tạo production build và kiểm tra prerender.                            |
-| `pnpm verify:build`         | Build rồi kiểm tra artifact, SPA fallback và deep link bằng Chromium. |
-
-Trước khi chạy E2E lần đầu, cài Chromium cho Playwright:
-
-```powershell
-pnpm exec playwright install chromium
-```
-
-Full E2E có 240 executions trên năm viewport. Playwright không cấu hình retry. `pnpm verify:build` khởi động server kiểm tra tạm thời rồi tự dừng; đây không phải lệnh deploy production.
-
-## Xử lý lỗi thường gặp
-
-### Sai phiên bản Node hoặc pnpm
-
-Nếu `pnpm install` báo lỗi `Unsupported engine`, chạy lại:
-
-```powershell
-nvm use 24.22.0
-corepack prepare pnpm@10.34.7 --activate
-node --version
-pnpm --version
-```
-
-### PowerShell chặn `pnpm.ps1`
-
-Không cần đổi Execution Policy. Dùng file lệnh `.cmd` tương ứng:
-
-```powershell
-pnpm.cmd install --frozen-lockfile
-pnpm.cmd dev
-```
-
-### Cổng 5173 đang được sử dụng
-
-Dừng tiến trình development cũ bằng `Ctrl+C`, sau đó chạy lại `pnpm dev`. E2E và tài liệu dự án đều dùng cổng `5173` mặc định.
-
-### Muốn đặt lại toàn bộ dữ liệu mock
-
-Mở DevTools của trình duyệt, vào Console rồi chạy:
-
-```javascript
-sessionStorage.clear();
-location.reload();
-```
-
-Thao tác này chỉ xóa dữ liệu mock trong tab hiện tại.
-
-## Route và tài khoản mock
-
-- Customer: `/`, `/trips`, `/booking/:sessionId/{seats,passengers,review}`, `/payment/:bookingId/vnpay`, `/payment/vnpay/return`, `/tickets/lookup`, `/tickets/:ticketCode`, `/account/tickets`, `/bookings/:bookingCode/cancel`.
-- Auth: `/login`, `/register`, `/forgot-password`.
-- Admin: `/admin/organizations`, `/admin/staff`, `/admin/bookings`, `/admin/payments`, `/admin/refunds` và route detail tương ứng.
-- Customer demo: `test+review@example.invalid` / `BlueDemo2026`.
-- Super admin demo: `admin@blue.example.invalid` / `BlueDemo2026`.
-
-Đây là credential công khai chỉ dành cho mock; không nhập mật khẩu thật. Guest có thể đặt vé và thanh toán mô phỏng, sau đó tra cứu bằng mã đặt vé cùng email/điện thoại người liên hệ. Phiên đăng nhập chỉ chứa token opaque/userId/role/expiry, không lưu email hay mật khẩu. Admin thiếu session chuyển `/login`; booking thiếu draft phục hồi tìm chuyến hết hạn; URL lạ có trang 404. Danh sách route canonical đầy đủ nằm trong [ROUTES.md](./docs/technical/ROUTES.md), còn thao tác thực tế nằm trong [hướng dẫn sử dụng](./docs/user/USER_GUIDE.md).
-
-Lệnh build kiểm tra trực tiếp HTML prerender của `/` để tránh trang trắng trước JavaScript; route còn lại dùng SPA fallback. Development khởi động MSW trước route data; runtime production không import/start MSW browser, nhưng file public `mockServiceWorker.js` vẫn được copy vào build. `pnpm install` kích hoạt Husky pre-commit hook chạy lint-staged.
-
-## Tài liệu quan trọng
-
-- [PRD](./PRD.md)
-- [Backlog](./TODO.md)
-- [Kiến trúc hệ thống](./docs/technical/ARCHITECTURE.md)
-- [Thiết kế frontend](./docs/technical/FRONTEND_ARCHITECTURE.md)
-- [Công cụ và thư viện](./docs/technical/FRONTEND_STACK.md)
-- [Quy ước code](./docs/technical/FRONTEND_CONVENTIONS.md)
-- [Bản đồ quy tắc và vị trí file](./docs/technical/PROJECT_RULES_INDEX.md)
-- [Quy trình thực thi Supervisor + Worker](./docs/technical/AGENT_EXECUTION_WORKFLOW.md)
-- [Mapping Figma](./docs/technical/FIGMA_SCREEN_MAP.md)
-- [Route](./docs/technical/ROUTES.md)
-- [Hợp đồng dữ liệu mock](./docs/technical/API_CONTRACT.md)
-- [Mapping dữ liệu frontend](./docs/technical/FE_BE_FIELD_MAPPING.md)
-- [Quyết định kiến trúc](./docs/technical/DECISIONS.md)
-- [Đặc tả brainstorming đã duyệt](./docs/superpowers/specs/2026-10-18-travel-v3-frontend-design.md)
-- [Implementation master plan](./docs/superpowers/plans/2026-10-18-travel-v3-frontend-master-plan.md)
-
-## Nguồn thiết kế
-
-- Figma: https://www.figma.com/design/OCkWSOZQ8Pq8AejXccajpO/Travel-v3
-- Customer Desktop: node `7:5`.
-- Admin Desktop: node `7:11`.
-- Brand Kit: node `0:1`; Components: node `7:3`.
-
-## Ranh giới dự án
-
-Database, ORM, server API và triển khai backend không thuộc dự án này. `API_CONTRACT.md` là contract nội bộ của frontend để MSW, query hooks và component dùng cùng một cấu trúc dữ liệu; nó không phải đặc tả công việc cho nhóm backend.
+Báo cáo trước triển khai: `docs/implementation/2026-11-15-fe-detailed-audit.md` tại repository root. Kết quả kiểm thử sau triển khai được lưu riêng, không dùng kết quả lịch sử để tuyên bố nghiệm thu.

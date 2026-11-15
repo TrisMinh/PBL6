@@ -68,7 +68,7 @@ it.each(cases)(
     show(paymentReturnPath(transaction.transactionId, transaction.resultId));
     expect(await screen.findByRole("heading", { name: heading })).toBeVisible();
     expect(
-      await screen.findByRole("heading", { name: "Hồ Chí Minh → Lâm Đồng" }),
+      await screen.findByRole("heading", { name: "TP. Hồ Chí Minh → Đà Lạt" }),
     ).toBeVisible();
     expect(screen.getByText(transaction.bookingCode)).toBeVisible();
     if (status === "success") {

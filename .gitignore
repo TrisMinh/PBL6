@@ -29,6 +29,7 @@ Desktop.ini
 
 # Isolated implementation worktrees
 .worktrees/
+test-results-portals/
 
 # Local workbook rendering/inspection scratch files
 outputs/pbl6-round2/previews/

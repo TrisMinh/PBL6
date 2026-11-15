@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
+vi.hoisted(() => vi.resetModules());
 vi.mock("./config", () => ({ isMockApi: false, apiBaseUrl: "" }));
 import { apiFetch, apiJson, logoutApi, refreshAccessToken } from "./client";
 import { readApiSession, saveApiSession, type BackendSession } from "./session";

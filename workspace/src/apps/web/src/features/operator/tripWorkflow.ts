@@ -1,3 +1,4 @@
+import { isMockApi } from "@/shared/api/config";
 import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 import { z } from "zod";
 import { apiJson } from "@/shared/api/client";
@@ -126,6 +127,7 @@ export const busLabel = (bus?: Bus): string =>
 export const driverLabel = (driver: Driver): string =>
   `${driver.fullName ? driver.fullName + " · " : "GPLX "}${driver.licenseNumber}`;
 export function canPublishTrip(): boolean {
+  if (isMockApi) return true;
   const u = readApiSession()?.user;
   return [
     ...(u?.roles ?? []),

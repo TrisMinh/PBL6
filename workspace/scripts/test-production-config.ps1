@@ -16,7 +16,7 @@ if ($EnvFile) {
 
 $required = @(
     'POSTGRES_PASSWORD', 'RABBITMQ_PASSWORD', 'JWT_SIGNING_KEY', 'API_ALLOWED_HOSTS',
-    'CUSTOMER_ORIGIN', 'BACKOFFICE_ORIGIN', 'SMTP_HOST', 'SMTP_FROM',
+    'CUSTOMER_ORIGIN', 'SMTP_HOST', 'SMTP_FROM',
     'SMTP_USERNAME', 'SMTP_PASSWORD', 'VNPAY_CHECKOUT_URL', 'VNPAY_TMN_CODE', 'VNPAY_HASH_SECRET'
 )
 $secretNames = @('POSTGRES_PASSWORD', 'RABBITMQ_PASSWORD', 'JWT_SIGNING_KEY', 'SMTP_PASSWORD', 'VNPAY_HASH_SECRET')
@@ -36,7 +36,7 @@ foreach ($name in $required) {
     }
 }
 
-foreach ($originName in @('CUSTOMER_ORIGIN', 'BACKOFFICE_ORIGIN')) {
+foreach ($originName in @('CUSTOMER_ORIGIN')) {
     $origin = [Environment]::GetEnvironmentVariable($originName, 'Process')
     if ($origin -and $origin -notmatch '^https://') { $errors.Add("$originName must use HTTPS") }
 }

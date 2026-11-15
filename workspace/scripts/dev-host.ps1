@@ -46,6 +46,6 @@ foreach ($api in $apis) {
 
 Write-Host "Gateway http://localhost:5080"
 Write-Host "Customer http://localhost:5173  (npm run dev:customer)"
-Write-Host "Backoffice http://localhost:5174 (npm run dev:backoffice)"
+Write-Host "BLUE Operator http://localhost:5174 (npm run dev:operator) | Admin http://localhost:5175 (npm run dev:admin)"
 Write-Host "Seed customer seed.customer@example.test / CustomerPass1"
 Write-Host "Seed operator operator.seed@example.test / OperatorPass1"

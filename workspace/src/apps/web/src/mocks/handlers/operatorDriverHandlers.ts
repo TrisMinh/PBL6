@@ -48,7 +48,7 @@ const initial: OperatorDriver[] = names.map((name, i) => ({
 }));
 const KEY = "blue-operator-drivers-v1";
 let memory = structuredClone(initial);
-function read(): OperatorDriver[] {
+export function readMockOperatorDrivers(): OperatorDriver[] {
   if (typeof sessionStorage === "undefined") return memory;
   try {
     const raw = sessionStorage.getItem(KEY);
@@ -87,7 +87,7 @@ async function save(request: Request, id?: string): Promise<Response> {
       parsed.error.issues[0]?.message ?? "Dữ liệu không hợp lệ.",
       400,
     );
-  const drivers = read();
+  const drivers = readMockOperatorDrivers();
   const existing = drivers.find((d) => d.id === id);
   if (id && !existing) return error("Không tìm thấy tài xế.", 404);
   if (
@@ -153,7 +153,7 @@ async function save(request: Request, id?: string): Promise<Response> {
   return HttpResponse.json(next, { status: existing ? 200 : 201 });
 }
 export const operatorDriverHandlers = [
-  http.get(endpoint, () => HttpResponse.json(read())),
+  http.get(endpoint, () => HttpResponse.json(readMockOperatorDrivers())),
   http.post(endpoint, ({ request }) => save(request)),
   http.put(`${endpoint}/:id`, ({ request, params }) =>
     save(request, String(params.id)),
@@ -169,7 +169,7 @@ export const operatorDriverHandlers = [
       .object({ status: z.enum(["available", "paused"]) })
       .safeParse(payload);
     if (!parsed.success) return error("Trạng thái không hợp lệ.", 400);
-    const drivers = read(),
+    const drivers = readMockOperatorDrivers(),
       item = drivers.find((d) => d.id === params.id);
     if (!item) return error("Không tìm thấy tài xế.", 404);
     if (item.status === "running")

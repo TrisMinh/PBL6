@@ -1,3 +1,4 @@
+import { operatorWorkflowHandlers } from "@/mocks/handlers/operatorWorkflowHandlers";
 import { operatorRefundHandlers } from "@/mocks/handlers/operatorRefundHandlers";
 import { operatorDriverHandlers } from "@/mocks/handlers/operatorDriverHandlers";
 import { operatorReportHandlers } from "@/mocks/handlers/operatorReportHandlers";
@@ -21,6 +22,7 @@ import { adminHandlers } from "@/mocks/handlers/admin/createCrudHandlers";
 import { exploreHandlers } from "@/mocks/handlers/exploreHandlers";
 
 export const handlers = [
+  ...operatorWorkflowHandlers,
   ...operatorRefundHandlers,
   ...operatorDriverHandlers,
   ...operatorReportHandlers,

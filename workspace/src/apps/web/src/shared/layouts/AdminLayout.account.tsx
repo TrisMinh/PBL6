@@ -2,7 +2,8 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { X } from "@phosphor-icons/react/dist/csr/X";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState, type ReactElement } from "react";
-import { Link, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
+import { customerOrigin } from "@/shared/config/portalOrigins";
 
 import staffIcon from "@/assets/admin/staff.svg";
 import { useAccountSession } from "@/features/auth/hooks/useAccountSession";
@@ -36,25 +37,36 @@ export function AdminAccountControl(): ReactElement {
       <Dialog.Portal>
         <Dialog.Overlay className="admin-layout__overlay" />
         <Dialog.Content className="admin-layout__account-dialog">
-          <div className="admin-layout__drawer-header">
-            <Dialog.Title className="admin-layout__drawer-title">
+          <div className="admin-layout__account-header">
+            <Dialog.Title className="admin-layout__account-title">
               Tài khoản quản trị
             </Dialog.Title>
             <Dialog.Close asChild>
-              <Button type="button" variant="ghost" aria-label="Đóng tài khoản">
-                <X aria-hidden size={24} />
+              <Button
+                className="admin-layout__account-close"
+                type="button"
+                variant="ghost"
+                aria-label="Đóng tài khoản"
+              >
+                <X aria-hidden size={20} />
               </Button>
             </Dialog.Close>
           </div>
-          <Dialog.Description className="admin-layout__drawer-description">
+          <Dialog.Description className="admin-layout__account-description">
             Phiên đăng nhập quản trị BLUE.
           </Dialog.Description>
-          <Link to={ROUTES.home} onClick={() => setIsOpen(false)}>
-            Trang đặt vé →
-          </Link>
-          <Button type="button" onClick={logout}>
-            Đăng xuất
-          </Button>
+          <div className="admin-layout__account-actions">
+            <a
+              className="button button--secondary"
+              href={customerOrigin()}
+              onClick={() => setIsOpen(false)}
+            >
+              Trang đặt vé →
+            </a>
+            <Button type="button" onClick={logout}>
+              Đăng xuất
+            </Button>
+          </div>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

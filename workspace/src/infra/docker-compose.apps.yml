@@ -151,9 +151,7 @@ services:
     environment:
       <<: *api-env
       Cors__Origins__0: http://localhost:5173
-      Cors__Origins__1: http://localhost:5174
-      Cors__Origins__2: http://127.0.0.1:5173
-      Cors__Origins__3: http://127.0.0.1:5174
+      Cors__Origins__1: http://127.0.0.1:5173
       ReverseProxy__Clusters__identity__Destinations__identity-local__Address: http://identity:8080/
       ReverseProxy__Clusters__transport__Destinations__transport-local__Address: http://transport:8080/
       ReverseProxy__Clusters__booking__Destinations__booking-local__Address: http://booking:8080/
@@ -180,17 +178,32 @@ services:
     networks: [platform]
     restart: unless-stopped
 
-  backoffice-web:
+  operator-web:
     build:
-      context: ../../..
-      dockerfile: workspace/src/infra/docker/web.Dockerfile
+      context: ../apps/web
+      dockerfile: Dockerfile
       args:
-        APP: backoffice-web
-    depends_on:
-      gateway:
-        condition: service_healthy
+        APP_TARGET: operator
+        API_MODE: mock
     ports:
       - "5174:8080"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/healthz"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    networks: [platform]
+    restart: unless-stopped
+
+  admin-web:
+    build:
+      context: ../apps/web
+      dockerfile: Dockerfile
+      args:
+        APP_TARGET: admin
+        API_MODE: mock
+    ports:
+      - "5175:8080"
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/healthz"]
       interval: 10s

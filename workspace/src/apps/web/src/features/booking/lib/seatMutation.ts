@@ -68,6 +68,10 @@ export async function beginSeatMutation(
   useBookingDraftStore.getState().setDraft({
     ...variables.previous,
     selectedSeatIds: [...variables.seatIds],
+    passengerCount:
+      isMockApi && variables.seatIds.length > 0
+        ? variables.seatIds.length
+        : variables.previous.passengerCount,
     totalVnd: variables.layout.trip.fareVnd * variables.seatIds.length,
     passengers: variables.previous.passengers.filter((passenger) =>
       variables.seatIds.includes(passenger.seatId),
@@ -85,7 +89,10 @@ export async function executeSeatMutation(
   );
   if (
     session.tripId !== variables.previous.tripId ||
-    session.passengerCount !== variables.previous.passengerCount ||
+    session.passengerCount !==
+      (isMockApi && variables.seatIds.length > 0
+        ? variables.seatIds.length
+        : variables.previous.passengerCount) ||
     session.expiresAt !== variables.previous.expiresAt ||
     (isMockApi &&
       session.totalVnd !==

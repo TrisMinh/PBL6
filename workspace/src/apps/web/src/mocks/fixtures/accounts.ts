@@ -1,5 +1,10 @@
 export const accounts = Object.freeze([
   Object.freeze({
+    userId: "mock-operator",
+    role: "admin",
+    email: "operator@blue.example.invalid",
+  }),
+  Object.freeze({
     userId: "mock-customer",
     role: "customer",
     email: "test+review@example.invalid",

@@ -5,7 +5,6 @@ import { Link } from "react-router";
 import busIcon from "@/assets/booking/passenger-review/bus.svg";
 import pickupIcon from "@/assets/booking/passenger-review/pickup.svg";
 import summaryBusIcon from "@/assets/booking/passenger-review/summary-bus.svg";
-import paymentBusIcon from "@/assets/payment/summary-bus.svg";
 import { canContinueBooking } from "@/features/booking/lib/canContinueBooking";
 import type { BookingDraft } from "@/features/booking/types/booking";
 import type { SeatLayout } from "@/features/booking/types/seat";
@@ -30,6 +29,7 @@ const BOOKING_DATE = new Intl.DateTimeFormat("vi-VN", {
 });
 
 export interface BookingSummaryProps {
+  primaryAction?: ReactNode;
   paymentOptions?: ReactNode;
   secondaryAction?: ReactNode;
   draft: BookingDraft;
@@ -76,7 +76,7 @@ function SummaryJourney({
   return (
     <div className="booking-summary__journey">
       <strong>
-        {layout.trip.origin.province} → {layout.trip.destination.province}
+        {layout.trip.origin.displayName} → {layout.trip.destination.displayName}
       </strong>
       <p>
         {BOOKING_TIME.format(new Date(layout.trip.departureTime))} ·{" "}
@@ -125,11 +125,9 @@ function OperatorSummary({
           alt=""
           aria-hidden="true"
           src={
-            variant === "payment"
-              ? paymentBusIcon
-              : variant === "review"
-                ? summaryBusIcon
-                : busIcon
+            variant === "payment" || variant === "review"
+              ? summaryBusIcon
+              : busIcon
           }
         />
       </span>
@@ -247,6 +245,7 @@ export function BookingSummary({
   isActionPending,
   variant = "default",
   backHref,
+  primaryAction,
   paymentOptions,
   secondaryAction,
 }: BookingSummaryProps): ReactElement {
@@ -302,25 +301,27 @@ export function BookingSummary({
             </small>
           </div>
         ) : null)}
-      <Button
-        type={formId ? "submit" : "button"}
-        form={formId}
-        isLoading={isActionPending ?? (Boolean(formId) && isPending)}
-        disabled={
-          !canContinueBooking(
-            draft,
-            layout,
-            countdown,
-            isPending,
-            isMockApi || variant !== "review",
-          )
-        }
-        onClick={onContinue}
-      >
-        {variant === "review"
-          ? `${actionLabel} · ${formatCurrencyVnd(draft.totalVnd)}`
-          : actionLabel}
-      </Button>
+      {primaryAction ?? (
+        <Button
+          type={formId ? "submit" : "button"}
+          form={formId}
+          isLoading={isActionPending ?? (Boolean(formId) && isPending)}
+          disabled={
+            !canContinueBooking(
+              draft,
+              layout,
+              countdown,
+              isPending,
+              isMockApi || variant !== "review",
+            )
+          }
+          onClick={onContinue}
+        >
+          {variant === "review"
+            ? `${actionLabel} · ${formatCurrencyVnd(draft.totalVnd)}`
+            : actionLabel}
+        </Button>
+      )}
       {variant === "payment" && backHref ? (
         <Link className="booking-summary__back" to={backHref}>
           Quay lại kiểm tra thông tin

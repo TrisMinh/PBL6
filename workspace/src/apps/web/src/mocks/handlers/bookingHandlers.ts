@@ -64,7 +64,9 @@ function startSession(
   const previous = previousId ? db.sessions.get(previousId) : undefined;
   if (
     previous &&
-    (previous.tripId !== tripId || previous.passengerCount !== passengerCount)
+    (previous.tripId !== tripId ||
+      (previous.initialPassengerCount ?? previous.passengerCount) !==
+        passengerCount)
   )
     return bookingProblem("VALIDATION_ERROR", SESSION_PATH, {
       errors: { idempotencyKey: ["Dùng khóa khác cho chuyến mới."] },
@@ -97,6 +99,7 @@ function newSession(
     sessionId: createId(),
     tripId,
     passengerCount,
+    initialPassengerCount: passengerCount,
     selectedSeatIds: [],
     passengers: [],
     expiresAt: new Date(nowMs + 600_000).toISOString(),

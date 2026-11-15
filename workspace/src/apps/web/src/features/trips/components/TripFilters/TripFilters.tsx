@@ -3,13 +3,13 @@ import { useEffect, useId, useState, type ReactElement } from "react";
 
 import { tripSearchSchema } from "@/features/trips/schemas/search.schema";
 import { tripSchema } from "@/features/trips/schemas/tripResponse.schema";
+import { tripStopOptions } from "@/features/trips/lib/tripResults";
 import { isMockApi } from "@/shared/api/config";
 import type { Trip, TripAmenity } from "@/features/trips/types/trip";
 import { BREAKPOINTS } from "@/shared/config/breakpoints";
 import { Button } from "@/shared/ui/Button/Button";
-import chevronIcon from "@/assets/trip-results/chevron.svg";
-import clockIcon from "@/assets/trip-results/clock.svg";
-import rangeThumb from "@/assets/trip-results/range-thumb.svg";
+import { TimePicker } from "@/shared/ui/TimePicker/TimePicker";
+import { PriceRange } from "./PriceRange";
 
 import "./TripFilters.css";
 
@@ -111,6 +111,12 @@ function numberParam(
 }
 
 function draftFromParams(params: URLSearchParams): FilterDraft {
+  const defaults =
+    params.get("browse") === "1"
+      ? LIVE_DEFAULT_DRAFT
+      : isMockApi
+        ? DEFAULT_DRAFT
+        : LIVE_DEFAULT_DRAFT;
   const vehicle = tripSchema.shape.vehicleType.safeParse(
     singleParam(params, "vehicleType"),
   );
@@ -201,7 +207,9 @@ function FilterControls({
       ]),
     ).values(),
   ];
-  const stopOptions = (pickup: boolean): { value: string; label: string }[] => [
+  const stopOptions = (
+    direction: "pickup" | "dropoff",
+  ): { value: string; label: string }[] => [
     ...new Map(
       trips
         .filter(
@@ -209,22 +217,9 @@ function FilterControls({
             !draft.organizationId || trip.operator.id === draft.organizationId,
         )
         .flatMap((trip) =>
-          (trip.stops ?? [])
-            .filter((stop) =>
-              pickup ? stop.pickupAllowed : stop.dropoffAllowed,
-            )
-            .map(
-              (stop) =>
-                [
-                  stop.id,
-                  {
-                    value: stop.id,
-                    label: stop.address
-                      ? stop.name + " · " + stop.address
-                      : stop.name,
-                  },
-                ] as const,
-            ),
+          tripStopOptions(trip, direction).map(
+            (option) => [option.value, option] as const,
+          ),
         ),
     ).values(),
   ];
@@ -235,6 +230,44 @@ function FilterControls({
     selected && !options.some((option) => option.value === selected)
       ? [...options, { value: selected, label: "Lựa chọn đã áp dụng" }]
       : options;
+  const routeControls = (
+    <>
+      <FilterSelect
+        label="Nhà xe"
+        value={draft.organizationId}
+        options={[
+          { value: "", label: "Tất cả nhà xe" },
+          ...optionsWithSelected(operators, draft.organizationId),
+        ]}
+        onChange={(organizationId) =>
+          setDraft({
+            ...draft,
+            organizationId,
+            pickupStopId: "",
+            dropoffStopId: "",
+          })
+        }
+      />
+      <FilterSelect
+        label="Điểm đón"
+        value={draft.pickupStopId}
+        options={[
+          { value: "", label: "Tất cả điểm đón" },
+          ...optionsWithSelected(stopOptions("pickup"), draft.pickupStopId),
+        ]}
+        onChange={(pickupStopId) => setDraft({ ...draft, pickupStopId })}
+      />
+      <FilterSelect
+        label="Điểm trả"
+        value={draft.dropoffStopId}
+        options={[
+          { value: "", label: "Tất cả điểm trả" },
+          ...optionsWithSelected(stopOptions("dropoff"), draft.dropoffStopId),
+        ]}
+        onChange={(dropoffStopId) => setDraft({ ...draft, dropoffStopId })}
+      />
+    </>
+  );
   return (
     <div className="trip-filters__controls">
       <div className="trip-filters__sort-field">
@@ -258,40 +291,7 @@ function FilterControls({
           <legend className="trip-filters__legend">
             Nhà xe & điểm đón trả
           </legend>
-          <FilterSelect
-            label="Nhà xe"
-            value={draft.organizationId}
-            options={[
-              { value: "", label: "Tất cả nhà xe" },
-              ...optionsWithSelected(operators, draft.organizationId),
-            ]}
-            onChange={(organizationId) =>
-              setDraft({
-                ...draft,
-                organizationId,
-                pickupStopId: "",
-                dropoffStopId: "",
-              })
-            }
-          />
-          <FilterSelect
-            label="Điểm đón"
-            value={draft.pickupStopId}
-            options={[
-              { value: "", label: "Tất cả điểm đón" },
-              ...optionsWithSelected(stopOptions(true), draft.pickupStopId),
-            ]}
-            onChange={(pickupStopId) => setDraft({ ...draft, pickupStopId })}
-          />
-          <FilterSelect
-            label="Điểm trả"
-            value={draft.dropoffStopId}
-            options={[
-              { value: "", label: "Tất cả điểm trả" },
-              ...optionsWithSelected(stopOptions(false), draft.dropoffStopId),
-            ]}
-            onChange={(dropoffStopId) => setDraft({ ...draft, dropoffStopId })}
-          />
+          {routeControls}
         </fieldset>
       )}
       <fieldset className="trip-filters__group">
@@ -307,19 +307,15 @@ function FilterControls({
                 setDraft({ ...draft, vehicleType: value });
             }}
           />
-          <img
-            alt=""
-            aria-hidden
-            className="trip-filters__select-icon"
-            src={chevronIcon}
-          />
         </div>
       </fieldset>
       <fieldset className="trip-filters__group">
         <legend className="trip-filters__legend">Buổi khởi hành</legend>
         <div className="trip-filters__periods">
           {[
-            ...(!isMockApi ? [["", "Tất cả"]] : []),
+            ...(!isMockApi || searchParams.get("browse") === "1"
+              ? [["", "Tất cả"]]
+              : []),
             ["morning", "Sáng"],
             ["afternoon", "Chiều"],
             ["evening", "Tối"],
@@ -343,18 +339,10 @@ function FilterControls({
       </fieldset>
       <fieldset className="trip-filters__group">
         <legend className="trip-filters__legend">Giờ khởi hành</legend>
-        <label className="trip-filters__stacked-field">
-          <span>GIỜ XUẤT PHÁT</span>
-          <input
-            aria-label="Giờ xuất phát"
-            onChange={(event) =>
-              setDraft({ ...draft, departureHour: event.target.value })
-            }
-            type="time"
-            value={draft.departureHour}
-          />
-          <img alt="" aria-hidden src={clockIcon} />
-        </label>
+        <TimePicker
+          value={draft.departureHour}
+          onChange={(departureHour) => setDraft({ ...draft, departureHour })}
+        />
       </fieldset>
       <fieldset className="trip-filters__group">
         <legend className="trip-filters__legend">Khoảng giá</legend>
@@ -362,39 +350,17 @@ function FilterControls({
           {draft.minFare.toLocaleString("vi-VN")} đ —{" "}
           {draft.maxFare.toLocaleString("vi-VN")} đ
         </p>
-        <div className="trip-filters__range">
-          <span aria-hidden="true" />
-          <img src={rangeThumb} alt="" aria-hidden="true" />
-          <img src={rangeThumb} alt="" aria-hidden="true" />
-          <input
-            aria-label="Giá tối thiểu"
-            max={isMockApi ? 450000 : 5000000}
-            min={isMockApi ? 200000 : 0}
-            onChange={(event) =>
-              setDraft({
-                ...draft,
-                minFare: Math.min(Number(event.target.value), draft.maxFare),
-              })
-            }
-            step="25000"
-            type="range"
-            value={draft.minFare}
-          />
-          <input
-            aria-label="Giá tối đa"
-            max="450000"
-            min="200000"
-            onChange={(event) =>
-              setDraft({
-                ...draft,
-                maxFare: Math.max(Number(event.target.value), draft.minFare),
-              })
-            }
-            step="25000"
-            type="range"
-            value={draft.maxFare}
-          />
-        </div>
+        <PriceRange
+          minimum={isMockApi && searchParams.get("browse") !== "1" ? 200000 : 0}
+          maximum={
+            isMockApi && searchParams.get("browse") !== "1" ? 450000 : 5000000
+          }
+          from={draft.minFare}
+          to={draft.maxFare}
+          onChange={(minFare, maxFare) =>
+            setDraft({ ...draft, minFare, maxFare })
+          }
+        />
       </fieldset>
       <fieldset className="trip-filters__group trip-filters__group--amenities">
         <legend className="trip-filters__legend">Tiện ích</legend>
@@ -417,6 +383,19 @@ function FilterControls({
           </label>
         ))}
       </fieldset>
+      {isMockApi && trips.length > 0 && (
+        <details
+          className="trip-filters__stop-details"
+          open={
+            Boolean(
+              draft.organizationId || draft.pickupStopId || draft.dropoffStopId,
+            ) || undefined
+          }
+        >
+          <summary>Nhà xe, điểm đón và điểm trả</summary>
+          <div className="trip-filters__group--route">{routeControls}</div>
+        </details>
+      )}
       <Button className="trip-filters__apply" type="button" onClick={onApply}>
         Áp dụng bộ lọc
       </Button>
@@ -504,7 +483,9 @@ export function TripFilters(props: TripFiltersProps): ReactElement {
     props.onChange(next);
   };
   const reset = (): void => {
-    setDraft(defaults);
+    setDraft(
+      props.searchParams.get("browse") === "1" ? LIVE_DEFAULT_DRAFT : defaults,
+    );
     const next = new URLSearchParams(props.searchParams);
     next.delete("sort");
     for (const key of FILTER_KEYS) next.delete(key);

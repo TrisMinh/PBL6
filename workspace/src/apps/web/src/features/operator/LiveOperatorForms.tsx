@@ -1,7 +1,7 @@
 import { stateLabel } from "@/shared/api/livePresentation";
 /** Resource forms shared by the operator workspace. Trip creation uses its dedicated workflow. */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState, type ReactElement, type ReactNode } from "react";
+import { useState, type ReactElement, type ReactNode } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import { z } from "zod";
 import {
@@ -14,10 +14,12 @@ import { Button } from "@/shared/ui/Button/Button";
 
 const row = z.record(z.string(), z.unknown());
 const get = getLiveRows;
-const text = (value: unknown) => (typeof value === "string" ? value : "");
-const number = (value: unknown) => (typeof value === "number" ? value : 0);
-const id = (item: ApiRow) => text(item.id);
-const refresh = (client: ReturnType<typeof useQueryClient>) =>
+const text = (value: unknown): string =>
+  typeof value === "string" ? value : "";
+const number = (value: unknown): number =>
+  typeof value === "number" ? value : 0;
+const id = (item: ApiRow): string => text(item.id);
+const refresh = (client: ReturnType<typeof useQueryClient>): Promise<void> =>
   client.invalidateQueries({ queryKey: ["live-api"] });
 
 function Screen({
@@ -103,8 +105,7 @@ export function LiveRouteEditor({
   });
   const [loadedId, setLoadedId] = useState("");
   const [editVersion, setEditVersion] = useState(0);
-  useEffect(() => {
-    if (!existing || loadedId === id(existing)) return;
+  if (existing && loadedId !== id(existing)) {
     setForm({
       name: text(existing.name),
       origin: text(existing.origin),
@@ -115,7 +116,7 @@ export function LiveRouteEditor({
     });
     setEditVersion(number(existing.expectedVersion));
     setLoadedId(id(existing));
-  }, [existing, loadedId]);
+  }
   const mutation = useMutation({
     mutationFn: async () => {
       const body = {
@@ -232,17 +233,15 @@ export function LiveDriverEditor({
   });
   const [loadedId, setLoadedId] = useState("");
   const [editVersion, setEditVersion] = useState(0);
-  useEffect(() => {
-    if (existing && loadedId !== id(existing)) {
-      setForm({
-        userId: text(existing.userId),
-        licenseNumber: text(existing.licenseNumber),
-        licenseExpiresOn: text(existing.licenseExpiresOn).slice(0, 10),
-      });
-      setEditVersion(number(existing.expectedVersion));
-      setLoadedId(id(existing));
-    }
-  }, [existing, loadedId]);
+  if (existing && loadedId !== id(existing)) {
+    setForm({
+      userId: text(existing.userId),
+      licenseNumber: text(existing.licenseNumber),
+      licenseExpiresOn: text(existing.licenseExpiresOn).slice(0, 10),
+    });
+    setEditVersion(number(existing.expectedVersion));
+    setLoadedId(id(existing));
+  }
   const mutation = useMutation({
     mutationFn: () =>
       apiJson(
@@ -332,19 +331,17 @@ export function LiveVehicleEditor(): ReactElement {
   });
   const [loadedId, setLoadedId] = useState("");
   const [editVersion, setEditVersion] = useState(0);
-  useEffect(() => {
-    if (existing && loadedId !== id(existing)) {
-      setForm({
-        plateNumber: text(existing.plateNumber),
-        type: text(existing.type),
-        amenities: Array.isArray(existing.amenities)
-          ? existing.amenities.join(", ")
-          : "",
-      });
-      setEditVersion(number(existing.expectedVersion));
-      setLoadedId(id(existing));
-    }
-  }, [existing, loadedId]);
+  if (existing && loadedId !== id(existing)) {
+    setForm({
+      plateNumber: text(existing.plateNumber),
+      type: text(existing.type),
+      amenities: Array.isArray(existing.amenities)
+        ? existing.amenities.join(", ")
+        : "",
+    });
+    setEditVersion(number(existing.expectedVersion));
+    setLoadedId(id(existing));
+  }
   const mutation = useMutation({
     mutationFn: () =>
       apiJson(
@@ -660,8 +657,7 @@ export function LiveRouteStopsEditor(): ReactElement {
   };
   const [stops, setStops] = useState<StopForm[]>([]);
   const [loadedId, setLoadedId] = useState("");
-  useEffect(() => {
-    if (!existing || loadedId === id(existing)) return;
+  if (existing && loadedId !== id(existing)) {
     setStops(
       Array.isArray(existing.stops)
         ? existing.stops.map((raw) => {
@@ -677,7 +673,7 @@ export function LiveRouteStopsEditor(): ReactElement {
         : [],
     );
     setLoadedId(id(existing));
-  }, [existing, loadedId]);
+  }
   const mutation = useMutation({
     mutationFn: () =>
       apiJson(
@@ -698,7 +694,7 @@ export function LiveRouteStopsEditor(): ReactElement {
     },
     retry: false,
   });
-  const update = (i: number, value: StopForm) =>
+  const update = (i: number, value: StopForm): void =>
     setStops((current) =>
       current.map((stop, index) => (index === i ? value : stop)),
     );

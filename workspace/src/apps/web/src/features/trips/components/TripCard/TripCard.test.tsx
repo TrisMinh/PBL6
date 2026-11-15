@@ -35,7 +35,7 @@ describe("TripCard", () => {
       "13:30",
       "6 giờ 30",
       "Còn 6 ghế",
-      "320.000 ₫",
+      "320.000 đ",
       "/ khách",
     ]) {
       expect(within(article).getByText(text)).toBeVisible();
@@ -53,6 +53,8 @@ describe("TripCard", () => {
   it("selects the exact supplied trip once on native keyboard activation without navigating", async () => {
     const onSelect = vi.fn();
     render(<TripCard trip={availableTrip} onSelect={onSelect} />);
+    await userEvent.tab();
+    expect(screen.getByRole("button", { name: /Xem mã/ })).toHaveFocus();
     await userEvent.tab();
     expect(screen.getByRole("button", { name: "Chọn chuyến" })).toHaveFocus();
     await userEvent.keyboard("{Enter}");
@@ -128,7 +130,9 @@ it.each([{ isPending: true }, { disabled: true }])(
   async (props) => {
     const onSelect = vi.fn();
     render(<TripCard trip={availableTrip} onSelect={onSelect} {...props} />);
-    const button = screen.getByRole("button");
+    const button = screen.getByRole("button", {
+      name: props.isPending ? "Đang xử lý" : "Chọn chuyến",
+    });
     expect(button).toBeDisabled();
     if (props.isPending) expect(button).toHaveAttribute("aria-busy", "true");
     await userEvent.click(button);

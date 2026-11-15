@@ -35,19 +35,25 @@ export function getSelectedPassengerSeats(
 export function getPassengerDefaults(
   draft: BookingDraft,
   seats: readonly Pick<Seat, "id" | "code">[],
+  profile?: PassengerFormValues["contact"],
 ): PassengerFormValues {
   return {
     contact: draft.contact
       ? { ...draft.contact }
-      : { fullName: "", email: "", phone: "" },
-    passengers: seats.map((seat) => {
+      : {
+          fullName: profile?.fullName ?? "",
+          email: profile?.email ?? "",
+          phone: profile?.phone ?? "",
+        },
+    passengers: seats.map((seat, index) => {
       const saved = draft.passengers.find(
         (passenger) => passenger.seatId === seat.id,
       );
       return {
         seatId: seat.id,
-        fullName: saved?.fullName ?? "",
-        phone: saved?.phone ?? "",
+        fullName:
+          saved?.fullName ?? (index === 0 ? (profile?.fullName ?? "") : ""),
+        phone: saved?.phone ?? (index === 0 ? (profile?.phone ?? "") : ""),
       };
     }),
   };

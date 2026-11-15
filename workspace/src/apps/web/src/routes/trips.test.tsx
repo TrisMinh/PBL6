@@ -15,7 +15,7 @@ describe("trips route", () => {
       },
     ]);
   });
-  it("delegates missing search to the accessible Results validation state", () => {
+  it("opens the all-trips catalogue when route search parameters are absent", () => {
     const router = createMemoryRouter(
       [{ path: "/trips", element: <TripsRoute /> }],
       { initialEntries: ["/trips"] },
@@ -26,10 +26,10 @@ describe("trips route", () => {
       </AppProviders>,
     );
     expect(
-      screen.getByRole("heading", { name: "Thông tin tìm kiếm chưa hợp lệ" }),
+      screen.getByRole("heading", { name: "Tất cả chuyến xe" }),
     ).toBeVisible();
     expect(
-      screen.getByRole("link", { name: "Tìm lại chuyến" }),
-    ).toHaveAttribute("href", "/");
+      screen.getByRole("button", { name: "Bộ lọc và sắp xếp" }),
+    ).toBeInTheDocument();
   });
 });

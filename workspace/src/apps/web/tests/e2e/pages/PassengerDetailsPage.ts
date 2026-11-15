@@ -28,12 +28,6 @@ export class PassengerDetailsPage {
       .getByLabel("Số điện thoại (ghế A01, không bắt buộc)")
       .fill("0912345678");
     await this.page.getByLabel("Họ và tên (ghế A02)").fill(names.a02);
-    await this.page
-      .getByLabel("Họ và tên người liên hệ")
-      .fill("Khách Liên Hệ", { force: true });
-    await this.page
-      .getByLabel("Số điện thoại người liên hệ")
-      .fill("0912345678", { force: true });
     await this.page.getByLabel("Email nhận vé").fill(TEST_CONTACT_EMAIL);
   }
   async expectInvalid(): Promise<void> {

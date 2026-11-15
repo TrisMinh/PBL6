@@ -73,10 +73,10 @@ function renderCustomerLayout(initialEntry = "/"): void {
 describe("CustomerLayout", () => {
   it.each([
     ["/", "Trang chủ"],
-    ["/trips?view=destinations", "Điểm đến"],
+    ["/trips", "Tìm chuyến"],
     ["/explore", "Khám phá"],
     ["/explore/lam-dong", "Khám phá"],
-    ["/tickets/lookup", "Vé xe"],
+    ["/tickets/lookup", "Tra cứu vé"],
   ])("owns exactly one active navigation item at %s", (path, label) => {
     renderCustomerLayout(path);
     const navigation = screen.getByRole("navigation", {
@@ -103,11 +103,14 @@ describe("CustomerLayout", () => {
       within(navigation).getByRole("link", { name: "Khám phá" }),
     ).toHaveAttribute("href", "/explore");
     expect(
-      within(navigation).getByRole("link", { name: "Vé xe" }),
+      within(navigation).getByRole("link", { name: "Tra cứu vé" }),
     ).toHaveAttribute("href", "/tickets/lookup");
     expect(
       screen.getByRole("link", { name: "Hành trình của tôi" }),
     ).toHaveAttribute("href", "/account/tickets");
+    expect(
+      within(header).getByRole("link", { name: "Đăng nhập" }),
+    ).toHaveAttribute("href", "/login");
     const main = screen.getByRole("main");
     expect(main).toHaveAttribute("id", "main-content");
     expect(
@@ -228,7 +231,9 @@ describe("CustomerLayout", () => {
     const closeButton = within(dialog).getByRole("button", {
       name: "Đóng menu",
     });
-    const lastLink = within(dialog).getByRole("link", { name: "Vé xe" });
+    const lastLink = within(dialog).getByRole("link", {
+      name: "Tìm chuyến và đặt vé",
+    });
     await waitFor(() => expect(closeButton).toHaveFocus());
     await user.tab({ shift: true });
     expect(lastLink).toHaveFocus();

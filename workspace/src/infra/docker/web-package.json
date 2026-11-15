@@ -3,7 +3,6 @@
   "private": true,
   "workspaces": [
     "src/apps/customer-web",
-    "src/apps/backoffice-web",
     "src/packages/*"
   ]
 }

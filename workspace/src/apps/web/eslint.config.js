@@ -14,6 +14,8 @@ export default tseslint.config(
       "_scaffold/**",
       "build/**",
       "coverage/**",
+      "test-results/**",
+      "test-results-portals/**",
       "node_modules/**",
       "public/mockServiceWorker.js",
     ],

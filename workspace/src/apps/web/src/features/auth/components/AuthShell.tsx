@@ -1,5 +1,6 @@
 import type { ReactElement, ReactNode } from "react";
 import { Link, NavLink } from "react-router";
+import { House } from "@phosphor-icons/react/dist/csr/House";
 
 import happy from "@/assets/auth/robot-happy.svg";
 import worried from "@/assets/auth/robot-worried.svg";
@@ -19,9 +20,21 @@ import { BrandLogo } from "@/shared/ui/BrandLogo/BrandLogo";
 import "./AuthShell.css";
 import { isMockApi } from "@/shared/api/config";
 
-export type AuthMode = "login" | "register" | "forgot";
+export type AuthMode = "login" | "register" | "forgot" | "verify" | "reset";
 
 const AUTH_COPY = {
+  verify: {
+    eyebrow: "XÁC MINH TÀI KHOẢN",
+    title: "Xác minh email",
+    support: "Một bước nữa để sẵn sàng cho hành trình mới.",
+    assistant: "Mình đã chuẩn bị mã xác minh cho bạn",
+  },
+  reset: {
+    eyebrow: "KHÔI PHỤC TÀI KHOẢN",
+    title: "Đặt lại mật khẩu",
+    support: "Xác minh và tạo mật khẩu mới để tiếp tục hành trình.",
+    assistant: "Cùng bảo vệ tài khoản của bạn nhé",
+  },
   login: {
     eyebrow: "TÀI KHOẢN KHÁCH HÀNG",
     title: "Hành trình đang chờ bạn",
@@ -60,7 +73,7 @@ export function AuthShell({
               <BrandLogo placement="auth" />
             </Link>
             <Link className="auth-page__home" to={ROUTES.home}>
-              <span aria-hidden>←</span> Về trang chủ
+              <House size={17} aria-hidden /> Về trang chủ
             </Link>
           </div>
           <AuthIntro mode={mode} assistant={copy.assistant} />

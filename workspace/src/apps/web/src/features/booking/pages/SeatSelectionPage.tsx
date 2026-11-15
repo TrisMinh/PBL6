@@ -1,3 +1,4 @@
+import { Toast } from "@/shared/ui/Toast/Toast";
 import { isMockApi } from "@/shared/api/config";
 import { isTripUnavailable } from "@/features/trips/lib/isTripUnavailable";
 import { TripUnavailableState } from "@/features/booking/components/TripUnavailableState";
@@ -75,7 +76,8 @@ function SeatHeading({
       </h1>
       <div className="seat-selection__trip">
         <strong>
-          {layout.trip.origin.province} → {layout.trip.destination.province}
+          {layout.trip.origin.displayName} →{" "}
+          {layout.trip.destination.displayName}
         </strong>
         <span>
           {formatDateTime(layout.trip.departureTime, "dd/MM/yyyy")} ·{" "}
@@ -102,9 +104,10 @@ function MutationFeedback({
     return <BookingLockedFeedback sessionId={sessionId} />;
   if (mutation.limitReached)
     return (
-      <p className="seat-selection__feedback" role="alert">
-        Bạn chỉ có thể chọn tối đa 6 ghế mỗi phiên.
-      </p>
+      <Toast
+        tone="error"
+        message="Bạn chỉ có thể chọn tối đa 6 ghế mỗi phiên."
+      />
     );
   if (
     !mutation.error ||
@@ -194,6 +197,11 @@ function SeatBookingBody(props: SeatBodyProps): ReactElement {
           countdown={props.countdown}
           isPending={props.isFetching}
           onContinue={props.onContinue}
+          hint={
+            props.draft.selectedSeatIds.length > 0
+              ? `Đã chọn ${props.draft.selectedSeatIds.length} ghế cho ${props.draft.passengerCount} hành khách. Tối đa 6 ghế mỗi phiên.`
+              : "Chọn ít nhất 1 ghế để tiếp tục. Tối đa 6 ghế mỗi phiên."
+          }
         />
       </div>
     </>

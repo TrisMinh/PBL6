@@ -1,88 +1,153 @@
-.button {
-  --button-min-size: var(--size-control-min);
-  --button-padding-block: 10px;
-  --button-padding-inline: var(--space-control-inset);
-  --button-border-width: 1px;
-  --button-focus-width: 2px;
-  --button-focus-offset: 2px;
-  --button-transition-duration: 160ms;
-  --button-disabled-opacity: 0.5;
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: var(--button-min-size);
-  min-height: var(--button-min-size);
-  padding: var(--button-padding-block) var(--button-padding-inline);
-  border: var(--button-border-width) solid var(--color-border);
-  border-radius: var(--radius-control);
-  background: var(--color-bg-surface);
-  color: var(--color-text-primary);
-  font-family: var(--font-body);
-  font-size: inherit;
-  font-weight: 600;
-  line-height: 1.5;
-  text-align: center;
-  cursor: pointer;
-  transition:
-    background-color var(--button-transition-duration) ease,
-    border-color var(--button-transition-duration) ease,
-    color var(--button-transition-duration) ease;
-}
-
-.button--primary {
-  border-color: var(--color-bg-brand);
-  background: var(--color-bg-brand);
-  color: var(--color-bg-surface);
-}
-
-.button--primary:hover:not([disabled]) {
-  border-color: var(--color-text-primary);
-  background: var(--color-text-primary);
-}
-
-.button--secondary {
-  border-color: var(--color-bg-brand);
-  color: var(--color-bg-brand);
-}
-
-.button--secondary:hover:not([disabled]) {
-  background: var(--color-bg-subtle);
-}
-
-.button--ghost {
-  border-color: transparent;
-  background: transparent;
-  color: var(--color-bg-brand);
-}
-
-.button--ghost:hover:not([disabled]) {
-  background: var(--color-bg-subtle);
-}
-
-.button--danger {
-  border-color: var(--color-status-error);
-  background: var(--color-status-error);
-  color: var(--color-bg-surface);
-}
-
-.button--danger:hover:not([disabled]) {
-  border-color: var(--color-text-primary);
-  background: var(--color-text-primary);
-}
-
-.button:focus-visible {
-  outline: var(--button-focus-width) solid var(--color-focus-ring);
-  outline-offset: var(--button-focus-offset);
-}
-
-.button[disabled] {
-  opacity: var(--button-disabled-opacity);
-  cursor: not-allowed;
-}
-
-@media (prefers-reduced-motion: reduce) {
+@layer components {
   .button {
-    transition: none;
+    --button-min-size: var(--size-control-min);
+    --button-padding-block: 10px;
+    --button-padding-inline: var(--space-control-inset);
+    --button-border-width: 1px;
+    --button-focus-width: 2px;
+    --button-focus-offset: 2px;
+    --button-transition-duration: 160ms;
+    --button-disabled-opacity: 0.5;
+
+    display: inline-flex;
+    position: relative;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-width: var(--button-min-size);
+    min-height: var(--button-min-size);
+    padding: var(--button-padding-block) var(--button-padding-inline);
+    border: var(--button-border-width) solid var(--color-border);
+    border-radius: 10px;
+    background: var(--color-bg-surface);
+    color: var(--color-text-primary);
+    font-family: var(--font-body);
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 22px;
+    text-align: center;
+    cursor: pointer;
+    transition:
+      background-color var(--button-transition-duration) ease,
+      border-color var(--button-transition-duration) ease,
+      color var(--button-transition-duration) ease;
+  }
+
+  .button--primary {
+    border-color: var(--color-bg-brand);
+    background: var(--color-bg-brand);
+    color: var(--color-bg-surface);
+  }
+
+  .button--primary:hover:not([disabled]) {
+    border-color: var(--color-action-hover);
+    background: var(--color-action-hover);
+  }
+
+  .button--secondary {
+    border-color: var(--color-action-secondary-border);
+    background: var(--color-action-secondary);
+    color: var(--color-action-secondary-text);
+  }
+
+  .button--secondary:hover:not([disabled]) {
+    background: var(--color-action-secondary-hover);
+  }
+
+  .button--ghost {
+    border-color: transparent;
+    background: transparent;
+    color: var(--color-bg-brand);
+  }
+
+  .button--ghost:hover:not([disabled]) {
+    background: var(--color-bg-subtle);
+  }
+
+  .button--danger {
+    border-color: var(--color-status-error);
+    background: var(--color-status-error);
+    color: var(--color-bg-surface);
+  }
+
+  .button--danger:hover:not([disabled]) {
+    border-color: var(--color-action-danger-hover);
+    background: var(--color-action-danger-hover);
+  }
+
+  .button:focus-visible {
+    outline: var(--button-focus-width) solid var(--color-focus-ring);
+    outline-offset: var(--button-focus-offset);
+  }
+
+  .button[disabled] {
+    opacity: var(--button-disabled-opacity);
+    cursor: not-allowed;
+  }
+  .button--primary[disabled] {
+    background: var(--color-action-disabled);
+    border-color: var(--color-action-disabled);
+    opacity: 0.42;
+  }
+  .button--secondary[disabled] {
+    background: var(--color-action-secondary-disabled);
+    border-color: var(--color-action-disabled-border);
+    color: var(--color-action-disabled-text);
+    opacity: 0.42;
+  }
+  .button > svg,
+  .button > img {
+    flex-shrink: 0;
+  }
+  .button__content {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: inherit;
+    visibility: hidden;
+  }
+  .button__progress {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: button-progress 800ms linear infinite;
+  }
+  .button__loading-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .button[aria-busy="true"] {
+    cursor: progress;
+    opacity: 1;
+  }
+  .button--primary[aria-busy="true"] {
+    background: var(--color-bg-brand);
+    border-color: var(--color-bg-brand);
+  }
+  .button--secondary[aria-busy="true"] {
+    background: var(--color-action-secondary);
+    border-color: var(--color-action-secondary-border);
+    color: var(--color-action-secondary-text);
+  }
+  @keyframes button-progress {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .button {
+      transition: none;
+    }
+    .button__progress {
+      animation: none;
+    }
   }
 }

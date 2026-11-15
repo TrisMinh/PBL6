@@ -1,0 +1,110 @@
+.portal-login {
+  min-height: 100dvh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: var(--color-bg-page);
+  color: var(--color-text-primary);
+}
+.portal-login__story {
+  padding: clamp(32px, 5vw, 80px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 80px;
+  background: linear-gradient(145deg, #edf5ff, #dceaff);
+}
+.portal-login__story h1 {
+  font-family: "Bricolage Grotesque", sans-serif;
+  font-size: clamp(36px, 3.4vw, 58px);
+  line-height: 1.15;
+  white-space: pre-line;
+  margin: 24px 0;
+}
+.portal-login__story p {
+  max-width: 500px;
+  line-height: 1.8;
+}
+.portal-login__eyebrow {
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  font-weight: 600;
+  color: #1f66e5;
+}
+.portal-login__form {
+  width: min(100%, 520px);
+  padding: 60px 32px;
+  margin: auto;
+  box-sizing: border-box;
+}
+.portal-login__form h2 {
+  font-family: "Bricolage Grotesque", sans-serif;
+  font-size: 32px;
+  margin: 16px 0;
+}
+.portal-login__form > p {
+  line-height: 1.6;
+}
+.portal-login fieldset {
+  border: 0;
+  padding: 0;
+  margin: 32px 0 24px;
+  display: grid;
+  gap: 20px;
+  min-width: 0;
+}
+.portal-login__show {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+}
+.portal-login__demo {
+  padding: 20px;
+  background: #edf5ff;
+  border: 1px solid #c8d9ee;
+  border-radius: 16px;
+  margin-bottom: 24px;
+  font-size: 14px;
+}
+.portal-login__demo h3 {
+  font-size: 16px;
+  margin-top: 0;
+}
+.portal-login__demo dl {
+  display: grid;
+  gap: 8px;
+  overflow-wrap: anywhere;
+}
+.portal-login__demo dd {
+  margin: 0 0 8px;
+  font-weight: 600;
+}
+.portal-login__error {
+  color: #b42318;
+  line-height: 1.5;
+}
+.portal-login__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+@media (max-width: 767px) {
+  .portal-login {
+    grid-template-columns: 1fr;
+  }
+  .portal-login__story {
+    padding: 24px;
+    gap: 24px;
+  }
+  .portal-login__story h1 {
+    font-size: 32px;
+  }
+  .portal-login__footer {
+    display: none;
+  }
+  .portal-login__form {
+    padding: 32px 24px;
+  }
+}

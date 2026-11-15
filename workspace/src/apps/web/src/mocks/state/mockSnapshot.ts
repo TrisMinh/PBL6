@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isMockApi } from "@/shared/api/config";
 
 import {
   authSnapshotSchema,
@@ -41,6 +42,7 @@ const sessionSchema = z
     bookingAttemptKey: bookingAttemptKeySchema.optional(),
     tripId: z.string().min(1).max(128),
     passengerCount: bookingPassengerCountSchema,
+    initialPassengerCount: bookingPassengerCountSchema.optional(),
     selectedSeatIds: z.array(z.string().min(1).max(128)).max(6),
     contact: replacePassengersSchema.shape.contact.optional(),
     passengers: replacePassengersSchema.shape.passengers.max(6),
@@ -149,12 +151,7 @@ export interface MockStorage {
 
 // Access stays lazy; denied/absent storage deliberately falls back to memory.
 function browserStorage(): Storage | undefined {
-  if (
-    import.meta.env.PROD ||
-    !(import.meta.env.DEV || import.meta.env.MODE === "test") ||
-    typeof window === "undefined"
-  )
-    return undefined;
+  if (!isMockApi || typeof window === "undefined") return undefined;
   try {
     return window.sessionStorage;
   } catch {
@@ -319,6 +316,16 @@ export function hydrateMockSnapshot(
     if (!parsed.success) return clearMockSnapshot(storage);
     const snapshot = pruneExpired(parsed.data, nowMs);
     if (!validSnapshot(db, snapshot, nowMs)) return clearMockSnapshot(storage);
+    for (const session of snapshot.sessions) {
+      if (
+        !session.bookingId &&
+        session.selectedSeatIds.length > 0 &&
+        session.passengerCount !== session.selectedSeatIds.length
+      ) {
+        session.initialPassengerCount ??= session.passengerCount;
+        session.passengerCount = session.selectedSeatIds.length;
+      }
+    }
     restoreSnapshot(db, snapshot);
     saveMockSnapshot(db, nowMs, storage);
   } catch {

@@ -1,3 +1,4 @@
+import { Toast } from "@/shared/ui/Toast/Toast";
 import type { ReactElement } from "react";
 import { Link } from "react-router";
 
@@ -47,7 +48,7 @@ function PaymentHeading({ draft }: { draft: BookingDraft }): ReactElement {
         <span aria-current="step">Thanh toán</span>
       </nav>
       <h1>Thanh toán đơn đặt vé</h1>
-      <p>Xác nhận đơn hàng và tiếp tục thanh toán an toàn qua VNPay.</p>
+      <p>Chọn phương thức và theo dõi trạng thái thanh toán của đơn đặt vé.</p>
     </header>
   );
 }
@@ -64,10 +65,10 @@ function ReadyCheckout(props: ReadyProps): ReactElement {
       <PaymentHeading draft={props.draft} />
       {mutation.error &&
         !["ABORTED", "HOLD_EXPIRED"].includes(mutation.error.code) && (
-          <p className="payment-page__feedback" role="alert">
-            Chưa thể tạo giao dịch. Đặt vé được giữ nguyên. Hãy kiểm tra và thử
-            lại yêu cầu hiện tại.
-          </p>
+          <Toast
+            tone="error"
+            message="Chưa thể tạo giao dịch. Đặt vé được giữ nguyên. Hãy kiểm tra và thử lại yêu cầu hiện tại."
+          />
         )}
       <div className="payment-page__checkout">
         <PaymentCheckout
@@ -79,11 +80,21 @@ function ReadyCheckout(props: ReadyProps): ReactElement {
           {...props}
           isPending={isPending}
           isActionPending={mutation.isPending}
-          onContinue={() =>
-            mutation.pay(props.draft.paymentAttempt?.scenario ?? "success")
+          onContinue={() => {
+            if (props.draft.paymentAttempt) {
+              mutation.pay(props.draft.paymentAttempt.scenario ?? "success");
+            }
+          }}
+          primaryAction={
+            !props.draft.paymentAttempt ? (
+              <div className="mock-gateway__waiting" role="status">
+                <span />
+                Chờ xác nhận thanh toán
+              </div>
+            ) : undefined
           }
           actionLabel={actionLabel(props.draft)}
-          hint="BLUE không yêu cầu ảnh chuyển khoản và không xác nhận vé chỉ từ trang quay lại."
+          hint=""
           variant="payment"
           backHref={bookingReviewPath(props.draft.sessionId)}
         />

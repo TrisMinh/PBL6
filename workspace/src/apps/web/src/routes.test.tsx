@@ -6,8 +6,19 @@ import { MemoryRouter, type MetaDescriptor } from "react-router";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import routeConfig from "@/routes";
+import { createPortalRoutes } from "@/app/portalRoutes";
 import { AppProviders } from "@/app/AppProviders";
+
+const routeConfig = createPortalRoutes("all");
+const informationPaths = [
+  "/terms",
+  "/privacy",
+  "/support",
+  "/contact",
+  "/about",
+  "/offers",
+  "/partners",
+];
 
 interface PlaceholderModule {
   default: () => ReactElement;
@@ -65,10 +76,14 @@ describe("routeConfig", () => {
         "/forgot-password",
         "/verify-email",
         "/reset-password",
+        ...informationPaths,
         "/tickets/lookup",
         "/account/tickets",
+        "/account/profile",
+        "/account/settings",
         "/tickets/:ticketCode",
         "/bookings/:bookingCode/cancel",
+        "/refunds/:refundId",
         "/booking/:sessionId/seats",
         "/booking/:sessionId/passengers",
         "/booking/:sessionId/review",
@@ -98,6 +113,8 @@ describe("routeConfig", () => {
           entry.ancestors.includes("./routes/guards/customer-session.tsx"),
         ).toBe(
           entry.path === "/account/tickets" ||
+            entry.path === "/account/profile" ||
+            entry.path === "/account/settings" ||
             entry.path === "/trips/:tripId/seats",
         );
         const needsBookingSession =
@@ -125,7 +142,7 @@ describe.each(
     expect(typeof module.meta).toBe("function");
     render(
       <AppProviders>
-        <MemoryRouter>
+        <MemoryRouter initialEntries={[path]}>
           <Page />
         </MemoryRouter>
       </AppProviders>,
@@ -151,6 +168,12 @@ describe.each(
       expect(title).toEqual({ title: "Kết quả thanh toán | BLUE" });
     else if (path === "/tickets/:ticketCode")
       expect(title).toEqual({ title: "Chi tiết vé | BLUE" });
+    else if (path === "/refunds/:refundId")
+      expect(title).toEqual({ title: "Theo dõi hoàn tiền | BLUE" });
+    else if (path === "/partners")
+      expect(title).toEqual({ title: "Mở bán vé trên BLUE | BLUE" });
+    else if (informationPaths.includes(path))
+      expect(title).toEqual({ title: "Thông tin & hỗ trợ | BLUE" });
     else if (path === "/login")
       expect(title).toEqual({ title: "Đăng nhập | BLUE" });
     else if (path === "/register")
@@ -159,6 +182,10 @@ describe.each(
       expect(title).toEqual({ title: "Quên mật khẩu | BLUE" });
     else if (path === "/account/tickets")
       expect(title).toEqual({ title: "Vé của tôi | BLUE" });
+    else if (path === "/account/profile")
+      expect(title).toEqual({ title: "Hồ sơ cá nhân | BLUE" });
+    else if (path === "/account/settings")
+      expect(title).toEqual({ title: "Cài đặt tài khoản | BLUE" });
     else if (path === "/trips")
       expect(title).toEqual({ title: "Tìm chuyến | BLUE" });
     else if (path === "/explore")
@@ -183,6 +210,7 @@ describe.each(
       "/tickets/lookup",
       "/explore",
       "/explore/:provinceSlug",
+      ...informationPaths,
     ].includes(path);
     if (!isPublic)
       expect(metadata).toContainEqual({

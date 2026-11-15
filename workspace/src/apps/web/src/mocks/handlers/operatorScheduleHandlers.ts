@@ -1,3 +1,4 @@
+import { mockWorkflowSchedule } from "./operatorWorkflowHandlers";
 import type { TripDetail } from "@/features/operator/detail/detail.schema";
 import { tripEditSchema } from "@/features/operator/detail/detail.schema";
 import { http, HttpResponse } from "msw";
@@ -119,9 +120,8 @@ const items: ScheduleTrip[] = [
   },
 ];
 export const operatorScheduleHandlers = [
-  http.get(
-    "/api/v1/operator/schedule-preview",
-    () => HttpResponse.json({ items }),
+  http.get("/api/v1/operator/schedule-preview", () =>
+    HttpResponse.json({ items: [...items, ...mockWorkflowSchedule()] }),
   ),
 ];
 
@@ -137,7 +137,9 @@ const detailEdits = new Map<
   }
 >();
 function detailFor(id: string): TripDetail | null {
-  const trip = items.find((item) => item.id === id);
+  const trip = [...items, ...mockWorkflowSchedule()].find(
+    (item) => item.id === id,
+  );
   if (!trip) return null;
   if (!detailEdits.has(id) && typeof sessionStorage !== "undefined") {
     try {
@@ -218,7 +220,9 @@ operatorScheduleHandlers.push(
     "/api/v1/operator/schedule-preview/:tripId",
     async ({ params, request }) => {
       const id = String(params.tripId);
-      const trip = items.find((item) => item.id === id);
+      const trip = [...items, ...mockWorkflowSchedule()].find(
+        (item) => item.id === id,
+      );
       if (!trip) return new HttpResponse(null, { status: 404 });
       try {
         const parsed = tripEditSchema.safeParse(await request.json());

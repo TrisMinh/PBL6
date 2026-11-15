@@ -28,7 +28,17 @@ export function Button({
       className={classes}
       disabled={disabled || isLoading}
     >
-      {isLoading ? "Đang xử lý" : children}
+      {isLoading ? (
+        <>
+          <span className="button__content" aria-hidden="true">
+            {children}
+          </span>
+          <span className="button__progress" aria-hidden="true" />
+          <span className="button__loading-label">Đang xử lý</span>
+        </>
+      ) : (
+        children
+      )}
     </button>
   );
 }

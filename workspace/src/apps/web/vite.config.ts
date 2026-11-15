@@ -6,6 +6,14 @@ import { fileURLToPath, URL } from "node:url";
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
   return {
+    define: {
+      "import.meta.env.VITE_APP_TARGET": JSON.stringify(
+        process.env.BLUE_APP_TARGET ?? "customer",
+      ),
+      "import.meta.env.VITE_API_MODE": JSON.stringify(
+        process.env.VITE_API_MODE ?? env.VITE_API_MODE ?? "mock",
+      ),
+    },
     server: {
       proxy: {
         "/api/v1": {

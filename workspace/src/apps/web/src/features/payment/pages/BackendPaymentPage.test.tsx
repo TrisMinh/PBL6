@@ -4,6 +4,7 @@ import { MemoryRouter, Route, Routes } from "react-router";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
 import { BackendPaymentPage } from "./BackendPaymentPage";
+import { liveQueryKey } from "@/shared/api/liveRequest";
 
 const bookingId = "019aff01-0000-7000-8000-000000006002";
 const expiresAt = "2026-11-03T03:10:00.000Z";
@@ -24,13 +25,37 @@ function showPayment(status = "PENDING_PAYMENT"): ReturnType<typeof render> {
     defaultOptions: { queries: { staleTime: Infinity, retry: false } },
   });
   clients.push(client);
-  client.setQueryData(["live-api", "booking", bookingId], {
+  client.setQueryData(liveQueryKey("booking", bookingId), {
     id: bookingId,
     code: "BLUE-TEST",
     status,
     expiresAt,
     total: 160000,
+    tripId: "019aff01-0000-7000-8000-000000006003",
+    currency: "VND",
+    items: [],
+    contact: {
+      fullName: "Nguyễn An",
+      email: "an@example.test",
+      phone: "0901234567",
+    },
   });
+  client.setQueryData(
+    liveQueryKey("checkout-trip", "019aff01-0000-7000-8000-000000006003"),
+    {
+      id: "019aff01-0000-7000-8000-000000006003",
+      origin: "Hồ Chí Minh",
+      destination: "Đà Lạt",
+      stops: [],
+      departureAt: "2026-11-04T08:00:00+07:00",
+      arrivalAt: "2026-11-04T14:00:00+07:00",
+    },
+  );
+  client.setQueryData(
+    liveQueryKey("checkout-seats", "019aff01-0000-7000-8000-000000006003"),
+    { seats: [] },
+  );
+  client.setQueryData(liveQueryKey("checkout-payments", bookingId), []);
   return render(
     <QueryClientProvider client={client}>
       <MemoryRouter initialEntries={[`/payment/${bookingId}/vnpay`]}>
@@ -58,11 +83,13 @@ it("counts down from the backend deadline and preserves it when reopening the pa
 it("stops at zero, explains expiry and disables payment at the backend deadline", async () => {
   showPayment();
   expect(
-    screen.getByRole("button", { name: "Thanh toán qua VNPay" }),
+    screen.getByRole("button", { name: "Tiếp tục đến VNPay" }),
   ).toBeEnabled();
   await act(() => vi.advanceTimersByTimeAsync(600000));
   expect(
-    screen.queryByRole("button", { name: "Thanh toán qua VNPay" }),
+    screen.queryByRole("button", {
+      name: /Tiếp tục đến VNPay|Thanh toán qua VNPay/,
+    }),
   ).not.toBeInTheDocument();
   expect(screen.getByRole("alert")).toHaveTextContent(
     "Đã hết thời gian giữ ghế",
@@ -83,7 +110,9 @@ it("shows recovery when the backend already returns EXPIRED on reload", () => {
   );
   expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
   expect(
-    screen.queryByRole("button", { name: "Thanh toán qua VNPay" }),
+    screen.queryByRole("button", {
+      name: /Tiếp tục đến VNPay|Thanh toán qua VNPay/,
+    }),
   ).not.toBeInTheDocument();
 });
 

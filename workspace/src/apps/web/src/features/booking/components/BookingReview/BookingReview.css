@@ -6,9 +6,7 @@
   border: 1px solid var(--color-border);
   border-radius: 24px;
   background: var(--color-bg-surface);
-  height: 720px;
-  overflow: hidden;
-  grid-template-rows: 188px 210px 154px 72px;
+  align-content: start;
 }
 .booking-review__card {
   position: relative;
@@ -22,15 +20,6 @@
   font-size: 1rem;
   margin: 0;
   line-height: 1.5;
-}
-.booking-review__card:nth-of-type(1) {
-  height: 188px;
-}
-.booking-review__card:nth-of-type(2) {
-  height: 210px;
-}
-.booking-review__card:nth-of-type(3) {
-  height: 154px;
 }
 .booking-review__card-heading {
   display: flex;
@@ -246,12 +235,12 @@
 .booking-review__policy-details p {
   position: absolute;
   z-index: 1;
-  top: calc(100% + var(--space-1));
+  top: calc(100% + 4px);
   right: 0;
   width: 260px;
   margin: 0;
-  padding: var(--space-3);
-  border: 1px solid var(--color-border-default);
+  padding: 12px;
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-control);
   background: var(--color-bg-surface);
   box-shadow: var(--shadow-card);
@@ -282,54 +271,11 @@
   font-weight: 400;
 }
 @media (min-width: 768px) {
-  .booking-review__card:nth-of-type(1) .booking-review__card-heading {
-    position: absolute;
-    top: 16px;
-    right: 19px;
-    left: 19px;
-  }
-  .booking-review__card:nth-of-type(1) .booking-review__operator {
-    position: absolute;
-    top: 49px;
-    right: 19px;
-    left: 19px;
-    margin: 0;
-  }
-  .booking-review__card:nth-of-type(1) .booking-review__journey {
-    position: absolute;
-    top: 124px;
-    right: 19px;
-    left: 19px;
-  }
-  .booking-review__card:nth-of-type(2) .booking-review__card-heading {
-    position: absolute;
-    top: 15px;
-    right: 19px;
-    left: 19px;
-  }
-  .booking-review__card:nth-of-type(2) .booking-review__passengers {
-    position: absolute;
-    top: 49px;
-    right: 19px;
-    left: 19px;
-    margin: 0;
-  }
-  .booking-review__card:nth-of-type(2) .booking-review__pickup {
-    position: absolute;
-    top: 129px;
-    right: 19px;
-    left: 19px;
-    min-height: 64px;
-    margin: 0;
-  }
   .booking-review__journey {
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) 88px minmax(0, 1fr);
   }
   .booking-review__journey > div:last-child {
     text-align: right;
-  }
-  .booking-review__passengers {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 @media (max-width: 767px) {
@@ -367,7 +313,7 @@
 
 .booking-review--live {
   height: auto;
-  min-height: 720px;
+  min-height: 0;
   grid-template-rows: auto;
   overflow: visible;
 }
@@ -439,5 +385,171 @@
 @media (max-width: 420px) {
   .booking-review__route-options {
     grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Content-driven review: shared baselines without fixed card heights. */
+.booking-review__card-heading {
+  margin-bottom: 14px;
+}
+.booking-review__card-heading a {
+  min-height: 30px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.booking-review__trip-content {
+  display: grid;
+  grid-template-columns: 160px minmax(0, 1fr);
+  gap: 18px;
+  align-items: center;
+}
+.booking-review__photo {
+  position: relative;
+  margin: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--color-bg-subtle);
+  align-self: stretch;
+  min-height: 145px;
+}
+.booking-review__photo > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  object-fit: cover;
+}
+.booking-review__photo figcaption {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 16px 8px 7px;
+  color: white;
+  background: linear-gradient(transparent, #0d2549c9);
+  font-size: 10px;
+}
+.booking-review__operator {
+  margin: 0 0 16px;
+  gap: 10px;
+}
+.booking-review__operator strong {
+  margin-top: 3px;
+  font-size: 15px;
+  line-height: 1.4;
+}
+.booking-review__operator-icon {
+  width: 36px;
+  height: 36px;
+  flex-basis: 36px;
+  border-radius: 10px;
+}
+.booking-review__journey {
+  gap: 10px;
+  align-items: center;
+}
+.booking-review__journey strong {
+  display: block;
+  font-size: 21px;
+  line-height: 1.3;
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 3px;
+}
+.booking-review__journey span {
+  font-size: 12px;
+  line-height: 1.5;
+}
+.booking-review__journey > div > span:last-child {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+.booking-review__timeline {
+  align-self: center;
+  margin-bottom: 14px;
+}
+.booking-review__timeline small {
+  top: 32px;
+  width: 130px;
+}
+.booking-review__passengers {
+  margin: 0;
+  gap: 8px;
+  grid-template-columns: minmax(0, 1fr);
+}
+.booking-review__passengers li {
+  padding: 8px 10px;
+  gap: 8px;
+  min-height: 40px;
+  border-radius: 10px;
+  background: var(--color-bg-surface);
+  font-size: 13px;
+}
+.booking-review__seat {
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--color-bg-subtle);
+}
+.booking-review__passenger-icon {
+  width: 17px;
+  height: 17px;
+}
+.booking-review__passenger-divider {
+  height: 20px;
+}
+.booking-review__pickup {
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  align-items: center;
+  gap: 10px;
+}
+.booking-review__pickup span {
+  gap: 2px;
+}
+.booking-review__pickup strong {
+  font-size: 12px;
+}
+.booking-review__pickup b {
+  padding: 5px 10px;
+  font-size: 11px;
+}
+.booking-review__policy {
+  gap: 10px;
+  margin: 10px 0 0;
+}
+.booking-review__policy strong {
+  font-size: 12px;
+  line-height: 1.5;
+}
+.booking-review__policy small {
+  font-size: 11px;
+  line-height: 1.5;
+}
+.booking-review__consent {
+  align-items: flex-start;
+  padding: 12px;
+  font-size: 12px;
+}
+@media (max-width: 1199px) and (min-width: 1024px) {
+  .booking-review__trip-content {
+    grid-template-columns: 120px minmax(0, 1fr);
+    gap: 12px;
+  }
+  .booking-review__journey {
+    grid-template-columns: minmax(0, 1fr) 48px minmax(0, 1fr);
+  }
+}
+@media (max-width: 767px) {
+  .booking-review__trip-content {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .booking-review__photo {
+    height: 150px;
+  }
+  .booking-review__journey {
+    grid-template-columns: minmax(0, 1fr) 70px minmax(0, 1fr);
+  }
+  .booking-review__journey > div:last-child {
+    text-align: right;
   }
 }

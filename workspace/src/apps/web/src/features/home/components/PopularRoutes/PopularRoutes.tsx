@@ -1,3 +1,4 @@
+import { MockPopularRoutes } from "./MockPopularRoutes";
 import type { ReactElement } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router";
@@ -95,43 +96,6 @@ function LiveRoutes(): ReactElement {
           })}
         </div>
       )}
-    </section>
-  );
-}
-
-function MockPopularRoutes(): ReactElement {
-  return (
-    <section className="popular-routes" aria-labelledby="popular-routes-title">
-      <header className="popular-routes__header">
-        <h2 id="popular-routes-title">Tuyến đường phổ biến</h2>
-        <p>Những tuyến được đặt nhiều trong tuần này</p>
-      </header>
-      <div
-        aria-label="Danh sách tuyến đường phổ biến"
-        className="popular-routes__scroller"
-        role="region"
-        tabIndex={0}
-      >
-        {POPULAR_ROUTES.map((route) => (
-          <article
-            className="popular-routes__card"
-            aria-label={route.title}
-            key={route.title}
-          >
-            <img
-              src={route.image}
-              alt=""
-              width={1672}
-              height={941}
-              loading="lazy"
-            />
-            <div className="popular-routes__card-copy">
-              <h3>{route.title}</h3>
-              <p>{route.price}</p>
-            </div>
-          </article>
-        ))}
-      </div>
     </section>
   );
 }

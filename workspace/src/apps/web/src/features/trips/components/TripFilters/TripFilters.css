@@ -196,15 +196,6 @@
   pointer-events: none;
 }
 
-.trip-filters__select-icon {
-  position: absolute;
-  top: 17px;
-  right: 15px;
-  width: 12px;
-  height: 8px;
-  pointer-events: none;
-}
-
 .trip-filters__periods {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -271,66 +262,6 @@
   font-size: 13px;
 }
 
-.trip-filters__range {
-  position: relative;
-  height: 20px;
-}
-
-.trip-filters__range span {
-  position: absolute;
-  top: 8px;
-  right: 0;
-  left: 0;
-  height: 4px;
-  border-radius: 2px;
-  background: var(--color-results-border);
-}
-
-.trip-filters__range::after {
-  position: absolute;
-  top: 8px;
-  right: 28px;
-  left: 28px;
-  height: 4px;
-  background: var(--color-results-accent);
-  content: "";
-}
-
-.trip-filters__range img {
-  position: absolute;
-  z-index: 1;
-  top: 2px;
-  width: 16px;
-  height: 16px;
-}
-
-.trip-filters__range img:first-of-type {
-  left: 22px;
-}
-
-.trip-filters__range img:last-of-type {
-  right: 22px;
-}
-
-.trip-filters__range input {
-  position: absolute;
-  z-index: 2;
-  inset: 0;
-  width: 100%;
-  height: 20px;
-  margin: 0;
-  cursor: pointer;
-  opacity: 0;
-}
-
-.trip-filters__range input:last-of-type {
-  pointer-events: none;
-}
-
-.trip-filters__range input:last-of-type:focus {
-  pointer-events: auto;
-}
-
 .trip-filters__group--amenities {
   display: grid;
   gap: 10px;
@@ -361,8 +292,7 @@
 
 .trip-filters__period:focus-visible,
 .trip-filters__stacked-field:focus-within,
-.trip-filters__check:focus-within,
-.trip-filters__range:focus-within {
+.trip-filters__check input:focus-visible {
   outline: 2px solid var(--color-focus-ring);
   outline-offset: 2px;
 }
@@ -388,6 +318,31 @@
   display: grid;
   gap: 14px;
 }
+.trip-filters__stop-details {
+  border-top: 1px solid var(--color-results-border);
+}
+.trip-filters__stop-details summary {
+  min-height: 44px;
+  padding-block: 12px;
+  color: var(--color-brand-shell-strong);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.trip-filters__stop-details summary:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+.trip-filters__stop-details .trip-filters__group--route {
+  padding-bottom: 12px;
+}
+.trip-filters__stop-details .trip-filters__select {
+  padding-block: 0;
+  background-image: url("@/assets/trip-results/chevron.svg");
+  background-position: right 14px center;
+  background-repeat: no-repeat;
+  background-size: 12px;
+}
 .trip-filters--live .trip-filters__desktop .trip-filters__sort-field {
   display: block;
 }
@@ -403,4 +358,103 @@
 }
 .trip-filters__periods:has(> button:nth-child(4)) {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* Keep native fieldset semantics while placing legends below each divider. */
+@media (min-width: 1200px) {
+  .trip-filters:not(.trip-filters--live) .trip-filters__controls {
+    margin-top: 18px;
+  }
+  .trip-filters:not(.trip-filters--live) .trip-filters__group {
+    display: block;
+    padding: 18px 0 20px;
+  }
+  .trip-filters:not(.trip-filters--live) .trip-filters__legend {
+    float: left;
+    width: 100%;
+    height: 28px;
+    line-height: 28px;
+    margin-bottom: 10px;
+  }
+  .trip-filters:not(.trip-filters--live) .trip-filters__legend + * {
+    clear: both;
+  }
+  .trip-filters:not(.trip-filters--live) .trip-filters__select-wrap,
+  .trip-filters:not(.trip-filters--live) .trip-filters__periods,
+  .trip-filters:not(.trip-filters--live) .trip-filters__stacked-field {
+    margin-top: 0;
+  }
+  .trip-filters:not(.trip-filters--live)
+    .trip-filters__group:has(.trip-filters__stacked-field) {
+    padding-top: 12px;
+  }
+  .trip-filters:not(.trip-filters--live)
+    .trip-filters__group:has(.price-range) {
+    border-top: 0;
+    padding-top: 12px;
+  }
+  .trip-filters__range-copy {
+    line-height: 24px;
+    margin: -6px 0 10px;
+  }
+  .trip-filters:not(.trip-filters--live)
+    .trip-filters__group:has(.price-range)
+    .trip-filters__legend {
+    margin-bottom: 4px;
+  }
+  .trip-filters:not(.trip-filters--live)
+    .trip-filters__group--amenities
+    .trip-filters__legend {
+    margin-bottom: 6px;
+  }
+  .trip-filters__check {
+    height: 28px;
+    margin-bottom: 10px;
+  }
+  .trip-filters__check input {
+    appearance: none;
+    border: 1px solid var(--color-results-border);
+    border-radius: 5px;
+    background: white;
+    display: grid;
+    place-content: center;
+  }
+  .trip-filters__check input:checked {
+    background: var(--color-results-accent);
+    border-color: var(--color-results-accent);
+  }
+  .trip-filters__check input:checked::after {
+    content: "✓";
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .trip-filters__apply {
+    margin-top: 10px;
+    font-size: 14px;
+  }
+  .trip-filters__stacked-field input::-webkit-calendar-picker-indicator {
+    opacity: 0;
+    position: absolute;
+    right: 8px;
+    width: 24px;
+    height: 24px;
+  }
+  .trip-filters__stacked-field:has(input:invalid) {
+    color: var(--color-results-text);
+  }
+  .trip-filters__hour-placeholder {
+    position: absolute;
+    left: 13px;
+    top: 22px;
+    color: var(--color-results-text) !important;
+    font-size: 12px !important;
+    pointer-events: none;
+  }
+  .trip-filters__stacked-field[data-empty="true"]:not(:focus-within) input {
+    color: transparent;
+  }
+  .trip-filters__stacked-field:focus-within .trip-filters__hour-placeholder {
+    display: none;
+  }
 }

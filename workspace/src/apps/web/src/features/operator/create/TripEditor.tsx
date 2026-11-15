@@ -36,6 +36,7 @@ import {
 } from "../TripWorkflowUI";
 import checkIcon from "@/assets/operator/create/imgFrame8.svg";
 import reviewIcon from "@/assets/operator/create/imgFrame9.svg";
+import swapIcon from "@/assets/operator/create/imgIconSwap.svg";
 import { ResourcePicker, type ResourceOption } from "./ResourcePicker";
 import { TripDateTimeField } from "./TripDateTimeField";
 import {
@@ -232,6 +233,9 @@ export function CreateTripPage({
         driverId: form.driverId,
       });
       void client.invalidateQueries({ queryKey: ["live-api"] });
+      void client.invalidateQueries({
+        queryKey: ["operator", "schedule-preview"],
+      });
       setVersion(trip.rowVersion);
       setChanged(false);
       void navigate(
@@ -337,30 +341,82 @@ export function CreateTripPage({
               <section className="operator-create__panel operator-create__route">
                 <h2>Tuyến &amp; thời gian</h2>
                 <p>Chọn hành trình và thời điểm xuất bến.</p>
-                <Field
-                  label="Tuyến"
-                  value={form.routeId}
-                  onChange={(v) => change("routeId", v)}
-                >
-                  <option value="">Chọn tuyến xe</option>
-                  {resources.routes.data
-                    ?.filter(
-                      (r) => r.status === "ACTIVE" || r.id === form.routeId,
-                    )
-                    .map((r) => (
-                      <option key={r.id} value={r.id}>
-                        {r.name}
-                        {r.status !== "ACTIVE" ? " · Ngừng hoạt động" : ""}
+                <div className="operator-create__route-fields">
+                  <Field
+                    label="Điểm đi"
+                    value={route?.origin ?? ""}
+                    onChange={(origin) =>
+                      change(
+                        "routeId",
+                        resources.routes.data?.find(
+                          (r) => r.origin === origin && r.status === "ACTIVE",
+                        )?.id ?? "",
+                      )
+                    }
+                  >
+                    <option value="">Chọn điểm đi</option>
+                    {[
+                      ...new Set(
+                        resources.routes.data
+                          ?.filter(
+                            (r) =>
+                              r.status === "ACTIVE" || r.id === form.routeId,
+                          )
+                          .map((r) => r.origin),
+                      ),
+                    ].map((origin) => (
+                      <option key={origin} value={origin}>
+                        {origin}
                       </option>
                     ))}
-                </Field>
-                <div className="operator-create__two">
-                  <TripFact label="Điểm đi">
-                    {route?.origin ?? "Chưa chọn tuyến"}
-                  </TripFact>
-                  <TripFact label="Điểm đến">
-                    {route?.destination ?? "Chưa chọn tuyến"}
-                  </TripFact>
+                  </Field>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="operator-create__swap"
+                    aria-label="Đổi điểm đi và điểm đến"
+                    disabled={
+                      !resources.routes.data?.some(
+                        (r) =>
+                          r.status === "ACTIVE" &&
+                          r.origin === route?.destination &&
+                          r.destination === route?.origin,
+                      )
+                    }
+                    onClick={() =>
+                      change(
+                        "routeId",
+                        resources.routes.data?.find(
+                          (r) =>
+                            r.status === "ACTIVE" &&
+                            r.origin === route?.destination &&
+                            r.destination === route?.origin,
+                        )?.id ?? form.routeId,
+                      )
+                    }
+                  >
+                    <img src={swapIcon} alt="" width={16} height={16} />
+                  </Button>
+                  <Field
+                    label="Điểm đến"
+                    value={form.routeId}
+                    disabled={!route}
+                    onChange={(id) => change("routeId", id)}
+                  >
+                    <option value="">Chọn điểm đến</option>
+                    {resources.routes.data
+                      ?.filter(
+                        (r) =>
+                          r.origin === route?.origin &&
+                          (r.status === "ACTIVE" || r.id === form.routeId),
+                      )
+                      .map((r) => (
+                        <option key={r.id} value={r.id}>
+                          {r.destination}
+                          {r.status !== "ACTIVE" ? " · Ngừng hoạt động" : ""}
+                        </option>
+                      ))}
+                  </Field>
                 </div>
                 <div className="operator-trip-workflow__times">
                   <Field
@@ -385,7 +441,6 @@ export function CreateTripPage({
                   </TripFact>
                 </div>
                 <TripStops route={route} />
-                <p>Các điểm đón/trả được lấy từ tuyến đã chọn.</p>
               </section>
               <section className="operator-create__panel operator-create__crew">
                 <h2>Xe &amp; nhân sự</h2>

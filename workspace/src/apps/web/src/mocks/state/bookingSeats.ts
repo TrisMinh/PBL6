@@ -107,6 +107,7 @@ export function reserveSessionSeats(
     }
   }
   session.selectedSeatIds = [...ids];
+  if (ids.length > 0) session.passengerCount = ids.length;
   session.totalVnd = fareVnd * ids.length;
   session.passengers = session.passengers.filter((passenger) =>
     ids.includes(passenger.seatId),

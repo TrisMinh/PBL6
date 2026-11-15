@@ -1,7 +1,6 @@
 import { useState, type ReactElement } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router";
-import { useAccountSession } from "@/features/auth/hooks/useAccountSession";
 import { apiJson } from "@/shared/api/client";
 import {
   backendTicketSchema,
@@ -179,7 +178,6 @@ function AccountList({ view }: { view: "tickets" | "bookings" }): ReactElement {
 }
 
 export function LiveAccountPage(): ReactElement {
-  const { revoke } = useAccountSession();
   const [view, setView] = useState<"tickets" | "bookings">("tickets");
   return (
     <div className="account-live">
@@ -188,11 +186,6 @@ export function LiveAccountPage(): ReactElement {
           <p className="account-live__eyebrow">TÀI KHOẢN CỦA BẠN</p>
           <h1>Những hành trình của tôi</h1>
           <p>Thông tin cá nhân và mọi chuyến đi, ở cùng một nơi.</p>
-        </div>
-        <div className="account-live__actions">
-          <Button variant="ghost" onClick={revoke}>
-            Đăng xuất <span aria-hidden="true">↗</span>
-          </Button>
         </div>
       </header>
       <div className="account-live__layout">

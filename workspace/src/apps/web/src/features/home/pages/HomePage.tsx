@@ -1,5 +1,6 @@
 import type { ReactElement } from "react";
 
+import { RecentSearches } from "@/features/home/components/RecentSearches/RecentSearches";
 import { HomeFooter } from "@/features/home/components/HomeFooter/HomeFooter";
 import { PopularRoutes } from "@/features/home/components/PopularRoutes/PopularRoutes";
 import { ProductTruths } from "@/features/home/components/ProductTruths/ProductTruths";
@@ -13,6 +14,7 @@ export function HomePage(): ReactElement {
   return (
     <div className="home-page">
       <HomeHero />
+      <RecentSearches />
       <ProductTruths />
       <PopularRoutes />
       <TrustJourney />

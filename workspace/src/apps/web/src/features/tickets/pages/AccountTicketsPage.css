@@ -2,66 +2,557 @@
   max-width: 1120px;
   min-width: 0;
   margin: auto;
-  padding: var(--space-section-inset) var(--space-page-gutter);
+  padding: 20px 0 56px;
 }
+
+.account-tickets__heading,
+.account-tickets__intro,
+.account-tickets__toolbar,
+.account-tickets__meta,
+.account-tickets__actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.account-tickets__heading,
+.account-tickets__toolbar,
+.account-tickets__meta {
+  justify-content: space-between;
+}
+
 .account-tickets__heading {
+  padding: 24px 26px;
+  border: 1px solid var(--color-border-shell);
+  border-radius: 18px;
+  background: linear-gradient(110deg, #e7f1ff, #f8fbff 64%);
+}
+
+.account-tickets__heading-icon {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 13px;
+  background: var(--color-brand-shell-strong);
+  color: white;
+}
+
+.account-tickets__heading h1 {
+  margin: 0;
+  font: 700 clamp(26px, 3vw, 37px)/1.15 var(--font-body);
+  letter-spacing: -0.035em;
+}
+
+.account-tickets__heading p {
+  margin: 6px 0 0;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+}
+
+.account-tickets__toolbar {
+  margin: 24px 0 9px;
+}
+.account-tickets__toolbar h2 {
+  margin: 0;
+  font-size: 23px;
+}
+
+.account-tickets__filter {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--space-content-gap);
-}
-.account-tickets__heading h1 {
-  font-family: var(--font-display);
-  font-size: clamp(1.75rem, 3vw, 2.5rem);
-}
-.account-tickets__heading p {
-  flex-basis: 100%;
+  gap: 10px;
   color: var(--color-text-secondary);
+  font-size: 13px;
+  font-weight: 600;
 }
-.account-tickets__filter {
-  display: grid;
-  max-width: 280px;
-  gap: var(--space-inline-gap);
-  margin-block: var(--space-content-gap);
-}
+
 .account-tickets__filter select {
-  min-height: var(--size-control-min);
-  color: var(--color-text-primary);
-  background: var(--color-bg-surface);
+  min-width: 158px;
+  min-height: 44px;
+  padding: 0 10px;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-control);
-  padding: var(--space-inline-gap);
+  border-radius: 10px;
+  background: white;
+  color: var(--color-text-primary);
+  font: inherit;
 }
+
+.account-tickets__total {
+  margin: 0 0 10px;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
 .account-tickets__list {
   display: grid;
-  gap: var(--space-content-gap);
-  list-style: none;
+  gap: 16px;
+  margin: 0;
   padding: 0;
+  list-style: none;
 }
+
 .account-tickets__item {
   min-width: 0;
-  background: var(--color-bg-surface);
-  padding: var(--space-section-inset);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
+  padding: 17px 20px;
   overflow-wrap: anywhere;
+  border: 1px solid var(--color-border-shell);
+  border-top: 3px solid var(--color-bg-brand);
+  border-radius: 15px;
+  background: white;
+  box-shadow: 0 3px 10px rgb(14 43 82 / 6%);
 }
+
+.account-tickets__item article {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.account-tickets__meta code {
+  color: var(--color-text-secondary);
+  font: 600 12px var(--font-body);
+}
+
+.account-tickets__meta .status-badge {
+  font-size: 12px;
+}
+
 .account-tickets__item h2 {
-  font-size: 1.25rem;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 12px 0;
+  color: var(--color-text-editorial-heading);
+  font: 700 20px/1.3 var(--font-body);
 }
+
+.account-tickets__item h2 svg {
+  color: var(--color-bg-brand);
+}
+
+.account-tickets__facts {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px 16px;
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--color-bg-subtle);
+}
+
+.account-tickets__facts dt {
+  color: var(--color-text-secondary);
+  font-size: 11px;
+}
+.account-tickets__facts dd {
+  margin: 3px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.account-tickets__actions {
+  margin-top: auto;
+}
+
+.account-tickets__actions a,
+.account-tickets__empty a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.account-tickets__view,
+.account-tickets__empty a {
+  background: var(--color-bg-brand);
+  color: white;
+}
+.account-tickets__view:hover,
+.account-tickets__empty a:hover {
+  background: var(--color-action-hover);
+}
+
+.account-tickets__actions .account-tickets__cancel {
+  border-color: var(--color-border-shell);
+  color: #a1283d;
+}
+.account-tickets__cancel:hover {
+  background: #fff0f3;
+}
+
+.account-tickets__empty {
+  padding: 24px;
+  border: 1px solid var(--color-border-shell);
+  border-radius: 14px;
+  background: white;
+}
+
 .account-tickets :where(a, select, button):focus-visible {
   outline: 3px solid var(--color-focus-ring);
   outline-offset: 3px;
 }
-.account-tickets__item a,
-.account-tickets__empty a {
-  display: inline-flex;
-  align-items: center;
-  min-height: var(--size-control-min);
-}
+
 @media (min-width: 768px) {
   .account-tickets__list {
     grid-template-columns: 1fr 1fr;
   }
+}
+
+.account-tickets__view-toolbar,
+.account-tickets__view-options {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.account-tickets__view-toolbar {
+  margin-bottom: 12px;
+}
+.account-tickets__view-toolbar .account-tickets__total {
+  margin: 0;
+}
+
+.account-tickets__segmented {
+  display: flex;
+  padding: 3px;
+  border: 1px solid var(--color-border-shell);
+  border-radius: 10px;
+  background: white;
+}
+
+.account-tickets__segmented button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 5px 10px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font: 600 12px var(--font-body);
+  cursor: pointer;
+}
+
+.account-tickets__segmented button:hover {
+  background: var(--color-bg-subtle);
+}
+.account-tickets__segmented button[aria-pressed="true"] {
+  background: var(--color-brand-shell-strong);
+  color: white;
+}
+
+.account-tickets__results[data-size="small"] .account-tickets__item {
+  padding: 12px;
+}
+.account-tickets__results[data-size="small"] .account-tickets__item h2 {
+  font-size: 16px;
+  margin-block: 9px;
+}
+.account-tickets__results[data-size="small"] .account-tickets__facts {
+  padding: 8px;
+  gap: 6px;
+}
+.account-tickets__results[data-size="small"] .account-tickets__facts dd {
+  font-size: 12px;
+}
+.account-tickets__results[data-size="large"] .account-tickets__item {
+  padding: 23px;
+}
+.account-tickets__results[data-size="large"] .account-tickets__item h2 {
+  font-size: 24px;
+}
+.account-tickets__results[data-size="large"] .account-tickets__facts {
+  padding: 14px;
+  gap: 13px;
+}
+.account-tickets__results[data-size="large"] .account-tickets__facts dd {
+  font-size: 15px;
+}
+
+.account-tickets__results[data-layout="list"] .account-tickets__list {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* Ticket density and the photo / details / purchase hierarchy. */
+.account-tickets__destination,
+.account-tickets__content,
+.account-tickets__purchase {
+  min-width: 0;
+}
+.account-tickets__content,
+.account-tickets__purchase {
+  display: flex;
+  flex-direction: column;
+}
+.account-tickets__content {
+  gap: 12px;
+}
+.account-tickets__facts {
+  margin: 0;
+}
+.account-tickets__facts > div:first-child {
+  min-width: 0;
+}
+.account-tickets__facts time {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+.account-tickets__date {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+}
+.account-tickets__price {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: 0 0 10px;
+}
+.account-tickets__price span {
+  color: var(--color-text-secondary);
+  font-size: 11px;
+}
+.account-tickets__price strong {
+  color: var(--color-brand-shell-strong);
+  font-size: 20px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.account-tickets__photo {
+  position: relative;
+  overflow: hidden;
+  border-radius: 9px;
+  background: var(--color-bg-subtle);
+  container-type: size;
+}
+.account-tickets__photo .explore-discovery__image {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: max(100cqw, 150cqh);
+  height: max(66.667cqw, 100cqh);
+  aspect-ratio: 3 / 2;
+  transform: translate(-50%, -50%);
+}
+/* Grid cards use a fixed photo/detail row and a separate purchase row. */
+.account-tickets__results[data-layout="grid"] .account-tickets__item article {
+  display: grid;
+  grid-template-columns: 36% minmax(0, 1fr);
+  gap: 0 14px;
+  align-content: start;
+  align-items: start;
+}
+.account-tickets__results[data-layout="grid"] .account-tickets__meta,
+.account-tickets__results[data-layout="grid"] .account-tickets__item h2,
+.account-tickets__results[data-layout="grid"] .account-tickets__purchase {
+  grid-column: 1 / -1;
+}
+.account-tickets__results[data-layout="grid"]
+  :is(.account-tickets__destination, .account-tickets__content) {
+  display: contents;
+}
+.account-tickets__results[data-layout="grid"] .account-tickets__photo {
+  height: 120px;
+}
+.account-tickets__results[data-layout="grid"] .account-tickets__facts {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  padding: 0;
+  gap: 10px 12px;
+  background: transparent;
+}
+.account-tickets__results[data-layout="grid"] .account-tickets__facts time {
+  gap: 0 6px;
+}
+.account-tickets__results[data-layout="grid"] .account-tickets__purchase {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-border-shell);
+}
+.account-tickets__results[data-layout="grid"] .account-tickets__price {
+  flex-direction: column;
+  gap: 1px;
+  margin: 0;
+}
+.account-tickets__results[data-layout="grid"] .account-tickets__actions {
+  margin: 0;
+  gap: 7px;
+}
+.account-tickets__results[data-layout="grid"][data-size="small"]
+  .account-tickets__item
+  article {
+  grid-template-columns: 28% minmax(0, 1fr);
+  column-gap: 12px;
+}
+.account-tickets__results[data-layout="grid"][data-size="small"]
+  .account-tickets__photo {
+  height: 106px;
+}
+.account-tickets__results[data-layout="grid"][data-size="small"]
+  .account-tickets__purchase {
+  margin-top: 12px;
+  padding-top: 10px;
+}
+.account-tickets__results[data-layout="grid"][data-size="large"]
+  .account-tickets__photo {
+  height: 144px;
+}
+.account-tickets__results[data-size="small"] .account-tickets__facts time {
+  font-size: 16px;
+}
+.account-tickets__results[data-size="small"] .account-tickets__price strong {
+  font-size: 17px;
+}
+.account-tickets__results[data-size="small"] .account-tickets__actions a {
+  min-height: 36px;
+  padding-inline: 10px;
+  font-size: 12px;
+}
+.account-tickets__results[data-layout="list"] .account-tickets__item {
+  padding: 14px 18px;
+}
+.account-tickets__results[data-layout="list"] .account-tickets__list {
+  gap: 12px;
+}
+.account-tickets__results[data-layout="list"] .account-tickets__item article {
+  display: grid;
+  grid-template-columns: minmax(0, 310px) minmax(0, 1fr);
+  gap: 10px 20px;
+  align-items: center;
+}
+.account-tickets__results[data-layout="list"] .account-tickets__meta {
+  grid-column: 1 / -1;
+}
+.account-tickets__results[data-layout="list"] .account-tickets__item h2 {
+  margin: 0 0 8px;
+  font-size: 18px;
+  gap: 5px;
+}
+.account-tickets__results[data-layout="list"] .account-tickets__photo {
+  height: 78px;
+}
+.account-tickets__results[data-layout="list"] .account-tickets__content {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 20px;
+  align-items: center;
+  align-self: stretch;
+  padding-left: 20px;
+  border-left: 1px solid var(--color-border-shell);
+}
+.account-tickets__results[data-layout="list"] .account-tickets__facts {
+  padding: 0;
+  gap: 10px 24px;
+  background: transparent;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+.account-tickets__results[data-layout="list"] .account-tickets__purchase {
+  align-self: stretch;
+  justify-content: center;
+  padding-left: 20px;
+  border-left: 1px dashed var(--color-border-shell);
+}
+.account-tickets__results[data-layout="list"] .account-tickets__price {
+  flex-direction: column;
+  gap: 1px;
+}
+.account-tickets__results[data-layout="list"] .account-tickets__actions {
+  margin-top: 0;
+  gap: 8px;
+}
+.account-tickets__results[data-layout="list"][data-size="small"]
+  .account-tickets__item {
+  padding: 11px 14px;
+}
+.account-tickets__results[data-layout="list"][data-size="small"]
+  .account-tickets__photo {
+  height: 56px;
+}
+.account-tickets__results[data-layout="list"][data-size="small"]
+  .account-tickets__item
+  h2 {
+  font-size: 16px;
+}
+.account-tickets__results[data-layout="list"][data-size="large"]
+  .account-tickets__item {
+  padding: 18px 22px;
+}
+.account-tickets__results[data-layout="list"][data-size="large"]
+  .account-tickets__photo {
+  height: 96px;
+}
+.account-tickets__results[data-layout="list"][data-size="large"]
+  .account-tickets__item
+  h2 {
+  font-size: 21px;
+}
+@media (min-width: 1050px) {
+  .account-tickets__results[data-layout="grid"][data-size="small"]
+    .account-tickets__list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .account-tickets__results[data-layout="grid"][data-size="large"]
+    .account-tickets__list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 1199px) {
+  .account-tickets__results[data-layout="list"] .account-tickets__item article {
+    grid-template-columns: minmax(0, 260px) minmax(0, 1fr);
+    gap: 10px 16px;
+  }
+  .account-tickets__results[data-layout="list"] .account-tickets__content {
+    gap: 12px;
+    padding-left: 16px;
+  }
+  .account-tickets__results[data-layout="list"] .account-tickets__purchase {
+    padding-left: 12px;
+  }
+  .account-tickets__results[data-layout="list"] .account-tickets__actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+@media (max-width: 767px) {
+  .account-tickets__results[data-layout="list"] .account-tickets__item article {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .account-tickets__results[data-layout="list"] .account-tickets__content {
+    border-left: 0;
+    padding-left: 0;
+  }
+}
+
+.account-tickets__segmented button {
+  width: 38px;
+  padding: 5px;
+}
+.account-tickets__results[data-layout="list"] .account-tickets__item h2 {
+  margin: 0 0 8px;
 }

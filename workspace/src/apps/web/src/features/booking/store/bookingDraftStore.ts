@@ -77,8 +77,13 @@ function readPersistedDraft(
     parsed.success &&
     ((!isMockApi && !parsed.data.draft.bookingId) ||
       Date.parse(parsed.data.draft.expiresAt) > Date.now())
-  )
-    return parsed.data.draft;
+  ) {
+    const draft = parsed.data.draft;
+    if (isMockApi && !draft.bookingId && draft.selectedSeatIds.length > 0) {
+      draft.passengerCount = draft.selectedSeatIds.length;
+    }
+    return draft;
+  }
   void storage.removeItem(BOOKING_DRAFT_STORAGE_KEY);
   return null;
 }

@@ -1,8 +1,6 @@
 import type { ReactElement } from "react";
 import { Link } from "react-router";
 
-import { ROUTES } from "@/shared/config/routes";
-
 import "./SupportBanner.css";
 
 export function SupportBanner(): ReactElement {
@@ -18,7 +16,7 @@ export function SupportBanner(): ReactElement {
           Theo dõi yêu cầu hủy vé, tiến trình hoàn tiền và trao đổi với hỗ trợ
           trong cùng một nơi.
         </p>
-        <Link className="support-banner__cta" to={ROUTES.ticketLookup}>
+        <Link className="support-banner__cta" to="/support">
           Mở trung tâm hỗ trợ
         </Link>
       </div>

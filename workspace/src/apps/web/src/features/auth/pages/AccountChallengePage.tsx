@@ -10,12 +10,22 @@ import {
 import { ApiFailure } from "@/shared/api/ResourcePage";
 import { Button } from "@/shared/ui/Button/Button";
 import { z } from "zod";
+import { isMockApi } from "@/shared/api/config";
+import { MockAccountChallenge } from "./MockAccountChallenge";
 
 export function AccountChallengePage({
   reset = false,
 }: {
   reset?: boolean;
 }): ReactElement {
+  return isMockApi ? (
+    <MockAccountChallenge reset={reset} />
+  ) : (
+    <LiveAccountChallenge reset={reset} />
+  );
+}
+
+function LiveAccountChallenge({ reset }: { reset: boolean }): ReactElement {
   const [params] = useSearchParams();
   const [challengeId, setChallengeId] = useState(
     params.get("challengeId") ?? "",

@@ -29,8 +29,18 @@ function fillValid(): void {
 }
 
 describe("SearchForm", () => {
-  it("labels all controls and renders readonly location props and six passenger options", () => {
-    render(<SearchForm locations={locations} onSubmit={vi.fn()} />);
+  it("lists each province once and keeps all six passenger options", () => {
+    const anotherStation = {
+      ...locations[0],
+      id: "loc-hcm-west",
+      name: "Bến phía Tây",
+    };
+    render(
+      <SearchForm
+        locations={[...locations, anotherStation]}
+        onSubmit={vi.fn()}
+      />,
+    );
     expect(
       screen.getByRole("form", { name: "Tìm chuyến" }),
     ).toBeInTheDocument();
@@ -42,7 +52,7 @@ describe("SearchForm", () => {
     for (const location of locations)
       expect(
         within(origin).getByRole("option", {
-          name: `${location.name} · ${location.province}`,
+          name: location.province,
         }),
       ).toHaveValue(location.id);
     expect(
@@ -125,6 +135,12 @@ describe("SearchForm", () => {
     for (const label of ["Điểm đi", "Điểm đến", "Ngày đi", "Hành khách"]) {
       await userEvent.tab();
       expect(screen.getByLabelText(label)).toHaveFocus();
+      if (label === "Ngày đi") {
+        await userEvent.tab();
+        expect(
+          screen.getByRole("button", { name: "Mở lịch chọn ngày" }),
+        ).toHaveFocus();
+      }
     }
     await userEvent.tab();
     expect(screen.getByRole("button", { name: "Tìm chuyến" })).toHaveFocus();
@@ -152,7 +168,7 @@ describe("SearchForm", () => {
     );
     expect(
       within(screen.getByLabelText("Điểm đến")).getByRole("option", {
-        name: "Bến thử nghiệm · Tỉnh mô phỏng",
+        name: "Tỉnh mô phỏng",
       }),
     ).toHaveValue("custom");
   });

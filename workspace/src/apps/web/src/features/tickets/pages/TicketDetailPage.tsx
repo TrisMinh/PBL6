@@ -1,5 +1,6 @@
 import { useEffect, type ReactElement } from "react";
 import { Link, useParams } from "react-router";
+import { ArrowLeft } from "@phosphor-icons/react/dist/csr/ArrowLeft";
 
 import { TicketCard } from "@/features/tickets/components/TicketCard/TicketCard";
 import type { BookingRepositoryError } from "@/features/booking/repositories/bookingRepositoryError";
@@ -83,7 +84,7 @@ function TicketContent({
         <nav className="ticket-page__breadcrumb" aria-label="Đường dẫn">
           <Link to={ROUTES.home}>Trang chủ</Link>
           <span aria-hidden="true">/</span>
-          <Link to={ROUTES.ticketLookup}>Vé của tôi</Link>
+          <Link to={ROUTES.ticketLookup}>Tra cứu vé</Link>
           <span aria-hidden="true">/</span>
           <span aria-current="page">Chi tiết vé</span>
         </nav>
@@ -208,9 +209,13 @@ function AccountContent({
     );
   return (
     <>
-      <h1>Vé điện tử</h1>
+      <header className="ticket-page__account-heading">
+        <h1>Vé điện tử</h1>
+        <Link to={ROUTES.accountTickets}>
+          <ArrowLeft size={17} aria-hidden /> Về vé của tôi
+        </Link>
+      </header>
       <TicketCard ticket={query.data} ticketCodes={[query.data.ticketCode]} />
-      <Link to={ROUTES.accountTickets}>Về vé của tôi</Link>
     </>
   );
 }

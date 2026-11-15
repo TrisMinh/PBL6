@@ -64,6 +64,8 @@ async function execute(
       break;
   }
   if (!ref.current.mounted) throw new BookingRepositoryError("ABORTED");
+  if (session && import.meta.env.VITE_APP_TARGET === "customer" && session.role !== "customer")
+    throw new BookingRepositoryError("INVALID_CREDENTIALS", 403);
   if (session && !writeMockSession(session))
     throw new BookingRepositoryError("STORAGE_UNAVAILABLE");
   return session;

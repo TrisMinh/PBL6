@@ -1,4 +1,5 @@
 import { http, HttpResponse } from "msw";
+import { isMockApi } from "@/shared/api/config";
 
 import {
   MOCK_SESSION_LIMIT,
@@ -12,7 +13,12 @@ import {
 } from "@/features/auth/schemas/auth.schema";
 import { authenticatedSessionSchema } from "@/features/auth/schemas/session.schema";
 import { ticketDetailSchema } from "@/features/tickets/schemas/ticket.schema";
-import { accounts } from "@/mocks/fixtures/accounts";
+import {
+  findDemoAccount,
+  checkDemoPassword,
+  registerDemoAccount,
+  beginDemoRecovery,
+} from "@/mocks/state/customerAccounts";
 import { authProblem } from "@/mocks/handlers/authHttp";
 import { accountOwnsTicket, readAuthGrant } from "@/mocks/state/authState";
 import { mockDb, type MockDb } from "@/mocks/state/mockDb";
@@ -24,7 +30,7 @@ interface Context {
 }
 function grant(context: Context, userId: string): Response {
   const now = context.now(),
-    account = accounts.find((item) => item.userId === userId);
+    account = findDemoAccount(userId, true);
   if (!account) return authProblem("INVALID_CREDENTIALS");
   for (const [key, value] of context.db.authSessions)
     if (Date.parse(value.expiresAt) <= now) context.db.authSessions.delete(key);
@@ -59,9 +65,9 @@ async function authenticate(
   if (action === "login") {
     const parsed = loginSchema.safeParse(body);
     if (!parsed.success) return authProblem("VALIDATION_ERROR");
-    const account = accounts.find((item) => item.email === parsed.data.email);
+    const account = findDemoAccount(parsed.data.email);
     // Public demo credential only; no submitted credential is retained.
-    if (!account || parsed.data.password !== "BlueDemo2026")
+    if (!account || !(await checkDemoPassword(account, parsed.data.password)))
       return authProblem("INVALID_CREDENTIALS");
     return grant(context, account.userId);
   }
@@ -79,6 +85,10 @@ async function authenticate(
         ? forgotPasswordSchema
         : null;
   if (!schema?.safeParse(body).success) return authProblem("VALIDATION_ERROR");
+  if (action === "register")
+    await registerDemoAccount(registerSchema.parse(body));
+  if (action === "forgot-password")
+    beginDemoRecovery(forgotPasswordSchema.parse(body).email);
   return HttpResponse.json(
     { accepted: true },
     { status: 202, headers: { "Cache-Control": "no-store" } },
@@ -121,9 +131,7 @@ export function createAuthHandlers(
   const context = {
     db: options.db ?? mockDb,
     now: options.now ?? Date.now,
-    scenariosEnabled:
-      options.scenariosEnabled ??
-      (import.meta.env.DEV || import.meta.env.MODE === "test"),
+    scenariosEnabled: options.scenariosEnabled ?? isMockApi,
   };
   return [
     http.post("/api/v1/auth/:action", async ({ request, params }) => {

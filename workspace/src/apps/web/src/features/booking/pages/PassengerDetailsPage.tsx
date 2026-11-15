@@ -1,3 +1,11 @@
+import { Toast } from "@/shared/ui/Toast/Toast";
+import { isMockApi } from "@/shared/api/config";
+import { useMockSession } from "@/features/auth/hooks/useMockSession";
+import { findDemoAccount } from "@/mocks/state/customerAccounts";
+import {
+  customerProfileSchema,
+  readCustomerData,
+} from "@/features/account/customerPreferences";
 import { isTripUnavailable } from "@/features/trips/lib/isTripUnavailable";
 import { TripUnavailableState } from "@/features/booking/components/TripUnavailableState";
 import { useId, type ReactElement } from "react";
@@ -96,10 +104,10 @@ function SaveFeedback({
     return <BookingLockedFeedback sessionId={sessionId} />;
   if (!error || ["HOLD_EXPIRED", "ABORTED"].includes(error.code)) return null;
   return (
-    <p className="passenger-details__feedback" role="alert">
-      Chưa thể lưu thông tin. Dữ liệu bạn nhập được giữ nguyên. Vui lòng kiểm
-      tra và xác nhận lại.
-    </p>
+    <Toast
+      tone="error"
+      message="Chưa thể lưu thông tin. Dữ liệu bạn nhập được giữ nguyên. Vui lòng kiểm tra và xác nhận lại."
+    />
   );
 }
 function isPassengerBlocked(
@@ -117,6 +125,22 @@ function PassengerBooking(
   props: PassengerBookingProps & { seats: PassengerSeat[] },
 ): ReactElement {
   const formId = useId();
+  const { session, isHydrated } = useMockSession();
+  const account =
+    isMockApi && session?.role === "customer"
+      ? findDemoAccount(session.userId, true)
+      : undefined;
+  const profile =
+    account && session
+      ? readCustomerData(session.userId, "profile", customerProfileSchema, {
+          fullName:
+            account.fullName ??
+            (session.userId === "mock-customer" ? "Nguyễn Minh An" : ""),
+          phone: account.phone ?? "",
+          province: "",
+          avatar: "",
+        })
+      : undefined;
   const mutation = useReplacePassengers(props.draft);
   useBookingExpiry(
     props.draft,
@@ -127,6 +151,7 @@ function PassengerBooking(
   const checkInAt = new Date(
     new Date(props.layout.trip.departureTime).getTime() - 20 * 60 * 1000,
   ).toISOString();
+  if (!isHydrated) return <p role="status">Đang tải thông tin tài khoản…</p>;
   return (
     <>
       <PassengerHeading {...props} />
@@ -135,7 +160,17 @@ function PassengerBooking(
       <div className="passenger-details__body">
         <PassengerForm
           seats={props.seats}
-          initialValues={getPassengerDefaults(props.draft, props.seats)}
+          initialValues={getPassengerDefaults(
+            props.draft,
+            props.seats,
+            profile && account
+              ? {
+                  fullName: profile.fullName,
+                  phone: profile.phone,
+                  email: account.email,
+                }
+              : undefined,
+          )}
           pickup={`${props.layout.trip.originStopName} · Có mặt ${BOOKING_TIME.format(new Date(checkInAt))}`}
           onSubmit={mutation.submit}
           isPending={pending}

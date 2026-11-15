@@ -2,224 +2,303 @@
   --payment-accent: var(--color-bg-brand);
   min-width: 0;
   border: 1px solid var(--color-border);
-  border-top: 4px solid var(--payment-accent);
-  height: 520px;
-  border-radius: 24px;
-  padding: 20px 32px 24px;
+  border-top: 3px solid var(--payment-accent);
+  border-radius: 22px;
+  padding: 26px;
   background: var(--color-bg-surface);
-  box-shadow: var(--shadow-card);
+  box-shadow: 0 8px 28px #112e5210;
 }
 .payment-result--success {
-  --payment-accent: var(--color-status-success);
+  --payment-accent: #008753;
 }
 .payment-result--failed,
 .payment-result--cancelled {
   --payment-accent: var(--color-status-error);
 }
+.payment-result__journey {
+  display: grid;
+  grid-template-columns: 148px minmax(0, 1fr);
+  gap: 22px;
+  align-items: center;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--color-border);
+}
+.payment-result__trip-photo {
+  display: block;
+  width: 148px;
+  height: 116px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+.payment-result__journey-info {
+  min-width: 0;
+}
 .payment-result__reference {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   flex-wrap: wrap;
-  gap: var(--space-content-gap);
-  font-size: 0.75rem;
+  gap: 10px 16px;
+}
+.payment-result__status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
   color: var(--payment-accent);
-  overflow-wrap: anywhere;
+  padding: 6px 9px;
+  background: color-mix(in srgb, var(--payment-accent) 8%, white);
+  border-radius: 8px;
+  font-size: 11px;
+  line-height: 1.5;
 }
-.payment-result__reference > strong {
-  color: var(--color-bg-brand);
-  font-size: 1rem;
+.payment-result__status-badge svg {
+  flex-shrink: 0;
 }
-.payment-result__brand {
-  width: 60px;
-  height: 26px;
-  border-radius: 0;
-}
-.payment-result__brand .brand-logo__image {
-  width: 56px;
-  height: 22px;
-}
-.payment-result__reference > img {
-  width: 8px;
-  height: 8px;
-}
-.payment-result__reference span:last-child {
+.payment-result__booking-code {
+  display: grid;
+  gap: 3px;
   color: var(--color-text-muted);
-  margin-left: auto;
+  font-size: 11px;
 }
-.payment-result__journey {
-  height: 116px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--color-border);
+.payment-result__booking-code b {
+  font-size: 12px;
+  color: var(--color-text-primary);
+  font-weight: 600;
 }
 .payment-result__journey h2 {
-  font-family: var(--font-display);
-  font-size: 1.875rem;
-  margin-block: 10px 4px;
+  font-family: var(--font-body);
+  font-size: 25px;
+  line-height: 1.4;
+  margin: 12px 0 5px;
 }
 .payment-result__journey p {
+  margin: 0;
   color: var(--color-text-secondary);
-  font-size: 0.875rem;
+  font-size: 13px;
   line-height: 1.6;
 }
 .payment-result__body {
   display: grid;
-  grid-template-columns: 650px 318px;
-  gap: 88px;
-  height: 304px;
-  padding-top: 20px;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 28px;
+  padding-top: 24px;
+  align-items: start;
+}
+.payment-result__body > * {
+  min-width: 0;
 }
 .payment-result h3 {
-  font-size: 1rem;
+  font-size: 16px;
   line-height: 1.5;
+  margin: 0 0 16px;
+}
+.payment-result__sidebar {
+  border-left: 1px solid var(--color-border);
+  padding-left: 28px;
 }
 .payment-result__details {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--space-content-gap);
+  gap: 16px;
+  margin: 0;
+}
+.payment-result__details > div {
+  display: grid;
+  grid-template-columns: minmax(110px, 0.9fr) minmax(0, 1.1fr);
+  gap: 12px;
+  align-items: baseline;
 }
 .payment-result__details dt {
-  font-size: 0.75rem;
   color: var(--color-text-muted);
+  font-size: 12px;
+  line-height: 1.6;
 }
 .payment-result__details dd {
-  font-size: 0.875rem;
+  font-size: 13px;
   font-weight: 600;
-  margin: var(--space-inline-gap) 0 0;
+  margin: 0;
+  line-height: 1.6;
+  text-align: right;
   overflow-wrap: anywhere;
+}
+.payment-result__details > .payment-result__amount-row {
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--color-border);
+}
+.payment-result__details > .payment-result__amount-row dd {
+  font-size: 20px;
+  color: var(--color-brand-shell-strong);
+}
+.payment-result__notice {
+  margin: 20px 0 0;
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--color-text-muted);
 }
 .payment-result__safety {
   display: flex;
-  gap: var(--space-control-inset);
-  min-height: 58px;
-  padding: 10px 16px;
+  gap: 10px;
+  margin: 16px 0 0;
+  padding: 12px;
   background: var(--color-bg-subtle);
-  border-radius: var(--radius-control);
-  font-size: 0.875rem;
+  border-radius: 10px;
+  font-size: 12px;
   line-height: 1.6;
 }
 .payment-result__safety img {
   width: 20px;
   height: 20px;
   flex-shrink: 0;
+}
+.payment-result__tickets {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 12px;
+}
+.payment-result__tickets li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: #f9fbff;
+}
+.payment-result__ticket-icon {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
   color: var(--color-bg-brand);
+  background: #eaf2ff;
+  border-radius: 10px;
 }
-.payment-result__rail {
-  float: left;
-  width: 28px;
-  height: 174px;
-  margin-right: 16px;
+.payment-result__ticket-info {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
 }
-.payment-result__notice {
-  font-size: 0.75rem;
-  line-height: 1.6;
+.payment-result__ticket-info strong {
+  font-size: 14px;
+  line-height: 1.5;
+}
+.payment-result__ticket-info > span {
+  font-size: 11px;
   color: var(--color-text-secondary);
+  overflow-wrap: anywhere;
+}
+.payment-result__tickets a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 38px;
+  padding: 8px 12px;
+  margin-left: auto;
+  flex-shrink: 0;
+  border-radius: 9px;
+  background: var(--color-bg-brand);
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.payment-result__actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-top: 20px;
+  margin-top: 24px;
+  border-top: 1px solid var(--color-border);
+}
+.payment-result__actions a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  min-height: 42px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  color: var(--color-bg-brand);
+  background: white;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.payment-result__actions a:hover {
+  background: var(--color-bg-subtle);
+}
+.payment-result__tickets a:hover {
+  background: var(--color-brand-shell-strong);
 }
 .payment-result__progress {
+  list-style: none;
+  padding: 0;
+  margin: 0;
   display: grid;
-  gap: var(--space-content-gap);
-  padding-left: var(--space-section-inset);
-  font-size: 0.875rem;
+  gap: 18px;
+  font-size: 13px;
   line-height: 1.6;
+}
+.payment-result__progress li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.payment-result__progress li::before {
+  content: "";
+  display: block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--color-border);
+}
+.payment-result__progress li:first-child::before {
+  background: var(--color-bg-brand);
 }
 .payment-result__progress [aria-current="step"] {
   color: var(--color-bg-brand);
   font-weight: 600;
 }
-.payment-result__actions {
-  display: grid;
-  gap: var(--space-control-inset);
-  margin-top: var(--space-section-inset);
+.payment-result__progress [aria-current="step"]::before {
+  background: var(--color-bg-brand);
+  box-shadow: 0 0 0 4px #eaf2ff;
 }
-.payment-result__actions a,
-.payment-result__tickets a {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: var(--size-control-min);
-  color: var(--color-bg-brand);
-  line-height: 1.5;
-  overflow-wrap: anywhere;
+.payment-result__rail {
+  display: none;
 }
-.payment-result__actions a {
-  padding: var(--space-inline-gap) var(--space-control-inset);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-control);
-}
-.payment-result__tickets {
-  list-style: none;
-  padding: 0;
-  display: grid;
-  gap: var(--space-content-gap);
-}
-.payment-result__tickets li {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--space-control-inset);
-  padding: var(--space-control-inset);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-control);
-  font-size: 0.875rem;
-}
-.payment-result__tickets a {
-  text-align: left;
-  justify-content: start;
-}
-@media (min-width: 1200px) {
-  .payment-result--success .payment-result__body > div {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--space-section-inset);
-  }
-}
-@media (min-width: 768px) {
-  .payment-result__details {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .payment-result__sidebar {
-    border-left: 1px solid var(--color-border);
-    padding-left: var(--space-section-inset);
-  }
-}
-@media (max-width: 767px) {
-  .payment-result {
-    height: auto;
-    padding: var(--space-control-inset);
-  }
-  .payment-result__reference {
-    align-items: flex-start;
-    flex-direction: column;
-    flex-wrap: nowrap;
-  }
-  .payment-result__reference span:last-child {
-    margin-left: 0;
-    width: auto;
-  }
-  .payment-result__journey {
-    height: auto;
-    min-height: 0;
-    padding-bottom: var(--space-section-inset);
-  }
-  .payment-result__journey h2 {
-    margin-top: var(--space-section-inset);
-  }
-  .payment-result__body {
-    padding-top: var(--space-section-inset);
-  }
-}
-@media (max-width: 1199px) {
-  .payment-result {
-    height: auto;
-  }
+@media (max-width: 900px) {
   .payment-result__body {
     grid-template-columns: minmax(0, 1fr);
-    height: auto;
-    gap: 24px;
   }
   .payment-result__sidebar {
     border-left: 0;
     padding-left: 0;
+    padding-top: 24px;
     border-top: 1px solid var(--color-border);
-    padding-top: 20px;
+  }
+}
+@media (max-width: 600px) {
+  .payment-result {
+    padding: 18px;
+  }
+  .payment-result__journey {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .payment-result__trip-photo {
+    width: 100%;
+    height: 140px;
+  }
+  .payment-result__journey h2 {
+    font-size: 21px;
+  }
+  .payment-result__tickets li {
+    flex-wrap: wrap;
+  }
+  .payment-result__tickets a {
+    margin-left: 54px;
   }
 }

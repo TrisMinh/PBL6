@@ -1,0 +1,12 @@
+{
+  "name": "@blue/operator-web",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node ../web/scripts/portal.mjs operator dev",
+    "build": "node ../web/scripts/portal.mjs operator build",
+    "preview": "node ../web/scripts/portal.mjs operator preview",
+    "typecheck": "node ../web/scripts/portal.mjs operator typecheck"
+  }
+}

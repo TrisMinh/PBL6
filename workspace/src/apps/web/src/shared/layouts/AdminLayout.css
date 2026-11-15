@@ -1,5 +1,6 @@
 .admin-layout,
 .admin-layout__drawer,
+.admin-layout__account-dialog,
 .admin-layout__overlay {
   --admin-layout-gutter: var(--space-page-gutter);
   --admin-layout-section-space: var(--space-section-inset);
@@ -117,6 +118,54 @@
   color: var(--color-text-primary);
   font-family: var(--font-body);
   box-shadow: var(--shadow-admin-panel);
+}
+.admin-layout__account-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.admin-layout__account-title {
+  margin: 0;
+  font: 600 20px/30px var(--font-body);
+}
+.admin-layout__account-close {
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  padding: 0;
+  border-radius: 8px;
+  margin-right: -6px;
+  color: var(--color-text-muted);
+}
+.admin-layout__account-description {
+  margin: 8px 0 24px;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  line-height: 22px;
+}
+.admin-layout__account-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding-top: 20px;
+  border-top: 1px solid var(--color-admin-border);
+}
+.admin-layout__account-actions .button {
+  min-height: 44px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 20px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.admin-layout__account-actions .button--secondary {
+  background: var(--color-admin-control);
+  border-color: var(--color-admin-border);
+  color: var(--color-text-primary);
 }
 
 .admin-layout__body {

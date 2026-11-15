@@ -1,14 +1,14 @@
 .payment-checkout {
   min-width: 0;
-  height: 720px;
+  height: auto;
   padding: 23px;
   border: 1px solid var(--color-border);
   border-radius: 24px;
   background: var(--color-bg-editorial-surface);
-  overflow: hidden;
+  overflow: visible;
 }
 .payment-checkout__intro {
-  height: 44px;
+  min-height: 44px;
 }
 .payment-checkout__intro p {
   margin: 2px 0 0;
@@ -29,7 +29,7 @@
 }
 .payment-checkout__grid {
   display: grid;
-  grid-template-columns: 300px minmax(0, 456px);
+  grid-template-columns: minmax(200px, 0.8fr) minmax(0, 1.2fr);
   gap: 16px;
   margin-top: 16px;
 }
@@ -40,7 +40,7 @@
   text-align: center;
   align-items: center;
   justify-content: center;
-  height: 472px;
+  min-height: 390px;
   padding: 20px;
   border: 1px solid var(--color-border);
   border-radius: 18px;
@@ -66,9 +66,9 @@
   gap: var(--space-content-gap);
   width: 100%;
   max-width: 220px;
-  min-height: 220px;
+  min-height: 120px;
   border: 1px solid var(--color-bg-brand);
-  height: 220px;
+  padding: 20px 12px;
   border-radius: 24px;
   color: var(--color-brand-shell-strong);
   overflow-wrap: anywhere;
@@ -82,7 +82,7 @@
 }
 .payment-checkout__details {
   min-width: 0;
-  height: 472px;
+  height: auto;
   padding: 20px;
   border: 1px solid var(--color-border);
   border-radius: 18px;
@@ -132,7 +132,7 @@
   display: flex;
   gap: 14px;
   align-items: center;
-  height: 122px;
+  min-height: 80px;
   margin-top: 18px;
   padding: 18px 20px;
   border: 1px solid var(--color-border);

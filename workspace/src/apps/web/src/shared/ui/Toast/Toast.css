@@ -1,63 +1,93 @@
 .app-toast {
   position: fixed;
-  z-index: 100;
+  z-index: 1000;
   top: 24px;
   right: 24px;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
-  max-width: min(420px, calc(100vw - 32px));
-  padding: 16px 18px;
+  width: min(400px, calc(100vw - 32px));
+  padding: 16px;
+  overflow: hidden;
   border: 1px solid #c3e7d3;
+  border-left: 4px solid currentColor;
   border-radius: 12px;
   background: #fff;
-  box-shadow: 0 8px 28px #152d501a;
+  box-shadow: 0 12px 36px #152d5026;
   color: #147349;
-  animation: app-toast-in 180ms ease-out;
+  animation:
+    app-toast-in 220ms ease-out,
+    app-toast-out 180ms ease-in 2820ms forwards;
 }
 .app-toast > svg {
   flex-shrink: 0;
 }
 .app-toast > span {
+  flex: 1;
   color: #152d50;
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 1.5;
+  font: 600 14px/1.5 var(--font-body);
 }
 .app-toast .app-toast__close {
   display: grid;
   place-items: center;
-  flex: 0 0 28px;
-  height: 28px;
+  flex: 0 0 26px;
+  height: 26px;
   padding: 0;
   border: 0;
   border-radius: 6px;
   background: transparent;
   color: #64748b;
-  font-size: 22px;
+  cursor: pointer;
+}
+.app-toast__close:hover {
+  background: #f1f5f9;
+  color: #152d50;
 }
 .app-toast > button:focus-visible {
   outline: 2px solid #8cb7ff;
   outline-offset: 2px;
 }
+.app-toast::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 3px;
+  background: currentColor;
+  opacity: 0.65;
+  transform-origin: left;
+  animation: app-toast-progress 3s linear forwards;
+}
 @keyframes app-toast-in {
   from {
     opacity: 0;
-    transform: translateX(20px);
+    transform: translateX(calc(100% + 24px));
   }
   to {
     opacity: 1;
     transform: translateX(0);
   }
 }
-@media (prefers-reduced-motion: reduce) {
-  .app-toast {
-    animation: none;
+@keyframes app-toast-out {
+  to {
+    opacity: 0;
+    transform: translateX(calc(100% + 24px));
+  }
+}
+@keyframes app-toast-progress {
+  to {
+    transform: scaleX(0);
   }
 }
 .app-toast[data-tone="error"] {
   border-color: #fecaca;
+  border-left-color: #dc2626;
   color: #dc2626;
+}
+@media (prefers-reduced-motion: reduce) {
+  .app-toast,
+  .app-toast::after {
+    animation: none;
+  }
 }
 @media (max-width: 700px) {
   .app-toast {

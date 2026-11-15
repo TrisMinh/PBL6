@@ -1,6 +1,7 @@
 import type { ReactElement, ReactNode } from "react";
 import { Link } from "react-router";
 
+import tripPhoto from "@/assets/operator/schedule/imgTripVehicleThumbnail.png";
 import passengerIcon from "@/assets/booking/passenger-review/passenger.svg";
 import phoneIcon from "@/assets/booking/passenger-review/phone.svg";
 import pickupIcon from "@/assets/booking/passenger-review/review-pickup.svg";
@@ -62,30 +63,45 @@ function ReviewJourney({ draft, layout }: BookingReviewProps): ReactElement {
           </Link>
         )}
       </header>
-      <div className="booking-review__operator">
-        <span className="booking-review__operator-icon">
-          <img alt="" aria-hidden="true" src={reviewBusIcon} />
-        </span>
-        <div>
-          <span>ĐƠN VỊ VẬN HÀNH</span>
-          <strong>{trip.operator.name}</strong>
-          {trip.id.length <= 24 && <small>Mã chuyến {trip.id}</small>}
-        </div>
-      </div>
-      <div className="booking-review__journey">
-        <div>
-          <strong>{BOOKING_TIME.format(new Date(trip.departureTime))}</strong>
-          <span>{trip.origin.displayName}</span>
-          <span>{trip.originStopName}</span>
-        </div>
-        <div className="booking-review__timeline" aria-hidden="true">
-          <img alt="" src={timelineBusIcon} />
-          <small>{tripDuration(trip.departureTime, trip.arrivalTime)}</small>
-        </div>
-        <div>
-          <strong>{BOOKING_TIME.format(new Date(trip.arrivalTime))}</strong>
-          <span>{trip.destination.displayName}</span>
-          <span>{trip.destinationStopName}</span>
+      <div className="booking-review__trip-content">
+        <figure className="booking-review__photo">
+          <img
+            src={tripPhoto}
+            alt={`Ảnh minh họa xe của ${trip.operator.name}`}
+          />
+          <figcaption>Ảnh xe minh họa</figcaption>
+        </figure>
+        <div className="booking-review__trip-details">
+          <div className="booking-review__operator">
+            <span className="booking-review__operator-icon">
+              <img alt="" aria-hidden="true" src={reviewBusIcon} />
+            </span>
+            <div>
+              <span>ĐƠN VỊ VẬN HÀNH</span>
+              <strong>{trip.operator.name}</strong>
+              {trip.id.length <= 24 && <small>Mã chuyến {trip.id}</small>}
+            </div>
+          </div>
+          <div className="booking-review__journey">
+            <div>
+              <strong>
+                {BOOKING_TIME.format(new Date(trip.departureTime))}
+              </strong>
+              <span>{trip.origin.displayName}</span>
+              <span>{trip.originStopName}</span>
+            </div>
+            <div className="booking-review__timeline" aria-hidden="true">
+              <img alt="" src={timelineBusIcon} />
+              <small>
+                {tripDuration(trip.departureTime, trip.arrivalTime)}
+              </small>
+            </div>
+            <div>
+              <strong>{BOOKING_TIME.format(new Date(trip.arrivalTime))}</strong>
+              <span>{trip.destination.displayName}</span>
+              <span>{trip.destinationStopName}</span>
+            </div>
+          </div>
         </div>
       </div>
     </section>

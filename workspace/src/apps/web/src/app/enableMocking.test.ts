@@ -19,10 +19,13 @@ it("disables mock request/response logging so passenger PII stays out of browser
     quiet: true,
   });
 });
-it("does not start browser mocks in production", async () => {
+it("starts mocks in a production demo so the built application works without a backend", async () => {
   vi.stubEnv("DEV", false);
   await enableMocking();
-  expect(start).not.toHaveBeenCalled();
+  expect(start).toHaveBeenCalledWith({
+    onUnhandledFrame: "bypass",
+    quiet: true,
+  });
 });
 it("does not start browser mocks during server rendering", async () => {
   vi.stubEnv("DEV", true);

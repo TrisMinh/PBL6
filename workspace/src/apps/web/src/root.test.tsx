@@ -1,31 +1,36 @@
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { describe, expect, it } from "vitest";
+import { readFileSync, statSync } from "node:fs";
+import { resolve } from "node:path";
 
 import { ErrorBoundary, links } from "@/root";
 
 describe("links", () => {
-  it("links loads the approved display and body font families", () => {
-    const fontStylesheets = links().filter(
-      (link) => "rel" in link && link.rel === "stylesheet",
-    );
-    expect(fontStylesheets).toHaveLength(1);
-    expect(fontStylesheets[0]).toEqual(
-      expect.objectContaining({
-        href: expect.stringContaining("family=Be+Vietnam+Pro"),
-      }),
-    );
-    expect(fontStylesheets[0]).toEqual(
-      expect.objectContaining({
-        href: expect.stringContaining("family=Bricolage+Grotesque"),
-      }),
-    );
+  it("serves the approved font families locally and preloads Vietnamese navigation text", () => {
+    const css = readFileSync(resolve("src/styles/fonts.css"), "utf8");
+    for (const family of [
+      "Be Vietnam Pro",
+      "Bricolage Grotesque",
+      "Newsreader",
+    ])
+      expect(css).toContain(`font-family: '${family}'`);
+    expect(css).toContain("/* vietnamese */");
+    expect(css).not.toMatch(/https?:/);
+    for (const url of css.matchAll(/url\(([^)]+)\)/g))
+      expect(statSync(resolve(`public${url[1]}`)).size).toBeGreaterThan(0);
     expect(links()).toContainEqual(
       expect.objectContaining({
-        rel: "stylesheet",
-        href: expect.stringContaining("family=Newsreader:wght@600"),
+        rel: "preload",
+        as: "font",
+        href: "/fonts/be-vietnam-pro-600-vietnamese.woff2",
       }),
     );
+    expect(
+      links().every(
+        (link) => "href" in link && link.href?.startsWith("/fonts/"),
+      ),
+    ).toBe(true);
   });
 });
 

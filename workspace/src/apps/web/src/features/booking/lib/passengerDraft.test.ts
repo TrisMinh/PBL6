@@ -75,3 +75,31 @@ it("returns detached defaults by stable seat identity and ignores unrelated save
     draft.selectedSeatIds.map((id, index) => ({ id, code: `A0${index + 1}` })),
   );
 });
+it("prefills profile contact and only the first unsaved passenger", async () => {
+  const { draft, layout } = await setup();
+  const seats = getSelectedPassengerSeats(draft, layout);
+  if (!seats) throw new Error("Expected selected seats");
+  const profile = {
+    fullName: "Nguyễn An Bình",
+    email: "binh@example.invalid",
+    phone: "0912345678",
+  };
+  const result = getPassengerDefaults(draft, seats, profile);
+  expect(result.contact).toEqual(profile);
+  expect(result.passengers[0]).toMatchObject({
+    fullName: profile.fullName,
+    phone: profile.phone,
+  });
+  expect(result.passengers[1].fullName).toBe("");
+  draft.contact = {
+    fullName: "Người liên hệ khác",
+    email: "other@example.invalid",
+    phone: "0987654321",
+  };
+  draft.passengers = [
+    { seatId: seats[0].id, fullName: "Hành khách khác", phone: "0987654321" },
+  ];
+  const restored = getPassengerDefaults(draft, seats, profile);
+  expect(restored.contact).toEqual(draft.contact);
+  expect(restored.passengers[0].fullName).toBe("Hành khách khác");
+});

@@ -1,3 +1,4 @@
+import { Toast } from "@/shared/ui/Toast/Toast";
 import { isMockApi } from "@/shared/api/config";
 import type { ReactElement } from "react";
 import { Link } from "react-router";
@@ -13,25 +14,10 @@ export function AuthError({
   if (!error || error.code === "ABORTED") return null;
   if (!isMockApi && error.status === 423)
     return (
-      <div className="auth-page__lockout" role="alert" aria-atomic="true">
-        <span className="auth-page__lockout-icon" aria-hidden="true">
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-          >
-            <rect x="5" y="10" width="14" height="11" rx="3" />
-            <path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3" />
-          </svg>
-        </span>
-        <div>
-          <strong>Tài khoản bị khóa</strong>
-          <p>Sai 5 lần: khóa 15 phút.</p>
-        </div>
-      </div>
+      <Toast
+        tone="error"
+        message="Tài khoản bị khóa. Sai 5 lần: khóa 15 phút."
+      />
     );
   const text =
     error.code === "INVALID_CREDENTIALS"
@@ -39,11 +25,7 @@ export function AuthError({
       : error.code === "STORAGE_UNAVAILABLE"
         ? "Trình duyệt chưa cho lưu phiên. Cho phép lưu trữ rồi thử lại."
         : "Chưa thể tiếp tục. Kiểm tra kết nối và thử lại.";
-  return (
-    <p className="auth-page__error" role="alert">
-      {!isMockApi ? error.message : text}
-    </p>
-  );
+  return <Toast tone="error" message={!isMockApi ? error.message : text} />;
 }
 export function NeutralSuccess({
   reset = false,
@@ -53,10 +35,7 @@ export function NeutralSuccess({
   if (!isMockApi)
     return (
       <div className="auth-page__success">
-        <p role="status">
-          Yêu cầu đã được tiếp nhận. Vui lòng kiểm tra email để thực hiện bước
-          tiếp theo.
-        </p>
+        <Toast message="Yêu cầu đã được tiếp nhận. Vui lòng kiểm tra email để thực hiện bước tiếp theo." />
         <Link to={reset ? "/reset-password" : "/verify-email"}>
           {reset ? "Đặt lại mật khẩu" : "Xác minh email"}
         </Link>
@@ -65,11 +44,14 @@ export function NeutralSuccess({
     );
   return (
     <div className="auth-page__success">
-      <p role="status">Yêu cầu mô phỏng đã được tiếp nhận.</p>
+      <Toast message="Yêu cầu mô phỏng đã được tiếp nhận." />
       <p>
         Không gửi email hoặc tạo tài khoản thật. Phản hồi này giống nhau cho mọi
         email hợp lệ.
       </p>
+      <Link to={reset ? "/reset-password" : "/verify-email"}>
+        {reset ? "Tiếp tục đặt lại mật khẩu" : "Tiếp tục xác minh email"}
+      </Link>
       <Link to={ROUTES.login}>Quay lại đăng nhập</Link>
     </div>
   );

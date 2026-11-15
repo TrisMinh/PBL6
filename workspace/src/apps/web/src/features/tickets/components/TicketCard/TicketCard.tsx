@@ -1,9 +1,10 @@
 import type { ReactElement } from "react";
 import { Link } from "react-router";
+import { Info } from "@phosphor-icons/react/dist/csr/Info";
+import { Prohibit } from "@phosphor-icons/react/dist/csr/Prohibit";
 
 import ticketPerforation from "@/assets/tickets/ticket-perforation.svg";
 import ticketQr from "@/assets/tickets/ticket-qr.png";
-import ticketReady from "@/assets/tickets/ticket-ready.svg";
 import ticketTimeline from "@/assets/tickets/ticket-timeline.svg";
 import type { TicketDetail } from "@/features/tickets/types/ticketAccess";
 import {
@@ -12,6 +13,7 @@ import {
   ticketPath,
 } from "@/shared/config/routes";
 import { formatDateTime } from "@/shared/lib/formatDateTime";
+import { formatCurrencyVnd } from "@/shared/lib/formatCurrencyVnd";
 import { StatusBadge } from "@/shared/ui/StatusBadge/StatusBadge";
 import { BrandLogo } from "@/shared/ui/BrandLogo/BrandLogo";
 
@@ -29,10 +31,12 @@ function TicketHeader({ ticket }: { ticket: TicketDetail }): ReactElement {
         <StatusBadge tone={ticket.status === "issued" ? "success" : "error"}>
           {ticket.status === "issued" ? "Đã phát hành" : "Đã hủy"}
         </StatusBadge>
-        <span>{ticket.bookingCode}</span>
+        <span>
+          Mã đặt vé <strong>{ticket.bookingCode}</strong>
+        </span>
       </div>
       <h2>
-        {ticket.trip.origin.province} → {ticket.trip.destination.province}
+        {ticket.trip.origin.displayName} → {ticket.trip.destination.displayName}
       </h2>
       <p>{formatDateTime(ticket.trip.departureTime, "EEEE, dd MMMM yyyy")}</p>
     </header>
@@ -47,7 +51,7 @@ function TicketJourney({ ticket }: { ticket: TicketDetail }): ReactElement {
           <time dateTime={ticket.trip.departureTime}>
             {formatDateTime(ticket.trip.departureTime)}
           </time>
-          <p>{ticket.trip.origin.name}</p>
+          <p>{ticket.trip.originStopName || ticket.trip.origin.name}</p>
           <span>{formatDateTime(ticket.trip.departureTime, "dd/MM/yyyy")}</span>
         </div>
         <div className="ticket-card__timeline" aria-hidden="true">
@@ -57,7 +61,9 @@ function TicketJourney({ ticket }: { ticket: TicketDetail }): ReactElement {
           <time dateTime={ticket.trip.arrivalTime}>
             {formatDateTime(ticket.trip.arrivalTime)}
           </time>
-          <p>{ticket.trip.destination.name}</p>
+          <p>
+            {ticket.trip.destinationStopName || ticket.trip.destination.name}
+          </p>
           <span>{formatDateTime(ticket.trip.arrivalTime, "dd/MM/yyyy")}</span>
         </div>
       </div>
@@ -69,7 +75,12 @@ function TicketFacts({ ticket }: { ticket: TicketDetail }): ReactElement {
     ["Nhà xe khai thác", ticket.trip.operator.name],
     ["Ghế", ticket.seatCode],
     ["Hành khách", ticket.passenger.fullName],
-    ["Điểm đón", ticket.trip.origin.name],
+    ["Giá vé", formatCurrencyVnd(ticket.fareVnd)],
+    ["Điểm đón", ticket.trip.originStopName || ticket.trip.origin.name],
+    [
+      "Điểm trả",
+      ticket.trip.destinationStopName || ticket.trip.destination.name,
+    ],
   ];
   return (
     <dl className="ticket-card__facts">
@@ -82,7 +93,7 @@ function TicketFacts({ ticket }: { ticket: TicketDetail }): ReactElement {
     </dl>
   );
 }
-function TicketStub({ ticket, ticketCodes }: Props): ReactElement {
+function TicketStub({ ticket }: { ticket: TicketDetail }): ReactElement {
   return (
     <aside className="ticket-card__stub" aria-label="Mã vé và điều hướng">
       <img
@@ -92,12 +103,18 @@ function TicketStub({ ticket, ticketCodes }: Props): ReactElement {
         aria-hidden="true"
       />
       <figure className="ticket-card__marker">
-        <span>QUÉT KHI LÊN XE</span>
-        <img
-          src={ticketQr}
-          alt="Mã vé minh họa, không dùng để quét"
-          data-presentation-only="true"
-        />
+        <span>MÃ VÉ ĐIỆN TỬ</span>
+        {ticket.status === "issued" ? (
+          <img
+            src={ticketQr}
+            alt="Mã vé minh họa, không dùng để quét"
+            data-presentation-only="true"
+          />
+        ) : (
+          <div className="ticket-card__inactive">
+            <Prohibit size={38} weight="duotone" aria-hidden />
+          </div>
+        )}
         <figcaption>
           {ticket.status === "issued"
             ? "Minh họa mã vé — không dùng để quét"
@@ -105,27 +122,39 @@ function TicketStub({ ticket, ticketCodes }: Props): ReactElement {
         </figcaption>
       </figure>
       <strong className="ticket-card__code">{ticket.ticketCode}</strong>
-      <p>Vé và thanh toán trong môi trường mô phỏng.</p>
-      <nav className="ticket-card__links" aria-label="Vé trong đặt vé này">
-        {ticketCodes
-          .filter((code) => code !== ticket.ticketCode)
-          .map((code) => (
-            <Link key={code} to={ticketPath(code)}>
-              Xem vé {code}
-            </Link>
-          ))}
-        <Link to={ROUTES.ticketLookup}>Tra cứu vé khác</Link>
-        {ticket.status === "issued" ? (
-          <Link to={bookingCancellationPath(ticket.bookingCode)}>Hủy vé</Link>
-        ) : null}
-      </nav>
     </aside>
+  );
+}
+
+function TicketActions({ ticket, ticketCodes }: Props): ReactElement {
+  return (
+    <nav className="ticket-card__links" aria-label="Thao tác với vé">
+      {ticketCodes
+        .filter((code) => code !== ticket.ticketCode)
+        .map((code) => (
+          <Link key={code} to={ticketPath(code)}>
+            Xem vé {code}
+          </Link>
+        ))}
+      <Link className="ticket-card__lookup-action" to={ROUTES.ticketLookup}>
+        Tra cứu vé khác
+      </Link>
+      {ticket.status === "issued" ? (
+        <Link
+          className="ticket-card__cancel-action"
+          to={bookingCancellationPath(ticket.bookingCode)}
+        >
+          Hủy vé
+        </Link>
+      ) : null}
+    </nav>
   );
 }
 export function TicketCard(props: Props): ReactElement {
   return (
     <article
-      className="ticket-card"
+      className="ticket-card ticket-card--mock"
+      data-status={props.ticket.status}
       aria-label={
         props.ticket.status === "issued" ? "Vé đã phát hành" : "Vé đã hủy"
       }
@@ -135,20 +164,27 @@ export function TicketCard(props: Props): ReactElement {
         <div className="ticket-card__content">
           <TicketJourney ticket={props.ticket} />
           <TicketFacts ticket={props.ticket} />
-          <p className="ticket-card__notice">
-            <img src={ticketReady} alt="" aria-hidden="true" />
-            <span>
-              <strong>Sẵn sàng để quét</strong>
-              Vui lòng có mặt sớm và chuẩn bị giấy tờ cần thiết.
-            </span>
-          </p>
+          {props.ticket.status === "issued" ? (
+            <p className="ticket-card__boarding-tip">
+              <Info size={15} aria-hidden />
+              <span>Nên đến điểm đón sớm và mang giấy tờ cần thiết.</span>
+            </p>
+          ) : (
+            <p className="ticket-card__notice">
+              <Prohibit size={22} aria-hidden />
+              <span>
+                <strong>Vé đã hủy</strong>Vé này không còn hiệu lực cho chuyến
+                đi.
+              </span>
+            </p>
+          )}
           <p className="ticket-card__policy">
-            QR chỉ hợp lệ khi vé ở trạng thái Đã phát hành. Hủy vé và hoàn tiền
-            được xử lý theo chính sách riêng.
+            Vé và thanh toán trong môi trường mô phỏng.
           </p>
         </div>
-        <TicketStub {...props} />
+        <TicketStub ticket={props.ticket} />
       </div>
+      <TicketActions {...props} />
     </article>
   );
 }

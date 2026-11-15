@@ -1,6 +1,7 @@
+import { Toast } from "@/shared/ui/Toast/Toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, type UseFormReturn } from "react-hook-form";
-import type { ReactElement } from "react";
+import { useState, type ReactElement } from "react";
 import { Link } from "react-router";
 
 import { registerSchema } from "@/features/auth/schemas/auth.schema";
@@ -97,6 +98,7 @@ function RegisterFields({
   );
 }
 export function RegisterForm(): ReactElement {
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const action = useAuthAction(),
     form = useForm<RegisterInput>({
       resolver: zodResolver(registerSchema),
@@ -112,11 +114,25 @@ export function RegisterForm(): ReactElement {
   return (
     <>
       <AuthError error={action.error} />
+      {form.formState.errors.root?.message && (
+        <Toast
+          tone="error"
+          message={form.formState.errors.root.message}
+          onClose={() => form.clearErrors("root")}
+        />
+      )}
       <form
         noValidate
-        onSubmit={form.handleSubmit((input) =>
-          action.submit({ kind: "register", input }),
-        )}
+        onSubmit={form.handleSubmit((input) => {
+          if (!acceptedTerms) {
+            form.setError("root", {
+              message:
+                "Vui lòng đồng ý Điều khoản dịch vụ và Chính sách bảo mật để tiếp tục.",
+            });
+            return;
+          }
+          action.submit({ kind: "register", input });
+        })}
       >
         <fieldset className="auth-page__fields" disabled={action.isPending}>
           <legend className="auth-page__sr-only">
@@ -127,10 +143,18 @@ export function RegisterForm(): ReactElement {
             Tối thiểu 8 ký tự, gồm chữ và số.
           </p>
           <label className="auth-page__terms">
-            <input type="checkbox" />
+            <input
+              type="checkbox"
+              required
+              checked={acceptedTerms}
+              onChange={(event) => {
+                setAcceptedTerms(event.target.checked);
+                form.clearErrors("root");
+              }}
+            />
             <span>
-              Tôi đồng ý với <a href="#terms">Điều khoản dịch vụ</a> và{" "}
-              <a href="#privacy">Chính sách bảo mật</a>
+              Tôi đồng ý với <Link to="/terms">Điều khoản dịch vụ</Link> và{" "}
+              <Link to="/privacy">Chính sách bảo mật</Link>
             </span>
           </label>
           <Button type="submit" isLoading={action.isPending}>

@@ -5,6 +5,7 @@ import type {
 } from "@/features/trips/types/trip";
 import { tripSearchSchema } from "@/features/trips/schemas/search.schema";
 import { tripSchema } from "@/features/trips/schemas/tripResponse.schema";
+import { isMockApi } from "@/shared/api/config";
 
 export function parseTripSearch(params: URLSearchParams): TripSearch | null {
   const fields = [
@@ -19,6 +20,23 @@ export function parseTripSearch(params: URLSearchParams): TripSearch | null {
   return parsed.success ? parsed.data : null;
 }
 
+export function tripStopOptions(
+  trip: Trip,
+  direction: "pickup" | "dropoff",
+): { value: string; label: string }[] {
+  const pickup = direction === "pickup";
+  if (trip.stops?.length) {
+    return trip.stops
+      .filter((stop) => (pickup ? stop.pickupAllowed : stop.dropoffAllowed))
+      .map((stop) => ({
+        value: stop.id,
+        label: stop.address ? `${stop.name} · ${stop.address}` : stop.name,
+      }));
+  }
+  const stopName = pickup ? trip.originStopName : trip.destinationStopName;
+  return isMockApi && stopName ? [{ value: stopName, label: stopName }] : [];
+}
+
 export function selectVisibleTrips(
   trips: readonly Trip[],
   sort: TripSearch["sort"],
@@ -30,16 +48,12 @@ export function selectVisibleTrips(
       (!filters.organizationId ||
         trip.operator.id === filters.organizationId) &&
       (!filters.pickupStopId ||
-        Boolean(
-          trip.stops?.some(
-            (stop) => stop.id === filters.pickupStopId && stop.pickupAllowed,
-          ),
+        tripStopOptions(trip, "pickup").some(
+          (stop) => stop.value === filters.pickupStopId,
         )) &&
       (!filters.dropoffStopId ||
-        Boolean(
-          trip.stops?.some(
-            (stop) => stop.id === filters.dropoffStopId && stop.dropoffAllowed,
-          ),
+        tripStopOptions(trip, "dropoff").some(
+          (stop) => stop.value === filters.dropoffStopId,
         )) &&
       (!vehicle.success || trip.vehicleType === vehicle.data) &&
       matchesDeparturePeriod(trip, filters.departurePeriod) &&

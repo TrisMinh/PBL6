@@ -3,6 +3,7 @@ import { http, HttpResponse } from "msw";
 import { tripSearchSchema } from "@/features/trips/schemas/search.schema";
 import type { Trip, TripSearch } from "@/features/trips/types/trip";
 import { discoveryTrips } from "@/mocks/fixtures/demoTrips";
+import { locations } from "@/mocks/fixtures/locations";
 
 const SEARCH_FIELD_ERRORS = {
   originId: "Chọn một điểm đi hợp lệ.",
@@ -77,10 +78,20 @@ function queryErrors(
 }
 
 function searchTrips(sourceTrips: readonly Trip[], search: TripSearch): Trip[] {
+  const originProvince = locations.find(
+    (location) => location.id === search.originId,
+  )?.province;
+  const destinationProvince = locations.find(
+    (location) => location.id === search.destinationId,
+  )?.province;
   const items = sourceTrips.filter(
     (trip) =>
-      trip.origin.id === search.originId &&
-      trip.destination.id === search.destinationId &&
+      (originProvince
+        ? trip.origin.province === originProvince
+        : trip.origin.id === search.originId) &&
+      (destinationProvince
+        ? trip.destination.province === destinationProvince
+        : trip.destination.id === search.destinationId) &&
       getVietnamServiceDate(trip.departureTime) === search.departureDate,
   );
   // filter creates a new array; stable sort retains source order when keys tie.

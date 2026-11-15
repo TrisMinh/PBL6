@@ -17,15 +17,33 @@ import "@/styles/app.css";
 import type { Route } from "./+types/root";
 
 export const links: Route.LinksFunction = () => [
-  { rel: "preconnect", href: "https://fonts.googleapis.com" },
   {
-    rel: "preconnect",
-    href: "https://fonts.gstatic.com",
+    rel: "preload",
+    as: "font",
+    type: "font/woff2",
     crossOrigin: "anonymous",
+    href: "/fonts/be-vietnam-pro-400-latin.woff2",
   },
   {
-    rel: "stylesheet",
-    href: "https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600&family=Bricolage+Grotesque:wght@700;800&family=Newsreader:wght@600&display=swap",
+    rel: "preload",
+    as: "font",
+    type: "font/woff2",
+    crossOrigin: "anonymous",
+    href: "/fonts/be-vietnam-pro-400-vietnamese.woff2",
+  },
+  {
+    rel: "preload",
+    as: "font",
+    type: "font/woff2",
+    crossOrigin: "anonymous",
+    href: "/fonts/be-vietnam-pro-600-latin.woff2",
+  },
+  {
+    rel: "preload",
+    as: "font",
+    type: "font/woff2",
+    crossOrigin: "anonymous",
+    href: "/fonts/be-vietnam-pro-600-vietnamese.woff2",
   },
 ];
 

@@ -9,17 +9,31 @@ export class PaymentPage {
     await review.start(names);
     await review.continue();
     await expect(
-      this.page.getByRole("button", {
-        name: "Tiếp tục đến VNPay",
-        exact: true,
-      }),
+      this.page.getByRole("tab", { name: "VNPay QR", exact: true }),
     ).toBeEnabled();
   }
   async pay(label = "Tiếp tục đến VNPay"): Promise<void> {
-    const action = this.page.getByRole("button", { name: label, exact: true });
-    if (label.startsWith("Mô phỏng"))
-      await action.evaluate((button: HTMLButtonElement) => button.click());
-    else await action.dblclick();
+    const demo = this.page.getByText(
+      "Bản trải nghiệm · Mô phỏng kết quả ngân hàng",
+      { exact: true },
+    );
+    await demo.click();
+    const outcome = label.includes("thất bại")
+      ? "failed"
+      : label.includes("hủy")
+        ? "cancelled"
+        : label.includes("chờ")
+          ? "pending"
+          : "success";
+    await this.page
+      .locator(".mock-gateway__outcome select")
+      .selectOption(outcome);
+    await this.page
+      .getByRole("button", {
+        name: "Xác nhận thanh toán mô phỏng",
+        exact: true,
+      })
+      .click();
     await expect(this.page).toHaveURL(
       /\/payment\/vnpay\/return\?transactionId=/,
     );
@@ -48,10 +62,7 @@ export class PaymentPage {
       .getByRole("link", { name: "Chọn phương thức khác", exact: true })
       .click();
     await expect(
-      this.page.getByRole("button", {
-        name: "Tiếp tục đến VNPay",
-        exact: true,
-      }),
+      this.page.getByRole("tab", { name: "VNPay QR", exact: true }),
     ).toBeEnabled();
   }
   async recheck(): Promise<void> {

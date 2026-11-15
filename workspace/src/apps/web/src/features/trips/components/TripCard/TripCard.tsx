@@ -1,9 +1,15 @@
+import { Star } from "@phosphor-icons/react/dist/csr/Star";
+import { isMockApi } from "@/shared/api/config";
+import { mockTripHighlights } from "@/mocks/fixtures/tripHighlights";
+import {
+  TripAmenities,
+  TripHighlights,
+} from "../TripHighlights/TripHighlights";
 import { differenceInMinutes, parseISO } from "date-fns";
 import { isTripUnavailable } from "@/features/trips/lib/isTripUnavailable";
 import { useId, type ReactElement } from "react";
 
 import type { Trip } from "@/features/trips/types/trip";
-import { formatCurrencyVnd } from "@/shared/lib/formatCurrencyVnd";
 import { Button } from "@/shared/ui/Button/Button";
 import busIcon from "@/assets/trip-results/bus.svg";
 import operatorBlue from "@/assets/trip-results/operator-blue.svg";
@@ -12,6 +18,7 @@ import operatorGreen from "@/assets/trip-results/operator-green.svg";
 import routeDestination from "@/assets/trip-results/route-destination.svg";
 import routeLine from "@/assets/trip-results/route-line.svg";
 import ticketIcon from "@/assets/trip-results/ticket.svg";
+import vehiclePreview from "@/assets/operator/schedule/imgTripVehicleThumbnail.png";
 
 import "./TripCard.css";
 
@@ -20,6 +27,8 @@ export interface TripCardProps {
   onSelect: (trip: Trip) => void;
   isPending?: boolean;
   disabled?: boolean;
+  showDate?: boolean;
+  showImage?: boolean;
 }
 
 const DISPLAY_TIME = new Intl.DateTimeFormat("en-GB", {
@@ -135,7 +144,7 @@ function TripFare({
             : `Còn ${trip.availableSeatCount} ghế`}
       </span>
       <span className="trip-card__fare">
-        <strong>{formatCurrencyVnd(trip.fareVnd)}</strong>
+        <strong>{trip.fareVnd.toLocaleString("vi-VN")} đ</strong>
         <span className="trip-card__caption">/ khách</span>
       </span>
     </div>
@@ -147,23 +156,61 @@ export function TripCard({
   onSelect,
   isPending = false,
   disabled = false,
+  showDate = false,
+  showImage = false,
 }: TripCardProps): ReactElement {
+  const highlights = isMockApi
+    ? mockTripHighlights[trip.operator.id]
+    : undefined;
   const id = useId();
   const headingId = `${id}-operator`;
   const routeId = `${id}-route`;
   const statusId = `${id}-seats`;
   return (
     <article
-      className="trip-card"
+      className="trip-card trip-card--enriched"
       id={`trip-${trip.id}`}
       data-vehicle-type={trip.vehicleType}
       aria-labelledby={`${headingId} ${routeId}`}
     >
+      {showImage && (
+        <div className="trip-card__photo">
+          <img
+            src={vehiclePreview}
+            alt="Ảnh minh họa xe khách"
+            width={320}
+            height={220}
+            loading="lazy"
+          />
+        </div>
+      )}
       <TripOperator trip={trip} headingId={headingId} />
       <p className="trip-card__route" id={routeId}>
         {trip.origin.province} → {trip.destination.province}
       </p>
-      <TripSchedule trip={trip} />
+      {highlights && (
+        <p className="trip-card__rating">
+          <Star size={13} weight="fill" aria-hidden />
+          <strong>{highlights.rating.toFixed(1)}/5</strong>
+          <span>({highlights.reviews.toLocaleString("vi-VN")} đánh giá)</span>
+        </p>
+      )}
+      {showDate && (
+        <p className="trip-card__service-date">
+          Ngày đi{" "}
+          {new Intl.DateTimeFormat("vi-VN", {
+            timeZone: "Asia/Ho_Chi_Minh",
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+          }).format(new Date(trip.departureTime))}
+        </p>
+      )}
+      <div className="trip-card__journey-content">
+        <TripSchedule trip={trip} />
+        <TripAmenities trip={trip} />
+      </div>
+      <TripHighlights trip={trip} />
       <TripFare trip={trip} statusId={statusId} />
       {trip.stops && (
         <details className="trip-card__details">

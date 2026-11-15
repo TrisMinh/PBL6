@@ -210,7 +210,7 @@ const storedVehicleSchema = z.preprocess((value) => {
     ],
   };
 }, vehicleSchema);
-function load(): OperatorVehicle[] {
+export function readMockOperatorVehicles(): OperatorVehicle[] {
   try {
     const raw =
       typeof sessionStorage !== "undefined"
@@ -333,7 +333,7 @@ export const operatorVehicleHandlers = [
     "/api/v1/operator/vehicles-preview/:id/room-configuration",
     async ({ request, params }) => {
       try {
-        const current = load();
+        const current = readMockOperatorVehicles();
         const vehicle = current.find((v) => v.id === params.id);
         if (!vehicle) return new HttpResponse(null, { status: 404 });
         const result = z
@@ -366,7 +366,7 @@ export const operatorVehicleHandlers = [
     "/api/v1/operator/vehicles-preview/:id/cabin-configuration",
     async ({ request, params }) => {
       try {
-        const current = load();
+        const current = readMockOperatorVehicles();
         const vehicle = current.find((v) => v.id === params.id);
         if (!vehicle) return new HttpResponse(null, { status: 404 });
         const result = cabinConfigurationSchema.safeParse(await request.json());
@@ -396,7 +396,7 @@ export const operatorVehicleHandlers = [
     "/api/v1/operator/vehicles-preview/:id/rear-configuration",
     async ({ request, params }) => {
       try {
-        const current = load();
+        const current = readMockOperatorVehicles();
         const vehicle = current.find((v) => v.id === params.id);
         if (!vehicle) return new HttpResponse(null, { status: 404 });
         const parsed = rearConfigurationSchema.safeParse(await request.json());
@@ -433,13 +433,13 @@ export const operatorVehicleHandlers = [
     },
   ),
   http.get("/api/v1/operator/vehicles-preview", () =>
-    HttpResponse.json({ items: load() }),
+    HttpResponse.json({ items: readMockOperatorVehicles() }),
   ),
   http.post("/api/v1/operator/vehicles-preview", async ({ request }) => {
     try {
       const parsed = vehicleInputSchema.safeParse(await request.json());
       if (!parsed.success) return new HttpResponse(null, { status: 400 });
-      const current = load();
+      const current = readMockOperatorVehicles();
       if (
         current.length >= 200 ||
         current.some((v) => v.plate === parsed.data.plate)
@@ -462,7 +462,7 @@ export const operatorVehicleHandlers = [
     "/api/v1/operator/vehicles-preview/:id/seats/:code",
     async ({ request, params }) => {
       try {
-        const current = load();
+        const current = readMockOperatorVehicles();
         const vehicle = current.find((v) => v.id === params.id);
         if (!vehicle) return new HttpResponse(null, { status: 404 });
         const parsed = seatPermissionSchema.safeParse(await request.json());

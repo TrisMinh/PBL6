@@ -9,20 +9,21 @@ docker compose ps
 docker compose down -v   # reset volumes; local/test only
 ```
 
-Full platform (APIs + BLUE web + legacy backoffice):
+Full platform (APIs + BLUE web):
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.apps.yml up -d --build --wait
 ```
 
-Open http://localhost:5173 for the current BLUE application from
-`workspace/src/apps/web`. Customer, operator and admin accounts all sign in here;
-the application sends each role to its workspace. The Compose service retains
-the name `customer-web` for compatibility. Port 5174 serves the separate legacy
-`backoffice-web`, not the BLUE operator/admin pages.
+The desktop frontends are separate applications:
 
-The BLUE image installs the exact pnpm version and frozen lockfile, builds the
-static application with live APIs, then serves it through unprivileged Nginx.
+- Customer: http://localhost:5173
+- Operator: http://localhost:5174
+- Admin: http://localhost:5175
+
+They have independent routes, login and build artifacts. The old temporary backoffice has been removed. Source/design primitives are maintained in `workspace/src/apps/web`; app entry packages live in `customer-web`, `operator-web` and `admin-web`.
+
+The BLUE image installs the exact pnpm version and frozen lockfile. Build argument `APP_TARGET` selects customer/operator/admin, `API_MODE` defaults to mock for the standalone demo. Live API integration is an explicit opt-in and is not part of desktop mock acceptance.
 Nginx proxies `/api/` to `gateway:8080`, so the browser uses the same origin;
 no local `.env` or `localhost:5080` is baked into the image. Nested routes use
 React Router's `__spa-fallback.html`, including on refresh.

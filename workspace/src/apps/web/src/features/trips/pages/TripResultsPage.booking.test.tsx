@@ -158,11 +158,11 @@ describe("Results booking start", () => {
       "true",
     );
     expect(
-      screen
-        .getAllByRole("article")
-        .every((card) =>
-          within(card).getByRole("button").hasAttribute("disabled"),
-        ),
+      screen.getAllByRole("article").every((card) =>
+        within(card)
+          .getByRole("button", { name: /Chọn chuyến|Đang xử lý|Đã ngừng bán/ })
+          .hasAttribute("disabled"),
+      ),
     ).toBe(true);
     await userEvent.click(buttons[1] ?? document.body);
     await userEvent.selectOptions(screen.getByLabelText("Loại xe"), "cabin-22");

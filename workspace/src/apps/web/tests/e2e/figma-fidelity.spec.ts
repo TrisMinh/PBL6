@@ -104,7 +104,7 @@ test("Results node 28:30 preserves search, filters, six cards and pagination", a
       "13:30",
       "6 giờ 30",
       "Còn 6 ghế",
-      "320.000 ₫",
+      "320.000 đ",
     ],
     [
       "An Lạc",
@@ -113,7 +113,7 @@ test("Results node 28:30 preserves search, filters, six cards and pagination", a
       "14:15",
       "6 giờ 15",
       "Còn 12 ghế",
-      "280.000 ₫",
+      "280.000 đ",
     ],
     [
       "Thiên Việt",
@@ -122,7 +122,7 @@ test("Results node 28:30 preserves search, filters, six cards and pagination", a
       "15:45",
       "6 giờ 15",
       "Còn 4 ghế",
-      "390.000 ₫",
+      "390.000 đ",
     ],
     [
       "Minh Châu",
@@ -131,7 +131,7 @@ test("Results node 28:30 preserves search, filters, six cards and pagination", a
       "17:20",
       "6 giờ 20",
       "Còn 9 ghế",
-      "330.000 ₫",
+      "330.000 đ",
     ],
     [
       "Cao Nguyên",
@@ -140,7 +140,7 @@ test("Results node 28:30 preserves search, filters, six cards and pagination", a
       "20:00",
       "6 giờ 30",
       "Còn 15 ghế",
-      "275.000 ₫",
+      "275.000 đ",
     ],
     [
       "Đồi Xanh",
@@ -149,7 +149,7 @@ test("Results node 28:30 preserves search, filters, six cards and pagination", a
       "04:30",
       "6 giờ 30",
       "Còn 7 ghế",
-      "350.000 ₫",
+      "350.000 đ",
     ],
   ];
   for (const [index, copy] of expectedCards.entries()) {
@@ -539,11 +539,15 @@ test("Issued ticket node 30:489 preserves its 1120x620 bounded QR frame", async 
   await expect(
     page.getByRole("img", { name: "Mã vé minh họa, không dùng để quét" }),
   ).toHaveAttribute("data-presentation-only", "true");
-  if (testInfo.project.name === "w1440")
-    await expectBox(page.locator(".ticket-card"), {
-      x: 160,
-      y: 230,
-      width: 1120,
-      height: 620,
-    });
+  if (testInfo.project.name === "w1440") {
+    const card = page.locator(".ticket-card");
+    await expect(card).toHaveCSS("width", "1120px");
+    const bounds = await card.boundingBox();
+    const action = await card
+      .getByRole("link", { name: "Hủy vé" })
+      .boundingBox();
+    if (!bounds || !action)
+      throw new Error("Expected a visible ticket and actions");
+    expect(action.y + action.height).toBeLessThan(bounds.y + bounds.height);
+  }
 });

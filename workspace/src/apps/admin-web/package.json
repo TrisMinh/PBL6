@@ -1,0 +1,12 @@
+{
+  "name": "@blue/admin-web",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node ../web/scripts/portal.mjs admin dev",
+    "build": "node ../web/scripts/portal.mjs admin build",
+    "preview": "node ../web/scripts/portal.mjs admin preview",
+    "typecheck": "node ../web/scripts/portal.mjs admin typecheck"
+  }
+}

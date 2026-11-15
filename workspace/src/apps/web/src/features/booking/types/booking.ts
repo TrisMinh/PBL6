@@ -27,5 +27,6 @@ export interface BookingDraft {
 }
 
 export interface BookingSession extends BookingDraft {
+  initialPassengerCount?: number;
   status: "active" | "expired" | "completed";
 }

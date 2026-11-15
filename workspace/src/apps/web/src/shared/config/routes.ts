@@ -2,17 +2,22 @@ export const ROUTES = {
   home: "/",
   trips: "/trips",
   explore: "/explore",
+  partners: "/partners",
   login: "/login",
   register: "/register",
   forgotPassword: "/forgot-password",
   ticketLookup: "/tickets/lookup",
   accountTickets: "/account/tickets",
+  accountProfile: "/account/profile",
+  accountSettings: "/account/settings",
   adminOrganizations: "/admin/organizations",
   adminStaff: "/admin/staff",
   adminBookings: "/admin/bookings",
   adminPayments: "/admin/payments",
   adminRefunds: "/admin/refunds",
 } as const;
+
+export const BOOKING_SEARCH_PATH = `${ROUTES.home}#booking-search`;
 
 export const exploreProvincePath = (slug: string): string =>
   `${ROUTES.explore}/${encodeURIComponent(slug)}`;

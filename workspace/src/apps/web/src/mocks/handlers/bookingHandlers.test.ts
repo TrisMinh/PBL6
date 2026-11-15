@@ -775,7 +775,10 @@ describe("booking session HTTP handlers", () => {
       totalVnd: 0,
       status: "active",
     });
-    expect(db.sessions.get(session.sessionId)).toEqual(session);
+    expect(db.sessions.get(session.sessionId)).toEqual({
+      ...session,
+      initialPassengerCount: session.passengerCount,
+    });
     expect(db.holds.size).toBe(0);
     expect(trips[0]?.availableSeatCount).toBe(6);
   });

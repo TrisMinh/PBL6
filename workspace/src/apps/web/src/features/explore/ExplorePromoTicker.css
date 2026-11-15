@@ -1,0 +1,150 @@
+.explore-promos {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  height: 44px;
+  margin: 0 0 -20px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: white;
+  overflow: hidden;
+  box-shadow: 0 3px 12px #173c6b05;
+}
+.explore-promos__label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  align-self: stretch;
+  flex: 0 0 auto;
+  padding: 0 16px;
+  color: var(--color-bg-brand);
+  border-right: 1px solid var(--color-border);
+  background: #f8fbff;
+  font-size: 12px;
+  font-weight: 700;
+}
+.explore-promos__viewport {
+  overflow: hidden;
+  flex: 1;
+  min-width: 0;
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 12px,
+    black calc(100% - 12px),
+    transparent
+  );
+}
+.explore-promos__track {
+  display: flex;
+  width: max-content;
+  animation: blue-promos-right 65s linear infinite;
+  will-change: transform;
+}
+.explore-promos__group {
+  display: flex;
+  flex: 0 0 auto;
+}
+.explore-promos__item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 16px;
+  border-right: 1px solid #edf1f7;
+  color: var(--color-text-primary);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.explore-promos__item strong {
+  font-size: 12px;
+  font-weight: 600;
+}
+.explore-promos__icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 9px;
+  color: #2065df;
+  background: #edf4ff;
+}
+.explore-promos__tag {
+  padding: 4px 7px;
+  border-radius: 5px;
+  font-size: 10px;
+  line-height: 1.4;
+  font-weight: 600;
+  background: #edf4ff;
+  color: #1754bd;
+}
+.explore-promos__item--orange .explore-promos__icon,
+.explore-promos__item--orange .explore-promos__tag {
+  color: #995000;
+  background: #fff3dc;
+}
+.explore-promos__item--purple .explore-promos__icon,
+.explore-promos__item--purple .explore-promos__tag {
+  color: #703bb7;
+  background: #f4edff;
+}
+.explore-promos__item--teal .explore-promos__icon,
+.explore-promos__item--teal .explore-promos__tag {
+  color: #087563;
+  background: #e9f8f3;
+}
+.explore-promos__item:hover strong {
+  color: var(--color-bg-brand);
+}
+.explore-promos__toggle {
+  display: grid;
+  place-items: center;
+  align-self: stretch;
+  flex: 0 0 36px;
+  border: 0;
+  border-left: 1px solid var(--color-border);
+  color: var(--color-bg-brand);
+  background: #f8fbff;
+  cursor: pointer;
+}
+.explore-promos:hover .explore-promos__track,
+.explore-promos[data-paused] .explore-promos__track {
+  animation-play-state: paused;
+}
+/* Keyboard users get a stable, horizontally scrollable set without duplicate tab stops. */
+.explore-promos__viewport:focus-within {
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+.explore-promos__viewport:focus-within .explore-promos__track {
+  animation: none;
+  transform: none;
+}
+.explore-promos__viewport:focus-within .explore-promos__group[aria-hidden] {
+  display: none;
+}
+.explore-promos__item:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: -3px;
+  border-radius: 8px;
+}
+@keyframes blue-promos-right {
+  from {
+    transform: translateX(-50%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .explore-promos__track {
+    animation: none;
+    will-change: auto;
+  }
+  .explore-promos__viewport {
+    overflow-x: auto;
+  }
+  .explore-promos__group[aria-hidden] {
+    display: none;
+  }
+}

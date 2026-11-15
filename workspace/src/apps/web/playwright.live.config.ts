@@ -14,6 +14,6 @@ export default defineConfig({
     command: `"${process.execPath}" node_modules/@react-router/dev/bin.cjs dev --host 127.0.0.1 --port 5174`,
     port: 5174,
     reuseExistingServer: !process.env.CI,
-    env: { VITE_API_MODE: "live", VITE_API_BASE_URL: "" },
+    env: { VITE_API_MODE: "live", VITE_API_BASE_URL: "", BLUE_APP_TARGET: "all" },
   },
 });

@@ -5,15 +5,18 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { useEffect, useState, type ReactElement } from "react";
 import { Link, matchPath, NavLink, Outlet, useLocation } from "react-router";
 
+import { BlueAssistant } from "@/features/assistant/BlueAssistant";
 import { NotificationBell } from "@/features/notifications/NotificationBell";
+import { HomeFooter } from "@/features/home/components/HomeFooter/HomeFooter";
 import { BREAKPOINTS } from "@/shared/config/breakpoints";
-import { ROUTES } from "@/shared/config/routes";
+import { BOOKING_SEARCH_PATH, ROUTES } from "@/shared/config/routes";
 import { Button } from "@/shared/ui/Button/Button";
 import { BrandLogo } from "@/shared/ui/BrandLogo/BrandLogo";
 
 import "./CustomerLayout.css";
 import { useMockSession } from "@/features/auth/hooks/useMockSession";
 import { workspaceAccess } from "@/features/auth/lib/workspaceAccess";
+import { CustomerAccountMenu } from "./CustomerAccountMenu";
 
 function AccountWorkspaceLink({
   onNavigate,
@@ -39,11 +42,9 @@ function AccountWorkspaceLink({
 const CUSTOMER_NAV_ITEMS = [
   { label: "Trang chủ", to: ROUTES.home },
   { label: "Khám phá", to: ROUTES.explore },
-  { label: "Điểm đến", to: ROUTES.trips },
-  {
-    label: "Vé xe",
-    to: isMockApi ? ROUTES.ticketLookup : ROUTES.accountTickets,
-  },
+  { label: "Tìm chuyến", to: ROUTES.trips },
+  { label: "Tra cứu vé", to: ROUTES.ticketLookup },
+  { label: "Mở bán vé", to: ROUTES.partners },
 ];
 
 interface CustomerNavigationProps {
@@ -66,7 +67,7 @@ function CustomerNavigation({
               onClick={onNavigate}
               to={to}
             >
-              {linkLabel}
+              <span className="customer-layout__nav-label">{linkLabel}</span>
             </NavLink>
           </li>
         ))}
@@ -77,7 +78,11 @@ function CustomerNavigation({
 
 function CustomerDrawer({
   onNavigate,
-}: Pick<CustomerNavigationProps, "onNavigate">): ReactElement {
+  signedIn,
+}: {
+  onNavigate: () => void;
+  signedIn: boolean;
+}): ReactElement {
   return (
     <Dialog.Portal>
       <Dialog.Overlay className="customer-layout__overlay" />
@@ -105,18 +110,19 @@ function CustomerDrawer({
           <AccountWorkspaceLink onNavigate={onNavigate} />
           <Link
             className="customer-layout__booking-link"
-            to={ROUTES.home}
+            to={BOOKING_SEARCH_PATH}
             onClick={onNavigate}
           >
             Tìm chuyến và đặt vé
           </Link>
+          {signedIn && <CustomerAccountMenu onNavigate={onNavigate} />}
         </div>
       </Dialog.Content>
     </Dialog.Portal>
   );
 }
 
-function CustomerMobileMenu(): ReactElement {
+function CustomerMobileMenu({ signedIn }: { signedIn: boolean }): ReactElement {
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
@@ -143,12 +149,13 @@ function CustomerMobileMenu(): ReactElement {
           <Menu aria-hidden size={24} />
         </Button>
       </Dialog.Trigger>
-      <CustomerDrawer onNavigate={() => setIsOpen(false)} />
+      <CustomerDrawer signedIn={signedIn} onNavigate={() => setIsOpen(false)} />
     </Dialog.Root>
   );
 }
 
 function CustomerHeader(): ReactElement {
+  const { session } = useMockSession();
   return (
     <header className="customer-layout__header">
       <div className="customer-layout__header-inner">
@@ -167,11 +174,21 @@ function CustomerHeader(): ReactElement {
           <div className="customer-layout__notification-slot">
             <NotificationBell />
           </div>
-          <Link className="customer-layout__booking-link" to={ROUTES.trips}>
+          {session ? (
+            <CustomerAccountMenu />
+          ) : (
+            <Link className="customer-layout__login-link" to={ROUTES.login}>
+              Đăng nhập
+            </Link>
+          )}
+          <Link
+            className="customer-layout__booking-link"
+            to={BOOKING_SEARCH_PATH}
+          >
             Đặt vé
           </Link>
         </div>
-        <CustomerMobileMenu />
+        <CustomerMobileMenu signedIn={Boolean(session)} />
       </div>
     </header>
   );
@@ -182,8 +199,15 @@ export function CustomerLayout(): ReactElement {
   const isAuthFrame =
     location.pathname === ROUTES.login ||
     location.pathname === ROUTES.register ||
-    location.pathname === ROUTES.forgotPassword;
+    location.pathname === ROUTES.forgotPassword ||
+    location.pathname === "/verify-email" ||
+    location.pathname === "/reset-password";
   const isHome = location.pathname === ROUTES.home;
+  const isExplore =
+    location.pathname === ROUTES.explore ||
+    (isMockApi &&
+      Boolean(matchPath(`${ROUTES.explore}/:provinceSlug`, location.pathname)));
+  const isPartners = location.pathname === ROUTES.partners;
   const isSeatFrame = [
     "/booking/:sessionId/seats",
     "/trips/:tripId/seats",
@@ -213,6 +237,8 @@ export function CustomerLayout(): ReactElement {
     );
   const routeOwnsFooterOrFrame =
     isHome ||
+    isExplore ||
+    isPartners ||
     location.pathname === ROUTES.trips ||
     isSeatFrame ||
     isPassengerOrReviewFrame ||
@@ -223,6 +249,8 @@ export function CustomerLayout(): ReactElement {
     "customer-layout",
     isAuthFrame ? "customer-layout--auth-frame" : "",
     isHome ? "customer-layout--home" : "",
+    isExplore ? "customer-layout--explore" : "",
+    isPartners ? "customer-layout--partners" : "",
     isPassengerOrReviewFrame ? "customer-layout--booking-detail-frame" : "",
     isPaymentFrame || isTicketDetailFrame || isCancellationFrame
       ? "customer-layout--route-owned-frame"
@@ -246,6 +274,8 @@ export function CustomerLayout(): ReactElement {
       <main className={mainClassNames} id="main-content" tabIndex={-1}>
         <Outlet />
       </main>
+      {(isExplore || isPartners) && <HomeFooter />}
+      {!isAuthFrame && <BlueAssistant />}
       {routeOwnsFooterOrFrame || isAuthFrame ? null : (
         <footer className="customer-layout__footer">
           <div className="customer-layout__footer-content">

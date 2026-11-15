@@ -1,7 +1,7 @@
 import type { z } from "zod";
 
 import { authenticatedSessionSchema } from "@/features/auth/schemas/session.schema";
-import { accounts } from "@/mocks/fixtures/accounts";
+import { findDemoAccount } from "./customerAccounts";
 import type { MockDb } from "@/mocks/state/mockDb";
 import { MOCK_SESSION_HEADER } from "@/features/auth/config/session";
 
@@ -24,10 +24,6 @@ export function accountOwnsTicket(
 ): boolean {
   return (
     grant.role === "customer" &&
-    accounts.some(
-      (account) =>
-        account.userId === grant.userId &&
-        account.email === email.trim().toLowerCase(),
-    )
+    findDemoAccount(grant.userId, true)?.email === email.trim().toLowerCase()
   );
 }

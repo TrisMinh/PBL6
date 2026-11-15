@@ -20,7 +20,7 @@ import { tripSearchSchema } from "@/features/trips/schemas/search.schema";
 import type { Location, TripSearch } from "@/features/trips/types/trip";
 import { getVietnamTodayDate } from "@/shared/lib/getVietnamTodayDate";
 import { Button } from "@/shared/ui/Button/Button";
-import { Input } from "@/shared/ui/Input/Input";
+import { DatePicker } from "@/shared/ui/DatePicker/DatePicker";
 
 import "./SearchForm.css";
 
@@ -165,7 +165,7 @@ function SearchSelect({
         {children}
       </select>
       {error ? (
-        <p className="search-form__error" id={errorId} role="alert">
+        <p className="search-form__error" id={errorId}>
           {error}
         </p>
       ) : null}
@@ -180,28 +180,70 @@ function RouteFields({
   locations: readonly Location[];
   form: SearchMethods;
 }): ReactElement {
+  const originId = useWatch({ control: form.control, name: "originId" });
+  const destinationId = useWatch({
+    control: form.control,
+    name: "destinationId",
+  });
   const fields = [
     { name: "originId", label: "Điểm đi", placeholder: "Chọn điểm đi" },
     { name: "destinationId", label: "Điểm đến", placeholder: "Chọn điểm đến" },
   ] as const;
   if (!isMockApi) return <LiveRouteFields locations={locations} form={form} />;
+  const provinces = new Map<string, Location>();
+  for (const location of locations) {
+    if (!provinces.has(location.province))
+      provinces.set(location.province, location);
+  }
   return (
     <>
       {fields.map(({ name, label, placeholder }) => (
-        <SearchSelect
+        <div
           key={name}
-          label={label}
-          required
-
-          {...form.register(name)}
+          className={name === "originId" ? "search-form__origin" : undefined}
         >
-          <option value="">{placeholder}</option>
-          {locations.map((location) => (
-            <option key={location.id} value={location.id}>
-              {location.name} · {location.province}
-            </option>
-          ))}
-        </SearchSelect>
+          <SearchSelect
+            label={label}
+            error={
+              form.formState.isSubmitted
+                ? form.formState.errors[name]?.message
+                : undefined
+            }
+            required
+
+            {...form.register(name)}
+          >
+            <option value="">{placeholder}</option>
+            {[...provinces.values()].map((location) => (
+              <option key={location.id} value={location.id}>
+                {location.province}
+              </option>
+            ))}
+          </SearchSelect>
+          {name === "originId" && (
+            <button
+              className="search-form__swap"
+              type="button"
+              aria-label="Đổi chiều hành trình"
+              title="Đổi điểm đi và điểm đến"
+              disabled={
+                !originId || !destinationId || originId === destinationId
+              }
+              onClick={() => {
+                form.setValue("originId", destinationId, {
+                  shouldDirty: true,
+                  shouldValidate: true,
+                });
+                form.setValue("destinationId", originId, {
+                  shouldDirty: true,
+                  shouldValidate: true,
+                });
+              }}
+            >
+              ⇄
+            </button>
+          )}
+        </div>
       ))}
     </>
   );
@@ -210,25 +252,37 @@ function RouteFields({
 function DateField({ form }: { form: SearchMethods }): ReactElement {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const field = form.register("departureDate");
+  const error = form.formState.errors.departureDate?.message;
   useEffect(() => {
     if (inputRef.current) inputRef.current.min = getVietnamTodayDate();
   }, []);
   return (
-    <Input
-      label="Ngày đi"
-      type="date"
-      className="search-form__control"
-      required
-
-      {...field}
-      ref={(input) => {
-        inputRef.current = input;
-        void field.ref(input);
-      }}
-      onFocus={(event) => {
-        event.currentTarget.min = getVietnamTodayDate();
-      }}
-    />
+    <div className="search-form__field">
+      <label className="search-form__label" htmlFor="home-departure-date">
+        Ngày đi
+      </label>
+      <DatePicker
+        disablePast
+        id="home-departure-date"
+        className="search-form__control"
+        required
+        aria-invalid={Boolean(error)}
+        aria-describedby={error ? "home-date-error" : undefined}
+        {...field}
+        ref={(input) => {
+          inputRef.current = input;
+          void field.ref(input);
+        }}
+        onFocus={(event) => {
+          event.currentTarget.min = getVietnamTodayDate();
+        }}
+      />
+      {error && (
+        <p className="search-form__error" id="home-date-error">
+          {error}
+        </p>
+      )}
+    </div>
   );
 }
 

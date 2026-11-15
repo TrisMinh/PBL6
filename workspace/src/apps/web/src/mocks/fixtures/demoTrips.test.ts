@@ -10,8 +10,8 @@ describe("Customer search demo data", () => {
   it("seeds seven Vietnam service days, preserves overnight arrivals and canonical fixtures", () => {
     const before = JSON.stringify(trips),
       data = createDemoTrips("2026-10-31");
-    expect(data).toHaveLength(168);
-    expect(new Set(data.map((t) => t.id)).size).toBe(168);
+    expect(data).toHaveLength(630);
+    expect(new Set(data.map((t) => t.id)).size).toBe(data.length);
     expect(data[0]).toMatchObject({
       departureTime: "2026-11-01T00:00:00.000Z",
       arrivalTime: "2026-11-01T06:30:00.000Z",
@@ -25,6 +25,27 @@ describe("Customer search demo data", () => {
     expect(data[3]?.fareVnd).toBe(300000);
     expect(data[167]?.id).toContain("2026-11-07");
     expect(JSON.stringify(trips)).toBe(before);
+  });
+  it("offers all twelve directional city pairs with distinct timetables and overnight journeys", () => {
+    const data = createDemoTrips("2026-10-31");
+    const pairs = new Set(
+      data.map((trip) => `${trip.origin.id}/${trip.destination.id}`),
+    );
+    expect(pairs.size).toBe(12);
+    expect(data.every((trip) => trip.origin.id !== trip.destination.id)).toBe(
+      true,
+    );
+    expect(
+      data.some(
+        (trip) =>
+          trip.origin.id === "loc-dalat" && trip.destination.id === "loc-hcm",
+      ),
+    ).toBe(true);
+    expect(
+      data.every(
+        (trip) => Date.parse(trip.arrivalTime) > Date.parse(trip.departureTime),
+      ),
+    ).toBe(true);
   });
   it("serves 24 demo trips on the selected day and supports starting a booking and loading its seats", async () => {
     const data = createDemoTrips("2098-12-01"),

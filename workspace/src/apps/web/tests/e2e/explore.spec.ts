@@ -48,16 +48,15 @@ test("Explore province search, keyboard detail, back and direct links", async ({
   await expect(
     page.getByRole("heading", { name: "Lâm Đồng", exact: true }),
   ).toBeVisible();
-  await expect(
-    page
-      .getByRole("region", { name: "Điểm đón", exact: true })
-      .getByRole("article"),
-  ).toHaveCount(2);
-  await expect(
-    page
-      .getByRole("region", { name: "Điểm trả", exact: true })
-      .getByRole("article"),
-  ).toHaveCount(2);
+  const directory = page.getByRole("region", {
+    name: "Điểm đón và điểm trả",
+    exact: true,
+  });
+  await expect(directory.getByRole("article")).toHaveCount(3);
+  await directory.getByRole("button", { name: /^Điểm đón/ }).click();
+  await expect(directory.getByRole("article")).toHaveCount(2);
+  await directory.getByRole("button", { name: /^Điểm trả/ }).click();
+  await expect(directory.getByRole("article")).toHaveCount(2);
   await explore.expectActive("Khám phá");
   await quality(page);
   await capture(page, "lam-dong", info.project.name);
@@ -83,7 +82,7 @@ test("Customer navigation has one pathname-owned active item", async ({
     ["/trips", "Điểm đến"],
     ["/explore", "Khám phá"],
     ["/explore/lam-dong", "Khám phá"],
-    ["/tickets/lookup", "Vé xe"],
+    ["/tickets/lookup", "Tra cứu vé"],
   ]) {
     await explore.goto(url);
     await explore.expectActive(label);

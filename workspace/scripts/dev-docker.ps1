@@ -12,7 +12,7 @@ finally {
 }
 
 Write-Host "BLUE web (customer/operator/admin) http://localhost:5173"
-Write-Host "Legacy backoffice http://localhost:5174"
+Write-Host "BLUE Operator http://localhost:5174 | Admin http://localhost:5175"
 Write-Host "Gateway   http://localhost:5080"
 Write-Host "Mailpit   http://localhost:8025"
 Write-Host "VNPay sim http://localhost:8099"

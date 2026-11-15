@@ -160,21 +160,27 @@ test.describe("Admin portal final verification — FR-030..FR-034 @admin", () =>
     const admin = new AdminPage(page);
     await admin.login("/admin/bookings");
     await admin.expectResponsiveTable("Danh sách đơn đặt vé");
-    await page.getByRole("link", { name: "BK-260916-018" }).click();
+    await page
+      .getByRole("link", { name: "BK-260916-018", exact: true })
+      .click();
     await expect(
       page.getByRole("heading", { name: "Chi tiết đơn đặt vé" }),
     ).toBeVisible();
 
     await admin.navigate("Thanh toán", "/admin/payments");
     await admin.expectResponsiveTable("Danh sách giao dịch thanh toán");
-    await page.getByRole("link", { name: "PAY-260916-018" }).click();
+    await page
+      .getByRole("link", { name: "PAY-260916-018", exact: true })
+      .click();
     await expect(
       page.getByRole("heading", { name: "Chi tiết thanh toán" }),
     ).toBeVisible();
 
     await admin.navigate("Hoàn tiền", "/admin/refunds");
     await admin.expectResponsiveTable("Danh sách khoản hoàn");
-    await page.getByRole("link", { name: "RF-260916-018" }).click();
+    await page
+      .getByRole("link", { name: "RF-260916-018", exact: true })
+      .click();
     await expect(
       page.getByRole("heading", { name: "Chi tiết hoàn tiền" }),
     ).toBeVisible();

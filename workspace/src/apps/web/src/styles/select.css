@@ -1,0 +1,129 @@
+/* Shared dropdown styling: preserve native form semantics and keyboard input. */
+select:not([multiple]):not([size]) {
+  border: 1px solid var(--color-border-shell);
+  border-radius: 10px;
+  background-color: white;
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+select:not([multiple]):not([size]):disabled {
+  background-color: var(--color-bg-subtle);
+  color: var(--color-text-secondary);
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+select:not([multiple]):not([size]):focus-visible {
+  outline: 3px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+select:not([multiple]):not([size])[aria-invalid="true"] {
+  border-color: var(--color-status-error);
+}
+@supports (appearance: base-select) {
+  select:not([multiple]):not([size]),
+  select:not([multiple]):not([size])::picker(select) {
+    appearance: base-select;
+  }
+  select:not([multiple]):not([size]) {
+    anchor-name: --blue-select;
+    anchor-scope: --blue-select;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding-inline: 12px;
+    background-image: none;
+    line-height: 1.5;
+    text-align: start;
+    transition:
+      border-color 150ms ease,
+      box-shadow 150ms ease;
+  }
+  select:not([multiple]):not([size]):is(:hover, :open):not(:disabled) {
+    border-color: var(--color-bg-brand);
+  }
+  select:not([multiple]):not([size])::picker-icon {
+    content: "";
+    flex: 0 0 7px;
+    width: 7px;
+    height: 7px;
+    margin: -4px 3px 0 auto;
+    border-right: 1.7px solid currentColor;
+    border-bottom: 1.7px solid currentColor;
+    color: var(--color-brand-shell-strong);
+    rotate: 45deg;
+    transition: rotate 150ms ease;
+  }
+  select:not([multiple]):not([size]):open::picker-icon {
+    rotate: 225deg;
+    margin-top: 3px;
+  }
+  select:not([multiple]):not([size])::picker(select) {
+    position-anchor: --blue-select;
+    position-area: none;
+    top: anchor(bottom);
+    left: anchor(left);
+    right: auto;
+    bottom: auto;
+    position-try-fallbacks: flip-block, flip-inline;
+    position-try-order: normal;
+    min-width: anchor-size(width);
+    max-width: min(480px, calc(100vw - 32px));
+    max-height: min(320px, 55vh);
+    overflow-y: auto;
+    margin-block: 6px;
+    padding: 5px;
+    border: 1px solid var(--color-border-shell);
+    border-radius: 12px;
+    background: white;
+    color: var(--color-text-primary);
+    box-shadow: 0 12px 32px rgb(14 43 82 / 16%);
+    font: 500 13px/1.5 var(--font-body);
+    scrollbar-width: thin;
+    scrollbar-color: #b7cdee transparent;
+  }
+  select:not([multiple]):not([size]) option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 38px;
+    padding: 9px 11px;
+    border-radius: 7px;
+    background: white;
+    color: var(--color-text-primary);
+    white-space: normal;
+    cursor: pointer;
+  }
+  select:not([multiple]):not([size]) option:is(:hover, :focus-visible) {
+    background: #f0f6ff;
+    color: var(--color-brand-shell-strong);
+  }
+  select:not([multiple]):not([size]) option:checked {
+    background: #e8f1ff;
+    color: var(--color-brand-shell-strong);
+    font-weight: 600;
+  }
+  select:not([multiple]):not([size]) option::checkmark {
+    order: 1;
+    margin-inline-start: auto;
+    color: var(--color-bg-brand);
+  }
+  select:not([multiple]):not([size]) option:disabled {
+    background: white;
+    color: #8091aa;
+    cursor: not-allowed;
+  }
+  select:not([multiple]):not([size]) optgroup {
+    padding: 6px 4px;
+    color: var(--color-text-secondary);
+    font-weight: 600;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  select:not([multiple]):not([size]),
+  select:not([multiple]):not([size])::picker-icon {
+    transition: none;
+  }
+}

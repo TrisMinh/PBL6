@@ -12,6 +12,7 @@ export default defineConfig({
       "tests/prerender/**",
       "tests/e2e/**",
       "tests/live/**",
+      "tests/portals/**",
     ],
     environment: "jsdom",
     globals: true,

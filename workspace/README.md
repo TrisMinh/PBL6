@@ -12,7 +12,8 @@ dotnet build
 dotnet test
 npm install
 npm run dev:customer
-npm run dev:backoffice
+npm run dev:operator
+npm run dev:admin
 ```
 
 ## Run (dev / test)
@@ -23,10 +24,9 @@ Infra only (Postgres, Rabbit, Redis, Mailpit, VNPay simulator):
 docker compose -f src/infra/docker-compose.yml up -d --wait
 ./scripts/dev-host.ps1
 npm run dev:customer    # http://localhost:5173
-npm run dev:backoffice  # http://localhost:5174
 ```
 
-Full Docker (infra + Gateway + 6 APIs + both web apps):
+Full Docker (infra + Gateway + 6 APIs + BLUE web (customer/operator/admin)):
 
 ```bash
 ./scripts/dev-docker.ps1
@@ -46,7 +46,8 @@ opens Swagger at `http://localhost:5080/swagger`.
 HTTP:
 
 - Customer web: `http://localhost:5173`
-- Back-office: `http://localhost:5174`
+- Operator: `http://localhost:5174/operator/trips`
+- Admin: `http://localhost:5175/admin/organizations`
 - Gateway: `http://localhost:5080`
 - Mailpit: `http://localhost:8025`
 - VNPay simulator: `http://localhost:8099`

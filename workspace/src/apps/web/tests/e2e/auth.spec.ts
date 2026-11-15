@@ -56,10 +56,23 @@ test.describe("Mock auth and account ticket history — FR-020/FR-021", () => {
     page,
   }) => {
     const auth = new AuthPage(page);
+    await page.addInitScript(() => {
+      const original = window.fetch.bind(window);
+      window.fetch = (input, init) => {
+        const url =
+          typeof input === "string"
+            ? input
+            : input instanceof URL
+              ? input.href
+              : input.url;
+        if (url.endsWith("/api/v1/auth/oauth"))
+          return Promise.reject(new TypeError("Network request failed"));
+        return original(input, init);
+      };
+    });
     await auth.openLogin();
-    await page.getByLabel("Kịch bản đăng nhập mô phỏng").selectOption("error");
     await page
-      .getByRole("button", { name: "Google (mô phỏng)", exact: true })
+      .getByRole("button", { name: "Đăng nhập bằng Google", exact: true })
       .click();
     await expect(page.getByRole("alert")).toContainText("thử lại");
     expect(await auth.session()).toBeNull();

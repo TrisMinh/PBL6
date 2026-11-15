@@ -58,7 +58,7 @@ describe("HomeHero", () => {
     );
     expect(
       within(screen.getByLabelText("Điểm đi")).getByRole("option", {
-        name: `${locations[0].name} · ${locations[0].province}`,
+        name: locations[0].province,
       }),
     ).toBeInTheDocument();
   });

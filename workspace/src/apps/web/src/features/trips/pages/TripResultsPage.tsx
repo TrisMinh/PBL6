@@ -1,5 +1,12 @@
+import { DatePicker } from "@/shared/ui/DatePicker/DatePicker";
+import { Rows } from "@phosphor-icons/react/dist/csr/Rows";
+import { GridNine } from "@phosphor-icons/react/dist/csr/GridNine";
+import { SquaresFour } from "@phosphor-icons/react/dist/csr/SquaresFour";
 import { isMockApi } from "@/shared/api/config";
-import type { ReactElement } from "react";
+import { useMemo, useState, type FormEvent, type ReactElement } from "react";
+import { createDemoTrips } from "@/mocks/fixtures/demoTrips";
+import { locations as catalogueLocations } from "@/mocks/fixtures/locations";
+import { tripSearchSchema } from "@/features/trips/schemas/search.schema";
 import { Link, useSearchParams } from "react-router";
 
 import {
@@ -85,7 +92,9 @@ function ResultsHeading({
   count,
   originLabel,
   destinationLabel,
+  allRoutes = false,
 }: {
+  allRoutes?: boolean;
   count: number;
   originLabel: string;
   destinationLabel: string;
@@ -93,7 +102,9 @@ function ResultsHeading({
   return (
     <header className="trip-results__header">
       <h1 className="trip-results__title">
-        Chuyến xe {originLabel} → {destinationLabel}
+        {allRoutes
+          ? "Tất cả chuyến xe"
+          : `Chuyến xe ${originLabel} → ${destinationLabel}`}
       </h1>
       <p className="trip-results__count" role="status">
         {count} kết quả
@@ -182,7 +193,6 @@ function SortPills({
     ["relevance", "Phù hợp nhất"],
     ["price-asc", "Giá thấp nhất"],
     ["departure", "Khởi hành sớm"],
-    ["duration-asc", "Thời gian ngắn nhất"],
   ] as const;
   return (
     <div className="trip-results__sort" aria-label="Sắp xếp kết quả">
@@ -281,15 +291,19 @@ function ResultsList({
   onChange,
   originLabel,
   destinationLabel,
+  allRoutes = false,
 }: {
+  allRoutes?: boolean;
   trips: readonly Trip[];
-  search: TripSearch;
+  search: Pick<TripSearch, "passengerCount">;
   booking: CreateBookingSessionResult;
   params: URLSearchParams;
   onChange: (params: URLSearchParams) => void;
   originLabel: string;
   destinationLabel: string;
 }): ReactElement {
+  const mode = params.get("view");
+  const view = mode === "list" || mode === "grid-large" ? mode : "grid-small";
   const requestedPage = Number(params.get("page") ?? "1");
   const pageCount = Math.max(1, Math.ceil(trips.length / 6));
   const page =
@@ -307,20 +321,53 @@ function ResultsList({
   ];
   const pageTrips = pageOrderedTrips.slice((page - 1) * 6, page * 6);
   return (
-    <div className="trip-results__success">
+    <div className="trip-results__success" data-view={view}>
       <div className="trip-results__heading-row">
         <ResultsHeading
+          allRoutes={allRoutes}
           count={trips.length}
           originLabel={originLabel}
           destinationLabel={destinationLabel}
         />
-        <SortPills params={params} onChange={onChange} />
+        <div className="trip-results__toolbar">
+          <SortPills params={params} onChange={onChange} />
+          <div
+            className="trip-results__view"
+            role="group"
+            aria-label="Cách hiển thị chuyến"
+          >
+            {(
+              [
+                ["list", "Danh sách", Rows],
+                ["grid-small", "Lưới nhỏ", GridNine],
+                ["grid-large", "Lưới lớn", SquaresFour],
+              ] as const
+            ).map(([value, label, Icon]) => (
+              <button
+                type="button"
+                key={value}
+                aria-label={label}
+                title={label}
+                aria-pressed={view === value}
+                onClick={() => {
+                  const next = new URLSearchParams(params);
+                  next.set("view", value);
+                  onChange(next);
+                }}
+              >
+                <Icon size={18} aria-hidden />
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
       <ul className="trip-results__list" aria-label="Danh sách chuyến">
         {pageTrips.map((trip) => (
           <li className="trip-results__item" key={trip.id}>
             <TripCard
               trip={trip}
+              showDate={allRoutes}
+              showImage={view === "list"}
               onSelect={(selected) =>
                 booking.createSession(selected.id, search.passengerCount)
               }
@@ -434,7 +481,7 @@ function ValidResults({
 }): ReactElement {
   const query = useTrips({
     ...search,
-    filters: parseFilterCriteria(searchParams),
+    ...(!isMockApi ? { filters: parseFilterCriteria(searchParams) } : {}),
   });
   const filterCatalog = useTrips({ ...search, sort: "relevance" }, !isMockApi);
   const locations = useLocations();
@@ -473,11 +520,182 @@ function ValidResults({
   );
 }
 
+function TripCatalogue({
+  params,
+  onChange,
+  booking,
+}: {
+  params: URLSearchParams;
+  onChange: (params: URLSearchParams) => void;
+  booking: CreateBookingSessionResult;
+}): ReactElement {
+  const catalogue = useMemo(() => createDemoTrips(), []);
+  const [catalogueTime] = useState(() => Date.now());
+  const effective = new URLSearchParams(params);
+  effective.set("browse", "1");
+  const parsedPassengers = tripSearchSchema.shape.passengerCount.safeParse(
+    params.get("passengerCount") ?? "1",
+  );
+  const passengerCount = parsedPassengers.success ? parsedPassengers.data : 1;
+  const candidates = catalogue.filter(
+    (trip) =>
+      (!params.get("originId") || trip.origin.id === params.get("originId")) &&
+      (!params.get("destinationId") ||
+        trip.destination.id === params.get("destinationId")) &&
+      (!params.get("departureDate") ||
+        new Intl.DateTimeFormat("en-CA", {
+          timeZone: "Asia/Ho_Chi_Minh",
+        }).format(new Date(trip.departureTime)) ===
+          params.get("departureDate")) &&
+      trip.availableSeatCount >= passengerCount &&
+      Date.parse(trip.departureTime) > catalogueTime,
+  );
+  const sort = tripSearchSchema.shape.sort.safeParse(
+    params.get("sort") ?? "relevance",
+  );
+  const visible = selectVisibleTrips(
+    candidates,
+    sort.success && sort.data !== "relevance" ? sort.data : "departure",
+    parseFilterCriteria(params),
+  );
+  function submit(event: FormEvent<HTMLFormElement>): void {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    const next = new URLSearchParams(effective);
+    for (const name of [
+      "originId",
+      "destinationId",
+      "departureDate",
+      "passengerCount",
+    ]) {
+      const value = String(data.get(name) ?? "");
+      if (value) next.set(name, value);
+      else next.delete(name);
+    }
+    next.delete("page");
+    onChange(next);
+  }
+  return (
+    <div className="trip-results trip-results--catalogue">
+      <BookingFeedback booking={booking} />
+      <section
+        className="trip-catalogue__search"
+        aria-label="Tìm kiếm chuyến xe"
+      >
+        <header>
+          <h2>Tìm chuyến xe</h2>
+          <p>
+            Khám phá tất cả chuyến đang mở bán hoặc chọn hành trình của bạn.
+          </p>
+        </header>
+        <form key={params.toString()} onSubmit={submit}>
+          <label>
+            Điểm đi
+            <select
+              aria-label="Điểm đi"
+              name="originId"
+              defaultValue={params.get("originId") ?? ""}
+            >
+              <option value="">Tất cả tỉnh, thành</option>
+              {catalogueLocations.map((location) => (
+                <option key={location.id} value={location.id}>
+                  {location.province}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Điểm đến
+            <select
+              name="destinationId"
+              aria-label="Điểm đến"
+              defaultValue={params.get("destinationId") ?? ""}
+            >
+              <option value="">Tất cả tỉnh, thành</option>
+              {catalogueLocations.map((location) => (
+                <option key={location.id} value={location.id}>
+                  {location.province}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Ngày đi
+            <DatePicker
+              disablePast
+              name="departureDate"
+              aria-label="Ngày đi"
+              defaultValue={params.get("departureDate") ?? ""}
+            />
+          </label>
+          <label>
+            Hành khách
+            <select
+              aria-label="Hành khách"
+              name="passengerCount"
+              defaultValue={String(passengerCount)}
+            >
+              {[1, 2, 3, 4, 5, 6].map((n) => (
+                <option key={n} value={n}>
+                  {n} người
+                </option>
+              ))}
+            </select>
+          </label>
+          <Button type="submit">Tìm chuyến</Button>
+        </form>
+      </section>
+      <div className="trip-results__body">
+        <TripFilters
+          key={effective.toString()}
+          searchParams={effective}
+          onChange={onChange}
+          trips={candidates}
+        />
+        {visible.length ? (
+          <ResultsList
+            trips={visible}
+            search={{ passengerCount }}
+            booking={booking}
+            params={effective}
+            onChange={onChange}
+            originLabel=""
+            destinationLabel=""
+            allRoutes
+          />
+        ) : (
+          <div className="trip-catalogue__empty">
+            <PageState
+              title="Không tìm thấy chuyến phù hợp"
+              description="Thử đổi hành trình, ngày đi hoặc bỏ bớt bộ lọc."
+              action={
+                <Button onClick={() => onChange(new URLSearchParams())}>
+                  Xem tất cả chuyến
+                </Button>
+              }
+            />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function TripResultsPage(): ReactElement {
   const [params, setParams] = useSearchParams();
   const booking = useCreateBookingSession();
   if (params.get("reason") === "expired")
     return <ExpiredBookingState params={params} />;
+  if (
+    isMockApi &&
+    (params.get("browse") === "1" ||
+      (!params.has("originId") &&
+        !params.has("destinationId") &&
+        !params.has("departureDate")))
+  )
+    return (
+      <TripCatalogue params={params} onChange={setParams} booking={booking} />
+    );
   const search = parseTripSearch(params);
   return (
     <div className="trip-results">

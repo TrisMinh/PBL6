@@ -1,3 +1,4 @@
+import { Toast } from "@/shared/ui/Toast/Toast";
 import { isMockApi } from "@/shared/api/config";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, type UseFormReturn } from "react-hook-form";
@@ -18,11 +19,9 @@ const PROVIDERS: readonly ("google" | "facebook")[] = ["facebook", "google"];
 function ProviderButton({
   provider,
   action,
-  scenario,
 }: {
   provider: "google" | "facebook";
   action: ReturnType<typeof useAuthAction>;
-  scenario?: "success" | "error";
 }): ReactElement {
   const [unavailable, setUnavailable] = useState(false);
   const providerName = provider === "google" ? "Google" : "Facebook";
@@ -40,7 +39,7 @@ function ProviderButton({
           }
           action.submit({
             kind: "oauth",
-            input: { provider, ...(scenario ? { scenario } : {}) },
+            input: { provider },
           });
         }}
       >
@@ -50,12 +49,14 @@ function ProviderButton({
           width={provider === "google" ? 28 : 26}
           height={provider === "google" ? 28 : 26}
         />
+        <span>{providerName}</span>
       </Button>
       {unavailable && (
-        <p role="status" className="auth-page__provider-notice">
-          Đăng nhập bằng {providerName} chưa được hỗ trợ. Vui lòng dùng email
-          hoặc số điện thoại.
-        </p>
+        <Toast
+          tone="error"
+          message={`Đăng nhập bằng ${providerName} chưa được hỗ trợ. Vui lòng dùng email hoặc số điện thoại.`}
+          onClose={() => setUnavailable(false)}
+        />
       )}
     </>
   );
@@ -65,39 +66,16 @@ function Providers({
 }: {
   action: ReturnType<typeof useAuthAction>;
 }): ReactElement {
-  const [scenario, setScenario] = useState<"success" | "error">("success");
-  const enabled =
-    isMockApi && (import.meta.env.DEV || import.meta.env.MODE === "test");
   return (
     <>
       <div className="auth-page__providers">
         {PROVIDERS.map((provider) => (
-          <ProviderButton
-            key={provider}
-            provider={provider}
-            action={action}
-            scenario={enabled ? scenario : undefined}
-          />
+          <ProviderButton key={provider} provider={provider} action={action} />
         ))}
       </div>
       <div className="auth-page__divider">
         <span>hoặc</span>
       </div>
-      {enabled ? (
-        <label className="auth-page__scenario">
-          Kịch bản đăng nhập mô phỏng
-          <select
-            value={scenario}
-            onChange={(event) =>
-              setScenario(event.target.value === "error" ? "error" : "success")
-            }
-            disabled={action.isPending}
-          >
-            <option value="success">Thành công</option>
-            <option value="error">Lỗi — thử lại</option>
-          </select>
-        </label>
-      ) : null}
     </>
   );
 }
@@ -160,24 +138,24 @@ function LoginFields({
         error={form.formState.errors.email?.message}
         {...form.register("email")}
       />
-      <div className="auth-page__password-field">
-        <Input
-          className="auth-page__control auth-page__control--password"
-          label="Mật khẩu"
-          placeholder="••••••••••"
-          type={showPassword ? "text" : "password"}
-          autoComplete="current-password"
-          maxLength={128}
-          error={form.formState.errors.password?.message}
-          {...form.register("password")}
-        />
-        <button
-          aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
-          className="auth-page__visibility"
-          type="button"
-          onClick={() => setShowPassword((value) => !value)}
-        />
-      </div>
+      <Input
+        className="auth-page__control auth-page__control--password"
+        label="Mật khẩu"
+        placeholder="••••••••••"
+        type={showPassword ? "text" : "password"}
+        autoComplete="current-password"
+        maxLength={128}
+        error={form.formState.errors.password?.message}
+        trailingControl={
+          <button
+            aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+            className="auth-page__visibility"
+            type="button"
+            onClick={() => setShowPassword((value) => !value)}
+          />
+        }
+        {...form.register("password")}
+      />
     </>
   );
 }
@@ -186,7 +164,6 @@ function DemoAccounts(): ReactElement {
     <details className="auth-page__demo">
       <summary>Tài khoản thử nghiệm</summary>
       <p>Khách: test+review@example.invalid</p>
-      <p>Admin: admin@blue.example.invalid</p>
       <p>Mật khẩu công khai cho bản mô phỏng: BlueDemo2026</p>
       <p>Không nhập mật khẩu thật.</p>
     </details>

@@ -139,9 +139,9 @@ test("admin organization list and detail have no blocking axe violations", async
   await admin.login();
   await admin.expectResponsiveTable("Danh sách tổ chức");
   await scanReadyPage(page, testInfo, "admin-organizations");
-  await page.getByRole("link", { name: "BLUE Demo Transit" }).click();
+  await page.getByRole("link", { name: "BlueLine Co.", exact: true }).click();
   await expect(
-    page.getByRole("heading", { name: "BLUE Demo Transit" }),
+    page.getByRole("heading", { name: "BlueLine Co.", exact: true }),
   ).toBeVisible();
   await scanReadyPage(page, testInfo, "admin-organization-detail");
 });
@@ -231,7 +231,10 @@ test("admin drawers and organization dialog return keyboard focus", async ({
     await expect(drawerTrigger).toBeFocused();
   }
 
-  const createTrigger = page.getByRole("button", { name: "+ Thêm tổ chức" });
+  const createTrigger = page.getByRole("button", {
+    name: "Thêm tổ chức",
+    exact: true,
+  });
   await createTrigger.focus();
   await page.keyboard.press("Enter");
   const dialog = page.getByRole("dialog", { name: "Thêm tổ chức" });

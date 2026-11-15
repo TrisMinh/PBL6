@@ -35,7 +35,7 @@
 .organization-dialog__error {
   grid-column: 1 / -1;
   margin: 0;
-  color: var(--color-status-danger);
+  color: var(--color-status-error);
   font-weight: 600;
 }
 

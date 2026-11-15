@@ -21,7 +21,9 @@ describe("booking seats repository over MSW", () => {
     expect(layout.items).toHaveLength(Number(count));
   });
   it("PUT sends only full seatIds and parses atomic selection/deselection without renewing expiry", async () => {
-    const session = await httpBookingRepository.createSession(TRIP, 2);
+    const session = await httpBookingRepository.createSession(TRIP, 1, {
+      idempotencyKey: "seat-count-replay",
+    });
     const layout = await httpBookingRepository.getSeats(TRIP);
     const ids = layout.items
       .filter((seat) => seat.status === "available")
@@ -35,6 +37,18 @@ describe("booking seats repository over MSW", () => {
     expect(selected.totalVnd).toBe(layout.trip.fareVnd * 2);
     expect(selected.expiresAt).toBe(session.expiresAt);
     expect(selected.passengerCount).toBe(2);
+    const replay = await httpBookingRepository.createSession(TRIP, 1, {
+      idempotencyKey: "seat-count-replay",
+    });
+    expect(replay.sessionId).toBe(session.sessionId);
+    expect(replay.passengerCount).toBe(2);
+
+    const reduced = await httpBookingRepository.replaceSeats(
+      session.sessionId,
+      ids.slice(0, 1),
+    );
+    expect(reduced.passengerCount).toBe(1);
+    expect(reduced.totalVnd).toBe(layout.trip.fareVnd);
     const cleared = await httpBookingRepository.replaceSeats(
       session.sessionId,
       [],

@@ -116,6 +116,17 @@ describe("trip discovery HTTP handlers", () => {
     },
   );
 
+  it("finds trips from another station in the selected province", async () => {
+    const trip = {
+      ...trips[0],
+      origin: { ...trips[0].origin, id: "loc-hcm-west", name: "Bến phía Tây" },
+    };
+    server.use(...createTripHandlers([trip]));
+    const response = await fetch(searchUrl());
+    const body = resultSchema.parse(await response.json());
+    expect(body.items).toEqual([expect.objectContaining({ id: trip.id })]);
+  });
+
   it("returns independent payloads so a caller mutation does not affect later requests", async () => {
     const body = resultSchema.parse(await (await fetch(searchUrl())).json());
     expect(body.items).toHaveLength(24);

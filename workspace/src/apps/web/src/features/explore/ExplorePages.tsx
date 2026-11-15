@@ -9,22 +9,18 @@ import {
   useExploreProvince,
   useExploreProvinces,
 } from "@/features/explore/useExplore";
-import type {
-  ExplorePoint,
-  ProvinceDetail,
-  ProvinceSummary,
-} from "@/features/explore/explore.schema";
+import type { ProvinceSummary } from "@/features/explore/explore.schema";
+import {
+  ExploreGuides,
+  ExploreOffers,
+  ExplorePayments,
+  ExploreStations,
+  FeaturedRoutes,
+} from "./ExploreDiscovery";
+import { ExplorePromoTicker } from "./ExplorePromoTicker";
+import { ProvinceLocationDirectory } from "./ProvinceLocationDirectory";
 import "@/features/explore/ExplorePages.css";
 
-function MockNotice(): ReactElement {
-  return (
-    <p className="explore__notice">
-      <strong>Dữ liệu mô phỏng.</strong> Tên điểm, khu vực địa chỉ và phạm vi
-      phục vụ chỉ để trải nghiệm giao diện; hãy xác nhận với nhà xe trước hành
-      trình.
-    </p>
-  );
-}
 function ExploreFailure({
   error,
   retry,
@@ -65,29 +61,18 @@ function ProvinceCard({
       className="explore__province-card"
       to={exploreProvincePath(province.slug)}
     >
-      <div className="explore__card-top">
-        <span className="explore__region">{province.region}</span>
-        <MapPin aria-hidden size={28} weight="duotone" />
+      <div className="explore__province-card-region">
+        <MapPin size={18} weight="duotone" aria-hidden /> {province.region}
       </div>
-      <h2>{province.name}</h2>
-      <p>{province.description}</p>
-      <dl className="explore__card-counts">
-        <div>
-          <dt>Điểm đón</dt>
-          <dd>{province.pickupCount}</dd>
-        </div>
-        <div>
-          <dt>Điểm trả</dt>
-          <dd>{province.dropoffCount}</dd>
-        </div>
-        <div>
-          <dt>Nhà xe</dt>
-          <dd>{province.operatorCount}</dd>
-        </div>
-      </dl>
-      <span className="explore__card-action">
-        Xem điểm đón, trả <ArrowRight aria-hidden size={20} />
-      </span>
+      <div>
+        <h3>{province.name}</h3>
+        <p>
+          {province.pickupCount} điểm đón · {province.dropoffCount} điểm trả
+        </p>
+        <span className="explore__card-action">
+          Xem điểm đón, trả <ArrowRight aria-hidden size={16} />
+        </span>
+      </div>
     </Link>
   );
 }
@@ -150,8 +135,8 @@ function ProvinceCatalog({
         </div>
       </form>
       <div className="explore__section-heading">
-        <h2>Tỉnh, thành trong danh mục</h2>
-        <p role="status">{filtered.length} tỉnh, thành · dữ liệu mẫu</p>
+        <h2>Điểm hẹn cho hành trình</h2>
+        <p role="status">{filtered.length} tỉnh, thành</p>
       </div>
       {filtered.length ? (
         <div className="explore__province-grid">
@@ -184,120 +169,46 @@ function ProvinceCatalog({
 export function ExplorePage(): ReactElement {
   const result = useExploreProvinces();
   return (
-    <div className="explore">
+    <div className="explore-landing">
       <header className="explore__intro">
-        <p className="explore__eyebrow">KHÁM PHÁ CÙNG BLUE</p>
-        <h1>
-          Mỗi hành trình bắt đầu
-          <br />
-          từ một điểm hẹn.
-        </h1>
-        <p>
-          Tìm tỉnh, thành và xem điểm đón, trả của các nhà xe trong danh mục mô
-          phỏng.
-        </p>
+        <h1>Khám phá điểm đến</h1>
+        <a className="explore__intro-link" href="#tinh-thanh">
+          <MapPin aria-hidden size={18} /> Tra cứu điểm đón, trả
+        </a>
       </header>
-      <MockNotice />
-      {result.isPending ? (
-        <p className="explore__state" role="status">
-          Đang tải danh mục tỉnh, thành…
-        </p>
-      ) : result.isError ? (
-        <ExploreFailure
-          error={result.error}
-          retry={() => {
-            void result.refetch();
-          }}
-        />
-      ) : (
-        <ProvinceCatalog provinces={result.data} />
-      )}
+      <ExplorePromoTicker />
+      <FeaturedRoutes />
+      <ExploreOffers />
+      <ExplorePayments />
+      <ExploreGuides />
+      <ExploreStations />
+      <section
+        id="tinh-thanh"
+        className="explore explore--catalog"
+        aria-label="Tra cứu điểm đón, trả"
+      >
+        {result.isPending ? (
+          <p className="explore__state" role="status">
+            Đang tải danh mục tỉnh, thành…
+          </p>
+        ) : result.isError ? (
+          <ExploreFailure
+            error={result.error}
+            retry={() => {
+              void result.refetch();
+            }}
+          />
+        ) : (
+          <ProvinceCatalog provinces={result.data} />
+        )}
+      </section>
     </div>
-  );
-}
-function PointCard({
-  point,
-  province,
-}: {
-  point: ExplorePoint;
-  province: ProvinceDetail;
-}): ReactElement {
-  return (
-    <article className="explore__point-card">
-      <MapPin aria-hidden size={24} />
-      <div>
-        <h3>{point.name}</h3>
-        <p className="explore__address">{point.address}</p>
-        <p className="explore__operators">
-          Nhà xe:{" "}
-          {province.operators
-            .filter((operator) => point.operatorIds.includes(operator.id))
-            .map((operator) => operator.name)
-            .join(" · ")}
-        </p>
-        <span className="explore__point-note">Địa chỉ khu vực mô phỏng</span>
-      </div>
-    </article>
-  );
-}
-function ProvinceLocations({
-  province,
-}: {
-  province: ProvinceDetail;
-}): ReactElement {
-  return (
-    <>
-      <header className="explore__province-intro">
-        <p className="explore__eyebrow">
-          {province.region} · {province.operatorCount} nhà xe mô phỏng
-        </p>
-        <h1>{province.name}</h1>
-        <p>{province.description}</p>
-      </header>
-      <MockNotice />
-      <p className="explore__coordinates">
-        Chưa có tọa độ được xác minh cho các điểm mẫu. Không dùng danh mục này
-        để chỉ đường.
-      </p>
-      <div className="explore__locations-grid">
-        {(["pickup", "dropoff"] as const).map((service) => {
-          const title = service === "pickup" ? "Điểm đón" : "Điểm trả";
-          const points = province.points.filter((point) =>
-            point.services.includes(service),
-          );
-          return (
-            <section
-              key={service}
-              aria-label={title}
-              className="explore__location-section"
-            >
-              <div className="explore__location-heading">
-                <h2>{title}</h2>
-                <span>{points.length} điểm</span>
-              </div>
-              <p>
-                {service === "pickup"
-                  ? "Nơi bắt đầu hành trình"
-                  : "Nơi kết thúc hành trình"}
-              </p>
-              {points.length ? (
-                points.map((point) => (
-                  <PointCard key={point.id} point={point} province={province} />
-                ))
-              ) : (
-                <p>Chưa có {title.toLocaleLowerCase("vi")} trong danh mục.</p>
-              )}
-            </section>
-          );
-        })}
-      </div>
-    </>
   );
 }
 export function ProvincePage({ slug }: { slug: string }): ReactElement {
   const result = useExploreProvince(slug);
   return (
-    <div className="explore">
+    <div className="explore explore--province">
       <nav aria-label="Đường dẫn trang" className="explore__breadcrumb">
         <Link to={ROUTES.explore}>Tất cả tỉnh, thành</Link>
         <span aria-hidden> / </span>
@@ -318,7 +229,7 @@ export function ProvincePage({ slug }: { slug: string }): ReactElement {
           }}
         />
       ) : (
-        <ProvinceLocations province={result.data} />
+        <ProvinceLocationDirectory province={result.data} />
       )}
     </div>
   );

@@ -62,7 +62,11 @@ const mockRepository: BookingRepository = {
         expectedStatus: 201,
       },
     );
-    if (session.tripId !== tripId || session.passengerCount !== passengerCount)
+    if (
+      session.tripId !== tripId ||
+      (session.passengerCount !== passengerCount &&
+        session.passengerCount !== session.selectedSeatIds.length)
+    )
       throw new BookingRepositoryError("INVALID_RESPONSE", 201);
     return session;
   },

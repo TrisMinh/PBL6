@@ -1,3 +1,4 @@
+import { Toast } from "@/shared/ui/Toast/Toast";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useEffect, useMemo, useRef, useState, type ReactElement } from "react";
 import { Link, useParams } from "react-router";
@@ -457,7 +458,7 @@ function ConfirmationView({
   );
 }
 
-function RefundProcessing({
+export function RefundProcessing({
   refund,
   journey,
 }: {
@@ -649,9 +650,10 @@ function CancellationForm({
         />
       </div>
       {mutation.isError ? (
-        <p role="alert">
-          Không thể hủy các vé đã chọn. Kiểm tra trạng thái vé rồi thử lại.
-        </p>
+        <Toast
+          tone="error"
+          message="Không thể hủy các vé đã chọn. Kiểm tra trạng thái vé rồi thử lại."
+        />
       ) : null}
       <CancellationConfirmDialog
         open={dialogOpen}

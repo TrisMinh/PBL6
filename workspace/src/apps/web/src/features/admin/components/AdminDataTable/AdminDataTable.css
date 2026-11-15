@@ -41,6 +41,7 @@
 }
 
 .admin-data-table__mobile-label {
+  color: var(--color-text-primary);
   display: none;
 }
 
@@ -110,7 +111,7 @@
 
   .admin-data-table__mobile-label {
     display: block;
-    color: var(--color-text-muted);
+    color: var(--color-text-primary);
     font-size: 0.875rem;
     font-weight: 700;
   }

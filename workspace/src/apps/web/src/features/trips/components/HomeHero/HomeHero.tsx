@@ -1,10 +1,11 @@
 import { isMockApi } from "@/shared/api/config";
-import { useId, type ReactElement } from "react";
-import { createSearchParams, useNavigate } from "react-router";
+import { useEffect, useId, type ReactElement } from "react";
+import { createSearchParams, useLocation, useNavigate } from "react-router";
 
 import heroBus from "@/assets/home/hero-bus.png";
 import { SearchForm } from "@/features/trips/components/SearchForm/SearchForm";
 import { useLocations } from "@/features/trips/hooks/useLocations";
+import { rememberSearch } from "@/features/home/lib/recentSearches";
 import type { TripSearch } from "@/features/trips/types/trip";
 import { ROUTES } from "@/shared/config/routes";
 import { Button } from "@/shared/ui/Button/Button";
@@ -38,6 +39,23 @@ function useSearchNavigation(): (search: TripSearch) => void {
 function HomeSearch(): ReactElement {
   const locations = useLocations();
   const onSearch = useSearchNavigation();
+  const location = useLocation();
+  useEffect(() => {
+    if (location.hash !== "#booking-search" || !locations.isSuccess) return;
+    const frame = window.requestAnimationFrame(() => {
+      const search = document.getElementById("booking-search");
+      search?.scrollIntoView({
+        block: "center",
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+          ? "instant"
+          : "smooth",
+      });
+      search
+        ?.querySelector<HTMLElement>("select, input:not([type=hidden]), button")
+        ?.focus({ preventScroll: true });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [location.key, location.hash, locations.isSuccess]);
   if (locations.isPending)
     return (
       <p className="home-hero__status" role="status">
@@ -62,7 +80,18 @@ function HomeSearch(): ReactElement {
     <SearchForm
       locations={locations.data}
       withLeadingIcon
-      onSubmit={onSearch}
+      onSubmit={(search) => {
+        rememberSearch({
+          search,
+          originLabel:
+            locations.data.find((item) => item.id === search.originId)
+              ?.displayName ?? search.originId,
+          destinationLabel:
+            locations.data.find((item) => item.id === search.destinationId)
+              ?.displayName ?? search.destinationId,
+        });
+        onSearch(search);
+      }}
     />
   );
 }
@@ -86,6 +115,7 @@ export function HomeHero(): ReactElement {
   const titleId = useId();
   return (
     <section className="home-hero" aria-labelledby={titleId}>
+      <span className="home-hero__border-glow" aria-hidden="true" />
       <img
         className="home-hero__image"
         src={heroBus}
@@ -95,7 +125,7 @@ export function HomeHero(): ReactElement {
         fetchPriority="high"
       />
       <HeroCopy titleId={titleId} />
-      <div className="home-hero__search">
+      <div className="home-hero__search" id="booking-search">
         <HomeSearch />
       </div>
     </section>

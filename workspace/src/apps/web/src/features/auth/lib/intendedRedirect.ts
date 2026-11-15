@@ -62,5 +62,8 @@ export function safeIntendedRedirect(
     /^\/admin\/(?:organizations|staff|bookings|payments|refunds)(?:\/[A-Za-z0-9_-]{1,128})?$/.test(
       input,
     );
-  return publicPath || adminPath ? input : fallback;
+  const accountPath =
+    role === "customer" &&
+    (input === ROUTES.accountProfile || input === ROUTES.accountSettings);
+  return publicPath || adminPath || accountPath ? input : fallback;
 }

@@ -21,8 +21,9 @@
 .booking-summary--passenger {
   height: 700px;
 }
-.booking-summary--review {
-  min-height: 720px;
+.booking-summary--review,
+.booking-summary--payment {
+  min-height: 0;
   height: auto;
 }
 
@@ -66,10 +67,6 @@
   outline: 2px solid var(--color-focus-ring);
   outline-offset: 2px;
 }
-.booking-summary--payment {
-  height: 720px;
-  gap: 14px;
-}
 .booking-summary__header {
   display: flex;
   align-items: start;
@@ -97,7 +94,8 @@
   color: var(--color-bg-brand);
   font-size: 0.75rem;
 }
-.booking-summary--review .booking-summary__timer {
+.booking-summary--review .booking-summary__timer,
+.booking-summary--payment .booking-summary__timer {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -111,11 +109,6 @@
   );
   font-size: 0.75rem;
 }
-.booking-summary--payment .booking-summary__timer {
-  min-width: 80px;
-  color: var(--color-status-warning);
-  font-size: 0.75rem;
-}
 .booking-summary__operator {
   display: flex;
   align-items: center;
@@ -125,6 +118,10 @@
   border: 1px solid var(--color-border);
   border-radius: 14px;
   background: var(--color-bg-editorial-surface);
+}
+.booking-summary--review .booking-summary__operator,
+.booking-summary--payment .booking-summary__operator {
+  min-height: 76px;
 }
 .booking-summary__operator-icon {
   display: inline-flex;

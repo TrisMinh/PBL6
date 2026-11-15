@@ -27,18 +27,16 @@ const nhatrang = [
   stop("ntr", "Bến xe Nha Trang", "Nha Trang, Khánh Hòa", "dropoff", 435),
 ];
 const reverse = (stops: RouteStop[], distance: number): RouteStop[] =>
-  [...stops]
-    .reverse()
-    .map((s) => ({
-      ...s,
-      km: distance - s.km,
-      kind:
-        s.kind === "pickup"
-          ? "dropoff"
-          : s.kind === "dropoff"
-            ? "pickup"
-            : "both",
-    }));
+  [...stops].reverse().map((s) => ({
+    ...s,
+    km: distance - s.km,
+    kind:
+      s.kind === "pickup"
+        ? "dropoff"
+        : s.kind === "dropoff"
+          ? "pickup"
+          : "both",
+  }));
 const timestamp = "2026-09-05T03:31:00.000Z";
 const samples: OperatorRoute[] = [
   {
@@ -124,7 +122,7 @@ const samples: OperatorRoute[] = [
 ];
 const KEY = "blue-operator-routes-v1";
 let routes = structuredClone(samples);
-function load(): OperatorRoute[] {
+export function readMockOperatorRoutes(): OperatorRoute[] {
   try {
     if (typeof sessionStorage !== "undefined") {
       const raw = sessionStorage.getItem(KEY);
@@ -162,13 +160,13 @@ function normalized(
 }
 export const operatorRouteHandlers = [
   http.get("/api/v1/operator/routes-preview", () =>
-    HttpResponse.json({ items: load() }),
+    HttpResponse.json({ items: readMockOperatorRoutes() }),
   ),
   http.post("/api/v1/operator/routes-preview", async ({ request }) => {
     try {
       const result = routeInputSchema.safeParse(await request.json());
       if (!result.success) return new HttpResponse(null, { status: 400 });
-      const current = load();
+      const current = readMockOperatorRoutes();
       if (current.some((route) => route.id === result.data.id))
         return new HttpResponse(null, { status: 409 });
       if (current.length >= 100) return new HttpResponse(null, { status: 409 });
@@ -184,7 +182,7 @@ export const operatorRouteHandlers = [
     "/api/v1/operator/routes-preview/:id",
     async ({ request, params }) => {
       try {
-        const current = load();
+        const current = readMockOperatorRoutes();
         if (!current.some((route) => route.id === params.id))
           return new HttpResponse(null, { status: 404 });
         const result = routeInputSchema.safeParse(await request.json());

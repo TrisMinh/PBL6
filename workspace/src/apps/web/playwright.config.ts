@@ -8,7 +8,7 @@ export default defineConfig({
     trace: "on-first-retry",
   },
   webServer: {
-    env: { VITE_API_MODE: "mock" },
+    env: { VITE_API_MODE: "mock", BLUE_APP_TARGET: "all" },
     command: `"${process.execPath}" node_modules/@react-router/dev/bin.cjs dev --host 127.0.0.1`,
     port: 5173,
     reuseExistingServer: true,

@@ -57,51 +57,43 @@ function show(): RenderResult {
     </QueryClientProvider>,
   );
 }
-it("shows trusted booking summary, only VNPay and four clearly mock scenarios", async () => {
+it("shows payment options and waiting state without a redundant continue action", async () => {
   await setup();
   show();
+  await screen.findByRole("region", { name: "VNPay mô phỏng" });
+  expect(screen.getByRole("tab", { name: "VNPay QR" })).toHaveAttribute(
+    "aria-selected",
+    "true",
+  );
   expect(
-    await screen.findByRole("region", { name: "VNPay mô phỏng" }),
+    screen.getByRole("tab", { name: "Thẻ ATM / Ngân hàng" }),
   ).toBeVisible();
-  expect(screen.getAllByText(/640.000/).length).toBeGreaterThan(0);
-  expect(screen.getByText(/TP\. Hồ Chí Minh → Đà Lạt/)).toBeVisible();
-  for (const name of [
-    "Mô phỏng thành công",
-    "Mô phỏng thất bại",
-    "Mô phỏng hủy",
-    "Mô phỏng chờ xác nhận",
-  ])
-    expect(screen.getByRole("button", { name })).toBeEnabled();
-  expect(screen.getByText("Phí dịch vụ")).toBeVisible();
+  expect(screen.getByText("Chờ xác nhận thanh toán")).toBeVisible();
+  expect(
+    screen.queryByRole("button", { name: "Tiếp tục đến VNPay" }),
+  ).not.toBeInTheDocument();
 });
-it("renders the exact checkout frame hierarchy and local Figma assets", async () => {
+it("keeps transaction details available separately from payment choices", async () => {
   await setup();
-  const { container } = show();
-  expect(await screen.findByText("Thanh toán an toàn qua VNPay")).toBeVisible();
-  expect(screen.getAllByText("VNPay Sandbox", { exact: true })).toHaveLength(2);
+  show();
+  await screen.findByRole("region", { name: "VNPay mô phỏng" });
+  await userEvent.click(
+    screen.getByText("Thông tin giao dịch", { selector: "summary" }),
+  );
   expect(screen.getByText("MÃ ĐẶT CHỖ")).toBeVisible();
   expect(screen.getByText("MÃ THAM CHIẾU THANH TOÁN")).toBeVisible();
   expect(screen.getByText("Đơn hàng của bạn")).toBeVisible();
-  expect(screen.getByText("Phí dịch vụ")).toBeVisible();
-  expect(screen.getByText("Giảm giá")).toBeVisible();
-  expect(screen.getAllByText("CỔNG THANH TOÁN")).toHaveLength(2);
-  const assets = [...container.querySelectorAll<HTMLImageElement>("img")];
-  expect(
-    assets.every((asset) => !asset.src.includes("figma.com/api/mcp/asset")),
-  ).toBe(true);
 });
-it("production UI exposes only normal pay/cancel without scenario controls", async () => {
+it("switches away from QR to a bank without creating a transaction", async () => {
   await setup();
-  vi.stubEnv("PROD", true);
   show();
   await screen.findByRole("region", { name: "VNPay mô phỏng" });
-  expect(
-    screen.getByRole("button", { name: "Tiếp tục đến VNPay" }),
-  ).toBeEnabled();
-  expect(screen.getByRole("button", { name: "Hủy thanh toán" })).toBeEnabled();
-  expect(
-    screen.queryByRole("button", { name: /Mô phỏng/ }),
-  ).not.toBeInTheDocument();
+  await userEvent.click(
+    screen.getByRole("tab", { name: "Thẻ ATM / Ngân hàng" }),
+  );
+  await userEvent.click(screen.getByRole("radio", { name: /Vietcombank/ }));
+  expect(screen.getByRole("radio", { name: /Vietcombank/ })).toBeChecked();
+  expect(useBookingDraftStore.getState().draft?.paymentAttempt).toBeUndefined();
 });
 it("rapid payment click creates one transaction and stores IDs before callback route", async () => {
   const initial = await setup();
@@ -113,10 +105,13 @@ it("rapid payment click creates one transaction and stores IDs before callback r
     }),
   );
   show();
-  const button = await screen.findByRole("button", {
-    name: "Tiếp tục đến VNPay",
-  });
-  await userEvent.dblClick(button);
+  await screen.findByRole("region", { name: "VNPay mô phỏng" });
+  await userEvent.click(
+    screen.getByText("Bản trải nghiệm · Mô phỏng kết quả ngân hàng"),
+  );
+  await userEvent.dblClick(
+    screen.getByRole("button", { name: "Xác nhận thanh toán mô phỏng" }),
+  );
   await waitFor(() =>
     expect(screen.getByLabelText("Current path")).toHaveTextContent(
       "/payment/vnpay/return?transactionId=",
@@ -147,8 +142,12 @@ it("safe retry keeps original key/booking while failure detail never renders", a
     }),
   );
   show();
+  await screen.findByRole("region", { name: "VNPay mô phỏng" });
   await userEvent.click(
-    await screen.findByRole("button", { name: "Tiếp tục đến VNPay" }),
+    screen.getByText("Bản trải nghiệm · Mô phỏng kết quả ngân hàng"),
+  );
+  await userEvent.click(
+    screen.getByRole("button", { name: "Xác nhận thanh toán mô phỏng" }),
   );
   expect(await screen.findByRole("alert")).toHaveTextContent(
     "Chưa thể tạo giao dịch",

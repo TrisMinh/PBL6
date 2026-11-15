@@ -21,15 +21,17 @@ describe("mock browser storage adapter", () => {
     browserMockStorage.removeItem(MOCK_BOOKING_STORAGE_KEY);
     expect(browserMockStorage.getItem(MOCK_BOOKING_STORAGE_KEY)).toBeNull();
   });
-  it("never accesses browser storage in production", () => {
+  it("persists the mock archive in a production demo so refresh keeps the session", () => {
     vi.stubEnv("PROD", true);
     vi.stubEnv("DEV", true);
     vi.stubEnv("MODE", "test");
     const get = vi.spyOn(Storage.prototype, "getItem");
     browserMockStorage.setItem(MOCK_BOOKING_STORAGE_KEY, "snapshot");
-    expect(browserMockStorage.getItem(MOCK_BOOKING_STORAGE_KEY)).toBeNull();
-    expect(get).not.toHaveBeenCalled();
-    expect(sessionStorage.getItem(MOCK_BOOKING_STORAGE_KEY)).toBeNull();
+    expect(browserMockStorage.getItem(MOCK_BOOKING_STORAGE_KEY)).toBe(
+      "snapshot",
+    );
+    expect(get).toHaveBeenCalled();
+    expect(sessionStorage.getItem(MOCK_BOOKING_STORAGE_KEY)).toBe("snapshot");
   });
   it("is safe without window or with a denied storage property", () => {
     vi.stubGlobal("window", undefined);

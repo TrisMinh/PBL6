@@ -5,7 +5,7 @@ import {
   MOCK_SESSION_TTL_MS,
 } from "@/features/auth/config/session";
 import { authenticatedSessionSchema } from "@/features/auth/schemas/session.schema";
-import { accounts } from "@/mocks/fixtures/accounts";
+import { findDemoAccount } from "./customerAccounts";
 import type { MockAuthGrant } from "@/mocks/state/authState";
 
 export const authSnapshotSchema = z
@@ -29,10 +29,7 @@ export function validAuthGrants(
         Date.parse(grant.createdAt) <= now &&
         Date.parse(grant.expiresAt) - Date.parse(grant.createdAt) ===
           MOCK_SESSION_TTL_MS &&
-        accounts.some(
-          (account) =>
-            account.userId === grant.userId && account.role === grant.role,
-        ),
+        findDemoAccount(grant.userId, true)?.role === grant.role,
     )
   );
 }

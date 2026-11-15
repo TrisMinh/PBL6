@@ -1,5 +1,7 @@
 @import "tailwindcss";
 @import "./tokens.css";
+@import "./fonts.css";
+@import "./select.css";
 
 @layer base {
   *,
@@ -10,6 +12,10 @@
 
   html {
     min-width: 320px;
+  }
+
+  html:has(.customer-layout) {
+    scroll-behavior: smooth;
   }
 
   body {

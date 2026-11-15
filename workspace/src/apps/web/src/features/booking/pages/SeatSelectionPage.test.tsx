@@ -77,7 +77,7 @@ function show(entry: string): {
   return { router, client, ...view };
 }
 describe("seat selection page", () => {
-  it("loads both decks, gates exact passenger count, commits and navigates to passengers", async () => {
+  it("loads both decks, synchronizes passenger count with selected seats and navigates to passengers", async () => {
     const session = await start();
     const { router } = show(`/booking/${session.sessionId}/seats`);
     expect(
@@ -94,7 +94,8 @@ describe("seat selection page", () => {
     await waitFor(() =>
       expect(screen.getByRole("button", { name: "Ghế A02" })).toBeEnabled(),
     );
-    expect(next).toBeDisabled();
+    expect(next).toBeEnabled();
+    expect(useBookingDraftStore.getState().draft?.passengerCount).toBe(1);
     await userEvent.click(screen.getByRole("button", { name: "Ghế A02" }));
     await waitFor(() => expect(next).toBeEnabled());
     expect(screen.getAllByText(/560.000/)).toHaveLength(2);
@@ -131,7 +132,7 @@ describe("seat selection page", () => {
     expect(useBookingDraftStore.getState().draft?.expiresAt).toBe(
       session.expiresAt,
     );
-    expect(useBookingDraftStore.getState().draft?.passengerCount).toBe(2);
+    expect(useBookingDraftStore.getState().draft?.passengerCount).toBe(1);
   });
   it("rolls back, announces trusted conflict codes, refetches, traps dialog and returns focus", async () => {
     const session = await start();

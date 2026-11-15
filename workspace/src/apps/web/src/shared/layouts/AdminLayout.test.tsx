@@ -63,6 +63,10 @@ describe("AdminLayout", () => {
     );
     await user.tab();
     expect(
+      within(dialog).getByRole("link", { name: "Trang đặt vé →" }),
+    ).toHaveFocus();
+    await user.tab();
+    expect(
       within(dialog).getByRole("button", { name: "Đăng xuất" }),
     ).toHaveFocus();
     await user.tab();

@@ -47,15 +47,30 @@ describe("Explore pages", () => {
       screen.getAllByRole("link", { name: /Xem điểm đón, trả/ }),
     ).toHaveLength(4);
   });
-  it("separates pickup and dropoff with operator and unverified-coordinate information", async () => {
+  it("lists shared stops once and filters by pickup or dropoff", async () => {
+    const user = userEvent.setup();
     renderPage(<ProvincePage slug="lam-dong" />);
-    const pickup = await screen.findByRole("region", { name: "Điểm đón" });
-    const dropoff = screen.getByRole("region", { name: "Điểm trả" });
-    expect(within(pickup).getAllByRole("article")).toHaveLength(2);
-    expect(within(dropoff).getAllByRole("article")).toHaveLength(2);
-    expect(within(pickup).getAllByText(/BLUE Express/).length).toBeGreaterThan(
-      0,
-    );
+    const directory = await screen.findByRole("region", {
+      name: "Điểm đón và điểm trả",
+    });
+    const list = within(directory);
+    expect(list.getAllByRole("article")).toHaveLength(3);
+    const shared = list
+      .getByRole("heading", { name: "Văn phòng Đà Lạt" })
+      .closest("article");
+    expect(shared).toHaveTextContent(/Đón khách.*Trả khách/);
+    await user.click(list.getByRole("button", { name: /^Điểm đón/ }));
+    expect(list.getAllByRole("article")).toHaveLength(2);
+    expect(
+      list.getByRole("heading", { name: "Điểm cửa ngõ cao nguyên" }),
+    ).toBeVisible();
+    expect(
+      list.queryByRole("heading", { name: "Điểm phía Nam" }),
+    ).not.toBeInTheDocument();
+    await user.click(list.getByRole("button", { name: /^Điểm trả/ }));
+    expect(list.getAllByRole("article")).toHaveLength(2);
+    expect(list.getByRole("heading", { name: "Điểm phía Nam" })).toBeVisible();
+    expect(list.getAllByText(/BLUE Express/).length).toBeGreaterThan(0);
     expect(screen.getByText(/Chưa có tọa độ được xác minh/)).toBeVisible();
     expect(
       screen.getByRole("link", { name: "Tất cả tỉnh, thành" }),
@@ -82,7 +97,7 @@ describe("Explore pages", () => {
     );
     const user = userEvent.setup();
     renderPage(<ExplorePage />);
-    expect(screen.getByRole("status")).toHaveTextContent("Đang tải");
+    expect(screen.getByText("Đang tải danh mục tỉnh, thành…")).toBeVisible();
     await screen.findByRole("button", { name: "Thử lại" });
     server.resetHandlers();
     await user.click(screen.getByRole("button", { name: "Thử lại" }));
