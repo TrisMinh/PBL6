@@ -564,17 +564,22 @@ export function BackendReportsPage({
 export function BackendRefundDetailPage(): ReactElement {
   const { bookingCode = "" } = useParams();
   return (
-    <ResourceDetailPage
-      title="Chi tiết hoàn tiền"
-      endpoint={`/api/v1/operator/refunds/${encodeURIComponent(bookingCode)}`}
-      columns={[
-        { key: "refundReference", label: "Mã hoàn tiền" },
-        { key: "bookingId", label: "Đơn đặt vé" },
-        { key: "amount", label: "Số tiền (VND)" },
-        { key: "currency", label: "Tiền tệ" },
-        { key: "reason", label: "Lý do" },
-        { key: "status", label: "Trạng thái" },
-      ]}
-    />
+    <>
+      <Link to={`/refunds/${encodeURIComponent(bookingCode)}`}>
+        Theo dõi tiến trình hoàn tiền
+      </Link>
+      <ResourceDetailPage
+        title="Chi tiết hoàn tiền"
+        endpoint={`/api/v1/operator/refunds/${encodeURIComponent(bookingCode)}`}
+        columns={[
+          { key: "refundReference", label: "Mã hoàn tiền" },
+          { key: "bookingId", label: "Đơn đặt vé" },
+          { key: "amount", label: "Số tiền (VND)" },
+          { key: "currency", label: "Tiền tệ" },
+          { key: "reason", label: "Lý do" },
+          { key: "status", label: "Trạng thái" },
+        ]}
+      />
+    </>
   );
 }

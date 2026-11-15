@@ -15,7 +15,13 @@ interface Props {
   isPending: boolean;
   onPay: (scenario: PaymentStatus) => void;
 }
-function ProviderPanel({ amount }: { amount: number }): ReactElement {
+export function ProviderPanel({
+  amount,
+  label = "VNPay mô phỏng",
+}: {
+  amount: number;
+  label?: string;
+}): ReactElement {
   return (
     <div className="payment-checkout__provider">
       <span>CỔNG THANH TOÁN</span>
@@ -25,7 +31,7 @@ function ProviderPanel({ amount }: { amount: number }): ReactElement {
         {formatCurrencyVnd(amount)}
       </strong>
       <p>Phiên thanh toán hết hạn cùng thời gian giữ ghế.</p>
-      <div className="payment-checkout__brand" aria-label="VNPay mô phỏng">
+      <div className="payment-checkout__brand" aria-label={label}>
         <strong>VNPAY</strong>
         <span>SANDBOX · SECURE CHECKOUT</span>
       </div>

@@ -4,7 +4,8 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router";
 import { z } from "zod";
-import { liveApiJson as apiJson } from "@/shared/api/liveRequest";
+import { liveApiJson as apiJson, liveQueryKey } from "@/shared/api/liveRequest";
+import { PaymentAccessNotice } from "../components/PaymentAccessNotice";
 import { bookingSchema } from "@/shared/api/contracts";
 import { ApiFailure } from "@/shared/api/ResourcePage";
 import { ApiError } from "@/shared/api/error";
@@ -12,6 +13,8 @@ import { Button } from "@/shared/ui/Button/Button";
 import { formatCurrencyVnd } from "@/shared/lib/formatCurrencyVnd";
 import { stateLabel } from "@/shared/api/livePresentation";
 import "./BackendPaymentPage.css";
+import { LiveCheckoutView } from "../components/LiveCheckoutView";
+import { LivePaymentRecovery } from "../components/LivePaymentRecovery";
 
 const paymentSchema = z.object({
   id: z.string().uuid(),
@@ -23,10 +26,10 @@ const paymentSchema = z.object({
 });
 const guid = z.string().uuid();
 export function BackendPaymentPage(): ReactElement {
-  const [method, setMethod] = useState("VNPAY_QR");
+  const [method, setMethod] = useState("VNPAY");
   const { bookingId = "" } = useParams();
   const query = useQuery({
-    queryKey: ["live-api", "booking", bookingId],
+    queryKey: liveQueryKey("booking", bookingId),
     queryFn: ({ signal }) =>
       apiJson(
         `/api/v1/bookings/${encodeURIComponent(bookingId)}`,
@@ -82,7 +85,7 @@ export function BackendPaymentPage(): ReactElement {
       if (
         url.protocol !== "https:" &&
         !(
-          import.meta.env.DEV &&
+          ["localhost", "127.0.0.1"].includes(window.location.hostname) &&
           url.protocol === "http:" &&
           ["localhost", "127.0.0.1"].includes(url.hostname)
         )
@@ -99,6 +102,26 @@ export function BackendPaymentPage(): ReactElement {
   });
   if (!guid.safeParse(bookingId).success)
     return <p role="alert">Mã đơn không hợp lệ.</p>;
+  if (
+    query.error instanceof ApiError &&
+    [401, 403, 404].includes(query.error.status)
+  )
+    return (
+      <PaymentAccessNotice
+        kind="booking"
+        returnTo={`/payment/${bookingId}/vnpay`}
+      />
+    );
+  if (query.data?.status === "PENDING_PAYMENT" && !paymentExpired)
+    return (
+      <LiveCheckoutView
+        booking={query.data}
+        remainingTime={remainingTime}
+        onPay={() => mutation.mutate()}
+        busy={mutation.isPending}
+        error={mutation.error}
+      />
+    );
   return (
     <section className="live-api live-payment">
       <header className="live-api__heading">
@@ -246,7 +269,7 @@ export function BackendPaymentReturnPage(): ReactElement {
   const [params] = useSearchParams();
   const bookingId = params.get("bookingId") ?? "";
   const query = useQuery({
-    queryKey: ["live-api", "payment-return", bookingId],
+    queryKey: liveQueryKey("payment-return", bookingId),
     queryFn: ({ signal }) =>
       apiJson(
         `/api/v1/bookings/${bookingId}/payments`,
@@ -262,6 +285,28 @@ export function BackendPaymentReturnPage(): ReactElement {
         ? false
         : 5000,
   });
+  if (
+    query.error instanceof ApiError &&
+    [401, 403, 404].includes(query.error.status)
+  )
+    return (
+      <PaymentAccessNotice
+        returnTo={`/payment/vnpay/return?bookingId=${bookingId}`}
+      />
+    );
+  const failed = query.data?.find((payment) =>
+    ["FAILED", "CANCELLED"].includes(payment.status),
+  );
+  if (failed && !query.isError)
+    return (
+      <LivePaymentRecovery
+        bookingId={bookingId}
+        payment={failed}
+        checking={query.isFetching}
+        checkedAt={query.dataUpdatedAt}
+        onRecheck={() => query.refetch()}
+      />
+    );
   return (
     <section className="live-api">
       <h1>Kết quả thanh toán</h1>

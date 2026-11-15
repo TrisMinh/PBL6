@@ -64,6 +64,7 @@ export default [
     ]),
     route("/tickets/:ticketCode", "./routes/tickets/detail.tsx"),
     route("/bookings/:bookingCode/cancel", "./routes/bookings/cancel.tsx"),
+    route("/refunds/:refundId", "./routes/bookings/refund.tsx"),
     route("/payment/vnpay/return", "./routes/payment/vnpay-return.tsx"),
     route("*", "./routes/not-found.tsx"),
     layout("./routes/guards/booking-session.tsx", [

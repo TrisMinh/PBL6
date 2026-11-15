@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent, type ReactElement } from "react";
 import { z } from "zod";
+import { Link } from "react-router";
 
 import { useAccountSession } from "@/features/auth/hooks/useAccountSession";
 import { liveApiJson as apiJson, liveQueryKey } from "@/shared/api/liveRequest";
@@ -107,7 +108,16 @@ export function LiveRefundCreate({
           Tạo hoàn tiền
         </Button>
         {mutation.isSuccess ? (
-          <p role="status">Đã gửi yêu cầu hoàn tiền.</p>
+          <p role="status">
+            Đã gửi yêu cầu hoàn tiền.{" "}
+            {mutation.data.operationId && (
+              <Link
+                to={`/refunds/${encodeURIComponent(mutation.data.operationId)}`}
+              >
+                Theo dõi hoàn tiền
+              </Link>
+            )}
+          </p>
         ) : null}
         {mutation.isError ? <ApiFailure error={mutation.error} /> : null}
       </form>

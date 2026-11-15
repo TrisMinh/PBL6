@@ -1,7 +1,11 @@
 import { field } from "@/shared/api/fields";
 import type { ReactElement } from "react";
 import { Link } from "react-router";
-import { LiveOrganizationCreate, LiveOrganizationMembers, LiveUserActions } from "./LiveAdminActions";
+import {
+  LiveOrganizationCreate,
+  LiveOrganizationMembers,
+  LiveUserActions,
+} from "./LiveAdminActions";
 import { LivePayoutCreate } from "./LivePayoutCreate";
 import { LiveRefundCreate } from "./LiveRefundCreate";
 import {
@@ -153,8 +157,15 @@ export function BackendAdminDetailPage({
         columns={columns[resource]}
       />
       {resource === "users" && <LiveUserActions userId={id} />}
-      {resource === "organizations" && <LiveOrganizationMembers organizationId={id} />}
+      {resource === "organizations" && (
+        <LiveOrganizationMembers organizationId={id} />
+      )}
       {resource === "payments" && <LiveRefundCreate paymentId={id} />}
+      {resource === "refunds" && (
+        <Link to={`/refunds/${encodeURIComponent(id)}`}>
+          Theo dõi tiến trình hoàn tiền
+        </Link>
+      )}
     </>
   );
 }

@@ -201,12 +201,16 @@ export function CustomerLayout(): ReactElement {
     Boolean(
       matchPath({ path: "/tickets/:ticketCode", end: true }, location.pathname),
     );
-  const isCancellationFrame = Boolean(
-    matchPath(
-      { path: "/bookings/:bookingCode/cancel", end: true },
-      location.pathname,
-    ),
-  );
+  const isCancellationFrame =
+    Boolean(
+      matchPath(
+        { path: "/bookings/:bookingCode/cancel", end: true },
+        location.pathname,
+      ),
+    ) ||
+    Boolean(
+      matchPath({ path: "/refunds/:refundId", end: true }, location.pathname),
+    );
   const routeOwnsFooterOrFrame =
     isHome ||
     location.pathname === ROUTES.trips ||

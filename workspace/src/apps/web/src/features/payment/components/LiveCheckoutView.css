@@ -1,0 +1,112 @@
+.live-checkout .payment-page__heading {
+  height: 110px;
+  margin: 0;
+}
+.live-checkout .payment-page__heading h1 {
+  font-family: var(--font-body);
+  font-size: 36px;
+  font-weight: 600;
+  margin: 8px 0 2px;
+  line-height: 44px;
+}
+.live-checkout .payment-page__heading p {
+  margin: 0;
+  font-size: 13px;
+}
+.live-checkout__columns {
+  display: grid;
+  grid-template-columns: minmax(0, 820px) minmax(0, 430px);
+  gap: 30px;
+  align-items: start;
+}
+.live-checkout .payment-checkout {
+  background: #fcfdff;
+}
+.live-checkout .payment-checkout__provider {
+  background: #f6faff;
+}
+.live-checkout .payment-checkout__brand {
+  background: #f0f7ff;
+}
+.live-checkout .payment-checkout__brand span {
+  font-size: 12px;
+}
+.live-checkout .payment-checkout__details {
+  background: white;
+}
+.live-checkout .payment-checkout__details > p {
+  font-size: 11px;
+  margin: 8px 0 0;
+}
+.live-checkout .payment-checkout__details dd {
+  overflow-wrap: anywhere;
+}
+.live-checkout .payment-checkout__provider > p {
+  font-size: 10px;
+  margin: 0;
+}
+.live-checkout .payment-checkout__details dl > div {
+  background: #f9fbff;
+}
+.live-checkout .payment-checkout__details .payment-checkout__reference {
+  background: #eef5ff;
+}
+.live-checkout .payment-checkout__safety {
+  background: #f3f7fc;
+}
+.live-checkout .cancellation-page__summary > .button {
+  font-size: 14px;
+  margin-top: 14px;
+}
+.live-checkout__back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  margin-top: 14px;
+  border: 1px solid #dce8f7;
+  border-radius: 11px;
+  background: white;
+  font-size: 12px;
+  text-decoration: none;
+  color: #174ea6;
+}
+.live-checkout__method {
+  display: grid;
+  gap: 5px;
+  font-size: 11px;
+  color: #61748b;
+  margin-top: 0;
+}
+.live-checkout__method select {
+  min-height: 38px;
+  padding: 8px 12px;
+  border: 1px solid #dce8f7;
+  border-radius: 10px;
+  background: white;
+  color: #10243e;
+  font: inherit;
+}
+.live-checkout .cancellation-page__payment-method {
+  margin-bottom: 12px;
+}
+@media (max-width: 1199px) {
+  .live-checkout__columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .live-checkout .payment-checkout__grid {
+    grid-template-columns: minmax(0, 300px) minmax(0, 1fr);
+  }
+}
+@media (max-width: 767px) {
+  .live-checkout .payment-checkout__grid {
+    grid-template-columns: 1fr;
+  }
+  .live-checkout .payment-page__heading {
+    height: auto;
+    margin-bottom: 24px;
+  }
+  .live-checkout .payment-page__heading h1 {
+    font-size: 28px;
+  }
+}

@@ -1,0 +1,83 @@
+.live-refund { padding-top: 32px; }
+.live-refund .cancellation-page__refund > h2 { margin-top: 6px; line-height: 40px; }
+.live-refund .cancellation-page__refund {
+  height: auto;
+  min-height: 520px;
+}
+.live-refund .cancellation-page__processing-heading h1 {
+  font-size: 38px;
+  line-height: 48px;
+}
+.live-refund .cancellation-page__refund > p {
+  font-size: 14px;
+}
+.live-refund .cancellation-page__refund-facts dd {
+  font-size: 15px;
+}
+.live-refund .cancellation-page__notice strong {
+  font-size: 14px;
+}
+.live-refund .cancellation-page__notice small,
+.live-refund .cancellation-page__refund-facts > p,
+.live-refund .cancellation-page__progress small,
+.live-refund .cancellation-page__progress > p {
+  font-size: 11px;
+}
+.live-refund .cancellation-page__progress li strong {
+  font-size: 15px;
+}
+.live-refund .cancellation-page__refund-brand small {
+  font-size: 11px;
+}
+.live-refund__progress ol[data-illustrated="true"] li::before,
+.live-refund__progress ol[data-illustrated="true"] li::after {
+  display: none;
+}
+.live-refund__progress ol {
+  row-gap: 15px;
+  margin-top: 6px;
+}
+.live-refund__progress li:last-child { min-height: 40px; }
+.live-refund__progress ol {
+  counter-reset: step;
+}
+.live-refund__progress li {
+  position: relative;
+  min-height: 58px;
+}
+.live-refund__progress li::before {
+  content: "";
+  position: absolute;
+  left: -30px;
+  top: 3px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid #b8c9dd;
+  background: white;
+}
+.live-refund__progress li::after {
+  content: "";
+  position: absolute;
+  left: -24px;
+  top: 21px;
+  bottom: -23px;
+  border-left: 1px solid #d6e3f2;
+}
+.live-refund__progress li:last-child::after {
+  display: none;
+}
+.live-refund__progress li[data-complete="true"]::before {
+  border-color: #246bda;
+  background: #246bda;
+}
+.live-refund[data-status="SUCCEEDED"] .live-refund__progress li::before {
+  border-color: #16a36a;
+  background: #16a36a;
+}
+.live-refund[data-status="FAILED"] [role="status"] {
+  color: #b42318;
+}
+.live-refund__progress small {
+  overflow-wrap: anywhere;
+}

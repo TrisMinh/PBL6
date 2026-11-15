@@ -8,10 +8,11 @@ import type { TicketDetail } from "@/features/tickets/types/ticketAccess";
 import "./CancellationSelector.css";
 
 interface Props {
-  tickets: readonly TicketDetail[];
+  tickets: readonly Pick<TicketDetail, "ticketId" | "seatCode" | "passenger">[];
   selectedIds: readonly string[];
   maskedPhones: Readonly<Record<string, string>>;
   onToggle: (ticketId: string) => void;
+  disabled?: boolean;
 }
 
 export function CancellationSelector({
@@ -19,6 +20,7 @@ export function CancellationSelector({
   selectedIds,
   maskedPhones,
   onToggle,
+  disabled = false,
 }: Props): ReactElement {
   return (
     <fieldset className="cancellation-selector">
@@ -38,6 +40,7 @@ export function CancellationSelector({
             >
               <input
                 type="checkbox"
+                disabled={disabled}
                 checked={checked}
                 onChange={() => onToggle(ticket.ticketId)}
               />

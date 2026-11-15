@@ -72,7 +72,14 @@ function accessError(error: BookingRepositoryError | null): boolean {
   return Boolean(error && [401, 410].includes(error.status));
 }
 
-function JourneyCard({ journey }: { journey: Journey }): ReactElement {
+export function JourneyCard({
+  journey,
+  referenceLabel = "Mã chuyến",
+}: {
+  journey: Journey;
+  referenceLabel?: string;
+}): ReactElement {
+  const [expanded, setExpanded] = useState(false);
   return (
     <section
       className="cancellation-page__journey"
@@ -80,7 +87,13 @@ function JourneyCard({ journey }: { journey: Journey }): ReactElement {
     >
       <div className="cancellation-page__section-heading">
         <h2>Hành trình &amp; nhà xe</h2>
-        <button type="button">Xem chi tiết</button>
+        <button
+          type="button"
+          aria-expanded={expanded}
+          onClick={() => setExpanded((value) => !value)}
+        >
+          {expanded ? "Thu gọn" : "Xem chi tiết"}
+        </button>
       </div>
       <div className="cancellation-page__operator">
         <span className="cancellation-page__icon-well">
@@ -89,9 +102,18 @@ function JourneyCard({ journey }: { journey: Journey }): ReactElement {
         <div>
           <span>ĐƠN VỊ VẬN HÀNH</span>
           <strong>{journey.operatorName}</strong>
-          <small>Mã chuyến {journey.tripCode}</small>
+          <small>
+            {referenceLabel} {journey.tripCode}
+          </small>
         </div>
       </div>
+      {expanded && (
+        <div className="live-cancellation__journey-details">
+          <strong>{journey.serviceDateLabel}</strong>
+          <p>Điểm đi: {journey.originStop}</p>
+          <p>Điểm đến: {journey.destinationStop}</p>
+        </div>
+      )}
       <div className="cancellation-page__route">
         <div>
           <strong>{journey.departureTime}</strong>
@@ -168,7 +190,11 @@ function ConsentNote({
   );
 }
 
-function Heading({ confirm = false }: { confirm?: boolean }): ReactElement {
+export function Heading({
+  confirm = false,
+}: {
+  confirm?: boolean;
+}): ReactElement {
   return (
     <header className="cancellation-page__heading">
       <p>
