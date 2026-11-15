@@ -1,5 +1,5 @@
 import { isMockApi } from "@/shared/api/config";
-import { LiveDriverEditor } from "@/features/operator/LiveOperatorForms";
+import { LiveDriverEditorPage } from "@/features/operator/drivers/LiveDriverEditorPage";
 import type { ReactElement } from "react";
 import { createMeta } from "@/shared/config/seo";
 import { EditDriverPage } from "@/features/operator/drivers/EditDriverPage";
@@ -11,9 +11,5 @@ export function meta(): ReturnType<typeof createMeta> {
   });
 }
 export default function EditDriverRoute(): ReactElement {
-  return isMockApi ? (
-    <EditDriverPage />
-  ) : (
-    <LiveDriverEditor edit />
-  );
+  return isMockApi ? <EditDriverPage /> : <LiveDriverEditorPage edit />;
 }

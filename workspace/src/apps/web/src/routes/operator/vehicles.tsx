@@ -1,5 +1,5 @@
 import { isMockApi } from "@/shared/api/config";
-import { BackendOperatorPage } from "@/features/operator/BackendOperatorPage";
+import { LiveVehicleManagementPage } from "@/features/operator/vehicles/LiveVehicleManagementPage";
 import type { ReactElement } from "react";
 import { useSearchParams } from "react-router";
 import { LiveVehicleEditor } from "@/features/operator/LiveOperatorForms";
@@ -14,10 +14,7 @@ export function meta(): ReturnType<typeof createMeta> {
 }
 export default function VehiclesRoute(): ReactElement {
   const [search] = useSearchParams();
-  if (!isMockApi && (search.has("new") || search.has("edit"))) return <LiveVehicleEditor />;
-  return isMockApi ? (
-    <VehicleManagementPage />
-  ) : (
-    <BackendOperatorPage resource="vehicles" />
-  );
+  if (!isMockApi && (search.has("new") || search.has("edit")))
+    return <LiveVehicleEditor />;
+  return isMockApi ? <VehicleManagementPage /> : <LiveVehicleManagementPage />;
 }

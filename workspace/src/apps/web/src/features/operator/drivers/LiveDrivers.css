@@ -1,0 +1,182 @@
+.live-drivers {
+  font-family: var(--font-body);
+}
+.live-drivers h1,
+.live-drivers h2,
+.live-drivers h3,
+.live-drivers p {
+  margin: 0;
+}
+.live-drivers h1,
+.live-drivers h2,
+.live-drivers h3 {
+  font-weight: 600;
+}
+.live-drivers__heading {
+  display: flex;
+  align-items: center;
+  min-height: 68px;
+  padding: 16px 20px;
+  border-radius: 10px;
+  background: white;
+}
+.live-drivers__heading h1 {
+  font-size: 20px;
+  line-height: 30px;
+}
+.live-drivers__primary,
+.live-drivers__secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 11px 20px;
+  min-height: 44px;
+  border-radius: 10px;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+}
+.live-drivers__primary {
+  border: 1px solid #1f66e5;
+  background: #1f66e5;
+  color: white;
+}
+.live-drivers__secondary {
+  border: 1px solid #8fb3e2;
+  background: #fbfcfe;
+  color: #0b1f3a;
+}
+.live-drivers__primary:hover {
+  background: #1656cc;
+}
+.live-drivers__secondary:hover {
+  background: #f0f6ff;
+}
+.live-drivers .operator-drivers__toolbar select {
+  background-image: url("../../../assets/operator/drivers/imgIconChevronDown.svg");
+}
+.live-drivers .operator-drivers__row {
+  cursor: pointer;
+}
+.live-drivers .operator-drivers__profile-heading p {
+  margin-top: 6px;
+}
+.live-drivers .operator-drivers__documents > div {
+  margin-top: 10px;
+}
+.live-drivers__muted {
+  color: #71839a;
+  font-size: 11px;
+  line-height: 1.7;
+  margin-top: 10px !important;
+}
+.live-drivers__loading {
+  padding: 32px 20px;
+  color: #5f738a;
+  font-size: 13px;
+}
+.live-drivers__notice {
+  margin-top: 12px !important;
+  padding: 12px 16px;
+  border: 1px solid #cfe4f9;
+  border-radius: 10px;
+  background: #edf6ff;
+  color: #245c9e;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.live-drivers .operator-drivers__actions > a {
+  width: 210px;
+}
+.live-driver-form .driver-add__intro p {
+  margin: 0;
+}
+.live-driver-form .driver-add__card input:disabled,
+.live-driver-form textarea:disabled {
+  background: #f5f7fa;
+  color: #75879e;
+  opacity: 0.85;
+  cursor: not-allowed;
+}
+.live-driver-form .driver-add__drop:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+.live-driver-form .driver-add__status select {
+  appearance: none;
+  padding-right: 40px;
+  background-image: url("../../../assets/operator/drivers/add/imgIconChevronDown.svg");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  background-size: 16px 16px;
+}
+.live-driver-form .driver-add__footer > a {
+  min-width: 120px;
+}
+.live-drivers a:focus-visible {
+  outline: 2px solid #69a5ff;
+  outline-offset: 3px;
+}
+.operator-workspace--drivers {
+  grid-template-columns: 190px minmax(0, 1fr);
+  gap: 8px;
+  background: #f7faff;
+}
+.operator-workspace--drivers .operator-workspace__main {
+  display: block;
+  padding: 0;
+}
+.operator-workspace--drivers .operator-workspace__topbar {
+  display: none;
+}
+.operator-workspace--drivers .operator-workspace__sidebar {
+  padding: 17px 7px 16px;
+  border-radius: 8px;
+}
+.operator-workspace--drivers .operator-workspace__brand {
+  padding-bottom: 30px;
+}
+.operator-workspace--drivers .operator-workspace__brand .brand-logo {
+  width: 110px;
+}
+.operator-workspace--drivers .operator-workspace__nav-link {
+  min-height: 36px;
+  margin-bottom: 6px;
+  font-size: 11px;
+  gap: 14px;
+  padding: 9px 10px;
+}
+.operator-workspace--drivers nav h2 {
+  margin: 0 12px 14px;
+  font-size: 9px;
+}
+.operator-workspace--drivers nav section {
+  margin-bottom: 28px;
+}
+@media (max-width: 1023px) {
+  .operator-workspace--drivers {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .operator-workspace--drivers .operator-workspace__topbar {
+    display: flex;
+    min-height: 48px;
+    margin-bottom: 8px;
+  }
+}
+@media (max-width: 600px) {
+  .live-drivers .operator-drivers__list,
+  .live-drivers .operator-drivers__profile {
+    min-height: 0;
+  }
+  .live-drivers .operator-drivers__actions > a {
+    width: 100%;
+  }
+  .live-driver-form .driver-add__footer {
+    gap: 12px;
+  }
+  .live-driver-form .driver-add__footer > a {
+    min-width: 0;
+    flex: 1;
+  }
+}

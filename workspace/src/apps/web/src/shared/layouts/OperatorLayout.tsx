@@ -1,8 +1,17 @@
 import { useState, type ReactElement } from "react";
-import { Link, NavLink, Navigate, Outlet, useLocation } from "react-router";
+import {
+  Link,
+  NavLink,
+  Navigate,
+  Outlet,
+  useLocation,
+  useNavigate,
+} from "react-router";
 import * as Dialog from "@radix-ui/react-dialog";
 import { List } from "@phosphor-icons/react/dist/csr/List";
 import { X } from "@phosphor-icons/react/dist/csr/X";
+import { LockKey } from "@phosphor-icons/react/dist/csr/LockKey";
+import { logoutApi } from "@/shared/api/client";
 import { useAccountSession } from "@/features/auth/hooks/useAccountSession";
 import { NotificationBell } from "@/features/notifications/NotificationBell";
 import { isMockApi } from "@/shared/api/config";
@@ -101,6 +110,8 @@ function LiveOperatorLayout(): ReactElement {
   const { session, isHydrated, revoke } = useAccountSession();
   const location = useLocation();
   const [open, setOpen] = useState(false);
+  const [switching, setSwitching] = useState(false);
+  const navigate = useNavigate();
   if (!isHydrated)
     return (
       <div className="operator-workspace__loading" role="status">
@@ -117,10 +128,42 @@ function LiveOperatorLayout(): ReactElement {
     );
   if (!workspaceAccess().operator)
     return (
-      <div className="operator-workspace__loading">
-        <h1>Không có quyền quản lý nhà xe</h1>
-        <Link to={workspaceAccess().home}>Về không gian của tôi</Link>
-      </div>
+      <main className="operator-access" aria-labelledby="operator-access-title">
+        <Link
+          to="/"
+          aria-label="BLUE — Trang chủ"
+          className="operator-access__brand"
+        >
+          <BrandLogo placement="header" />
+        </Link>
+        <section className="operator-access__card">
+          <div className="operator-access__icon" aria-hidden="true">
+            <LockKey size={38} weight="duotone" />
+          </div>
+          <p className="operator-access__eyebrow">KHÔNG GIAN NHÀ XE</p>
+          <h1 id="operator-access-title">Bạn chưa có quyền truy cập</h1>
+          <p className="operator-access__description">
+            Tài khoản hiện tại không có quyền quản lý nhà xe. Đăng nhập bằng tài
+            khoản nhà xe để tiếp tục.
+          </p>
+          <div className="operator-access__actions">
+            <Button
+              isLoading={switching}
+              onClick={async () => {
+                if (switching) return;
+                setSwitching(true);
+                await logoutApi().catch(() => undefined);
+                void navigate("/login", {
+                  state: { from: location.pathname + location.search },
+                });
+              }}
+            >
+              Đăng nhập tài khoản nhà xe
+            </Button>
+            <Link to="/">Về trang chủ</Link>
+          </div>
+        </section>
+      </main>
     );
   const section = groups
     .flatMap((group) => group.links)
@@ -128,7 +171,21 @@ function LiveOperatorLayout(): ReactElement {
       (link) => !link.to.includes("?") && location.pathname.startsWith(link.to),
     );
   return (
-    <div className="operator-workspace">
+    <div
+      className={[
+        "operator-workspace",
+        location.pathname === "/operator/vehicles" &&
+          "operator-workspace--vehicles",
+        location.pathname.startsWith("/operator/routes") &&
+          "operator-workspace--routes",
+        location.pathname === "/operator/reports" &&
+          "operator-workspace--reports",
+        location.pathname.startsWith("/operator/drivers") &&
+          "operator-workspace--drivers",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    >
       <a className="operator-workspace__skip" href="#operator-main">
         Đến nội dung chính
       </a>

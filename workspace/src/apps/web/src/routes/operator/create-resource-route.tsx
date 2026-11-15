@@ -1,5 +1,5 @@
 import { isMockApi } from "@/shared/api/config";
-import { LiveRouteEditor } from "@/features/operator/LiveOperatorForms";
+import { LiveRouteEditorPage } from "@/features/operator/resources/LiveRouteEditorPage";
 import type { ReactElement } from "react";
 import { createMeta } from "@/shared/config/seo";
 import { CreateRoutePage } from "@/features/operator/resources/CreateRoutePage";
@@ -11,9 +11,5 @@ export function meta(): ReturnType<typeof createMeta> {
   });
 }
 export default function CreateResourceRoute(): ReactElement {
-  return isMockApi ? (
-    <CreateRoutePage />
-  ) : (
-    <LiveRouteEditor />
-  );
+  return isMockApi ? <CreateRoutePage /> : <LiveRouteEditorPage />;
 }

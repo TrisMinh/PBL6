@@ -1,5 +1,5 @@
 import { isMockApi } from "@/shared/api/config";
-import { BackendOperatorPage } from "@/features/operator/BackendOperatorPage";
+import { LiveRouteManagementPage } from "@/features/operator/resources/LiveRouteManagementPage";
 import type { ReactElement } from "react";
 import { useSearchParams } from "react-router";
 import { LiveRouteStopsEditor } from "@/features/operator/LiveOperatorForms";
@@ -15,9 +15,5 @@ export function meta(): ReturnType<typeof createMeta> {
 export default function ResourceRoutesRoute(): ReactElement {
   const [search] = useSearchParams();
   if (!isMockApi && search.has("stops")) return <LiveRouteStopsEditor />;
-  return isMockApi ? (
-    <RouteManagementPage />
-  ) : (
-    <BackendOperatorPage resource="routes" />
-  );
+  return isMockApi ? <RouteManagementPage /> : <LiveRouteManagementPage />;
 }
