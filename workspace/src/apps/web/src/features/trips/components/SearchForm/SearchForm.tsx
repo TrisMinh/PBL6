@@ -76,14 +76,14 @@ function LiveRouteFields({
         <Controller
           name="originId"
           control={form.control}
-          render={({ field, fieldState }) => (
+          render={({ field }) => (
             <LocationCombobox
               label="Điểm đi"
               placeholder="Chọn hoặc tìm điểm đi"
               options={origins}
               value={field.value}
               onBlur={field.onBlur}
-              error={fieldState.error?.message}
+
               onChange={(value) => {
                 field.onChange(value);
                 if (
@@ -127,7 +127,7 @@ function LiveRouteFields({
       <Controller
         name="destinationId"
         control={form.control}
-        render={({ field, fieldState }) => (
+        render={({ field }) => (
           <LocationCombobox
             label="Điểm đến"
             placeholder="Chọn hoặc tìm điểm đến"
@@ -135,7 +135,6 @@ function LiveRouteFields({
             value={field.value}
             onChange={field.onChange}
             onBlur={field.onBlur}
-            error={fieldState.error?.message}
           />
         )}
       />
@@ -193,7 +192,7 @@ function RouteFields({
           key={name}
           label={label}
           required
-          error={form.formState.errors[name]?.message}
+
           {...form.register(name)}
         >
           <option value="">{placeholder}</option>
@@ -220,7 +219,7 @@ function DateField({ form }: { form: SearchMethods }): ReactElement {
       type="date"
       className="search-form__control"
       required
-      error={form.formState.errors.departureDate?.message}
+
       {...field}
       ref={(input) => {
         inputRef.current = input;
@@ -238,7 +237,7 @@ function PassengerField({ form }: { form: SearchMethods }): ReactElement {
     <SearchSelect
       label="Hành khách"
       required
-      error={form.formState.errors.passengerCount?.message}
+
       {...form.register("passengerCount")}
     >
       {[1, 2, 3, 4, 5, 6].map((count) => (

@@ -169,13 +169,13 @@ describe("auth forms through real HTTP", () => {
     fireEvent.change(screen.getByLabelText("Kịch bản đăng nhập mô phỏng"), {
       target: { value: "error" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Google (mô phỏng)" }));
+    fireEvent.click(screen.getByRole("button", { name: "Đăng nhập bằng Google" }));
     expect(await screen.findByRole("alert")).toBeVisible();
     fireEvent.change(screen.getByLabelText("Kịch bản đăng nhập mô phỏng"), {
       target: { value: "success" },
     });
     fireEvent.click(
-      screen.getByRole("button", { name: "Facebook (mô phỏng)" }),
+      screen.getByRole("button", { name: "Đăng nhập bằng Facebook" }),
     );
     expect(
       await screen.findByText("Destination /account/tickets"),

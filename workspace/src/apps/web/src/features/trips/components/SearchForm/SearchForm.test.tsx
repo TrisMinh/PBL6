@@ -56,30 +56,16 @@ describe("SearchForm", () => {
     );
   });
 
-  it("blocks empty fields and associates required errors", async () => {
+  it("blocks empty fields without red warnings", async () => {
     const submit = vi.fn();
     render(<SearchForm locations={locations} onSubmit={submit} />);
     await userEvent.click(screen.getByRole("button", { name: "Tìm chuyến" }));
-    expect(await screen.findByText("Chọn điểm đi.")).toHaveAttribute(
-      "role",
-      "alert",
-    );
-    expect(screen.getByLabelText("Điểm đi")).toHaveAccessibleDescription(
-      "Chọn điểm đi.",
-    );
-    expect(screen.getByLabelText("Điểm đến")).toHaveAttribute(
-      "aria-invalid",
-      "true",
-    );
-    expect(screen.getByLabelText("Ngày đi")).toHaveAttribute(
-      "aria-invalid",
-      "true",
-    );
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     expect(screen.getByLabelText("Điểm đi")).toHaveFocus();
     expect(submit).not.toHaveBeenCalled();
   });
 
-  it("links same-route error to destination and never submits", async () => {
+  it("blocks the same route without red warnings", async () => {
     const submit = vi.fn();
     render(<SearchForm locations={locations} onSubmit={submit} />);
     fillValid();
@@ -87,16 +73,11 @@ describe("SearchForm", () => {
       target: { value: "loc-hcm" },
     });
     await userEvent.click(screen.getByRole("button", { name: "Tìm chuyến" }));
-    expect(
-      await screen.findByText("Điểm đến phải khác điểm đi."),
-    ).toHaveAttribute("role", "alert");
-    expect(screen.getByLabelText("Điểm đến")).toHaveAccessibleDescription(
-      "Điểm đến phải khác điểm đi.",
-    );
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     expect(submit).not.toHaveBeenCalled();
   });
 
-  it("shows the schema past-date error at the date input", async () => {
+  it("blocks past dates without red warnings", async () => {
     const submit = vi.fn();
     render(<SearchForm locations={locations} onSubmit={submit} />);
     fillValid();
@@ -104,12 +85,7 @@ describe("SearchForm", () => {
       target: { value: "2000-01-01" },
     });
     await userEvent.click(screen.getByRole("button", { name: "Tìm chuyến" }));
-    expect(
-      await screen.findByText("Ngày đi không được ở quá khứ."),
-    ).toHaveAttribute("role", "alert");
-    expect(screen.getByLabelText("Ngày đi")).toHaveAccessibleDescription(
-      "Ngày đi không được ở quá khứ.",
-    );
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     expect(submit).not.toHaveBeenCalled();
   });
 
@@ -123,10 +99,7 @@ describe("SearchForm", () => {
       passenger.append(new Option(value, value));
       fireEvent.change(passenger, { target: { value } });
       await userEvent.click(screen.getByRole("button", { name: "Tìm chuyến" }));
-      await waitFor(() =>
-        expect(passenger).toHaveAttribute("aria-invalid", "true"),
-      );
-      expect(passenger).toHaveAttribute("aria-describedby");
+      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
       expect(submit).not.toHaveBeenCalled();
     },
   );

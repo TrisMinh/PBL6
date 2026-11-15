@@ -17,6 +17,7 @@ import { ROUTES } from "@/shared/config/routes";
 import { BrandLogo } from "@/shared/ui/BrandLogo/BrandLogo";
 
 import "./AuthShell.css";
+import { isMockApi } from "@/shared/api/config";
 
 export type AuthMode = "login" | "register" | "forgot";
 
@@ -68,9 +69,11 @@ export function AuthShell({
             <h1 className="auth-page__title">{copy.title}</h1>
             <p className="auth-page__support">{copy.support}</p>
           </div>
-          <p className="auth-page__privacy">
-            Ứng dụng mô phỏng — không phải tài khoản hay đăng nhập thật.
-          </p>
+          {isMockApi && (
+            <p className="auth-page__privacy">
+              Ứng dụng mô phỏng — không phải tài khoản hay đăng nhập thật.
+            </p>
+          )}
           {children}
         </div>
         <ScenicPanel mode={mode} />

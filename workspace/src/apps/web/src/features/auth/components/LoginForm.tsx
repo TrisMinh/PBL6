@@ -24,23 +24,40 @@ function ProviderButton({
   action: ReturnType<typeof useAuthAction>;
   scenario?: "success" | "error";
 }): ReactElement {
+  const [unavailable, setUnavailable] = useState(false);
+  const providerName = provider === "google" ? "Google" : "Facebook";
   return (
-    <Button
-      type="button"
-      variant="secondary"
-      disabled={action.isPending}
-      onClick={() =>
-        action.submit({
-          kind: "oauth",
-          input: { provider, ...(scenario ? { scenario } : {}) },
-        })
-      }
-    >
-      <img src={provider === "google" ? google : facebook} alt="" />
-      <span className="auth-page__sr-only">
-        {provider === "google" ? "Google" : "Facebook"} (mô phỏng)
-      </span>
-    </Button>
+    <>
+      <Button
+        type="button"
+        variant="secondary"
+        disabled={action.isPending}
+        aria-label={`Đăng nhập bằng ${providerName}`}
+        onClick={() => {
+          if (!isMockApi) {
+            setUnavailable(true);
+            return;
+          }
+          action.submit({
+            kind: "oauth",
+            input: { provider, ...(scenario ? { scenario } : {}) },
+          });
+        }}
+      >
+        <img
+          src={provider === "google" ? google : facebook}
+          alt=""
+          width={provider === "google" ? 28 : 26}
+          height={provider === "google" ? 28 : 26}
+        />
+      </Button>
+      {unavailable && (
+        <p role="status" className="auth-page__provider-notice">
+          Đăng nhập bằng {providerName} chưa được hỗ trợ. Vui lòng dùng email
+          hoặc số điện thoại.
+        </p>
+      )}
+    </>
   );
 }
 function Providers({
@@ -49,7 +66,8 @@ function Providers({
   action: ReturnType<typeof useAuthAction>;
 }): ReactElement {
   const [scenario, setScenario] = useState<"success" | "error">("success");
-  const enabled = import.meta.env.DEV || import.meta.env.MODE === "test";
+  const enabled =
+    isMockApi && (import.meta.env.DEV || import.meta.env.MODE === "test");
   return (
     <>
       <div className="auth-page__providers">
@@ -91,7 +109,7 @@ export function LoginForm(): ReactElement {
     });
   return (
     <>
-      {isMockApi ? <Providers action={action} /> : null}
+      <Providers action={action} />
       <AuthError error={action.error} />
       <form
         noValidate
