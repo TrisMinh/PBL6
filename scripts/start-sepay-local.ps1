@@ -59,6 +59,7 @@ if (-not $NoBuild) { $composeArgs += '--build' }
 $composeArgs += @('identity', 'transport', 'booking', 'payment', 'notification', 'reporting', 'gateway', 'customer-web', 'operator-web', 'admin-web')
 & docker @composeArgs
 if ($LASTEXITCODE -ne 0) { throw 'The local platform did not start successfully.' }
+& (Join-Path $PSScriptRoot 'restore-local-catalogue.ps1')
 Write-Host "Customer: http://localhost:5173"
 Write-Host "Operator: http://localhost:5174"
 Write-Host "Admin: http://localhost:5175"

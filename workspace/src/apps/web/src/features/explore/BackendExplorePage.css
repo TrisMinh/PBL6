@@ -1,0 +1,37 @@
+.explore--live .explore__intro {
+  display: block;
+  margin-bottom: 28px;
+}
+.explore--live .explore__intro h1 {
+  margin: 8px 0 12px;
+  text-align: left;
+}
+.explore--live .explore__intro p {
+  margin: 0;
+}
+.explore--live > .explore-discovery {
+  margin-block: 32px;
+}
+.explore--live .explore-discovery__heading {
+  margin-bottom: 18px;
+}
+.explore--live .explore-discovery__heading h2 {
+  margin: 0 0 6px;
+}
+.explore--live .explore-discovery__heading p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+}
+.explore--live .explore-discovery__copy {
+  padding: 14px;
+}
+.explore--live .explore-discovery__copy h3 {
+  margin: 0 0 8px;
+  font-size: 15px;
+}
+.explore--live .explore-discovery__copy p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}

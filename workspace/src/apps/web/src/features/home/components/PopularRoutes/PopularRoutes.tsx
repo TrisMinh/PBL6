@@ -6,6 +6,11 @@ import { z } from "zod";
 import { isMockApi } from "@/shared/api/config";
 import { apiJson } from "@/shared/api/client";
 import { ApiFailure } from "@/shared/api/ResourcePage";
+import { ExploreImage } from "@/features/explore/ExploreImage";
+import {
+  catalogueArtwork,
+  catalogueSearchPath,
+} from "@/features/explore/liveCataloguePresentation";
 
 import daNangHue from "@/assets/home/route-da-nang-hue.png";
 import haNoiSaPa from "@/assets/home/route-ha-noi-sa-pa.png";
@@ -72,7 +77,7 @@ function LiveRoutes(): ReactElement {
             const illustration = POPULAR_ROUTES.find((r) => r.title === title);
             return (
               <article className="popular-routes__card" key={title}>
-                {illustration && (
+                {illustration ? (
                   <img
                     src={illustration.image}
                     alt=""
@@ -80,10 +85,14 @@ function LiveRoutes(): ReactElement {
                     height={941}
                     loading="lazy"
                   />
+                ) : (
+                  <ExploreImage art={catalogueArtwork(route.destination)} />
                 )}
                 <div className="popular-routes__card-copy">
                   <h3>
-                    <Link to={`/explore/${encodeURIComponent(route.origin)}`}>
+                    <Link
+                      to={catalogueSearchPath(route.origin, route.destination)}
+                    >
                       {title}
                     </Link>
                   </h3>

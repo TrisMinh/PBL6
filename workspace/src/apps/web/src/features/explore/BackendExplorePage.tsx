@@ -3,11 +3,19 @@ import { useState, type ReactElement } from "react";
 import { MapPin } from "@phosphor-icons/react/dist/csr/MapPin";
 import { normalizeSearch } from "@/shared/api/livePresentation";
 import "./ExplorePages.css";
+import "./BackendExplorePage.css";
 import { Link, useParams } from "react-router";
 import { z } from "zod";
 import { apiJson } from "@/shared/api/client";
 import { ApiFailure } from "@/shared/api/ResourcePage";
 import { getVietnamTodayDate } from "@/shared/lib/getVietnamTodayDate";
+import { ExploreImage } from "./ExploreImage";
+import {
+  catalogueArtwork,
+  catalogueSearchPath,
+  nextCatalogueDate,
+} from "./liveCataloguePresentation";
+import { ExploreGuides, ExploreOffers } from "./ExploreDiscovery";
 
 const routeSchema = z.object({
   origin: z.string(),
@@ -41,7 +49,7 @@ export function BackendExploreIndex(): ReactElement {
     normalizeSearch(origin).includes(normalizeSearch(search)),
   );
   return (
-    <section className="explore">
+    <section className="explore explore--live">
       <header className="explore__intro">
         <p className="explore__eyebrow">CÙNG BLUE KHÁM PHÁ</p>
         <h1>Hành trình bắt đầu từ đây</h1>
@@ -50,6 +58,38 @@ export function BackendExploreIndex(): ReactElement {
           của bạn.
         </p>
       </header>
+      {query.data && query.data.length > 0 && (
+        <section
+          className="explore-discovery"
+          aria-labelledby="live-featured-routes"
+        >
+          <div className="explore-discovery__heading">
+            <h2 id="live-featured-routes">Tuyến đường phổ biến</h2>
+            <p>Lịch chạy và chỗ ngồi từ hệ thống đặt vé</p>
+          </div>
+          <div className="explore-discovery__grid">
+            {query.data
+              .filter((route) => !route.origin.startsWith("Seed "))
+              .slice(0, 4)
+              .map((route) => (
+                <Link
+                  className="explore-discovery__card"
+                  key={`${route.origin}-${route.destination}`}
+                  to={catalogueSearchPath(route.origin, route.destination)}
+                >
+                  <ExploreImage art={catalogueArtwork(route.destination)} />
+                  <div className="explore-discovery__copy">
+                    <h3>
+                      {route.origin} → {route.destination}
+                    </h3>
+                    <p>{route.tripCount} chuyến đang mở bán</p>
+                  </div>
+                </Link>
+              ))}
+          </div>
+        </section>
+      )}
+      <ExploreOffers />
       <div className="explore__search">
         <label htmlFor="live-explore-search">Bạn muốn xuất phát từ đâu?</label>
         <div>
@@ -113,13 +153,14 @@ export function BackendExploreIndex(): ReactElement {
           <p>Thử tìm bằng tên tỉnh hoặc thành phố khác.</p>
         </div>
       )}
+      <ExploreGuides />
     </section>
   );
 }
 export function BackendExploreDetail(): ReactElement {
   const { provinceSlug = "" } = useParams();
   const query = useLiveRoutes();
-  const [date, setDate] = useState(getVietnamTodayDate());
+  const [date, setDate] = useState(nextCatalogueDate);
   const routes =
     query.data?.filter((route) => route.origin === provinceSlug) ?? [];
   return (
