@@ -13,6 +13,7 @@ import { AppProviders } from "@/app/AppProviders";
 import { ROUTES } from "@/shared/config/routes";
 import { PageState } from "@/shared/ui/PageState/PageState";
 import { AppStartup, StartupScreen } from "@/app/AppStartup";
+import { STARTUP_BOOTSTRAP_SCRIPT } from "@/app/startupSession";
 import "@/styles/app.css";
 
 import type { Route } from "./+types/root";
@@ -50,10 +51,13 @@ export const links: Route.LinksFunction = () => [
 
 export function Layout({ children }: { children: ReactNode }): ReactElement {
   return (
-    <html lang="vi">
+    <html lang="vi" suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <script
+          dangerouslySetInnerHTML={{ __html: STARTUP_BOOTSTRAP_SCRIPT }}
+        />
         <Meta />
         <Links />
       </head>

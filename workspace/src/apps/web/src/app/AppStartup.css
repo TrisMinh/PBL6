@@ -23,6 +23,12 @@
 body:has(.app-startup__screen) {
   overflow: hidden;
 }
+html[data-blue-startup="seen"] .app-startup__screen {
+  display: none;
+}
+html[data-blue-startup="seen"] .app-startup__content[data-loading="true"] {
+  visibility: visible;
+}
 @keyframes app-startup-exit {
   to {
     opacity: 0;

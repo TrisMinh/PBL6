@@ -5,6 +5,7 @@ import {
   type ReactElement,
 } from "react";
 import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
+import { hasSeenStartup, STARTUP_SESSION_KEY } from "./startupSession";
 import "./AppStartup.css";
 
 const DISPLAY_MS = 2000;
@@ -24,18 +25,27 @@ export function StartupScreen({
 }
 
 export function AppStartup({ children }: PropsWithChildren): ReactElement {
+  const [alreadySeen] = useState(hasSeenStartup);
   const [phase, setPhase] = useState<Phase>("loading");
   useEffect(() => {
-    const leave = window.setTimeout(() => setPhase("leaving"), DISPLAY_MS);
+    try {
+      window.sessionStorage.setItem(STARTUP_SESSION_KEY, "1");
+    } catch {
+      // The current page can still finish loading when storage is unavailable.
+    }
+    const leave = window.setTimeout(
+      () => setPhase(alreadySeen ? "ready" : "leaving"),
+      alreadySeen ? 0 : DISPLAY_MS,
+    );
     const finish = window.setTimeout(
       () => setPhase("ready"),
-      DISPLAY_MS + EXIT_MS,
+      alreadySeen ? 0 : DISPLAY_MS + EXIT_MS,
     );
     return () => {
       window.clearTimeout(leave);
       window.clearTimeout(finish);
     };
-  }, []);
+  }, [alreadySeen]);
 
   return (
     <>
