@@ -188,13 +188,17 @@ export function TripCard({
       <p className="trip-card__route" id={routeId}>
         {trip.origin.province} → {trip.destination.province}
       </p>
-      {highlights && (
-        <p className="trip-card__rating">
-          <Star size={13} weight="fill" aria-hidden />
-          <strong>{highlights.rating.toFixed(1)}/5</strong>
-          <span>({highlights.reviews.toLocaleString("vi-VN")} đánh giá)</span>
-        </p>
-      )}
+      <p className="trip-card__rating">
+        <Star size={14} weight={highlights ? "fill" : "regular"} aria-hidden />
+        {highlights ? (
+          <>
+            <strong>{highlights.rating.toFixed(1)}/5</strong>
+            <span>({highlights.reviews.toLocaleString("vi-VN")} đánh giá)</span>
+          </>
+        ) : (
+          <span>Chưa có đánh giá</span>
+        )}
+      </p>
       {showDate && (
         <p className="trip-card__service-date">
           Ngày đi{" "}
