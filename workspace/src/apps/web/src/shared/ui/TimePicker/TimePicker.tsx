@@ -15,11 +15,15 @@ export function TimePicker({
   const [open, setOpen] = useState(false);
   const [hour, setHour] = useState(value.split(":")[0] || "06");
   const [minute, setMinute] = useState(value.split(":")[1] || "00");
+  const [draft, setDraft] = useState<{ source: string; text: string } | null>(
+    null,
+  );
   function prepare(): void {
     setHour(value.split(":")[0] || "06");
     setMinute(value.split(":")[1] || "00");
   }
   function choose(next: string): void {
+    setDraft(null);
     onChange(next);
     popup.current?.hidePopover();
     input.current?.focus({ preventScroll: true });
@@ -30,21 +34,24 @@ export function TimePicker({
       data-empty={!value}
     >
       <label htmlFor={`${id}-input`}>GIỜ XUẤT PHÁT</label>
-      {!value && (
-        <span className="time-picker__placeholder" aria-hidden>
-          Chọn giờ
-        </span>
-      )}
       <input
         id={`${id}-input`}
         className="time-picker__input"
         ref={input}
         aria-label="Giờ xuất phát"
-        type="time"
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
+        type="text"
+        inputMode="numeric"
+        placeholder="Chọn giờ"
+        maxLength={5}
+        pattern="([01][0-9]|2[0-3]):[0-5][0-9]"
+        value={draft?.source === value ? draft.text : value}
+        onChange={(event) => {
+          const text = event.target.value;
+          setDraft({ source: value, text });
+          if (!text || /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(text)) onChange(text);
+        }}
+        onBlur={() => setDraft(null)}
         onClick={(event) => {
-          event.preventDefault();
           event.currentTarget.focus();
           prepare();
           popup.current?.showPopover();
