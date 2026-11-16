@@ -9,6 +9,8 @@ import { Rows } from "@phosphor-icons/react/dist/csr/Rows";
 import { ExploreImage } from "@/features/explore/ExploreImage";
 import { catalogueArtwork } from "@/features/explore/liveCataloguePresentation";
 import type { Trip } from "@/features/trips/types/trip";
+import { isMockApi } from "@/shared/api/config";
+import { LiveAccountTickets } from "./LiveAccountTickets";
 import {
   defaultTicketView,
   readCustomerData,
@@ -278,7 +280,7 @@ export function AccountHeader(): ReactElement {
     </header>
   );
 }
-function StatusFilter({
+export function StatusFilter({
   status,
   onChange,
 }: {
@@ -307,6 +309,13 @@ function StatusFilter({
 export function AccountTicketsPage(): ReactElement {
   const { session, revoke } = useAccountSession();
   const [status, setStatus] = useState<TicketHistoryFilter>("issued");
+  if (!isMockApi)
+    return (
+      <section className="account-tickets">
+        <AccountHeader />
+        <LiveAccountTickets />
+      </section>
+    );
   return (
     <section className="account-tickets">
       <AccountHeader />

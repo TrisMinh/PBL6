@@ -556,8 +556,3 @@
 .account-tickets__results[data-layout="list"] .account-tickets__item h2 {
   margin: 0 0 8px;
 }
-.account-tickets .account-tickets__status-options button {
-  width: auto;
-  padding-inline: 12px;
-  white-space: nowrap;
-}

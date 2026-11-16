@@ -286,14 +286,6 @@ function FilterControls({
           }}
         />
       </div>
-      {!isMockApi && (
-        <fieldset className="trip-filters__group trip-filters__group--route">
-          <legend className="trip-filters__legend">
-            Nhà xe & điểm đón trả
-          </legend>
-          {routeControls}
-        </fieldset>
-      )}
       <fieldset className="trip-filters__group">
         <legend className="trip-filters__legend">Loại xe</legend>
         <div className="trip-filters__select-wrap">
@@ -383,7 +375,7 @@ function FilterControls({
           </label>
         ))}
       </fieldset>
-      {isMockApi && trips.length > 0 && (
+      {trips.length > 0 && (
         <details
           className="trip-filters__stop-details"
           open={
@@ -499,9 +491,7 @@ export function TripFilters(props: TripFiltersProps): ReactElement {
     onReset: reset,
   };
   return (
-    <div
-      className={isMockApi ? "trip-filters" : "trip-filters trip-filters--live"}
-    >
+    <div className="trip-filters">
       <section className="trip-filters__desktop" aria-label="Bộ lọc chuyến">
         <h2 className="trip-filters__title" id={headingId}>
           Bộ lọc

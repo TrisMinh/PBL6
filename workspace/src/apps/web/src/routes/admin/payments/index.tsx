@@ -15,10 +15,13 @@ export function meta(): MetaDescriptor[] {
 
 export default function PaymentsRoute(): ReactElement {
   const [search] = useSearchParams();
-  if (isMockApi) return <PaymentListPage />;
+  if (isMockApi || search.get("view") !== "settlements")
+    return <PaymentListPage />;
   return (
     <BackendAdminPage
-      resource={search.get("view") === "settlements" ? "settlements" : "payments"}
+      resource={
+        search.get("view") === "settlements" ? "settlements" : "payments"
+      }
     />
   );
 }

@@ -8,12 +8,10 @@ import {
   type ReactElement,
 } from "react";
 import {
-  Controller,
   useWatch,
   useForm,
   type UseFormReturn,
 } from "react-hook-form";
-import { LocationCombobox } from "./LocationCombobox";
 import type { z } from "zod";
 
 import { tripSearchSchema } from "@/features/trips/schemas/search.schema";
@@ -36,111 +34,6 @@ type SearchSelectProps = ComponentProps<"select"> & {
   label: string;
   error?: string;
 };
-
-function LiveRouteFields({
-  locations,
-  form,
-}: {
-  locations: readonly Location[];
-  form: SearchMethods;
-}): ReactElement {
-  const originId = useWatch({ control: form.control, name: "originId" });
-  const destinationId = useWatch({
-    control: form.control,
-    name: "destinationId",
-  });
-  const origins = locations.filter(
-    (location) => location.destinationIds?.length,
-  );
-  const allowed = locations.find(
-    (location) => location.id === originId,
-  )?.destinationIds;
-  const destinationIds = new Set(
-    originId
-      ? (allowed ?? [])
-      : locations.flatMap((location) => location.destinationIds ?? []),
-  );
-  const destinations = locations.filter(
-    (location) => location.id !== originId && destinationIds.has(location.id),
-  );
-  const canSwap = Boolean(
-    originId &&
-    destinationId &&
-    locations
-      .find((location) => location.id === destinationId)
-      ?.destinationIds?.includes(originId),
-  );
-  return (
-    <>
-      <div className="search-form__origin">
-        <Controller
-          name="originId"
-          control={form.control}
-          render={({ field }) => (
-            <LocationCombobox
-              label="Điểm đi"
-              placeholder="Chọn hoặc tìm điểm đi"
-              options={origins}
-              value={field.value}
-              onBlur={field.onBlur}
-
-              onChange={(value) => {
-                field.onChange(value);
-                if (
-                  destinationId &&
-                  !locations
-                    .find((location) => location.id === value)
-                    ?.destinationIds?.includes(destinationId)
-                )
-                  form.setValue("destinationId", "", {
-                    shouldDirty: true,
-                    shouldValidate: true,
-                  });
-              }}
-            />
-          )}
-        />
-        <button
-          className="search-form__swap"
-          type="button"
-          aria-label="Đổi chiều hành trình"
-          disabled={!canSwap}
-          title={
-            canSwap
-              ? "Đổi điểm đi và điểm đến"
-              : "Chưa có tuyến chiều ngược lại"
-          }
-          onClick={() => {
-            form.setValue("originId", destinationId, {
-              shouldDirty: true,
-              shouldValidate: true,
-            });
-            form.setValue("destinationId", originId, {
-              shouldDirty: true,
-              shouldValidate: true,
-            });
-          }}
-        >
-          ⇄
-        </button>
-      </div>
-      <Controller
-        name="destinationId"
-        control={form.control}
-        render={({ field }) => (
-          <LocationCombobox
-            label="Điểm đến"
-            placeholder="Chọn hoặc tìm điểm đến"
-            options={destinations}
-            value={field.value}
-            onChange={field.onChange}
-            onBlur={field.onBlur}
-          />
-        )}
-      />
-    </>
-  );
-}
 
 function SearchSelect({
   label,
@@ -189,7 +82,6 @@ function RouteFields({
     { name: "originId", label: "Điểm đi", placeholder: "Chọn điểm đi" },
     { name: "destinationId", label: "Điểm đến", placeholder: "Chọn điểm đến" },
   ] as const;
-  if (!isMockApi) return <LiveRouteFields locations={locations} form={form} />;
   const provinces = new Map<string, Location>();
   for (const location of locations) {
     if (!provinces.has(location.province))

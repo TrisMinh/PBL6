@@ -17,6 +17,13 @@ function show(status: string, issued = false): void {
     defaultOptions: { queries: { staleTime: Infinity, retry: false } },
   });
   clients.push(client);
+  client.setQueryData(liveQueryKey("payment-result-booking", id), {
+    id,
+    tripId: id,
+    code: "BKREAL",
+    expiresAt: "2026-11-17T00:00:00Z",
+    items: [],
+  });
   client.setQueryData(liveQueryKey("payment-return", id), [
     { id, bookingId: id, status, amount: 300000, currency: "VND" },
   ]);
@@ -50,7 +57,7 @@ it("does not report success from a success query parameter while backend is proc
   expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
     "Đang chờ xác nhận thanh toán",
   );
-  expect(screen.queryByRole("link", { name: /Xem vé điện tử/ })).toBeNull();
+  expect(screen.queryByRole("link", { name: /Xem vé/ })).toBeNull();
 });
 it("waits for actual issued tickets after backend captures payment", () => {
   show("SUCCEEDED");
@@ -64,7 +71,7 @@ it("links to the real ticket only after backend returns it", () => {
   expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
     "Thanh toán thành công",
   );
-  expect(screen.getByRole("link", { name: /Xem vé điện tử/ })).toHaveAttribute(
+  expect(screen.getByRole("link", { name: /Xem vé/ })).toHaveAttribute(
     "href",
     `/tickets/${ticket}`,
   );
@@ -74,5 +81,5 @@ it("shows pending refund honestly without claiming tickets were issued", () => {
   expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
     "Thanh toán cần xử lý hoàn tiền",
   );
-  expect(screen.queryByRole("link", { name: /Xem vé điện tử/ })).toBeNull();
+  expect(screen.queryByRole("link", { name: /Xem vé/ })).toBeNull();
 });

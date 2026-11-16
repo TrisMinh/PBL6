@@ -27,12 +27,17 @@ import {
 import { Button } from "@/shared/ui/Button/Button";
 import { PageState } from "@/shared/ui/PageState/PageState";
 import { Toast } from "@/shared/ui/Toast/Toast";
-import { TicketList, type TicketListItem } from "./AccountTicketsPage";
+import {
+  TicketList,
+  StatusFilter,
+  type TicketListItem,
+} from "./AccountTicketsPage";
+import type { TicketHistoryFilter } from "../repositories/ticketRepository";
 
 export function LiveAccountTickets(): ReactElement {
   const { session } = useAccountSession();
   const [page, setPage] = useState(0);
-  const [status, setStatus] = useState("all");
+  const [status, setStatus] = useState<TicketHistoryFilter>("issued");
   const [notice, setNotice] = useState("");
   const [view, setView] = useState<TicketView>(() =>
     readCustomerData(
@@ -124,26 +129,7 @@ export function LiveAccountTickets(): ReactElement {
     >
       <div className="account-tickets__toolbar">
         <h2>Danh sách vé</h2>
-        <div
-          className="account-tickets__segmented account-tickets__status-options"
-          role="group"
-          aria-label="Trạng thái vé"
-        >
-          {[
-            ["all", "Tất cả"],
-            ["issued", "Đã phát hành"],
-            ["cancelled", "Đã hủy"],
-          ].map(([value, label]) => (
-            <button
-              type="button"
-              key={value}
-              aria-pressed={status === value}
-              onClick={() => setStatus(value)}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+        <StatusFilter status={status} onChange={setStatus} />
       </div>
       <div className="account-tickets__view-toolbar">
         <p role="status">

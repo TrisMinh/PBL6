@@ -125,9 +125,11 @@ export function ApiFailure({
 export function ApiTable({
   rows,
   columns,
+  operator = false,
 }: {
   rows: ApiRow[];
   columns: ApiColumn[];
+  operator?: boolean;
 }): ReactElement {
   if (!rows.length)
     return (
@@ -139,7 +141,7 @@ export function ApiTable({
     );
   return (
     <div
-      className="live-api__table"
+      className={operator ? "operator-bookings__scroll" : "live-api__table"}
       role="region"
       aria-label="Danh sách dữ liệu"
       tabIndex={0}
@@ -178,6 +180,7 @@ export function ResourcePage({
   endpoint,
   columns,
   children,
+  operator = false,
 }: {
   title: string;
   endpoint: string;
@@ -236,12 +239,18 @@ export function ResourcePage({
   const pages = Math.max(1, Math.ceil(visible.length / 12));
   const page = Math.min(requestedPage, pages - 1);
   return (
-    <section className="live-api live-api--resource">
-      <header className="live-api__heading">
+    <section
+      className={operator ? "operator-bookings" : "live-api live-api--resource"}
+    >
+      <header
+        className={operator ? "operator-schedule__header" : "live-api__heading"}
+      >
         <div>
-          <p className="live-api__eyebrow">QUẢN LÝ & THEO DÕI</p>
+          {!operator && <p className="live-api__eyebrow">QUẢN LÝ & THEO DÕI</p>}
           <h1>{title}</h1>
-          <p>Dữ liệu được cập nhật theo hoạt động trong hệ thống.</p>
+          {!operator && (
+            <p>Dữ liệu được cập nhật theo hoạt động trong hệ thống.</p>
+          )}
         </div>
         <Button
           variant="secondary"
@@ -252,7 +261,13 @@ export function ResourcePage({
         </Button>
       </header>
       {children && <div className="live-api__tools">{children}</div>}
-      <div className="live-api__filters">
+      <div
+        className={
+          operator
+            ? "operator-bookings__toolbar live-api__filters"
+            : "live-api__filters"
+        }
+      >
         <label>
           Tìm kiếm
           <input
@@ -290,46 +305,62 @@ export function ResourcePage({
             : `${visible.length.toLocaleString("vi-VN")} kết quả`}
         </span>
       </div>
-      {query.isPending ? (
-        <div className="live-api__loading" role="status">
-          Đang tải danh sách…
-        </div>
-      ) : query.isError ? (
-        <ApiFailure error={query.error} retry={() => void query.refetch()} />
-      ) : (
-        <>
-          <ApiTable
-            rows={visible.slice(page * 12, (page + 1) * 12)}
-            columns={columns}
-          />
-          <nav className="live-api__pagination" aria-label="Phân trang">
-            <span>
-              {visible.length ? page * 12 + 1 : 0}–
-              {Math.min((page + 1) * 12, visible.length)} / {visible.length} kết
-              quả
-            </span>
-            <div>
-              <Button
-                variant="secondary"
-                disabled={page === 0}
-                onClick={() => setPage(page - 1)}
-              >
-                Trước
-              </Button>
+      <div className={operator ? "operator-bookings__panel" : undefined}>
+        {operator && (
+          <header className="operator-bookings__title">
+            <h2>{title}</h2>
+            <span>{visible.length} kết quả</span>
+          </header>
+        )}
+        {query.isPending ? (
+          <div className="live-api__loading" role="status">
+            Đang tải danh sách…
+          </div>
+        ) : query.isError ? (
+          <ApiFailure error={query.error} retry={() => void query.refetch()} />
+        ) : (
+          <>
+            <ApiTable
+              rows={visible.slice(page * 12, (page + 1) * 12)}
+              columns={columns}
+              operator={operator}
+            />
+            <nav
+              className={
+                operator
+                  ? "operator-schedule__footer live-api__pagination"
+                  : "live-api__pagination"
+              }
+              aria-label="Phân trang"
+            >
               <span>
-                Trang {page + 1} / {pages}
+                {visible.length ? page * 12 + 1 : 0}–
+                {Math.min((page + 1) * 12, visible.length)} / {visible.length}{" "}
+                kết quả
               </span>
-              <Button
-                variant="secondary"
-                disabled={page + 1 >= pages}
-                onClick={() => setPage(page + 1)}
-              >
-                Sau
-              </Button>
-            </div>
-          </nav>
-        </>
-      )}
+              <div>
+                <Button
+                  variant="secondary"
+                  disabled={page === 0}
+                  onClick={() => setPage(page - 1)}
+                >
+                  Trước
+                </Button>
+                <span>
+                  Trang {page + 1} / {pages}
+                </span>
+                <Button
+                  variant="secondary"
+                  disabled={page + 1 >= pages}
+                  onClick={() => setPage(page + 1)}
+                >
+                  Sau
+                </Button>
+              </div>
+            </nav>
+          </>
+        )}
+      </div>
     </section>
   );
 }

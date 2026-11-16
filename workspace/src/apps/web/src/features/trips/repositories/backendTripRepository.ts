@@ -7,10 +7,11 @@ import {
 } from "@/shared/api/contracts";
 import type { TripRepository } from "./tripRepository";
 import type { Trip, Location } from "../types/trip";
+import { backendLocationName, locationIdentity } from "../lib/locationIdentity";
 
 export function toTrip(trip: BackendTrip): Trip {
   const location = (name: string): Location => ({
-    id: name,
+    id: locationIdentity(name),
     name,
     displayName: name,
     province: name,
@@ -27,8 +28,8 @@ export function toTrip(trip: BackendTrip): Trip {
     destination: location(trip.destination),
     operator: { id: trip.organizationId, name: trip.operatorName },
     displayOperatorName: trip.operatorName,
-    departureTime: trip.departureAt,
-    arrivalTime: trip.arrivalAt,
+    departureTime: new Date(trip.departureAt).toISOString(),
+    arrivalTime: new Date(trip.arrivalAt).toISOString(),
     fareVnd: trip.fare.amount,
     availableSeatCount: trip.availableSeatCount ?? 0,
     vehicleType: /22|cabin/i.test(trip.busType) ? "cabin-22" : "sleeper-34",
@@ -79,7 +80,7 @@ export const backendTripRepository: TripRepository = {
       for (const name of [route.origin, route.destination]) {
         if (!locations.has(name))
           locations.set(name, {
-            id: name,
+            id: locationIdentity(name),
             name,
             displayName: name,
             province: name,
@@ -87,10 +88,13 @@ export const backendTripRepository: TripRepository = {
           });
       }
       const origin = locations.get(route.origin);
-      if (origin && !origin.destinationIds?.includes(route.destination))
+      if (
+        origin &&
+        !origin.destinationIds?.includes(locationIdentity(route.destination))
+      )
         origin.destinationIds = [
           ...(origin.destinationIds ?? []),
-          route.destination,
+          locationIdentity(route.destination),
         ];
     }
     return [...locations.values()].sort((a, b) =>
@@ -99,8 +103,8 @@ export const backendTripRepository: TripRepository = {
   },
   search: async (input, signal) => {
     const query = new URLSearchParams({
-      origin: input.originId,
-      destination: input.destinationId,
+      origin: backendLocationName(input.originId),
+      destination: backendLocationName(input.destinationId),
       departureDate: input.departureDate,
       passengerCount: String(input.passengerCount),
       page: "0",

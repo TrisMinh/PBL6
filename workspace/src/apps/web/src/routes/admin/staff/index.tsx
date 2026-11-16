@@ -1,5 +1,3 @@
-import { isMockApi } from "@/shared/api/config";
-import { BackendAdminPage } from "@/features/admin/BackendAdminPage";
 import type { ReactElement } from "react";
 import type { MetaDescriptor } from "react-router";
 
@@ -15,5 +13,5 @@ export function meta(): MetaDescriptor[] {
 }
 
 export default function StaffRoute(): ReactElement {
-  return isMockApi ? <StaffListPage /> : <BackendAdminPage resource="users" />;
+  return <StaffListPage />;
 }

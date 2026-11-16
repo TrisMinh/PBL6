@@ -1,6 +1,7 @@
 import { z } from "zod";
 export const operatorBookingSchema = z.object({
   id: z.string(),
+  code: z.string().optional(),
   name: z.string(),
   phone: z.string(),
   tripId: z.string(),

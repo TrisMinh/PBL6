@@ -13,6 +13,9 @@ type AdminDetailKey = readonly ["admin", AdminResource, "detail", string];
 
 function snapshotParams(params: AdminListParams): Readonly<AdminListParams> {
   return Object.freeze({
+    ...(params.viewStatus === undefined
+      ? {}
+      : { viewStatus: params.viewStatus }),
     ...(params.query === undefined ? {} : { query: params.query }),
     ...(params.status === undefined ? {} : { status: params.status }),
     ...(params.organizationId === undefined

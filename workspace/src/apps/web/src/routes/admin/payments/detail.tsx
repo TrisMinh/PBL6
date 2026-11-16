@@ -1,5 +1,3 @@
-import { isMockApi } from "@/shared/api/config";
-import { BackendAdminDetailPage } from "@/features/admin/BackendAdminPage";
 import type { ReactElement } from "react";
 import { useParams, type MetaDescriptor } from "react-router";
 import { createMeta } from "@/shared/config/seo";
@@ -15,9 +13,5 @@ export function meta(): MetaDescriptor[] {
 
 export default function PaymentDetailRoute(): ReactElement {
   const { paymentId = "" } = useParams();
-  return isMockApi ? (
-    <PaymentDetailPage paymentId={paymentId} />
-  ) : (
-    <BackendAdminDetailPage resource="payments" id={paymentId} />
-  );
+  return <PaymentDetailPage paymentId={paymentId} />;
 }

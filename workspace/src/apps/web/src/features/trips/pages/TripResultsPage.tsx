@@ -1,4 +1,6 @@
-import { HomeSearch } from "@/features/trips/components/HomeHero/HomeHero";
+import { useQuery } from "@tanstack/react-query";
+import { loadLiveTripCatalogue } from "../repositories/liveTripCatalogue";
+import { nextCatalogueDate } from "@/features/explore/liveCataloguePresentation";
 import { DatePicker } from "@/shared/ui/DatePicker/DatePicker";
 import { Rows } from "@phosphor-icons/react/dist/csr/Rows";
 import { GridNine } from "@phosphor-icons/react/dist/csr/GridNine";
@@ -530,7 +532,8 @@ function TripCatalogue({
   onChange: (params: URLSearchParams) => void;
   booking: CreateBookingSessionResult;
 }): ReactElement {
-  const catalogue = useMemo(() => createDemoTrips(), []);
+  const demoCatalogue = useMemo(() => (isMockApi ? createDemoTrips() : []), []);
+  const locations = useLocations();
   const [catalogueTime] = useState(() => Date.now());
   const effective = new URLSearchParams(params);
   effective.set("browse", "1");
@@ -538,6 +541,26 @@ function TripCatalogue({
     params.get("passengerCount") ?? "1",
   );
   const passengerCount = parsedPassengers.success ? parsedPassengers.data : 1;
+  const catalogueQuery = useQuery({
+    queryKey: [
+      "live-trip-catalogue",
+      params.get("departureDate") || nextCatalogueDate(),
+      passengerCount,
+    ],
+    queryFn: ({ signal }) =>
+      loadLiveTripCatalogue(
+        params.get("departureDate") || nextCatalogueDate(),
+        passengerCount,
+        signal,
+      ),
+    enabled: !isMockApi,
+    retry: false,
+  });
+  const catalogue = isMockApi ? demoCatalogue : (catalogueQuery.data ?? []);
+  const locationOptions = isMockApi
+    ? catalogueLocations
+    : (locations.data ?? []);
+
   const candidates = catalogue.filter(
     (trip) =>
       (!params.get("originId") || trip.origin.id === params.get("originId")) &&
@@ -598,7 +621,7 @@ function TripCatalogue({
               defaultValue={params.get("originId") ?? ""}
             >
               <option value="">Tất cả tỉnh, thành</option>
-              {catalogueLocations.map((location) => (
+              {locationOptions.map((location) => (
                 <option key={location.id} value={location.id}>
                   {location.province}
                 </option>
@@ -613,7 +636,7 @@ function TripCatalogue({
               defaultValue={params.get("destinationId") ?? ""}
             >
               <option value="">Tất cả tỉnh, thành</option>
-              {catalogueLocations.map((location) => (
+              {locationOptions.map((location) => (
                 <option key={location.id} value={location.id}>
                   {location.province}
                 </option>
@@ -653,7 +676,19 @@ function TripCatalogue({
           onChange={onChange}
           trips={candidates}
         />
-        {visible.length ? (
+        {!isMockApi && catalogueQuery.isPending ? (
+          <p role="status">Đang tải chuyến đang mở bán…</p>
+        ) : !isMockApi && catalogueQuery.isError ? (
+          <PageState
+            title="Chưa tải được chuyến xe"
+            description="Kiểm tra kết nối và thử lại."
+            action={
+              <Button onClick={() => void catalogueQuery.refetch()}>
+                Thử lại
+              </Button>
+            }
+          />
+        ) : visible.length ? (
           <ResultsList
             trips={visible}
             search={{ passengerCount }}
@@ -688,34 +723,13 @@ export function TripResultsPage(): ReactElement {
   if (params.get("reason") === "expired")
     return <ExpiredBookingState params={params} />;
   if (
-    isMockApi &&
-    (params.get("browse") === "1" ||
-      (!params.has("originId") &&
-        !params.has("destinationId") &&
-        !params.has("departureDate")))
+    params.get("browse") === "1" ||
+    (!params.has("originId") &&
+      !params.has("destinationId") &&
+      !params.has("departureDate"))
   )
     return (
       <TripCatalogue params={params} onChange={setParams} booking={booking} />
-    );
-  if (
-    !isMockApi &&
-    !params.has("originId") &&
-    !params.has("destinationId") &&
-    !params.has("departureDate")
-  )
-    return (
-      <section className="trip-results">
-        <header>
-          <h1>Tìm chuyến xe</h1>
-          <p>
-            Chọn điểm đi, điểm đến và ngày khởi hành để xem các chuyến đang mở
-            bán.
-          </p>
-        </header>
-        <div id="booking-search">
-          <HomeSearch />
-        </div>
-      </section>
     );
   const search = parseTripSearch(params);
   return (

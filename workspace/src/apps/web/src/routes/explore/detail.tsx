@@ -1,5 +1,3 @@
-import { isMockApi } from "@/shared/api/config";
-import { BackendExploreDetail } from "@/features/explore/BackendExplorePage";
 import type { ReactElement } from "react";
 import { useParams, type MetaDescriptor } from "react-router";
 import { createMeta } from "@/shared/config/seo";
@@ -12,9 +10,5 @@ export function meta(): MetaDescriptor[] {
 }
 export default function ProvinceRoute(): ReactElement {
   const { provinceSlug } = useParams();
-  return isMockApi ? (
-    <ProvincePage slug={provinceSlug ?? ""} />
-  ) : (
-    <BackendExploreDetail />
-  );
+  return <ProvincePage slug={provinceSlug ?? ""} />;
 }

@@ -44,7 +44,7 @@ export function LiveCheckoutView({
       apiJson(
         `/api/v1/trips/${booking.tripId}/seats`,
         z.object({ seats: z.array(backendSeatSchema) }),
-        { signal, auth: false },
+        { signal },
       ),
     retry: false,
   });

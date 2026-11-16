@@ -1,5 +1,3 @@
-import { isMockApi } from "@/shared/api/config";
-import { BackendTripDetailPage } from "@/features/operator/BackendOperatorPage";
 import type { ReactElement } from "react";
 import type { MetaDescriptor } from "react-router";
 import { createMeta } from "@/shared/config/seo";
@@ -12,5 +10,5 @@ export function meta(): MetaDescriptor[] {
   });
 }
 export default function TripDetailRoute(): ReactElement {
-  return isMockApi ? <TripDetailPage /> : <BackendTripDetailPage />;
+  return <TripDetailPage />;
 }

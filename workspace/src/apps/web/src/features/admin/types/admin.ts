@@ -28,6 +28,7 @@ export type AdminListStatus =
   | AdminRefundStatus;
 
 export interface Organization {
+  code?: string;
   id: string;
   name: string;
   contactName?: string;
@@ -72,6 +73,11 @@ export interface Staff {
 }
 
 export interface AdminBooking {
+  organizationName?: string;
+  ticketStatusLabel?: string;
+  relatedPayments?: { id: string; status: string; amount: number }[];
+  relatedRefunds?: { id: string; status: string; amount: number }[];
+  rawStatus?: string;
   audit?: BookingAudit;
   id: string;
   bookingCode: string;
@@ -86,6 +92,9 @@ export interface AdminBooking {
 }
 
 export interface AdminPayment {
+  provider?: string;
+  organizationId?: string;
+  rawStatus?: string;
   audit?: PaymentAudit;
   id: string;
   bookingId: string;
@@ -97,6 +106,10 @@ export interface AdminPayment {
 }
 
 export interface AdminRefund {
+  reason?: string;
+  reference?: string;
+  organizationId?: string;
+  rawStatus?: string;
   audit?: RefundAudit;
   id: string;
   bookingId: string;

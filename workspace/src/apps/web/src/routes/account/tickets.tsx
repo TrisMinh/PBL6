@@ -1,5 +1,3 @@
-import { isMockApi } from "@/shared/api/config";
-import { LiveAccountPage } from "@/features/account/LiveAccountPage";
 import type { ReactElement } from "react";
 import type { MetaDescriptor } from "react-router";
 
@@ -14,5 +12,5 @@ export function meta(): MetaDescriptor[] {
   });
 }
 export default function AccountTicketsRoute(): ReactElement {
-  return isMockApi ? <AccountTicketsPage /> : <LiveAccountPage />;
+  return <AccountTicketsPage />;
 }

@@ -1,5 +1,7 @@
 import { apiFetch as fetch } from "@/shared/api/client";
 import type { z } from "zod";
+import { isMockApi } from "@/shared/api/config";
+import { liveExploreCatalogue } from "./liveExploreRepository";
 import {
   provinceDetailSchema,
   provinceListSchema,
@@ -55,12 +57,21 @@ async function request<T>(
 }
 export const exploreRepository = {
   list: async (signal?: AbortSignal): Promise<ProvinceSummary[]> =>
-    (await request("/api/v1/explore/provinces", provinceListSchema, signal))
-      .items,
+    isMockApi
+      ? (await request("/api/v1/explore/provinces", provinceListSchema, signal))
+          .items
+      : liveExploreCatalogue(signal),
   detail: async (
     slug: string,
     signal?: AbortSignal,
   ): Promise<ProvinceDetail> => {
+    if (!isMockApi) {
+      const province = (await liveExploreCatalogue(signal)).find(
+        (item) => item.slug === slug || item.name === slug,
+      );
+      if (!province) throw new ExploreRepositoryError("HTTP_ERROR", 404);
+      return province;
+    }
     if (!provinceSlugSchema.safeParse(slug).success)
       throw new ExploreRepositoryError("INVALID_INPUT");
     const detail = await request(

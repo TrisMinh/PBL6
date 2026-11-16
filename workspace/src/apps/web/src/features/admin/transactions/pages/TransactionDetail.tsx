@@ -1,3 +1,4 @@
+import { isMockApi } from "@/shared/api/config";
 import { transactionErrorState } from "../transactionErrorState";
 import type { ReactElement, ReactNode } from "react";
 import { Link } from "react-router";
@@ -69,7 +70,9 @@ export function TransactionDetail({
           {children}
           {item?.audit && <TransactionHistory history={item.audit.history} />}
           <p className="transaction-page__detail-footer">
-            Dữ liệu cập nhật lúc 10:36 ngày 19/09/2026 (UTC+7)
+            {isMockApi
+              ? "Dữ liệu cập nhật lúc 10:36 ngày 19/09/2026 (UTC+7)"
+              : "Dữ liệu được tải từ hệ thống BLUE."}
           </p>
         </div>
       )}

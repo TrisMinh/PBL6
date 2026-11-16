@@ -8,6 +8,7 @@ import type {
   PaymentViewState,
   RefundViewState,
 } from "./transactionAudit.schema";
+import { stateLabel } from "@/shared/api/livePresentation";
 
 export const BOOKING_VIEW_LABELS = {
   "awaiting-refund": "Chờ hoàn tiền",
@@ -32,6 +33,7 @@ export const REFUND_VIEW_LABELS = {
 } satisfies Record<RefundViewState, string>;
 
 export function bookingLabel(item: AdminBooking): string {
+  if (item.rawStatus) return stateLabel(item.rawStatus);
   return item.audit
     ? BOOKING_VIEW_LABELS[item.audit.reservationState]
     : (
@@ -43,15 +45,18 @@ export function bookingLabel(item: AdminBooking): string {
       )[item.status];
 }
 export function paymentLabel(item: AdminPayment): string {
+  if (item.rawStatus) return stateLabel(item.rawStatus);
   return PAYMENT_VIEW_LABELS[item.audit?.collectionState ?? item.status];
 }
 export function refundLabel(item: AdminRefund): string {
+  if (item.rawStatus) return stateLabel(item.rawStatus);
   return REFUND_VIEW_LABELS[item.audit?.transferState ?? item.status];
 }
 export function transactionMoney(value: number): string {
   return `${new Intl.NumberFormat("vi-VN").format(value)}đ`;
 }
 export function transactionDate(value: string, time = false): string {
+  if (!value || !Number.isFinite(Date.parse(value))) return "—";
   const parts = new Intl.DateTimeFormat("en-GB", {
     timeZone: "Asia/Ho_Chi_Minh",
     day: "2-digit",

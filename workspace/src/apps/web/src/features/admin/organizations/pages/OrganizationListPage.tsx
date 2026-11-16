@@ -43,7 +43,7 @@ const COLUMNS: readonly AdminDataColumn<Organization>[] = [
       </span>
     ),
   },
-  { key: "id", header: "Mã tổ chức", render: (item) => item.id },
+  { key: "id", header: "Mã tổ chức", render: (item) => item.code || item.id },
   { key: "contact", header: "Liên hệ", render: (item) => item.contactEmail },
   {
     key: "status",

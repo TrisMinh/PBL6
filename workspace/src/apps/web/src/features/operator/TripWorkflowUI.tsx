@@ -1,6 +1,5 @@
 import { useEffect, useRef, type ReactElement, type ReactNode } from "react";
 import { Link } from "react-router";
-import { isMockApi } from "@/shared/api/config";
 import { OperatorSidebar } from "./components/OperatorSidebar";
 import "./schedule/SchedulePage.css";
 import { ApiError } from "@/shared/api/error";
@@ -92,13 +91,11 @@ export function TripWorkflowShell({
       {children}
     </section>
   );
-  return isMockApi ? (
+  return (
     <div className="operator-schedule operator-trip-workflow-shell">
       <OperatorSidebar />
       <main className="operator-trip-workflow-main">{content}</main>
     </div>
-  ) : (
-    content
   );
 }
 export function TripFact({

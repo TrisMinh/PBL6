@@ -1,3 +1,6 @@
+import { liveQueryKey } from "@/shared/api/liveRequest";
+import { isMockApi } from "@/shared/api/config";
+import { LiveTripCommands } from "../BackendOperatorPage";
 import { useState, type ReactElement, type FormEvent } from "react";
 import { Link, useParams } from "react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -33,9 +36,10 @@ function DetailField({
         <select
           aria-label={label}
           value={value}
+          disabled={!isMockApi}
           onChange={(e) => onChange(e.target.value)}
         >
-          {options.map((v) => (
+          {(isMockApi ? options : [value]).map((v) => (
             <option key={v}>{v}</option>
           ))}
         </select>
@@ -43,6 +47,7 @@ function DetailField({
         <input
           aria-label={label}
           type={type}
+          readOnly={!isMockApi}
           value={value}
           required
           onChange={(e) => onChange(e.target.value)}
@@ -131,6 +136,7 @@ function DetailContent({ trip }: { trip: TripDetail }): ReactElement {
               />
               <button
                 type="button"
+                disabled={!isMockApi}
                 aria-label="Đổi chiều hành trình"
                 className="operator-schedule__swap"
                 onClick={() =>
@@ -189,6 +195,7 @@ function DetailContent({ trip }: { trip: TripDetail }): ReactElement {
                     <img src={pin} alt="" width={17} height={17} />
                     <textarea
                       id={`detail-${key}`}
+                      readOnly={!isMockApi}
                       value={draft[key]}
                       onChange={(e) => change(key, e.target.value)}
                       required
@@ -253,7 +260,9 @@ function DetailContent({ trip }: { trip: TripDetail }): ReactElement {
               </strong>
               <small>
                 {ready
-                  ? "Dữ liệu phân công mô phỏng; chưa kiểm tra xung đột lịch."
+                  ? isMockApi
+                    ? "Dữ liệu phân công mô phỏng; chưa kiểm tra xung đột lịch."
+                    : "Thông tin phân công được tải từ hệ thống nhà xe."
                   : "Chọn phương tiện và tài xế trước khi lưu thay đổi."}
               </small>
             </div>
@@ -265,25 +274,32 @@ function DetailContent({ trip }: { trip: TripDetail }): ReactElement {
               aria-label="Ghi chú vận hành"
               maxLength={1000}
               placeholder="Chưa có ghi chú cho chuyến này."
+              readOnly={!isMockApi}
               value={draft.note}
               onChange={(e) => change("note", e.target.value)}
             />
           </section>
           <footer className="operator-detail__actions">
-            <Button
-              type="button"
-              variant="danger"
-              onClick={() =>
-                setMessage(
-                  "Hủy chuyến cần quy trình xử lý vé và hoàn tiền riêng. Chưa có chuyến hoặc vé nào bị hủy.",
-                )
-              }
-            >
-              Hủy chuyến
-            </Button>
-            <Button type="submit" isLoading={mutation.isPending}>
-              Lưu thay đổi
-            </Button>
+            {isMockApi ? (
+              <>
+                <Button
+                  type="button"
+                  variant="danger"
+                  onClick={() =>
+                    setMessage(
+                      "Hủy chuyến cần quy trình xử lý vé và hoàn tiền riêng. Chưa có chuyến hoặc vé nào bị hủy.",
+                    )
+                  }
+                >
+                  Hủy chuyến
+                </Button>
+                <Button type="submit" isLoading={mutation.isPending}>
+                  Lưu thay đổi
+                </Button>
+              </>
+            ) : (
+              <LiveTripCommands tripId={trip.id} />
+            )}
           </footer>
           <p className="operator-detail__message" role="status">
             {message}
@@ -362,7 +378,9 @@ function duration(start: string, end: string): string {
 export function TripDetailPage(): ReactElement {
   const { tripId = "" } = useParams();
   const query = useQuery({
-    queryKey: ["operator", "detail", tripId],
+    queryKey: isMockApi
+      ? ["operator", "detail", tripId]
+      : liveQueryKey("baseline-trip-detail", tripId),
     queryFn: ({ signal }) => readTrip(tripId, signal),
     retry: false,
   });

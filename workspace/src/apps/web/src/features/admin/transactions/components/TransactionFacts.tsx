@@ -1,3 +1,4 @@
+import { stateLabel } from "@/shared/api/livePresentation";
 import type { ReactElement, ReactNode } from "react";
 import { Link } from "react-router";
 import type {
@@ -60,11 +61,14 @@ export function BookingFacts({
         "not-issued": "Chưa phát hành",
         refunded: "Đã hoàn tiền · Không còn hiệu lực",
       }[a.ticketState]
-    : "Chưa ghi nhận";
+    : (booking.ticketStatusLabel ?? "Chưa ghi nhận");
   const main: Fact[] = [
     ["Mã đơn", booking.bookingCode],
     ["Khách hàng", booking.customerName],
-    ["Nhà xe", a?.organizationName ?? booking.organizationId],
+    [
+      "Nhà xe",
+      a?.organizationName ?? booking.organizationName ?? booking.organizationId,
+    ],
     ["Tuyến", booking.routeLabel],
     ...(a
       ? ([
@@ -92,7 +96,22 @@ export function BookingFacts({
           a.refundState ? REFUND_VIEW_LABELS[a.refundState] : "Không phát sinh",
         ],
       ]
-    : [];
+    : [
+        ...(booking.relatedPayments ?? []).map(
+          (p) =>
+            [
+              "Thanh toán · " + stateLabel(p.status),
+              related("payments", p.id),
+            ] as Fact,
+        ),
+        ...(booking.relatedRefunds ?? []).map(
+          (r) =>
+            [
+              "Hoàn tiền · " + stateLabel(r.status),
+              related("refunds", r.id),
+            ] as Fact,
+        ),
+      ];
   return (
     <section
       className="transaction-page__detail-grid"
@@ -122,7 +141,7 @@ export function PaymentFacts({
     ["Số tiền giao dịch", transactionMoney(payment.amountVnd)],
     ["Trạng thái", paymentLabel(payment)],
     ["Kết quả thu tiền", outcome],
-    ["Cổng thanh toán", a?.provider ?? "Chưa ghi nhận"],
+    ["Cổng thanh toán", a?.provider ?? payment.provider ?? "Chưa ghi nhận"],
     ["Mã giao dịch đối tác", a?.partnerCode ?? "Chưa ghi nhận"],
     ["Khởi tạo", transactionDate(payment.createdAt, true)],
     ...(a
@@ -171,6 +190,7 @@ export function RefundFacts({ refund }: { refund: AdminRefund }): ReactElement {
     ["Refund ID", refund.id],
     ["Số tiền hoàn", transactionMoney(refund.amountVnd)],
     ["Trạng thái", refundLabel(refund)],
+    ...(!a && refund.reason ? [["Lý do", refund.reason] as Fact] : []),
     ...(a
       ? ([
           [

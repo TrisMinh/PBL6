@@ -22,14 +22,24 @@ import "./TicketCard.css";
 interface Props {
   ticket: TicketDetail;
   ticketCodes: readonly string[];
+  live?: {
+    qrUrl?: string;
+    cancelHref: string;
+    canCancel: boolean;
+    statusLabel: string;
+  };
 }
-function TicketHeader({ ticket }: { ticket: TicketDetail }): ReactElement {
+function TicketHeader({
+  ticket,
+  live,
+}: Pick<Props, "ticket" | "live">): ReactElement {
   return (
     <header className="ticket-card__header">
       <div className="ticket-card__brand">
         <BrandLogo placement="header" className="ticket-card__brand-logo" />
         <StatusBadge tone={ticket.status === "issued" ? "success" : "error"}>
-          {ticket.status === "issued" ? "Đã phát hành" : "Đã hủy"}
+          {live?.statusLabel ??
+            (ticket.status === "issued" ? "Đã phát hành" : "Đã hủy")}
         </StatusBadge>
         <span>
           Mã đặt vé <strong>{ticket.bookingCode}</strong>
@@ -93,7 +103,10 @@ function TicketFacts({ ticket }: { ticket: TicketDetail }): ReactElement {
     </dl>
   );
 }
-function TicketStub({ ticket }: { ticket: TicketDetail }): ReactElement {
+function TicketStub({
+  ticket,
+  live,
+}: Pick<Props, "ticket" | "live">): ReactElement {
   return (
     <aside className="ticket-card__stub" aria-label="Mã vé và điều hướng">
       <img
@@ -104,20 +117,34 @@ function TicketStub({ ticket }: { ticket: TicketDetail }): ReactElement {
       />
       <figure className="ticket-card__marker">
         <span>MÃ VÉ ĐIỆN TỬ</span>
-        {ticket.status === "issued" ? (
+        {ticket.status === "issued" && (!live || live.qrUrl) ? (
           <img
-            src={ticketQr}
-            alt="Mã vé minh họa, không dùng để quét"
-            data-presentation-only="true"
+            src={live ? live.qrUrl : ticketQr}
+            alt={
+              live
+                ? `Mã QR vé ${ticket.ticketCode}`
+                : "Mã vé minh họa, không dùng để quét"
+            }
+            data-presentation-only={live ? undefined : "true"}
           />
         ) : (
           <div className="ticket-card__inactive">
-            <Prohibit size={38} weight="duotone" aria-hidden />
+            {ticket.status === "issued" ? (
+              <span role="status">
+                {live?.statusLabel === "Đã lên xe"
+                  ? "Đã lên xe"
+                  : "Đang tải mã vé…"}
+              </span>
+            ) : (
+              <Prohibit size={38} weight="duotone" aria-hidden />
+            )}
           </div>
         )}
         <figcaption>
           {ticket.status === "issued"
-            ? "Minh họa mã vé — không dùng để quét"
+            ? live
+              ? "Xuất trình mã vé khi lên xe"
+              : "Minh họa mã vé — không dùng để quét"
             : "Vé đã hủy — mã vé không còn hiệu lực"}
         </figcaption>
       </figure>
@@ -126,7 +153,7 @@ function TicketStub({ ticket }: { ticket: TicketDetail }): ReactElement {
   );
 }
 
-function TicketActions({ ticket, ticketCodes }: Props): ReactElement {
+function TicketActions({ ticket, ticketCodes, live }: Props): ReactElement {
   return (
     <nav className="ticket-card__links" aria-label="Thao tác với vé">
       {ticketCodes
@@ -139,10 +166,10 @@ function TicketActions({ ticket, ticketCodes }: Props): ReactElement {
       <Link className="ticket-card__lookup-action" to={ROUTES.ticketLookup}>
         Tra cứu vé khác
       </Link>
-      {ticket.status === "issued" ? (
+      {ticket.status === "issued" && (!live || live.canCancel) ? (
         <Link
           className="ticket-card__cancel-action"
-          to={bookingCancellationPath(ticket.bookingCode)}
+          to={live?.cancelHref ?? bookingCancellationPath(ticket.bookingCode)}
         >
           Hủy vé
         </Link>
@@ -159,7 +186,7 @@ export function TicketCard(props: Props): ReactElement {
         props.ticket.status === "issued" ? "Vé đã phát hành" : "Vé đã hủy"
       }
     >
-      <TicketHeader ticket={props.ticket} />
+      <TicketHeader ticket={props.ticket} live={props.live} />
       <div className="ticket-card__body">
         <div className="ticket-card__content">
           <TicketJourney ticket={props.ticket} />
@@ -179,10 +206,12 @@ export function TicketCard(props: Props): ReactElement {
             </p>
           )}
           <p className="ticket-card__policy">
-            Vé và thanh toán trong môi trường mô phỏng.
+            {props.live
+              ? "Thông tin vé được xác thực từ hệ thống BLUE."
+              : "Vé và thanh toán trong môi trường mô phỏng."}
           </p>
         </div>
-        <TicketStub ticket={props.ticket} />
+        <TicketStub ticket={props.ticket} live={props.live} />
       </div>
       <TicketActions {...props} />
     </article>

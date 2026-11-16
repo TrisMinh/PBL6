@@ -41,7 +41,7 @@ export const provinceSummarySchema = z
     operatorCount: z.number().int().positive(),
     pickupCount: z.number().int().nonnegative(),
     dropoffCount: z.number().int().nonnegative(),
-    isMock: z.literal(true),
+    isMock: z.boolean(),
   })
   .strict();
 export const provinceDetailSchema = provinceSummarySchema

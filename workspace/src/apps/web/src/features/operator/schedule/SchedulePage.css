@@ -720,3 +720,19 @@
     max-width: none;
   }
 }
+
+/* The framed query labels already own the control border. */
+.operator-schedule__query-field select:not([multiple]):not([size]) {
+  min-height: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background-color: transparent;
+  box-shadow: none;
+}
+@media (width < 1350px) {
+  .operator-schedule__query-field:nth-of-type(3) { grid-column: 1 / 3; }
+  .operator-schedule__query-field:nth-of-type(4) { grid-column: 3; }
+  .operator-schedule__query > .button { grid-column: 1 / -1; }
+}

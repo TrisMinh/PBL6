@@ -1,3 +1,8 @@
+import { isMockApi } from "@/shared/api/config";
+import { useQuery } from "@tanstack/react-query";
+import { getLiveRows, liveQueryKey } from "@/shared/api/liveRequest";
+import { Input } from "@/shared/ui/Input/Input";
+import { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useEffect, useRef, type ReactElement } from "react";
 import { useSearchParams } from "react-router";
@@ -8,19 +13,20 @@ import {
   type TransactionResource,
 } from "../transactionConfig";
 
-export function TransactionFilters({
-  resource,
-  disabled = false,
-  onSearch,
-}: {
-  resource: TransactionResource;
-  disabled?: boolean;
-  onSearch: () => void;
-}): ReactElement {
+type FilterProps={resource:TransactionResource;disabled?:boolean;onSearch:()=>void};
+export function TransactionFilters(props:FilterProps):ReactElement {
+ return isMockApi ? <TransactionFilterControls {...props} organizations={TRANSACTION_ORGANIZATIONS}/> : <LiveTransactionFilters {...props}/>;
+}
+function LiveTransactionFilters(props:FilterProps):ReactElement {
+ const query=useQuery({queryKey:liveQueryKey("admin-filter-organizations"),queryFn:({signal})=>getLiveRows("/api/v1/admin/organizations",signal)});
+ return <TransactionFilterControls {...props} organizations={(query.data ?? []).map(o=>({id:String(o.id),label:String(o.name)}))}/>;
+}
+function TransactionFilterControls({resource,disabled=false,onSearch,organizations}:FilterProps & {organizations:readonly {id:string;label:string}[]}):ReactElement {
   const [params, setParams] = useSearchParams();
   const trigger = useRef<HTMLButtonElement | null>(null);
   const pendingFocus = useRef(false);
   const config = TRANSACTION_CONFIG[resource];
+  const [lookupQuery, setLookupQuery] = useState(params.get("query") ?? "");
   const rawDialog = params.get("dialog");
   const dialog = ["query", "org", "status"].includes(rawDialog ?? "")
     ? rawDialog
@@ -33,12 +39,15 @@ export function TransactionFilters({
   }, [disabled, dialog]);
   const title =
     dialog === "query"
-      ? "Tra cứu mẫu trong prototype"
+      ? isMockApi
+        ? "Tra cứu mẫu trong prototype"
+        : "Tra cứu giao dịch"
       : dialog === "org"
         ? "Chọn nhà xe"
         : "Chọn trạng thái";
-  const orgs =
-    resource === "refunds"
+  const orgs = !isMockApi
+    ? organizations
+    : resource === "refunds"
       ? [
           TRANSACTION_ORGANIZATIONS[0],
           TRANSACTION_ORGANIZATIONS[2],
@@ -46,7 +55,7 @@ export function TransactionFilters({
           TRANSACTION_ORGANIZATIONS[4],
           TRANSACTION_ORGANIZATIONS[1],
         ]
-      : TRANSACTION_ORGANIZATIONS;
+      : organizations;
   const options =
     dialog === "query"
       ? [
@@ -107,16 +116,15 @@ export function TransactionFilters({
   const fields = [
     {
       key: "query",
-      label: "Mã tra cứu · chọn mẫu",
+      label: isMockApi ? "Mã tra cứu · chọn mẫu" : "Mã tra cứu",
       value: disabled ? config.placeholder : (params.get("query") ?? "\u200b"),
     },
     {
       key: "org",
       label: "Nhà xe",
       value:
-        TRANSACTION_ORGANIZATIONS.find(
-          (item) => item.id === params.get("organizationId"),
-        )?.label ?? "Tất cả nhà xe",
+        organizations.find((item) => item.id === params.get("organizationId"))
+          ?.label ?? "Tất cả nhà xe",
     },
     { key: "status", label: "Trạng thái", value: selectedStatus },
   ];
@@ -166,16 +174,35 @@ export function TransactionFilters({
             <Dialog.Title className="transaction-filters__dialog-title">
               {title}
             </Dialog.Title>
-            {options.map(([value, label]) => (
-              <button
-                className="transaction-filters__option"
-                key={value}
-                onClick={() => select(value ?? "")}
-                type="button"
+            {dialog === "query" && !isMockApi ? (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  select(lookupQuery.trim());
+                }}
               >
-                {label}
-              </button>
-            ))}
+                <Input
+                  label="Mã giao dịch hoặc thông tin cần tìm"
+                  value={lookupQuery}
+                  onChange={(e) => setLookupQuery(e.target.value)}
+                  maxLength={100}
+                />
+                <button className="transaction-filters__option" type="submit">
+                  Áp dụng
+                </button>
+              </form>
+            ) : (
+              options.map(([value, label]) => (
+                <button
+                  className="transaction-filters__option"
+                  key={value}
+                  onClick={() => select(value ?? "")}
+                  type="button"
+                >
+                  {label}
+                </button>
+              ))
+            )}
             <button
               className="transaction-filters__option"
               onClick={close}

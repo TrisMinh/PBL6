@@ -1,3 +1,5 @@
+import { isMockApi } from "@/shared/api/config";
+import { useAccountSession } from "@/features/auth/hooks/useAccountSession";
 import activeVehicles from "@/assets/operator/vehicles/imgFrame3.svg";
 import activeRoutes from "@/assets/operator/routes/activeRoutes.svg";
 import inactiveTrips from "@/assets/operator/bookings/trips.svg";
@@ -124,7 +126,11 @@ export function OperatorSidebar({
                                   ? navigate("/operator/refund-requests")
                                   : label === "Đối soát"
                                     ? navigate("/operator/settlements")
-                                    : navigate("/operator/organization")
+                                    : navigate(
+                                        isMockApi
+                                          ? "/operator/organization"
+                                          : "/operator/trips?view=organization",
+                                      )
                   }
                 >
                   <img
@@ -164,21 +170,42 @@ export function OperatorSidebar({
         <div className="operator-schedule__account">
           <span>OP</span>
           <div>
-            <strong>Nhân viên</strong>
-            <small>BlueLine Co.</small>
+            <strong>{isMockApi ? "Nhân viên" : "Nhân viên nhà xe"}</strong>
+            <small>{isMockApi ? "BlueLine Co." : "BLUE · Vận hành"}</small>
           </div>
         </div>
-        <button
-          type="button"
-          className="operator-sidebar__logout"
-          onClick={() => {
-            clearMockSession();
-            void navigate("/login", { replace: true });
-          }}
-        >
-          Đăng xuất
-        </button>
+        {isMockApi ? (
+          <button
+            type="button"
+            className="operator-sidebar__logout"
+            onClick={() => {
+              clearMockSession();
+              void navigate("/login", { replace: true });
+            }}
+          >
+            Đăng xuất
+          </button>
+        ) : (
+          <LiveSidebarLogout />
+        )}
       </aside>
     </>
+  );
+}
+
+function LiveSidebarLogout(): ReactElement {
+  const { revoke } = useAccountSession();
+  const navigate = useNavigate();
+  return (
+    <button
+      type="button"
+      className="operator-sidebar__logout"
+      onClick={() => {
+        revoke();
+        void navigate("/login", { replace: true });
+      }}
+    >
+      Đăng xuất
+    </button>
   );
 }

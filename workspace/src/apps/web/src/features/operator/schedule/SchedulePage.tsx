@@ -1,3 +1,6 @@
+import { liveQueryKey } from "@/shared/api/liveRequest";
+import { shortId } from "@/shared/api/livePresentation";
+import { isMockApi } from "@/shared/api/config";
 import { useQuery } from "@tanstack/react-query";
 import { useState, type ReactElement, type FormEvent } from "react";
 import { useNavigate, useSearchParams } from "react-router";
@@ -197,22 +200,43 @@ export function ScheduleCard({
 export function SchedulePage(): ReactElement {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
-  const [origin, setOrigin] = useState(params.get("origin") ?? "TP.HCM");
-  const [destination, setDestination] = useState(
-    params.get("destination") ?? "Đà Lạt",
+  const [origin, setOrigin] = useState(
+    params.get("origin") ?? (isMockApi ? "TP.HCM" : ""),
   );
-  const [date, setDate] = useState(params.get("date") ?? "2026-08-28");
+  const [destination, setDestination] = useState(
+    params.get("destination") ?? (isMockApi ? "Đà Lạt" : ""),
+  );
+  const [date, setDate] = useState(
+    params.get("date") ?? (isMockApi ? "2026-08-28" : ""),
+  );
   const [status, setStatus] = useState(params.get("status") ?? "");
-  const [period, setPeriod] = useState(params.get("period") ?? "morning");
+  const [period, setPeriod] = useState(
+    params.get("period") ?? (isMockApi ? "morning" : ""),
+  );
   const [assignment, setAssignment] = useState(
-    params.get("assignment") ?? "complete",
+    params.get("assignment") ?? (isMockApi ? "complete" : ""),
   );
   const query = useQuery({
-    queryKey: ["operator", "schedule-preview"],
+    queryKey: isMockApi
+      ? ["operator", "schedule-preview"]
+      : liveQueryKey("baseline-schedule"),
     queryFn: ({ signal }) => getSchedule(signal),
+    refetchInterval: isMockApi ? false : 30_000,
   });
+  const cities = isMockApi
+    ? CITIES
+    : [
+        ...new Set(
+          (query.data ?? []).flatMap((trip) => [trip.origin, trip.destination]),
+        ),
+      ];
   const criteria: ScheduleCriteria = Object.fromEntries(params);
   const trips = selectSchedule(query.data ?? [], criteria);
+  const highlightedId = params.get("highlight");
+  if (highlightedId)
+    trips.sort(
+      (a, b) => Number(b.id === highlightedId) - Number(a.id === highlightedId),
+    );
   const pages = Math.max(1, Math.ceil(trips.length / 5));
   const requestedPage = Number(params.get("page") ?? "1");
   const page =
@@ -272,7 +296,7 @@ export function SchedulePage(): ReactElement {
             onChange={setOrigin}
             options={[
               ["", "Tất cả"],
-              ...CITIES.map((city): [string, string] => [city, city]),
+              ...cities.map((city): [string, string] => [city, city]),
             ]}
           />
           <button
@@ -292,7 +316,7 @@ export function SchedulePage(): ReactElement {
             onChange={setDestination}
             options={[
               ["", "Tất cả"],
-              ...CITIES.map((city): [string, string] => [city, city]),
+              ...cities.map((city): [string, string] => [city, city]),
             ]}
           />
           <label className="operator-schedule__query-field">
@@ -393,6 +417,7 @@ export function SchedulePage(): ReactElement {
                   <ScheduleCard
                     key={trip.id}
                     trip={trip}
+                    displayCode={isMockApi ? undefined : shortId(trip.id)}
                     onOpen={() =>
                       void navigate(
                         `/operator/trips/${encodeURIComponent(trip.id)}`,
@@ -415,18 +440,20 @@ export function SchedulePage(): ReactElement {
                 >
                   ‹
                 </button>
-                {Array.from({ length: pages }, (_, index) => index + 1).map(
-                  (number) => (
-                    <button
-                      key={number}
-                      aria-label={`Trang ${number}`}
-                      aria-current={page === number ? "page" : undefined}
-                      onClick={() => changePage(number)}
-                    >
-                      {number}
-                    </button>
-                  ),
-                )}
+                {Array.from(
+                  { length: Math.min(pages, 5) },
+                  (_, index) =>
+                    Math.max(1, Math.min(page - 2, pages - 4)) + index,
+                ).map((number) => (
+                  <button
+                    key={number}
+                    aria-label={`Trang ${number}`}
+                    aria-current={page === number ? "page" : undefined}
+                    onClick={() => changePage(number)}
+                  >
+                    {number}
+                  </button>
+                ))}
                 <button
                   aria-label="Trang sau"
                   disabled={page === pages}

@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { ReactElement } from "react";
 import {
@@ -13,16 +14,31 @@ import { Button } from "@/shared/ui/Button/Button";
 import { Input } from "@/shared/ui/Input/Input";
 
 interface Props {
+  live?: boolean;
   isPending: boolean;
   onSubmit: (values: LookupInput) => void;
 }
-export function TicketLookupForm({ isPending, onSubmit }: Props): ReactElement {
+export function TicketLookupForm({
+  isPending,
+  onSubmit,
+  live = false,
+}: Props): ReactElement {
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<LookupInput>({
-    resolver: zodResolver(lookupFormSchema),
+    resolver: zodResolver(
+      live
+        ? lookupFormSchema.extend({
+            bookingCode: z
+              .string()
+              .trim()
+              .toUpperCase()
+              .regex(/^(BK|TK)[A-Z0-9]+$/),
+          })
+        : lookupFormSchema,
+    ),
     defaultValues: { bookingCode: "", verificationValue: "" },
   });
   return (

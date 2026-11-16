@@ -24,8 +24,26 @@ import tripPhoto from "@/assets/operator/schedule/imgTripVehicleThumbnail.png";
 
 import "./PaymentResultCard.css";
 
+export type PaymentResultView = Pick<
+  PaymentResult,
+  | "status"
+  | "tripId"
+  | "bookingCode"
+  | "bookingId"
+  | "sessionId"
+  | "amountVnd"
+  | "createdAt"
+> & {
+  tickets: readonly {
+    ticketId: string;
+    ticketCode: string;
+    seatCode: string;
+  }[];
+};
 interface Props {
-  result: PaymentResult;
+  live?: boolean;
+  providerName?: string;
+  result: PaymentResultView;
   isFetching: boolean;
   onRecheck: () => void;
 }
@@ -41,7 +59,11 @@ const STATUS_EYEBROWS: Record<PaymentStatus, string> = {
   cancelled: "GIAO DỊCH ĐÃ HỦY",
   pending: "ĐANG XỬ LÝ · TỰ ĐỘNG CẬP NHẬT",
 };
-function JourneyHeader({ result }: { result: PaymentResult }): ReactElement {
+function JourneyHeader({
+  result,
+}: {
+  result: PaymentResultView;
+}): ReactElement {
   const query = useSeats(result.tripId);
   return (
     <header className="payment-result__journey">
@@ -100,7 +122,11 @@ function JourneyHeader({ result }: { result: PaymentResult }): ReactElement {
     </header>
   );
 }
-function PaymentDetails({ result }: { result: PaymentResult }): ReactElement {
+function PaymentDetails({
+  result,
+  live,
+  providerName,
+}: Pick<Props, "result" | "live" | "providerName">): ReactElement {
   const recovery = result.status === "failed" || result.status === "cancelled";
   return (
     <section aria-label="Chi tiết giao dịch">
@@ -118,11 +144,15 @@ function PaymentDetails({ result }: { result: PaymentResult }): ReactElement {
         </div>
         <div>
           <dt>Cổng thanh toán</dt>
-          <dd>VNPay mô phỏng</dd>
+          <dd>{providerName ?? "VNPay mô phỏng"}</dd>
         </div>
         <div>
           <dt>Thời gian giao dịch</dt>
-          <dd>{formatDateTime(result.createdAt, "HH:mm dd/MM/yyyy")}</dd>
+          <dd>
+            {result.createdAt
+              ? formatDateTime(result.createdAt, "HH:mm dd/MM/yyyy")
+              : "—"}
+          </dd>
         </div>
       </dl>
       {result.status !== "success" && (
@@ -140,12 +170,17 @@ function PaymentDetails({ result }: { result: PaymentResult }): ReactElement {
         </p>
       )}
       <p className="payment-result__notice">
-        Đây là môi trường mô phỏng; không thu tiền thật.
+        {live
+          ? "Kết quả được xác thực từ máy chủ thanh toán."
+          : "Đây là môi trường mô phỏng; không thu tiền thật."}
       </p>
     </section>
   );
 }
-function TicketLinks({ result }: { result: PaymentResult }): ReactElement {
+function TicketLinks({
+  result,
+  live,
+}: Pick<Props, "result" | "live">): ReactElement {
   return (
     <section aria-label="Vé đã phát hành">
       <h3>Vé đã phát hành</h3>
@@ -161,7 +196,11 @@ function TicketLinks({ result }: { result: PaymentResult }): ReactElement {
             </div>
             <Link
               aria-label={`Xem vé ${ticket.ticketCode}`}
-              to={ticketPath(ticket.ticketCode)}
+              to={
+                live
+                  ? ticketPath(ticket.ticketId)
+                  : ticketPath(ticket.ticketCode)
+              }
             >
               Xem vé <ArrowRight size={16} aria-hidden="true" />
             </Link>
@@ -240,13 +279,17 @@ export function PaymentResultCard(props: Props): ReactElement {
       <div className="payment-result__body">
         <div className="payment-result__main">
           {props.result.status === "success" ? (
-            <TicketLinks result={props.result} />
+            <TicketLinks result={props.result} live={props.live} />
           ) : (
             <PaymentProgress status={props.result.status} />
           )}
         </div>
         <aside className="payment-result__sidebar">
-          <PaymentDetails result={props.result} />
+          <PaymentDetails
+            result={props.result}
+            live={props.live}
+            providerName={props.providerName}
+          />
         </aside>
       </div>
       <RecoveryActions {...props} />

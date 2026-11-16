@@ -1,3 +1,5 @@
+import { shortId } from "@/shared/api/livePresentation";
+import { isMockApi } from "@/shared/api/config";
 import { transactionErrorState } from "../transactionErrorState";
 import { useEffect, type ReactElement } from "react";
 import { AdminPagination } from "@/features/admin/components/AdminFilters/AdminFilters";
@@ -63,7 +65,13 @@ function columns(
             className="transaction-page__record-link"
             to={`/admin/${resource}/${encodeURIComponent(item.id)}`}
           >
-            {item.id}
+            {isMockApi
+              ? item.id
+              : "bookingCode" in item
+                ? item.bookingCode
+                : "reference" in item && item.reference
+                  ? item.reference
+                  : shortId(item.id)}
           </Link>
           {resource === "bookings" && (
             <span className="transaction-page__created">
@@ -85,8 +93,12 @@ function columns(
         "bookingCode" in item
           ? item.customerName
           : "transactionCode" in item
-            ? item.bookingId
-            : item.paymentId,
+            ? isMockApi
+              ? item.bookingId
+              : shortId(item.bookingId)
+            : isMockApi
+              ? item.paymentId
+              : shortId(item.paymentId),
     },
     ...(resource === "bookings"
       ? [
@@ -95,7 +107,11 @@ function columns(
             header: "Nhà xe",
             render: (item: Transaction) =>
               item.audit?.organizationName ??
-              ("organizationId" in item ? item.organizationId : "—"),
+              ("organizationName" in item
+                ? item.organizationName
+                : "organizationId" in item
+                  ? item.organizationId
+                  : "—"),
           },
         ]
       : []),
@@ -118,11 +134,13 @@ function columns(
             header: resource === "payments" ? "Cổng thanh toán" : "Lý do",
             render: (item: Transaction) =>
               "transactionCode" in item
-                ? (item.audit?.provider ?? "—")
+                ? (item.audit?.provider ?? item.provider ?? "—")
                 : "paymentId" in item
-                  ? item.audit?.reason === "operator-cancellation"
-                    ? "Nhà xe hủy chuyến"
-                    : "Khách hủy vé"
+                  ? !isMockApi
+                    ? item.reason || "—"
+                    : item.audit?.reason === "operator-cancellation"
+                      ? "Nhà xe hủy chuyến"
+                      : "Khách hủy vé"
                   : "—",
           },
         ]),
@@ -181,7 +199,7 @@ export function TransactionList({
   )?.[1];
   const items =
     result.data?.items.filter(
-      (item) => !viewStatus || status(item) === viewStatus,
+      (item) => !isMockApi || !viewStatus || status(item) === viewStatus,
     ) ?? [];
   const failure = result.isError
     ? transactionErrorState(result.error)
@@ -245,7 +263,9 @@ export function TransactionList({
         {!state && (
           <>
             <p className="transaction-page__footer">
-              Dữ liệu mẫu • Cập nhật 19/09/2026 lúc 10:36 (UTC+7)
+              {isMockApi
+                ? "Dữ liệu mẫu • Cập nhật 19/09/2026 lúc 10:36 (UTC+7)"
+                : "Dữ liệu được tải từ hệ thống BLUE."}
             </p>
             <button
               className="transaction-page__reset"

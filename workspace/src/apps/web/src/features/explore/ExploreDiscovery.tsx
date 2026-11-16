@@ -4,6 +4,9 @@ import { ArrowRight } from "@phosphor-icons/react/dist/csr/ArrowRight";
 import { CaretLeft } from "@phosphor-icons/react/dist/csr/CaretLeft";
 import { CaretRight } from "@phosphor-icons/react/dist/csr/CaretRight";
 import { demoTrips } from "@/mocks/fixtures/demoTrips";
+import { useQueries } from "@tanstack/react-query";
+import { isMockApi } from "@/shared/api/config";
+import { backendTripRepository } from "@/features/trips/repositories/backendTripRepository";
 import { exploreProvincePath, ROUTES } from "@/shared/config/routes";
 import { formatCurrencyVnd } from "@/shared/lib/formatCurrencyVnd";
 import { getVietnamTodayDate } from "@/shared/lib/getVietnamTodayDate";
@@ -103,7 +106,31 @@ export function FeaturedRoutes(): ReactElement {
   const tomorrow = new Date(getVietnamTodayDate() + "T00:00:00Z");
   tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
   const departureDate = tomorrow.toISOString().slice(0, 10);
+  const liveRoutes = useQueries({
+    queries: featuredRoutes.map(([originId, destinationId]) => ({
+      queryKey: [
+        "baseline-featured-route",
+        originId,
+        destinationId,
+        departureDate,
+      ],
+      queryFn: ({ signal }: { signal: AbortSignal }) =>
+        backendTripRepository.search(
+          {
+            originId,
+            destinationId,
+            departureDate,
+            passengerCount: 1,
+            sort: "relevance",
+          },
+          signal,
+        ),
+      enabled: !isMockApi,
+    })),
+  });
 
+  const routesReady =
+    isMockApi || liveRoutes.every((query) => !query.isPending);
   useEffect(() => {
     const track = rail.current;
     if (!track) return;
@@ -123,7 +150,7 @@ export function FeaturedRoutes(): ReactElement {
       window.removeEventListener("resize", update);
       track.removeEventListener("scroll", update);
     };
-  }, []);
+  }, [routesReady]);
 
   function move(direction: number): void {
     const track = rail.current;
@@ -162,13 +189,15 @@ export function FeaturedRoutes(): ReactElement {
         </div>
       </header>
       <div ref={rail} className="explore-discovery__rail">
-        {featuredRoutes.map(([originId, destinationId, photo]) => {
-          const trips = demoTrips.filter(
-            (trip) =>
-              trip.origin.id === originId &&
-              trip.destination.id === destinationId &&
-              trip.id.startsWith("demo-" + departureDate + "-"),
-          );
+        {featuredRoutes.map(([originId, destinationId, photo], index) => {
+          const trips = isMockApi
+            ? demoTrips.filter(
+                (trip) =>
+                  trip.origin.id === originId &&
+                  trip.destination.id === destinationId &&
+                  trip.id.startsWith("demo-" + departureDate + "-"),
+              )
+            : (liveRoutes[index]?.data ?? []);
           const first = trips[0];
           if (!first) return null;
           const search = new URLSearchParams({

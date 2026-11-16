@@ -7,6 +7,7 @@ export function formatVnd(value: number): string {
 }
 
 export function formatDateTime(value: string): string {
+  if (!value || !Number.isFinite(Date.parse(value))) return "—";
   return new Intl.DateTimeFormat("vi-VN", {
     dateStyle: "medium",
     timeStyle: "short",

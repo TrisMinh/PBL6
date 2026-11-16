@@ -1,3 +1,4 @@
+import { isMockApi } from "@/shared/api/config";
 import { BookingTabs } from "./BookingTabs";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useState, type ReactElement, type FormEvent } from "react";
@@ -23,7 +24,10 @@ const number = (value: number): string =>
   new Intl.NumberFormat("vi-VN").format(value);
 export function RecentBookingsPage(): ReactElement {
   const [params, setParams] = useSearchParams();
-  const parsed = bookingFiltersSchema.safeParse(Object.fromEntries(params));
+  const parsed = bookingFiltersSchema.safeParse({
+    ...(isMockApi ? {} : { from: "2000-01-01", to: "2100-12-31" }),
+    ...Object.fromEntries(params),
+  });
   const applied = parsed.success ? parsed.data : bookingFiltersSchema.parse({});
   const [filters, setFilters] = useState<BookingFilters>(applied);
   const [dateOpen, setDateOpen] = useState(false),
@@ -218,12 +222,15 @@ export function RecentBookingsPage(): ReactElement {
                             }
                           />
                         </td>
-                        <td>{item.id}</td>
+                        <td>{item.code ?? item.id}</td>
                         <td>
                           <strong>{item.name}</strong>
                         </td>
                         <td>
-                          {item.tripId} · {item.origin} → {item.destination}
+                          {item.tripId.length > 20
+                            ? item.tripId.slice(-8).toUpperCase()
+                            : item.tripId}{" "}
+                          · {item.origin} → {item.destination}
                         </td>
                         <td>
                           {dateLabel(item.departureDate).slice(0, 5)} ·{" "}

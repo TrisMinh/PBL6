@@ -43,32 +43,57 @@ it("keeps the photographic lookup shell and clear sign-in action without fetchin
 });
 it("looks up only authorized tickets and links to the backend ticket ID", async () => {
   auth.signedIn = true;
-  const fetcher = vi.spyOn(globalThis, "fetch").mockResolvedValue(
-    Response.json({
-      page: 0,
-      size: 100,
-      totalElements: 1,
-      totalPages: 1,
-      items: [
-        {
-          id,
-          publicCode: "TKDEMO123",
-          bookingId: id,
-          tripId: id,
-          passengerName: "Demo Passenger",
-          seatCode: "A01",
-          status: "ISSUED",
-          paymentChannel: "PREPAID",
-          issuedAt: "2026-11-16T00:00:00Z",
-          rowVersion: 0,
-        },
-      ],
-    }),
-  );
+  const fetcher = vi
+    .spyOn(globalThis, "fetch")
+    .mockImplementation(async (input) =>
+      String(input).includes(`/bookings/${id}`)
+        ? Response.json({
+            id,
+            code: "BKDEMO123",
+            customerId: id,
+            tripId: id,
+            status: "PAID",
+            paymentChannel: "PREPAID",
+            total: 300000,
+            currency: "VND",
+            expiresAt: "2026-11-17T00:00:00Z",
+            rowVersion: 0,
+            contact: {
+              fullName: "Demo Passenger",
+              email: "demo@example.test",
+              phone: "+84912345678",
+            },
+            items: [],
+          })
+        : Response.json({
+            page: 0,
+            size: 100,
+            totalElements: 1,
+            totalPages: 1,
+            items: [
+              {
+                id,
+                publicCode: "TKDEMO123",
+                bookingId: id,
+                tripId: id,
+                passengerName: "Demo Passenger",
+                seatCode: "A01",
+                status: "ISSUED",
+                paymentChannel: "PREPAID",
+                issuedAt: "2026-11-16T00:00:00Z",
+                rowVersion: 0,
+              },
+            ],
+          }),
+    );
   render(mount());
-  fireEvent.change(screen.getByLabelText("Mã vé hoặc mã đặt vé"), {
+  fireEvent.change(screen.getByLabelText("Mã đặt vé"), {
     target: { value: "tkdemo123" },
   });
+  fireEvent.change(
+    screen.getByLabelText("Email hoặc số điện thoại đã đặt vé"),
+    { target: { value: "demo@example.test" } },
+  );
   fireEvent.click(screen.getByRole("button", { name: "Tra cứu vé" }));
   const link = await screen.findByRole("link", { name: "Xem vé" });
   expect(link).toHaveAttribute("href", `/tickets/${id}`);
@@ -87,9 +112,13 @@ it("shows a toast when no authorized ticket or booking matches", async () => {
     }),
   );
   render(mount());
-  fireEvent.change(screen.getByLabelText("Mã vé hoặc mã đặt vé"), {
-    target: { value: "UNKNOWN" },
+  fireEvent.change(screen.getByLabelText("Mã đặt vé"), {
+    target: { value: "TKUNKNOWN" },
   });
+  fireEvent.change(
+    screen.getByLabelText("Email hoặc số điện thoại đã đặt vé"),
+    { target: { value: "demo@example.test" } },
+  );
   fireEvent.click(screen.getByRole("button", { name: "Tra cứu vé" }));
   expect(await screen.findByRole("alert")).toHaveTextContent(
     "Không tìm thấy vé hoặc đơn phù hợp",

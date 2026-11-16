@@ -1,3 +1,9 @@
+import { stateLabel } from "@/shared/api/livePresentation";
+import {
+  PaymentResultCard,
+  type PaymentResultView,
+} from "../components/PaymentResultCard";
+import "./PaymentPage.css";
 import type { ReactElement } from "react";
 import { useHoldCountdown } from "@/features/booking/hooks/useHoldCountdown";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -16,7 +22,6 @@ import { ApiFailure } from "@/shared/api/ResourcePage";
 import { ApiError } from "@/shared/api/error";
 import { Button } from "@/shared/ui/Button/Button";
 import { formatCurrencyVnd } from "@/shared/lib/formatCurrencyVnd";
-import { stateLabel } from "@/shared/api/livePresentation";
 import "./BackendPaymentPage.css";
 import { LiveCheckoutView } from "../components/LiveCheckoutView";
 import { LivePaymentRecovery } from "../components/LivePaymentRecovery";
@@ -280,6 +285,13 @@ export function BackendPaymentReturnPage(): ReactElement {
       return status && FINAL_PAYMENT_STATUSES.includes(status) ? false : 3000;
     },
   });
+  const booking = useQuery({
+    queryKey: liveQueryKey("payment-result-booking", bookingId),
+    queryFn: ({ signal }) =>
+      apiJson(`/api/v1/bookings/${bookingId}`, bookingSchema, { signal }),
+    enabled: validId,
+    retry: false,
+  });
   const payment = query.data?.[0];
   const captured = payment?.status === "SUCCEEDED";
   const tickets = useQuery({
@@ -319,30 +331,53 @@ export function BackendPaymentReturnPage(): ReactElement {
       />
     );
   const issued = captured && !!tickets.data?.length;
+  const result: PaymentResultView | undefined =
+    payment && booking.data
+      ? {
+          status: issued ? "success" : "pending",
+          tripId: booking.data.tripId,
+          bookingCode: booking.data.code,
+          bookingId,
+          sessionId: "",
+          amountVnd: payment.amount,
+          createdAt: "",
+          tickets: issued
+            ? (tickets.data ?? []).map((t) => ({
+                ticketId: t.id,
+                ticketCode: t.publicCode,
+                seatCode: t.seatCode,
+              }))
+            : [],
+        }
+      : undefined;
   return (
-    <section className="live-api live-payment-result">
-      <header className="live-api__heading">
-        <div>
-          <p className="live-api__eyebrow">KẾT QUẢ GIAO DỊCH</p>
-          <h1>
-            {issued
-              ? "Thanh toán thành công"
-              : pendingRefund
-                ? "Thanh toán cần xử lý hoàn tiền"
-                : captured
-                  ? "Đã nhận thanh toán"
-                  : "Đang chờ xác nhận thanh toán"}
-          </h1>
-          <p>
-            {issued
-              ? "Vé đã được phát hành và lưu trong tài khoản của bạn."
-              : pendingRefund
-                ? "Đơn đã đóng hoặc hết thời gian giữ ghế. Yêu cầu hoàn tiền đã được ghi nhận để xử lý."
-                : captured
-                  ? "Hệ thống đang hoàn tất phát hành vé. Trang sẽ tự cập nhật."
-                  : "BLUE đang kiểm tra trạng thái giao dịch từ máy chủ."}
-          </p>
-        </div>
+    <div className="payment-page payment-page--return">
+      <header className="payment-page__heading">
+        <nav className="payment-page__breadcrumb" aria-label="Đường dẫn">
+          <Link to="/">Trang chủ</Link>
+          <span aria-hidden>/</span>
+          <span>Thanh toán</span>
+          <span aria-hidden>/</span>
+          <span aria-current="page">Xác nhận</span>
+        </nav>
+        <h1>
+          {issued
+            ? "Thanh toán thành công"
+            : pendingRefund
+              ? "Thanh toán cần xử lý hoàn tiền"
+              : captured
+                ? "Đã nhận thanh toán"
+                : "Đang chờ xác nhận thanh toán"}
+        </h1>
+        <p role="status">
+          {issued
+            ? "Vé điện tử đã sẵn sàng cho hành trình của bạn."
+            : pendingRefund
+              ? "Đơn đã đóng hoặc hết thời gian giữ ghế. Yêu cầu hoàn tiền đã được ghi nhận để xử lý."
+              : captured
+                ? "Hệ thống đang hoàn tất phát hành vé. Trang sẽ tự cập nhật."
+                : "BLUE đang kiểm tra trạng thái giao dịch từ máy chủ."}
+        </p>
       </header>
       {!validId ? (
         <p role="alert">
@@ -350,63 +385,37 @@ export function BackendPaymentReturnPage(): ReactElement {
         </p>
       ) : query.isError ? (
         <ApiFailure error={query.error} retry={() => void query.refetch()} />
+      ) : booking.isError ? (
+        <ApiFailure
+          error={booking.error}
+          retry={() => void booking.refetch()}
+        />
+      ) : result ? (
+        <PaymentResultCard
+          live
+          providerName={useSePay ? "SePay" : "VNPay"}
+          result={result}
+          isFetching={query.isFetching || tickets.isFetching}
+          onRecheck={() => {
+            void query.refetch();
+            if (captured) void tickets.refetch();
+          }}
+        />
       ) : (
-        <>
-          <div className="live-payment-result__receipt">
-            <span>TRẠNG THÁI GIAO DỊCH</span>
-            <strong role="status">
-              {payment ? stateLabel(payment.status) : "Đang chờ xác nhận…"}
-            </strong>
-            {payment && (
-              <>
-                <span>SỐ TIỀN</span>
-                <strong>{formatCurrencyVnd(payment.amount)}</strong>
-              </>
-            )}
-          </div>
-          {tickets.isError && (
-            <ApiFailure
-              error={tickets.error}
-              retry={() => void tickets.refetch()}
-            />
-          )}
-          {issued && (
-            <div className="live-payment-result__tickets">
-              {tickets.data?.map((ticket) => (
-                <article key={ticket.id}>
-                  <span>VÉ ĐIỆN TỬ · GHẾ {ticket.seatCode}</span>
-                  <h2>{ticket.passengerName}</h2>
-                  <p>{ticket.publicCode}</p>
-                  <Link
-                    className="live-payment-result__ticket-link"
-                    to={`/tickets/${ticket.id}`}
-                  >
-                    Xem vé điện tử →
-                  </Link>
-                </article>
-              ))}
-            </div>
-          )}
-          {payment && !FINAL_PAYMENT_STATUSES.includes(payment.status) && (
-            <CancelPaymentButton
-              paymentId={payment.id}
-              onDone={() => void query.refetch()}
-            />
-          )}
-          <Button
-            variant="secondary"
-            onClick={() => {
-              void query.refetch();
-              if (captured) void tickets.refetch();
-            }}
-          >
-            Kiểm tra lại trạng thái
-          </Button>
-        </>
+        <p role="status">Đang tải kết quả giao dịch…</p>
       )}
-      <Link className="live-checkout__back" to="/account/tickets">
-        Về vé của tôi →
-      </Link>
-    </section>
+      {tickets.isError && (
+        <ApiFailure
+          error={tickets.error}
+          retry={() => void tickets.refetch()}
+        />
+      )}
+      {payment && !FINAL_PAYMENT_STATUSES.includes(payment.status) && (
+        <CancelPaymentButton
+          paymentId={payment.id}
+          onDone={() => void query.refetch()}
+        />
+      )}
+    </div>
   );
 }

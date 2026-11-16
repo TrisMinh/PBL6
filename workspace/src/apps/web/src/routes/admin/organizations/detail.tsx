@@ -1,5 +1,3 @@
-import { isMockApi } from "@/shared/api/config";
-import { BackendAdminDetailPage } from "@/features/admin/BackendAdminPage";
 import type { ReactElement } from "react";
 import { useParams, type MetaDescriptor } from "react-router";
 
@@ -16,9 +14,5 @@ export function meta(): MetaDescriptor[] {
 
 export default function OrganizationDetailRoute(): ReactElement {
   const { organizationId = "" } = useParams();
-  return isMockApi ? (
-    <OrganizationDetailPage organizationId={organizationId} />
-  ) : (
-    <BackendAdminDetailPage resource="organizations" id={organizationId} />
-  );
+  return <OrganizationDetailPage organizationId={organizationId} />;
 }

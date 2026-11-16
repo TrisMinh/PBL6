@@ -1,5 +1,3 @@
-import { isMockApi } from "@/shared/api/config";
-import { BackendAdminPage } from "@/features/admin/BackendAdminPage";
 import type { ReactElement } from "react";
 import type { MetaDescriptor } from "react-router";
 import { createMeta } from "@/shared/config/seo";
@@ -14,9 +12,5 @@ export function meta(): MetaDescriptor[] {
 }
 
 export default function AdminBookingsRoute(): ReactElement {
-  return isMockApi ? (
-    <BookingListPage />
-  ) : (
-    <BackendAdminPage resource="bookings" />
-  );
+  return <BookingListPage />;
 }

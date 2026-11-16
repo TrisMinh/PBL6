@@ -37,6 +37,7 @@ import { Button } from "@/shared/ui/Button/Button";
 import "./OrganizationPages.css";
 
 function formatDate(value: string): string {
+  if (!value || !Number.isFinite(Date.parse(value))) return "—";
   const date = new Date(value);
   return `${new Intl.DateTimeFormat("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" }).format(date)} lúc ${new Intl.DateTimeFormat("vi-VN", { hour: "2-digit", minute: "2-digit", hour12: false }).format(date)}`;
 }

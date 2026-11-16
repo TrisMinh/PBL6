@@ -1,3 +1,4 @@
+import { isMockApi } from "@/shared/api/config";
 import { z } from "zod";
 
 import type { AdminListStatus } from "../types/admin";
@@ -35,6 +36,11 @@ const pageSizeFromUrlSchema = positiveDecimalStringSchema.pipe(
 
 export const adminListParamsSchema = z
   .object({
+    viewStatus: z
+      .string()
+      .max(40)
+      .regex(/^[a-z-]+$/)
+      .optional(),
     query: querySchema.optional(),
     status: statusSchema.optional(),
     organizationId: organizationIdSchema.optional(),
@@ -80,7 +86,17 @@ export function parseAdminListParams(params: URLSearchParams): AdminListParams {
     readSingle(params, "organizationId"),
   );
 
+  const viewStatus = !isMockApi
+    ? parseOptional(
+        z
+          .string()
+          .max(40)
+          .regex(/^[a-z-]+$/),
+        readSingle(params, "viewStatus"),
+      )
+    : undefined;
   return adminListParamsSchema.parse({
+    ...(viewStatus ? { viewStatus } : {}),
     ...(query === undefined ? {} : { query }),
     ...(status === undefined ? {} : { status }),
     ...(organizationId === undefined ? {} : { organizationId }),

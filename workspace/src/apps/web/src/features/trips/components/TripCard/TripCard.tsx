@@ -195,6 +195,12 @@ export function TripCard({
           <span>({highlights.reviews.toLocaleString("vi-VN")} đánh giá)</span>
         </p>
       )}
+      {!highlights && (
+        <p className="trip-card__rating">
+          <Star size={13} aria-hidden />
+          <span>Chưa có đánh giá</span>
+        </p>
+      )}
       {showDate && (
         <p className="trip-card__service-date">
           Ngày đi{" "}

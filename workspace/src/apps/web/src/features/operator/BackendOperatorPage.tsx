@@ -1,3 +1,4 @@
+import "./bookings/RecentBookingsPage.css";
 import {
   LiveBookingRefunds,
   LiveRefundPaymentLookup,
@@ -580,6 +581,31 @@ export function BackendRefundDetailPage(): ReactElement {
           { key: "status", label: "Trạng thái" },
         ]}
       />
+    </>
+  );
+}
+
+export function LiveTripCommands({ tripId }: { tripId: string }): ReactElement {
+  const query = useQuery({
+    queryKey: liveQueryKey("operator-schedule"),
+    queryFn: ({ signal }) => getLiveRows("/api/v1/operator/trips", signal),
+  });
+  const trip = query.data?.find((r) => r.id === tripId);
+  if (query.isError) return <ApiFailure error={query.error} />;
+  if (!trip) return <p role="status">Đang tải thao tác chuyến…</p>;
+  return (
+    <>
+      <PublishTrip row={trip} />
+      <LiveTripTransition trip={trip} />
+      {trip.status === "DRAFT" && (
+        <Link
+          className="button button--primary"
+          to={`/operator/trips/draft/edit?tripId=${tripId}`}
+        >
+          Chỉnh sửa bản nháp
+        </Link>
+      )}
+      <LiveCancelTrip trip={trip} />
     </>
   );
 }

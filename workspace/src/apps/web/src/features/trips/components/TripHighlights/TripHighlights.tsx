@@ -1,3 +1,4 @@
+import { ShieldCheck } from "@phosphor-icons/react/dist/csr/ShieldCheck";
 import { useState, type ReactElement } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { Tag } from "@phosphor-icons/react/dist/csr/Tag";
@@ -117,6 +118,7 @@ export function TripHighlights({ trip }: { trip: Trip }): ReactElement {
           </Dialog.Portal>
         </Dialog.Root>
       )}
+      {!offer && !isMockApi && <TripPolicy trip={trip} />}
       {notice && (
         <Toast
           message={notice.text}
@@ -125,5 +127,56 @@ export function TripHighlights({ trip }: { trip: Trip }): ReactElement {
         />
       )}
     </>
+  );
+}
+
+function TripPolicy({ trip }: { trip: Trip }): ReactElement {
+  return (
+    <Dialog.Root>
+      <Dialog.Trigger
+        className="trip-highlights__offer"
+        aria-label={`Xem chính sách của ${trip.displayOperatorName}`}
+      >
+        <ShieldCheck size={17} weight="duotone" aria-hidden />
+        <span>Thông tin vé & thanh toán</span>
+        <strong>Chi tiết</strong>
+      </Dialog.Trigger>
+      <Dialog.Portal>
+        <Dialog.Overlay className="trip-offer__overlay" />
+        <Dialog.Content className="trip-offer__dialog">
+          <div className="trip-offer__icon">
+            <ShieldCheck size={28} aria-hidden />
+          </div>
+          <Dialog.Title>Thông tin cho chuyến đi</Dialog.Title>
+          <Dialog.Description>
+            {trip.displayOperatorName} · {trip.origin.province} →{" "}
+            {trip.destination.province}
+          </Dialog.Description>
+          <ul>
+            <li>
+              Vé điện tử được phát hành sau khi thanh toán được hệ thống xác
+              nhận.
+            </li>
+            <li>
+              {trip.allowPayLater
+                ? "Có thể thanh toán trực tuyến hoặc thanh toán sau theo lựa chọn khi đặt vé."
+                : "Thanh toán trực tuyến trước khi hết thời gian giữ chỗ."}
+            </li>
+            <li>
+              Phí hủy và số tiền hoàn được báo trước khi bạn xác nhận hủy vé.
+            </li>
+          </ul>
+          <p className="trip-offer__note">
+            Chọn chuyến để kiểm tra ghế còn trống và điểm đón, trả.
+          </p>
+          <Dialog.Close
+            className="trip-offer__close"
+            aria-label="Đóng thông tin chuyến"
+          >
+            <X size={19} aria-hidden />
+          </Dialog.Close>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }

@@ -1,6 +1,9 @@
+import { TicketLookupForm } from "../components/TicketLookupForm";
+import type { LookupInput } from "../types/ticketAccess";
+import { normalizeVerification } from "../schemas/ticket.schema";
 /** Authenticated ticket lookup in live mode. Search is limited to the signed-in customer's own tickets and bookings. */
 import { useMutation } from "@tanstack/react-query";
-import { useState, type FormEvent, type ReactElement } from "react";
+import { useState, type ReactElement } from "react";
 import { Link, useLocation } from "react-router";
 import { apiJson } from "@/shared/api/client";
 import {
@@ -9,8 +12,6 @@ import {
   pageOf,
 } from "@/shared/api/contracts";
 import { useAccountSession } from "@/features/auth/hooks/useAccountSession";
-import { Button } from "@/shared/ui/Button/Button";
-import { Input } from "@/shared/ui/Input/Input";
 import { Toast } from "@/shared/ui/Toast/Toast";
 import { TicketLookupLayout } from "./TicketLookupPage";
 import { ArrowRight } from "@phosphor-icons/react/dist/csr/ArrowRight";
@@ -21,15 +22,34 @@ type Match = {
   publicCode: string;
   passengerName: string;
   status: string;
+  bookingId: string;
 };
 
 export function BackendTicketLookupPage(): ReactElement {
   const { session, isHydrated } = useAccountSession();
   const location = useLocation();
-  const [code, setCode] = useState("");
+  const [needsLogin, setNeedsLogin] = useState(false);
   const mutation = useMutation({
-    mutationFn: async (lookupCode: string): Promise<Match[]> => {
-      const key = lookupCode.trim().toUpperCase();
+    mutationFn: async (input: LookupInput): Promise<Match[]> => {
+      const key = input.bookingCode.trim().toUpperCase();
+      const contact = normalizeVerification(input.verificationValue);
+      const verify = async (matches: Match[]): Promise<Match[]> => {
+        const bookings = await Promise.all(
+          [...new Set(matches.map((m) => m.bookingId))].map((id) =>
+            apiJson(`/api/v1/bookings/${id}`, bookingSchema),
+          ),
+        );
+        const authorized = new Set(
+          bookings
+            .filter(
+              (b) =>
+                normalizeVerification(b.contact.email) === contact ||
+                normalizeVerification(b.contact.phone) === contact,
+            )
+            .map((b) => b.id),
+        );
+        return matches.filter((m) => authorized.has(m.bookingId));
+      };
       if (!key || key.length > 80)
         throw new Error("Vui lòng nhập mã vé hoặc mã đặt chỗ hợp lệ.");
       // The backend intentionally does not expose a public lookup by phone/email.
@@ -45,6 +65,7 @@ export function BackendTicketLookupPage(): ReactElement {
             .filter((t) => t.publicCode.toUpperCase() === key)
             .map((t) => ({
               id: t.id,
+              bookingId: t.bookingId,
               publicCode: t.publicCode,
               passengerName: t.passengerName,
               status: t.status,
@@ -52,7 +73,7 @@ export function BackendTicketLookupPage(): ReactElement {
         );
         if (page + 1 >= result.totalPages || matches.length) break;
       }
-      if (matches.length) return matches;
+      if (matches.length) return verify(matches);
       // A booking code can also be entered; lookup returns its tickets owned by this account.
       let bookingId = "";
       for (let page = 0; page < 100; page++) {
@@ -80,6 +101,7 @@ export function BackendTicketLookupPage(): ReactElement {
             .filter((t) => t.bookingId === bookingId)
             .map((t) => ({
               id: t.id,
+              bookingId: t.bookingId,
               publicCode: t.publicCode,
               passengerName: t.passengerName,
               status: t.status,
@@ -87,7 +109,7 @@ export function BackendTicketLookupPage(): ReactElement {
         );
         if (page + 1 >= result.totalPages) break;
       }
-      return matches;
+      return verify(matches);
     },
     retry: false,
   });
@@ -97,6 +119,17 @@ export function BackendTicketLookupPage(): ReactElement {
         <p role="status">Đang kiểm tra phiên đăng nhập…</p>
       ) : !session ? (
         <>
+          <TicketLookupForm
+            live
+            isPending={false}
+            onSubmit={() => setNeedsLogin(true)}
+          />
+          {needsLogin && (
+            <Toast
+              tone="error"
+              message="Vui lòng đăng nhập tài khoản đã đặt vé để tiếp tục tra cứu."
+            />
+          )}
           <p className="ticket-lookup__live-note">
             Để bảo vệ thông tin hành khách, vui lòng đăng nhập tài khoản đã đặt
             vé trước khi tra cứu.
@@ -111,29 +144,11 @@ export function BackendTicketLookupPage(): ReactElement {
         </>
       ) : (
         <>
-          <p className="ticket-lookup__live-note">
-            Nhập mã vé hoặc mã đặt chỗ thuộc tài khoản của bạn.
-          </p>
-          <form
-            className="ticket-lookup__live-form"
-            onSubmit={(event: FormEvent) => {
-              event.preventDefault();
-              mutation.mutate(code);
-            }}
-          >
-            <Input
-              label="Mã vé hoặc mã đặt vé"
-              placeholder="Ví dụ: TK… hoặc BK…"
-              required
-              maxLength={80}
-              value={code}
-              onChange={(event) => setCode(event.target.value)}
-              autoComplete="off"
-            />
-            <Button type="submit" isLoading={mutation.isPending}>
-              Tra cứu vé <ArrowRight size={18} aria-hidden />
-            </Button>
-          </form>
+          <TicketLookupForm
+            live
+            isPending={mutation.isPending}
+            onSubmit={(input) => mutation.mutate(input)}
+          />
           {mutation.isError && (
             <Toast tone="error" message={mutation.error.message} />
           )}
