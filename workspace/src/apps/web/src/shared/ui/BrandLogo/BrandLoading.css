@@ -1,0 +1,218 @@
+.brand-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: min(560px, 70svh);
+  padding: 48px 20px;
+  text-align: center;
+  animation: brand-loading-enter 360ms ease-out both;
+}
+.brand-loading__visual {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: min(320px, 100%);
+  height: 160px;
+  margin-bottom: 24px;
+  isolation: isolate;
+}
+.brand-loading__halo {
+  position: absolute;
+  z-index: -1;
+  inset: -36px -28px -8px;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse,
+    #3185ff20 0%,
+    #6acaff0d 43%,
+    transparent 70%
+  );
+  animation: brand-loading-glow 2600ms ease-in-out infinite;
+}
+.brand-loading__logo {
+  position: relative;
+  width: 218px;
+  max-width: 80%;
+  overflow: hidden;
+  filter: drop-shadow(0 8px 12px #1456ba16);
+  animation: brand-loading-float 2600ms ease-in-out infinite;
+}
+.brand-loading__logo img {
+  display: block;
+  width: 100%;
+  height: auto;
+  mix-blend-mode: multiply;
+}
+.brand-loading__logo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    110deg,
+    transparent 30%,
+    #fff9 49%,
+    transparent 65%
+  );
+  transform: translateX(-120%);
+  animation: brand-loading-shine 2600ms ease-in-out infinite;
+  pointer-events: none;
+}
+.brand-loading__road {
+  position: absolute;
+  bottom: 8px;
+  width: 240px;
+  max-width: 90%;
+  height: 12px;
+  overflow: hidden;
+  border-top: 1px solid #bdd5fb;
+  border-bottom: 1px solid #d5e5fc;
+  border-radius: 999px;
+  background: #eaf3ff;
+  mask-image: linear-gradient(
+    90deg,
+    transparent,
+    #000 15%,
+    #000 85%,
+    transparent
+  );
+}
+.brand-loading__lane {
+  position: absolute;
+  top: 4px;
+  left: -100%;
+  width: 200%;
+  height: 2px;
+  background: repeating-linear-gradient(
+    90deg,
+    #7caaf0 0 17px,
+    transparent 17px 33px
+  );
+  animation: brand-loading-lane 1100ms linear infinite;
+}
+.brand-loading__light {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 70px;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, #1976ff, #a9e8ff);
+  box-shadow: 0 0 9px #1976ff;
+  animation: brand-loading-travel 1900ms ease-in-out infinite;
+}
+.brand-loading__copy h1 {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  font-size: clamp(1.125rem, 2.5vw, 1.375rem);
+  font-weight: 650;
+  line-height: 1.4;
+}
+.brand-loading__copy p {
+  margin: 10px 0 0;
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+.brand-loading__back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  margin-top: 28px;
+  padding: 8px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-bg-surface);
+  color: var(--color-text-secondary);
+  font-size: 0.8125rem;
+  text-decoration: none;
+  transition:
+    color 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+.brand-loading__back:hover {
+  border-color: #8db8f7;
+  color: var(--color-bg-brand);
+  box-shadow: 0 3px 12px #1b66ce0c;
+}
+.brand-loading__back:focus-visible {
+  outline: 2px solid var(--color-bg-brand);
+  outline-offset: 3px;
+}
+@keyframes brand-loading-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes brand-loading-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+@keyframes brand-loading-glow {
+  0%,
+  100% {
+    opacity: 0.6;
+    transform: scale(0.96);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+}
+@keyframes brand-loading-shine {
+  0%,
+  15% {
+    transform: translateX(-120%);
+  }
+  65%,
+  100% {
+    transform: translateX(120%);
+  }
+}
+@keyframes brand-loading-lane {
+  to {
+    transform: translateX(33px);
+  }
+}
+@keyframes brand-loading-travel {
+  from {
+    transform: translateX(-70px);
+    opacity: 0;
+  }
+  20%,
+  75% {
+    opacity: 1;
+  }
+  to {
+    transform: translateX(260px);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .brand-loading,
+  .brand-loading__logo,
+  .brand-loading__halo,
+  .brand-loading__logo::after,
+  .brand-loading__lane,
+  .brand-loading__light {
+    animation: none;
+  }
+  .brand-loading__logo::after,
+  .brand-loading__light {
+    display: none;
+  }
+}

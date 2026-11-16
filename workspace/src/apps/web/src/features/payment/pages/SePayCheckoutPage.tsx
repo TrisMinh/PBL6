@@ -9,6 +9,7 @@ import { liveApiJson as apiJson, liveQueryKey } from "@/shared/api/liveRequest";
 import { ApiError } from "@/shared/api/error";
 import { Button } from "@/shared/ui/Button/Button";
 import { PageState } from "@/shared/ui/PageState/PageState";
+import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import { bookingReviewPath, ROUTES } from "@/shared/config/routes";
 import { submitCheckoutAction } from "../checkoutAction";
 import { livePaymentSchema } from "../schemas/livePayment.schema";
@@ -93,11 +94,7 @@ function OpeningSePay({
       />
     );
   return (
-    <PageState
-      title="Đang mở trang thanh toán SePay"
-      description="Vui lòng đợi trong giây lát."
-      action={<Link to={back}>Quay lại</Link>}
-    />
+    <BrandLoading title="Đang mở trang thanh toán SePay" backHref={back} />
   );
 }
 
@@ -174,10 +171,7 @@ export function SePayCheckoutPage(): ReactElement {
     return <Navigate to={resultPath(bookingId)} replace />;
   if (!booking.data || !provider.data)
     return (
-      <PageState
-        title="Đang tải thông tin thanh toán"
-        description="Vui lòng đợi trong giây lát."
-      />
+      <BrandLoading title="Đang tải thông tin thanh toán" backHref={back} />
     );
 
   const methods = provider.data.methods;
