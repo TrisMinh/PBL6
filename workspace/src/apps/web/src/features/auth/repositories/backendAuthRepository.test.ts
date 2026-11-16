@@ -5,6 +5,32 @@ import { backendAuthRepository } from "./backendAuthRepository";
 beforeEach(() => {
   sessionStorage.clear();
 });
+it("explains an existing registration in Vietnamese without exposing account data", async () => {
+  vi.spyOn(globalThis, "fetch").mockResolvedValue(
+    Response.json(
+      {
+        error: {
+          code: "IDENTITY_ALREADY_USED",
+          message: "That identity cannot be used.",
+        },
+      },
+      { status: 409 },
+    ),
+  );
+  await expect(
+    backendAuthRepository.register({
+      fullName: "Demo User",
+      email: "demo@example.test",
+      phone: "0901234567",
+      password: "Password123",
+      confirmPassword: "Password123",
+    }),
+  ).rejects.toMatchObject({
+    status: 409,
+    message:
+      "Email hoặc số điện thoại này đã được dùng để đăng ký. Nếu chưa xác minh, hãy nhập lại đúng email và số điện thoại đã đăng ký; nếu đã có tài khoản, hãy đăng nhập.",
+  });
+});
 it.each([401, 423, 429])(
   "uses login-specific messages for HTTP %s",
   async (status) => {

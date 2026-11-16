@@ -38,7 +38,9 @@ async function authAction<T>(
             ? "Tài khoản đang bị khóa. Vui lòng thử lại sau hoặc liên hệ hỗ trợ."
             : login && error.status === 429
               ? "Bạn đã thử đăng nhập quá nhiều lần. Vui lòng chờ rồi thử lại."
-              : error.message;
+              : error.code === "IDENTITY_ALREADY_USED"
+                ? "Email hoặc số điện thoại này đã được dùng để đăng ký. Nếu chưa xác minh, hãy nhập lại đúng email và số điện thoại đã đăng ký; nếu đã có tài khoản, hãy đăng nhập."
+                : error.message;
       throw mapped;
     }
     throw error;
