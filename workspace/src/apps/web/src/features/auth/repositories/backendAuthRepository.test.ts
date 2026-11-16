@@ -28,7 +28,7 @@ it("explains an existing registration in Vietnamese without exposing account dat
   ).rejects.toMatchObject({
     status: 409,
     message:
-      "Email hoặc số điện thoại này đã được dùng để đăng ký. Nếu chưa xác minh, hãy nhập lại đúng email và số điện thoại đã đăng ký; nếu đã có tài khoản, hãy đăng nhập.",
+      "Email hoặc số điện thoại này đang được sử dụng bởi tài khoản khác. Vui lòng đăng nhập hoặc khôi phục mật khẩu.",
   });
 });
 it.each([401, 423, 429])(

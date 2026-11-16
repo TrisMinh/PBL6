@@ -39,7 +39,7 @@ async function authAction<T>(
             : login && error.status === 429
               ? "Bạn đã thử đăng nhập quá nhiều lần. Vui lòng chờ rồi thử lại."
               : error.code === "IDENTITY_ALREADY_USED"
-                ? "Email hoặc số điện thoại này đã được dùng để đăng ký. Nếu chưa xác minh, hãy nhập lại đúng email và số điện thoại đã đăng ký; nếu đã có tài khoản, hãy đăng nhập."
+                ? "Email hoặc số điện thoại này đang được sử dụng bởi tài khoản khác. Vui lòng đăng nhập hoặc khôi phục mật khẩu."
                 : error.message;
       throw mapped;
     }

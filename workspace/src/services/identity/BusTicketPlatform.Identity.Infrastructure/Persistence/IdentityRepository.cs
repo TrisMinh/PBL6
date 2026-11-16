@@ -7,7 +7,7 @@ namespace BusTicketPlatform.Identity.Infrastructure.Persistence;
 public sealed class IdentityRepository(IdentityDatabaseOptions options, IIdGenerator ids) : IIdentityRepository
 {
     public Task<UserRecord?> FindByIdAsync(Guid id, CancellationToken cancellationToken) =>
-        FindAsync("id = @id", ("id", id), cancellationToken);
+        FindAsync("id = @id AND deleted_at IS NULL", ("id", id), cancellationToken);
 
     public Task<UserRecord?> FindByNormalizedEmailAsync(string normalizedEmail, CancellationToken cancellationToken) =>
         FindAsync("normalized_email = @value AND deleted_at IS NULL", ("value", normalizedEmail), cancellationToken);
@@ -40,6 +40,69 @@ public sealed class IdentityRepository(IdentityDatabaseOptions options, IIdGener
             """, connection);
         BindUser(command, user);
         await command.ExecuteNonQueryAsync(cancellationToken);
+    }
+
+    public async Task<bool> TryRegisterPendingUserAsync(UserRecord user, CancellationToken cancellationToken)
+    {
+        await using var connection = await OpenAsync(cancellationToken);
+        await using var tx = await connection.BeginTransactionAsync(cancellationToken);
+        try
+        {
+            // Serialize overlapping claims across API instances; lock user rows against concurrent verification.
+            foreach (var claim in new[] { "email:" + user.NormalizedEmail, "phone:" + user.NormalizedPhone }.Order(StringComparer.Ordinal))
+            {
+                await using var claimLock = new NpgsqlCommand("SELECT pg_advisory_xact_lock(hashtextextended(@claim, 0))", connection, tx);
+                claimLock.Parameters.AddWithValue("claim", claim); await claimLock.ExecuteNonQueryAsync(cancellationToken);
+            }
+            var pending = new List<Guid>();
+            await using (var conflicts = new NpgsqlCommand("""
+                SELECT id, status, email_verified_at FROM users
+                WHERE deleted_at IS NULL AND (normalized_email=@email OR normalized_phone=@phone)
+                ORDER BY id FOR UPDATE;
+                """, connection, tx))
+            {
+                conflicts.Parameters.AddWithValue("email", user.NormalizedEmail); conflicts.Parameters.AddWithValue("phone", user.NormalizedPhone);
+                await using var rows = await conflicts.ExecuteReaderAsync(cancellationToken);
+                while (await rows.ReadAsync(cancellationToken))
+                {
+                    if (rows.GetString(1) != "PENDING_VERIFICATION" || !rows.IsDBNull(2)) return false;
+                    pending.Add(rows.GetGuid(0));
+                }
+            }
+            foreach (var oldId in pending)
+            {
+                // Retain the old draft for audit, but release its claims and invalidate every old verification code.
+                await using var retire = new NpgsqlCommand("""
+                    UPDATE users SET deleted_at=NOW(), updated_at=NOW(), row_version=row_version+1 WHERE id=@id;
+                    UPDATE auth_challenges SET status='REVOKED', row_version=row_version+1 WHERE user_id=@id AND status='ACTIVE';
+                    """, connection, tx);
+                retire.Parameters.AddWithValue("id", oldId); await retire.ExecuteNonQueryAsync(cancellationToken);
+            }
+            await using var insert = new NpgsqlCommand("""
+                INSERT INTO users (id, full_name, email, normalized_email, phone, normalized_phone, password_hash,
+                  status, email_verified_at, failed_login_count, lockout_until, authorization_version, created_at, updated_at, row_version)
+                VALUES (@id,@fullName,@email,@nemail,@phone,@nphone,@hash,@status,@verified,@failures,@lockout,@authv,@created,@created,@rowVersion);
+                """, connection, tx);
+            BindUser(insert, user); await insert.ExecuteNonQueryAsync(cancellationToken);
+            await tx.CommitAsync(cancellationToken); return true;
+        }
+        catch (PostgresException error) when (error.SqlState == PostgresErrorCodes.UniqueViolation)
+        {
+            await tx.RollbackAsync(cancellationToken); return false;
+        }
+    }
+
+    public async Task<bool> TryVerifyUserAsync(UserRecord user, long expectedVersion, CancellationToken cancellationToken)
+    {
+        await using var connection = await OpenAsync(cancellationToken);
+        await using var command = new NpgsqlCommand("""
+            UPDATE users SET email=@email, normalized_email=@nemail, status=@status, email_verified_at=@verified,
+              failed_login_count=0, lockout_until=NULL, updated_at=NOW(), row_version=@rowVersion
+            WHERE id=@id AND deleted_at IS NULL AND row_version=@expected
+              AND status IN ('PENDING_VERIFICATION','ACTIVE');
+            """, connection);
+        BindUser(command, user); command.Parameters.AddWithValue("expected", expectedVersion);
+        return await command.ExecuteNonQueryAsync(cancellationToken) == 1;
     }
 
     public async Task UpdateUserAsync(UserRecord user, CancellationToken cancellationToken)

@@ -47,21 +47,6 @@ public sealed class AuthService(
 
         var email = IdentityNormalizer.NormalizeEmail(command.Email);
         var phone = IdentityNormalizer.NormalizePhone(command.Phone);
-        var existingEmail = await users.FindByNormalizedEmailAsync(email, cancellationToken);
-        var existingPhone = await users.FindByNormalizedPhoneAsync(phone, cancellationToken);
-        if (existingEmail is not null || existingPhone is not null)
-        {
-            if (existingEmail is { Status: UserStatuses.PendingVerification } pending
-                && pending.NormalizedEmail == email
-                && pending.NormalizedPhone == phone)
-            {
-                return await IssueChallengeAsync(pending, ChallengeTypes.EmailVerification, command.Email.Trim(), correlationId, cancellationToken);
-            }
-
-            await users.InsertAuditAsync(null, existingEmail?.Id ?? existingPhone?.Id, "REGISTER_REJECTED", "DENIED", "IDENTITY_IN_USE", correlationId, cancellationToken);
-            return Result<AcceptedResponse>.Failure(IdentityErrors.IdentityAlreadyUsed());
-        }
-
         var now = clock.UtcNow;
         var user = new UserRecord(
             ids.NewUuidV7(),
@@ -78,7 +63,11 @@ public sealed class AuthService(
             0,
             0,
             now);
-        await users.InsertUserAsync(user, cancellationToken);
+        if (!await users.TryRegisterPendingUserAsync(user, cancellationToken))
+        {
+            await users.InsertAuditAsync(null, null, "REGISTER_REJECTED", "DENIED", "IDENTITY_IN_USE", correlationId, cancellationToken);
+            return Result<AcceptedResponse>.Failure(IdentityErrors.IdentityAlreadyUsed());
+        }
         await users.AssignRoleAsync(user.Id, RoleCodes.Customer, null, cancellationToken);
         await events.UserRegisteredAsync(user.Id, now, correlationId, cancellationToken);
         return await IssueChallengeAsync(user, ChallengeTypes.EmailVerification, command.Email.Trim(), correlationId, cancellationToken);
@@ -112,7 +101,8 @@ public sealed class AuthService(
             LockoutUntil = null,
             RowVersion = user.RowVersion + 1
         };
-        await users.UpdateUserAsync(activated, cancellationToken);
+        if (!await users.TryVerifyUserAsync(activated, user.RowVersion, cancellationToken))
+            return Result<SessionResponse>.Failure(IdentityErrors.VerificationInvalid());
         await users.InsertAuditAsync(activated.Id, activated.Id, "REGISTER_VERIFIED", "SUCCEEDED", null, correlationId, cancellationToken);
         return await IssueSessionAsync(activated, correlationId, cancellationToken);
     }

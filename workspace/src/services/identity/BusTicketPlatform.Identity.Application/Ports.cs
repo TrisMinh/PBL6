@@ -68,6 +68,8 @@ public interface IIdentityRepository
     Task<UserRecord?> FindByNormalizedPhoneAsync(string normalizedPhone, CancellationToken cancellationToken);
     Task<UserRecord?> FindByIdentifierAsync(string identifier, CancellationToken cancellationToken);
     Task InsertUserAsync(UserRecord user, CancellationToken cancellationToken);
+    Task<bool> TryRegisterPendingUserAsync(UserRecord user, CancellationToken cancellationToken);
+    Task<bool> TryVerifyUserAsync(UserRecord user, long expectedVersion, CancellationToken cancellationToken);
     Task UpdateUserAsync(UserRecord user, CancellationToken cancellationToken);
     Task AssignRoleAsync(Guid userId, string roleCode, Guid? organizationId, CancellationToken cancellationToken);
     Task ReplaceUserRolesAsync(Guid userId, IReadOnlyList<string> roleCodes, Guid? organizationId, CancellationToken cancellationToken);

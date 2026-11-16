@@ -13,6 +13,93 @@ public sealed class AuthFlowTests
     public AuthFlowTests(IdentityPostgresFixture fixture) => _fixture = fixture;
 
     [Fact]
+    public async Task Concurrent_pending_registrations_leave_one_claim_and_only_its_code_can_activate()
+    {
+        var client = _fixture.CreateClient(); var draft = IdentityTestData.NewUser();
+        var attempts = Enumerable.Range(0, 4).Select(i => IdentityTestData.SendAsync(client, HttpMethod.Post, "/api/v1/auth/register",
+            new { fullName = "Concurrent " + i, email = draft.Email, phone = draft.Phone, password = draft.Password }));
+        var responses = await Task.WhenAll(attempts);
+        Assert.All(responses, response => Assert.Equal(HttpStatusCode.Accepted, response.Response.StatusCode));
+        await using var connection = new NpgsqlConnection(_fixture.Container.GetConnectionString()); await connection.OpenAsync();
+        await using var current = new NpgsqlCommand("""
+            SELECT c.id FROM auth_challenges c JOIN users u ON u.id=c.user_id
+            WHERE u.deleted_at IS NULL AND u.normalized_email=@email AND c.status='ACTIVE';
+            """, connection);
+        current.Parameters.AddWithValue("email", draft.Email.ToUpperInvariant());
+        var challengeId = (Guid)(await current.ExecuteScalarAsync())!;
+        await using var count = new NpgsqlCommand("SELECT count(*) FROM users WHERE normalized_email=@email AND deleted_at IS NULL", connection);
+        count.Parameters.AddWithValue("email", draft.Email.ToUpperInvariant());
+        Assert.Equal(1L, (long)(await count.ExecuteScalarAsync())!);
+        // Verify all superseded IDs with any code; none may create a session.
+        foreach (var response in responses.Where(r => r.Body.GetProperty("operationId").GetGuid() != challengeId))
+        {
+            var stale = await IdentityTestData.SendAsync(client, HttpMethod.Post, "/api/v1/auth/verify",
+                new { challengeId = response.Body.GetProperty("operationId").GetGuid(), code = "000000" }, idempotency: IdentityTestData.IdempotencyKey());
+            Assert.Equal(HttpStatusCode.UnprocessableEntity, stale.Response.StatusCode);
+        }
+    }
+
+    [Fact]
+    public async Task Replacing_pending_registration_releases_both_conflicting_drafts_and_revokes_their_codes()
+    {
+        var client = _fixture.CreateClient(); var first = IdentityTestData.NewUser(); var second = IdentityTestData.NewUser();
+        foreach (var draft in new[] { first, second })
+        {
+            var registered = await IdentityTestData.SendAsync(client, HttpMethod.Post, "/api/v1/auth/register",
+                new { fullName = draft.Name, email = draft.Email, phone = draft.Phone, password = draft.Password });
+            Assert.Equal(HttpStatusCode.Accepted, registered.Response.StatusCode);
+        }
+        var firstCode = _fixture.Mailbox.LastFor(first.Email)!; var secondCode = _fixture.Mailbox.LastFor(second.Email)!;
+        var corrected = await IdentityTestData.SendAsync(client, HttpMethod.Post, "/api/v1/auth/register",
+            new { fullName = "Corrected Customer", email = first.Email, phone = second.Phone, password = "CorrectedPassword123" });
+        Assert.Equal(HttpStatusCode.Accepted, corrected.Response.StatusCode);
+        foreach (var old in new[] { firstCode, secondCode })
+        {
+            var stale = await IdentityTestData.SendAsync(client, HttpMethod.Post, "/api/v1/auth/verify",
+                new { challengeId = old.ChallengeId, code = old.Code }, idempotency: IdentityTestData.IdempotencyKey());
+            Assert.Equal(HttpStatusCode.UnprocessableEntity, stale.Response.StatusCode);
+        }
+        var current = _fixture.Mailbox.LastFor(first.Email)!;
+        var verified = await IdentityTestData.SendAsync(client, HttpMethod.Post, "/api/v1/auth/verify",
+            new { challengeId = current.ChallengeId, code = current.Code }, idempotency: IdentityTestData.IdempotencyKey());
+        Assert.Equal(HttpStatusCode.OK, verified.Response.StatusCode);
+        var me = await IdentityTestData.SendAsync(client, HttpMethod.Get, "/api/v1/users/me", bearer: verified.Body.GetProperty("accessToken").GetString());
+        Assert.Equal("Corrected Customer", me.Body.GetProperty("fullName").GetString());
+        var login = await IdentityTestData.SendAsync(client, HttpMethod.Post, "/api/v1/auth/login",
+            new { identifier = first.Email, password = "CorrectedPassword123" });
+        Assert.Equal(HttpStatusCode.OK, login.Response.StatusCode);
+        // The old draft's other identifiers are no longer reserved.
+        var released = await IdentityTestData.SendAsync(client, HttpMethod.Post, "/api/v1/auth/register",
+            new { fullName = first.Name, email = second.Email, phone = first.Phone, password = first.Password });
+        Assert.Equal(HttpStatusCode.Accepted, released.Response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Same_pending_contact_details_use_latest_password_and_invalidate_old_verification()
+    {
+        var client = _fixture.CreateClient(); var draft = IdentityTestData.NewUser();
+        await IdentityTestData.SendAsync(client, HttpMethod.Post, "/api/v1/auth/register",
+            new { fullName = draft.Name, email = draft.Email, phone = draft.Phone, password = draft.Password });
+        var old = _fixture.Mailbox.LastFor(draft.Email)!;
+        var corrected = await IdentityTestData.SendAsync(client, HttpMethod.Post, "/api/v1/auth/register",
+            new { fullName = "Latest Name", email = draft.Email, phone = draft.Phone, password = "LatestPassword123" });
+        Assert.Equal(HttpStatusCode.Accepted, corrected.Response.StatusCode);
+        var stale = await IdentityTestData.SendAsync(client, HttpMethod.Post, "/api/v1/auth/verify",
+            new { challengeId = old.ChallengeId, code = old.Code }, idempotency: IdentityTestData.IdempotencyKey());
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, stale.Response.StatusCode);
+        var current = _fixture.Mailbox.LastFor(draft.Email)!;
+        var verified = await IdentityTestData.SendAsync(client, HttpMethod.Post, "/api/v1/auth/verify",
+            new { challengeId = current.ChallengeId, code = current.Code }, idempotency: IdentityTestData.IdempotencyKey());
+        Assert.Equal(HttpStatusCode.OK, verified.Response.StatusCode);
+        var oldPassword = await IdentityTestData.SendAsync(client, HttpMethod.Post, "/api/v1/auth/login",
+            new { identifier = draft.Email, password = draft.Password });
+        Assert.Equal(HttpStatusCode.Unauthorized, oldPassword.Response.StatusCode);
+        var latest = await IdentityTestData.SendAsync(client, HttpMethod.Post, "/api/v1/auth/login",
+            new { identifier = draft.Email, password = "LatestPassword123" });
+        Assert.Equal(HttpStatusCode.OK, latest.Response.StatusCode);
+    }
+
+    [Fact]
     public async Task Register_verify_login_refresh_logout_and_profile()
     {
         var client = _fixture.CreateClient();

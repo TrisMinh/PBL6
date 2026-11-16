@@ -1,0 +1,142 @@
+{
+  "info": {
+    "name": "BLUE pending registration corrections",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Unverified drafts may be replaced; verified accounts remain protected. Synthetic localhost data only. Code invalidation/concurrency are covered by the identity PostgreSQL integration suite."
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5080"
+    }
+  ],
+  "item": [
+    {
+      "name": "Create pending registration",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.collectionVariables.set('runId', pm.variables.replaceIn('{{$guid}}'));",
+              "const n = Math.floor(10000000 + Math.random() * 80000000); pm.collectionVariables.set('phoneA','+849'+n); pm.collectionVariables.set('phoneB','+848'+n);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Expected 202',()=>pm.response.to.have.status(202));",
+              "pm.test('Verification required',()=>pm.expect(pm.response.json().status).to.eql('ACCEPTED'));",
+              "pm.collectionVariables.set('oldChallenge',pm.response.json().operationId);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/auth/register",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"fullName\":\"Registration Correction Test\",\"email\":\"draft.{{runId}}@example.test\",\"phone\":\"{{phoneA}}\",\"password\":\"InitialPassword123\"}"
+        }
+      }
+    },
+    {
+      "name": "Correct email while keeping phone",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Expected 202',()=>pm.response.to.have.status(202));",
+              "pm.test('Fresh verification challenge',()=>pm.expect(pm.response.json().operationId).not.to.eql(pm.collectionVariables.get('oldChallenge')));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/auth/register",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"fullName\":\"Corrected Name\",\"email\":\"corrected.{{runId}}@example.test\",\"phone\":\"{{phoneA}}\",\"password\":\"CorrectedPassword123\"}"
+        }
+      }
+    },
+    {
+      "name": "Correct phone while keeping email",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Expected 202',()=>pm.response.to.have.status(202));",
+              "pm.test('Fresh verification challenge',()=>pm.expect(pm.response.json().operationId).not.to.eql(pm.collectionVariables.get('oldChallenge')));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/auth/register",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"fullName\":\"Corrected Name\",\"email\":\"corrected.{{runId}}@example.test\",\"phone\":\"{{phoneB}}\",\"password\":\"CorrectedPassword123\"}"
+        }
+      }
+    },
+    {
+      "name": "Protect existing verified account",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Expected 409',()=>pm.response.to.have.status(409));",
+              "pm.test('Identity conflict',()=>pm.expect(pm.response.json().error.code).to.eql('IDENTITY_ALREADY_USED'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/auth/register",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"fullName\":\"No Replacement\",\"email\":\"seed.customer@example.test\",\"phone\":\"{{phoneB}}\",\"password\":\"DifferentPassword123\"}"
+        }
+      }
+    }
+  ]
+}
