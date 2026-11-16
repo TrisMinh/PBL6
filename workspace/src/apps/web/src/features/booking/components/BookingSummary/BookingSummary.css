@@ -13,18 +13,9 @@
 .booking-summary--review,
 .booking-summary--payment {
   gap: 14px;
-  min-height: 700px;
   padding: 20px 23px 24px;
   border-radius: 22px;
-  overflow: hidden;
-}
-.booking-summary--passenger {
-  height: 700px;
-}
-.booking-summary--review,
-.booking-summary--payment {
   min-height: 0;
-  height: auto;
 }
 
 .booking-summary__payment-choice {

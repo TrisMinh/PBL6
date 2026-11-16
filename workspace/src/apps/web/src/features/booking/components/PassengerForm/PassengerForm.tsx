@@ -3,7 +3,6 @@ import { isMockApi } from "@/shared/api/config";
 import { useId, useState, type ReactElement } from "react";
 import { useForm, type UseFormReturn } from "react-hook-form";
 
-import chevronIcon from "@/assets/booking/passenger-review/chevron.svg";
 import mailIcon from "@/assets/booking/passenger-review/mail.svg";
 import mobileIcon from "@/assets/booking/passenger-review/mobile.svg";
 import noteIcon from "@/assets/booking/passenger-review/note.svg";
@@ -117,12 +116,15 @@ function DeliveryFields({ form }: { form: PassengerMethods }): ReactElement {
   return (
     <fieldset className="passenger-form__card passenger-form__card--delivery">
       <legend className="passenger-form__visually-hidden">
-        Nhận vé và yêu cầu cho nhà xe
+        {isMockApi ? "Nhận vé và yêu cầu cho nhà xe" : "Thông tin nhận vé"}
       </legend>
       <div className="passenger-form__card-heading passenger-form__card-heading--stacked">
-        <h2>Nhận vé &amp; yêu cầu cho nhà xe</h2>
-        <p>Vé điện tử và thay đổi lịch trình sẽ được gửi tới thông tin này.</p>
+        <h2>
+          {isMockApi ? "Nhận vé & yêu cầu cho nhà xe" : "Thông tin nhận vé"}
+        </h2>
+        <p>Vé điện tử và thay đổi lịch trình sẽ được gửi đến người liên hệ.</p>
       </div>
+      <ContactFields form={form} />
       <div className="passenger-form__fields">
         <PassengerField
           kind="email"
@@ -157,29 +159,14 @@ function PickupField({ pickup }: { pickup: string }): ReactElement {
         readOnly
         value={pickup}
       />
-      <img
-        alt=""
-        aria-hidden="true"
-        className="passenger-form__chevron"
-        src={chevronIcon}
-      />
     </fieldset>
   );
 }
-function LegacyContactFields({
-  form,
-}: {
-  form: PassengerMethods;
-}): ReactElement {
+function ContactFields({ form }: { form: PassengerMethods }): ReactElement {
   return (
-    <div
-      className={
-        isMockApi
-          ? "passenger-form__legacy-contact"
-          : "passenger-form__card passenger-form__fields"
-      }
-    >
-      <Input
+    <div className="passenger-form__fields passenger-form__contact">
+      <PassengerField
+        kind="name"
         label="Họ và tên người liên hệ"
         autoComplete="section-contact name"
         maxLength={100}
@@ -187,7 +174,8 @@ function LegacyContactFields({
         required
         error={form.formState.errors.contact?.fullName?.message}
       />
-      <Input
+      <PassengerField
+        kind="phone"
         label="Số điện thoại người liên hệ"
         type="tel"
         autoComplete="section-contact tel"
@@ -235,7 +223,6 @@ function FormFields({
       ))}
       <PickupField pickup={props.pickup} />
       <DeliveryFields form={form} />
-      <LegacyContactFields form={form} />
       {!props.formId && (
         <Button
           type="submit"

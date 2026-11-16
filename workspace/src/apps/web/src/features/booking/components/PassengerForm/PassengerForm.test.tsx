@@ -63,16 +63,12 @@ describe("PassengerForm accessibility and canonical values", () => {
       "Không có yêu cầu đặc biệt",
     );
     expect(screen.getByRole("group", { name: "Điểm đón" })).toBeVisible();
-    expect(
-      screen.getByRole("group", {
-        name: "Nhận vé và yêu cầu cho nhà xe",
-      }),
-    ).toBeVisible();
-    expect(
-      document.querySelectorAll(
-        ".passenger-form__icon, .passenger-form__chevron",
-      ),
-    ).toHaveLength(8);
+    const delivery = within(
+      screen.getByRole("group", { name: "Nhận vé và yêu cầu cho nhà xe" }),
+    );
+    expect(delivery.getByLabelText("Họ và tên người liên hệ")).toBeVisible();
+    expect(delivery.getByLabelText("Số điện thoại người liên hệ")).toBeVisible();
+    expect(delivery.getByLabelText("Email nhận vé")).toBeVisible();
   });
   it("blocks empty submit with safe alerts linked to controls and focuses the first invalid field", async () => {
     const submit = vi.fn();

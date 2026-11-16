@@ -1,4 +1,8 @@
 import { Toast } from "@/shared/ui/Toast/Toast";
+import { useQuery } from "@tanstack/react-query";
+import { z } from "zod";
+import { apiJson } from "@/shared/api/client";
+import { liveQueryKey } from "@/shared/api/liveRequest";
 import { isMockApi } from "@/shared/api/config";
 import { useMockSession } from "@/features/auth/hooks/useMockSession";
 import { findDemoAccount } from "@/mocks/state/customerAccounts";
@@ -56,6 +60,11 @@ const BOOKING_TIME = new Intl.DateTimeFormat("en-GB", {
   minute: "2-digit",
   hourCycle: "h23",
 });
+const contactProfileSchema = z.object({
+  fullName: z.string(),
+  phone: z.string().nullish(),
+  email: z.string(),
+});
 function PassengerHeading({
   draft,
   layout,
@@ -77,7 +86,7 @@ function PassengerHeading({
         </ol>
       </nav>
       <h1>Thông tin hành khách</h1>
-      <p>Nhập thông tin hành khách và chọn một điểm đón chung cho cả đơn.</p>
+      <p>Nhập thông tin hành khách và kiểm tra điểm đón của chuyến đi.</p>
     </header>
   );
 }
@@ -126,6 +135,16 @@ function PassengerBooking(
 ): ReactElement {
   const formId = useId();
   const { session, isHydrated } = useMockSession();
+  const loadProfile =
+    !isMockApi && session?.role === "customer" && !props.draft.contact;
+  const liveProfile = useQuery({
+    queryKey: liveQueryKey("booking-contact"),
+    queryFn: ({ signal }) =>
+      apiJson("/api/v1/users/me", contactProfileSchema, { signal }),
+    enabled: loadProfile,
+    retry: false,
+    staleTime: 0,
+  });
   const account =
     isMockApi && session?.role === "customer"
       ? findDemoAccount(session.userId, true)
@@ -151,7 +170,17 @@ function PassengerBooking(
   const checkInAt = new Date(
     new Date(props.layout.trip.departureTime).getTime() - 20 * 60 * 1000,
   ).toISOString();
-  if (!isHydrated) return <p role="status">Đang tải thông tin tài khoản…</p>;
+  if (!isHydrated || (loadProfile && liveProfile.isPending))
+    return <p role="status">Đang tải thông tin tài khoản…</p>;
+  const contact = liveProfile.data
+    ? { ...liveProfile.data, phone: liveProfile.data.phone ?? "" }
+    : profile && account
+      ? {
+          fullName: profile.fullName,
+          phone: profile.phone,
+          email: account.email,
+        }
+      : undefined;
   return (
     <>
       <PassengerHeading {...props} />
@@ -163,13 +192,7 @@ function PassengerBooking(
           initialValues={getPassengerDefaults(
             props.draft,
             props.seats,
-            profile && account
-              ? {
-                  fullName: profile.fullName,
-                  phone: profile.phone,
-                  email: account.email,
-                }
-              : undefined,
+            contact,
           )}
           pickup={`${props.layout.trip.originStopName} · Có mặt ${BOOKING_TIME.format(new Date(checkInAt))}`}
           onSubmit={mutation.submit}
@@ -184,7 +207,6 @@ function PassengerBooking(
           isActionPending={mutation.isPending || props.isFetching}
           formId={formId}
           actionLabel="Xác nhận thông tin"
-          hint="BLUE - Lựa chọn hàng nhì để đặt vé xe · Mọi phản ánh xin liên hệ blue@info.example.com"
           variant="passenger"
         />
       </div>

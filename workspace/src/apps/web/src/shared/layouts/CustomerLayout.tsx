@@ -277,7 +277,10 @@ export function CustomerLayout(): ReactElement {
         <Outlet />
       </main>
       {(isExplore || isPartners) && <HomeFooter />}
-      {!isAuthFrame && <BlueAssistant />}
+      {!isAuthFrame &&
+        !isSeatFrame &&
+        !isPassengerOrReviewFrame &&
+        !isPaymentFrame && <BlueAssistant />}
       {routeOwnsFooterOrFrame || isAuthFrame ? null : (
         <footer className="customer-layout__footer">
           <div className="customer-layout__footer-content">
