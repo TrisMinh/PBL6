@@ -5,7 +5,11 @@ import {
   type ReactElement,
 } from "react";
 import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
-import { hasSeenStartup, STARTUP_SESSION_KEY } from "./startupSession";
+import {
+  hasSeenStartup,
+  rememberHardRefresh,
+  STARTUP_SESSION_KEY,
+} from "./startupSession";
 import "./AppStartup.css";
 
 const DISPLAY_MS = 2000;
@@ -27,6 +31,11 @@ export function StartupScreen({
 export function AppStartup({ children }: PropsWithChildren): ReactElement {
   const [alreadySeen] = useState(hasSeenStartup);
   const [phase, setPhase] = useState<Phase>("loading");
+  useEffect(() => {
+    window.addEventListener("keydown", rememberHardRefresh, true);
+    return () =>
+      window.removeEventListener("keydown", rememberHardRefresh, true);
+  }, []);
   useEffect(() => {
     try {
       window.sessionStorage.setItem(STARTUP_SESSION_KEY, "1");
