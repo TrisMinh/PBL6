@@ -1,4 +1,4 @@
-import type { ReactElement } from "react";
+import type { ReactElement, ReactNode } from "react";
 import { Link } from "react-router";
 import { Ticket } from "@phosphor-icons/react/dist/csr/Ticket";
 import { ShieldCheck } from "@phosphor-icons/react/dist/csr/ShieldCheck";
@@ -15,6 +15,30 @@ import "./TicketLookupPage.css";
 
 export function TicketLookupPage(): ReactElement {
   const lookup = useLookupTickets();
+  return (
+    <TicketLookupLayout>
+      {lookup.error && (
+        <Toast
+          tone="error"
+          message={
+            lookup.error.code === "NOT_FOUND"
+              ? "Không tìm thấy vé phù hợp. Kiểm tra thông tin và tra cứu lại."
+              : lookup.error.code === "STORAGE_UNAVAILABLE"
+                ? "Chưa thể lưu phiên tra cứu. Cho phép lưu dữ liệu trong tab rồi thử lại."
+                : "Chưa thể tra cứu. Kiểm tra kết nối và thử lại."
+          }
+        />
+      )}
+      <TicketLookupForm isPending={lookup.isPending} onSubmit={lookup.submit} />
+    </TicketLookupLayout>
+  );
+}
+
+export function TicketLookupLayout({
+  children,
+}: {
+  children: ReactNode;
+}): ReactElement {
   return (
     <div className="ticket-page ticket-page--lookup">
       <div className="ticket-lookup-shell">
@@ -58,22 +82,7 @@ export function TicketLookupPage(): ReactElement {
             <h1>Tra cứu vé</h1>
             <p>Nhập thông tin đặt vé để mở vé điện tử của bạn.</p>
           </header>
-          {lookup.error && (
-            <Toast
-              tone="error"
-              message={
-                lookup.error.code === "NOT_FOUND"
-                  ? "Không tìm thấy vé phù hợp. Kiểm tra thông tin và tra cứu lại."
-                  : lookup.error.code === "STORAGE_UNAVAILABLE"
-                    ? "Chưa thể lưu phiên tra cứu. Cho phép lưu dữ liệu trong tab rồi thử lại."
-                    : "Chưa thể tra cứu. Kiểm tra kết nối và thử lại."
-              }
-            />
-          )}
-          <TicketLookupForm
-            isPending={lookup.isPending}
-            onSubmit={lookup.submit}
-          />
+          {children}
           <p className="ticket-lookup__privacy">
             <ShieldCheck size={19} aria-hidden />
             <span>

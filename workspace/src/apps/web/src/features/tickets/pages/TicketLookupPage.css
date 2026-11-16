@@ -283,3 +283,54 @@
     grid-template-columns: 1fr;
   }
 }
+.ticket-lookup__live-form {
+  display: grid;
+  gap: 20px;
+  margin-block: 22px;
+}
+.ticket-lookup__live-form .button,
+.ticket-lookup__login {
+  width: 100%;
+  min-height: 46px;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+.ticket-lookup__live-note {
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  line-height: 1.7;
+}
+.ticket-lookup__matches {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+  margin-block: 20px;
+}
+.ticket-lookup__matches li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px;
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border-shell);
+  border-radius: 12px;
+}
+.ticket-lookup__matches li div {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+.ticket-lookup__matches li span {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 480px) {
+  .ticket-lookup__matches li {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

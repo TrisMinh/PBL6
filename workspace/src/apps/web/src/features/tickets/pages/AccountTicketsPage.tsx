@@ -7,6 +7,8 @@ import { SquaresFour } from "@phosphor-icons/react/dist/csr/SquaresFour";
 import { GridNine } from "@phosphor-icons/react/dist/csr/GridNine";
 import { Rows } from "@phosphor-icons/react/dist/csr/Rows";
 import { ExploreImage } from "@/features/explore/ExploreImage";
+import { catalogueArtwork } from "@/features/explore/liveCataloguePresentation";
+import type { Trip } from "@/features/trips/types/trip";
 import {
   defaultTicketView,
   readCustomerData,
@@ -34,11 +36,21 @@ import { formatDateTime } from "@/shared/lib/formatDateTime";
 
 import "./AccountTicketsPage.css";
 
-function TicketList({
+export type TicketListItem = Pick<
+  TicketDetail,
+  "ticketCode" | "status" | "seatCode" | "passenger" | "fareVnd" | "bookingCode"
+> & {
+  trip: Trip;
+  href?: string;
+  cancelHref?: string;
+  canCancel?: boolean;
+  statusLabel?: string;
+};
+export function TicketList({
   items,
   showPhotos,
 }: {
-  items: readonly TicketDetail[];
+  items: readonly TicketListItem[];
   showPhotos: boolean;
 }): ReactElement {
   return (
@@ -51,7 +63,8 @@ function TicketList({
               <StatusBadge
                 tone={ticket.status === "issued" ? "success" : "error"}
               >
-                {ticket.status === "issued" ? "Đã phát hành" : "Đã hủy"}
+                {ticket.statusLabel ??
+                  (ticket.status === "issued" ? "Đã phát hành" : "Đã hủy")}
               </StatusBadge>
             </div>
             <div className="account-tickets__destination">
@@ -63,17 +76,21 @@ function TicketList({
               {showPhotos && (
                 <div className="account-tickets__photo" aria-hidden="true">
                   <ExploreImage
-                    art={[
-                      "cities",
-                      (
-                        {
-                          "loc-hcm": 0,
-                          "loc-dalat": 1,
-                          "loc-danang": 2,
-                          "loc-hanoi": 3,
-                        } as Record<string, number>
-                      )[ticket.trip.destination.id] ?? 0,
-                    ]}
+                    art={
+                      ticket.href
+                        ? catalogueArtwork(ticket.trip.destination.displayName)
+                        : [
+                            "cities",
+                            (
+                              {
+                                "loc-hcm": 0,
+                                "loc-dalat": 1,
+                                "loc-danang": 2,
+                                "loc-hanoi": 3,
+                              } as Record<string, number>
+                            )[ticket.trip.destination.id] ?? 0,
+                          ]
+                    }
                   />
                 </div>
               )}
@@ -118,15 +135,18 @@ function TicketList({
                 <div className="account-tickets__actions">
                   <Link
                     className="account-tickets__view"
-                    to={ticketPath(ticket.ticketCode)}
+                    to={ticket.href ?? ticketPath(ticket.ticketCode)}
                     aria-label={`Xem vé ${ticket.ticketCode}`}
                   >
                     Xem vé <ArrowRight size={16} aria-hidden />
                   </Link>
-                  {ticket.status === "issued" && (
+                  {ticket.status === "issued" && ticket.canCancel !== false && (
                     <Link
                       className="account-tickets__cancel"
-                      to={bookingCancellationPath(ticket.bookingCode)}
+                      to={
+                        ticket.cancelHref ??
+                        bookingCancellationPath(ticket.bookingCode)
+                      }
                     >
                       Hủy vé
                     </Link>
@@ -239,14 +259,11 @@ function History({
           onClose={() => setViewError(false)}
         />
       )}
-      <TicketList
-        items={query.data.items}
-        showPhotos
-      />
+      <TicketList items={query.data.items} showPhotos />
     </div>
   );
 }
-function AccountHeader(): ReactElement {
+export function AccountHeader(): ReactElement {
   return (
     <header className="account-tickets__heading">
       <div className="account-tickets__intro">

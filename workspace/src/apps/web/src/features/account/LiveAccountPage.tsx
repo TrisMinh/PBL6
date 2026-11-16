@@ -12,7 +12,8 @@ import { liveQueryKey } from "@/shared/api/liveRequest";
 import { ApiFailure } from "@/shared/api/ResourcePage";
 import { Button } from "@/shared/ui/Button/Button";
 import { formatCurrencyVnd } from "@/shared/lib/formatCurrencyVnd";
-import { LiveProfileCard } from "./LiveProfileCard";
+import { AccountHeader } from "@/features/tickets/pages/AccountTicketsPage";
+import { LiveAccountTickets } from "@/features/tickets/pages/LiveAccountTickets";
 import "./LiveAccountPage.css";
 
 const labels: Record<string, string> = {
@@ -181,49 +182,33 @@ function AccountList({ view }: { view: "tickets" | "bookings" }): ReactElement {
 export function LiveAccountPage(): ReactElement {
   const [view, setView] = useState<"tickets" | "bookings">("tickets");
   return (
-    <div className="account-live">
-      <header className="account-live__heading">
-        <div>
-          <p className="account-live__eyebrow">TÀI KHOẢN CỦA BẠN</p>
-          <h1>Những hành trình của tôi</h1>
-          <p>Thông tin cá nhân và mọi chuyến đi, ở cùng một nơi.</p>
-        </div>
-      </header>
-      <div className="account-live__layout">
-        <aside className="account-live__sidebar">
-          <LiveProfileCard />
-        </aside>
-        <section
-          className="account-live__journeys"
-          aria-labelledby="account-journeys-title"
+    <section className="account-tickets account-live-restored">
+      <AccountHeader />
+      <div
+        className="account-live__tabs"
+        role="group"
+        aria-label="Loại danh sách"
+      >
+        <button
+          type="button"
+          aria-pressed={view === "tickets"}
+          onClick={() => setView("tickets")}
         >
-          <header className="account-live__section-heading">
-            <h2 id="account-journeys-title">Lịch sử đặt vé</h2>
-            <p>Xem vé và theo dõi trạng thái đơn của bạn.</p>
-          </header>
-          <div
-            className="account-live__tabs"
-            role="group"
-            aria-label="Loại danh sách"
-          >
-            <button
-              type="button"
-              aria-pressed={view === "tickets"}
-              onClick={() => setView("tickets")}
-            >
-              Vé của tôi
-            </button>
-            <button
-              type="button"
-              aria-pressed={view === "bookings"}
-              onClick={() => setView("bookings")}
-            >
-              Đơn đặt vé
-            </button>
-          </div>
-          <AccountList key={view} view={view} />
-        </section>
+          Vé của tôi
+        </button>
+        <button
+          type="button"
+          aria-pressed={view === "bookings"}
+          onClick={() => setView("bookings")}
+        >
+          Đơn đặt vé
+        </button>
       </div>
-    </div>
+      {view === "tickets" ? (
+        <LiveAccountTickets />
+      ) : (
+        <AccountList key={view} view={view} />
+      )}
+    </section>
   );
 }

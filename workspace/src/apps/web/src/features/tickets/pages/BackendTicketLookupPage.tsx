@@ -8,9 +8,13 @@ import {
   bookingSchema,
   pageOf,
 } from "@/shared/api/contracts";
-import { ApiFailure } from "@/shared/api/ResourcePage";
 import { useAccountSession } from "@/features/auth/hooks/useAccountSession";
 import { Button } from "@/shared/ui/Button/Button";
+import { Input } from "@/shared/ui/Input/Input";
+import { Toast } from "@/shared/ui/Toast/Toast";
+import { TicketLookupLayout } from "./TicketLookupPage";
+import { ArrowRight } from "@phosphor-icons/react/dist/csr/ArrowRight";
+import { stateLabel } from "@/shared/api/livePresentation";
 
 type Match = {
   id: string;
@@ -88,63 +92,79 @@ export function BackendTicketLookupPage(): ReactElement {
     retry: false,
   });
   return (
-    <section className="live-api">
-      <h1>Tra cứu vé</h1>
+    <TicketLookupLayout>
       {!isHydrated ? (
         <p role="status">Đang kiểm tra phiên đăng nhập…</p>
       ) : !session ? (
         <>
-          <p>
+          <p className="ticket-lookup__live-note">
             Để bảo vệ thông tin hành khách, vui lòng đăng nhập tài khoản đã đặt
             vé trước khi tra cứu.
           </p>
-          <Link to={`/login?redirect=${encodeURIComponent(location.pathname)}`}>
-            Đăng nhập để tra cứu
+          <Link
+            className="button button--primary ticket-lookup__login"
+            to="/login"
+            state={{ from: location.pathname }}
+          >
+            Đăng nhập để tra cứu <ArrowRight size={18} aria-hidden />
           </Link>
         </>
       ) : (
         <>
-          <p>Nhập mã vé hoặc mã đặt chỗ thuộc tài khoản của bạn.</p>
+          <p className="ticket-lookup__live-note">
+            Nhập mã vé hoặc mã đặt chỗ thuộc tài khoản của bạn.
+          </p>
           <form
+            className="ticket-lookup__live-form"
             onSubmit={(event: FormEvent) => {
               event.preventDefault();
               mutation.mutate(code);
             }}
           >
-            <label>
-              Mã vé / mã đơn
-              <input
-                required
-                maxLength={80}
-                value={code}
-                onChange={(event) => setCode(event.target.value)}
-                autoComplete="off"
-              />
-            </label>
+            <Input
+              label="Mã vé hoặc mã đặt vé"
+              placeholder="Ví dụ: TK… hoặc BK…"
+              required
+              maxLength={80}
+              value={code}
+              onChange={(event) => setCode(event.target.value)}
+              autoComplete="off"
+            />
             <Button type="submit" isLoading={mutation.isPending}>
-              Tra cứu
+              Tra cứu vé <ArrowRight size={18} aria-hidden />
             </Button>
           </form>
-          {mutation.isError && <ApiFailure error={mutation.error} />}
+          {mutation.isError && (
+            <Toast tone="error" message={mutation.error.message} />
+          )}
           {mutation.isSuccess &&
             (mutation.data.length ? (
-              <ul>
+              <ul className="ticket-lookup__matches">
                 {mutation.data.map((ticket) => (
                   <li key={ticket.id}>
-                    <Link to={`/tickets/${encodeURIComponent(ticket.id)}`}>
-                      {ticket.publicCode}
-                    </Link>{" "}
-                    — {ticket.passengerName} — {ticket.status}
+                    <div>
+                      <strong>{ticket.passengerName}</strong>
+                      <span>
+                        {ticket.publicCode} · {stateLabel(ticket.status)}
+                      </span>
+                    </div>
+                    <Link
+                      className="button button--primary"
+                      to={`/tickets/${encodeURIComponent(ticket.id)}`}
+                    >
+                      Xem vé <ArrowRight size={16} aria-hidden />
+                    </Link>
                   </li>
                 ))}
               </ul>
             ) : (
-              <p role="status">
-                Không tìm thấy vé hoặc đơn phù hợp trong tài khoản.
-              </p>
+              <Toast
+                tone="error"
+                message="Không tìm thấy vé hoặc đơn phù hợp trong tài khoản. Kiểm tra mã và thử lại."
+              />
             ))}
         </>
       )}
-    </section>
+    </TicketLookupLayout>
   );
 }
