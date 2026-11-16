@@ -1,4 +1,7 @@
 import { isMockApi } from "@/shared/api/config";
+import { useAutoCarousel } from "@/shared/hooks/useAutoCarousel";
+import { Pause } from "@phosphor-icons/react/dist/csr/Pause";
+import { Play } from "@phosphor-icons/react/dist/csr/Play";
 import {
   catalogueRoutes,
   useLiveCatalogue,
@@ -38,6 +41,18 @@ const ROUTES = [
     destinationId: "loc-hanoi",
     title: "TP. Hồ Chí Minh → Hà Nội",
     art: ["travel", 3],
+  },
+  {
+    originId: "loc-dalat",
+    destinationId: "loc-hcm",
+    title: "Đà Lạt → TP. Hồ Chí Minh",
+    art: ["extra", 0],
+  },
+  {
+    originId: "loc-hanoi",
+    destinationId: "loc-hcm",
+    title: "Hà Nội → TP. Hồ Chí Minh",
+    art: ["extra", 1],
   },
 ] satisfies {
   originId: string;
@@ -123,6 +138,13 @@ export function MockPopularRoutes(): ReactElement {
   const tomorrow = new Date(getVietnamTodayDate() + "T00:00:00Z");
   tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
   const departureDate = tomorrow.toISOString().slice(0, 10);
+  const routes = isMockApi
+    ? ROUTES
+    : catalogueRoutes(catalogue.data ?? [], departureDate).slice(
+        0,
+        ROUTES.length,
+      );
+  const auto = useAutoCarousel(rail, routes.length);
   useEffect(() => {
     const el = rail.current;
     if (!el) return;
@@ -147,6 +169,28 @@ export function MockPopularRoutes(): ReactElement {
           <p>Lịch chạy ngày {departureDate.split("-").reverse().join("/")}</p>
         </div>
         <div className="popular-routes__arrows">
+          <button
+            type="button"
+            aria-label={
+              auto.paused ? "Bật tự chuyển tuyến" : "Tạm dừng tự chuyển tuyến"
+            }
+            title={
+              auto.reducedMotion
+                ? "Tự chuyển đã tắt theo cài đặt giảm chuyển động"
+                : auto.paused
+                  ? "Bật tự chuyển tuyến"
+                  : "Tạm dừng tự chuyển tuyến"
+            }
+            aria-pressed={auto.paused}
+            disabled={auto.reducedMotion}
+            onClick={auto.togglePaused}
+          >
+            {auto.paused ? (
+              <Play size={18} aria-hidden />
+            ) : (
+              <Pause size={18} aria-hidden />
+            )}
+          </button>
           <button
             type="button"
             aria-label="Tuyến trước"
@@ -176,13 +220,7 @@ export function MockPopularRoutes(): ReactElement {
         role="region"
         tabIndex={0}
       >
-        {(isMockApi
-          ? ROUTES
-          : catalogueRoutes(catalogue.data ?? [], departureDate).slice(
-              0,
-              ROUTES.length,
-            )
-        ).map((route) => (
+        {routes.map((route) => (
           <RouteCard
             key={route.originId + route.destinationId}
             route={route}

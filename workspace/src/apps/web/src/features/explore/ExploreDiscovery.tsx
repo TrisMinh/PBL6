@@ -1,4 +1,7 @@
 import { isMockApi } from "@/shared/api/config";
+import { useAutoCarousel } from "@/shared/hooks/useAutoCarousel";
+import { Pause } from "@phosphor-icons/react/dist/csr/Pause";
+import { Play } from "@phosphor-icons/react/dist/csr/Play";
 import {
   catalogueRoutes,
   catalogueProvinces,
@@ -110,6 +113,17 @@ export function FeaturedRoutes(): ReactElement {
   const tomorrow = new Date(getVietnamTodayDate() + "T00:00:00Z");
   tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
   const departureDate = tomorrow.toISOString().slice(0, 10);
+  const routes = isMockApi
+    ? featuredRoutes.map(([originId, destinationId, art]) => ({
+        originId,
+        destinationId,
+        art,
+      }))
+    : catalogueRoutes(catalogue.data ?? [], departureDate).slice(
+        0,
+        featuredRoutes.length,
+      );
+  const auto = useAutoCarousel(rail, routes.length);
 
   useEffect(() => {
     const track = rail.current;
@@ -152,6 +166,28 @@ export function FeaturedRoutes(): ReactElement {
         <div className="explore-discovery__arrows">
           <button
             type="button"
+            aria-label={
+              auto.paused ? "Bật tự chuyển tuyến" : "Tạm dừng tự chuyển tuyến"
+            }
+            title={
+              auto.reducedMotion
+                ? "Tự chuyển đã tắt theo cài đặt giảm chuyển động"
+                : auto.paused
+                  ? "Bật tự chuyển tuyến"
+                  : "Tạm dừng tự chuyển tuyến"
+            }
+            aria-pressed={auto.paused}
+            disabled={auto.reducedMotion}
+            onClick={auto.togglePaused}
+          >
+            {auto.paused ? (
+              <Play size={18} aria-hidden />
+            ) : (
+              <Pause size={18} aria-hidden />
+            )}
+          </button>
+          <button
+            type="button"
             aria-label="Xem tuyến trước"
             disabled={edges.start}
             onClick={() => move(-1)}
@@ -169,17 +205,7 @@ export function FeaturedRoutes(): ReactElement {
         </div>
       </header>
       <div ref={rail} className="explore-discovery__rail">
-        {(isMockApi
-          ? featuredRoutes.map(([originId, destinationId, photo]) => ({
-              originId,
-              destinationId,
-              art: photo,
-            }))
-          : catalogueRoutes(catalogue.data ?? [], departureDate).slice(
-              0,
-              featuredRoutes.length,
-            )
-        ).map(({ originId, destinationId, art: photo }) => {
+        {routes.map(({ originId, destinationId, art: photo }) => {
           const trips = (isMockApi ? demoTrips : (catalogue.data ?? [])).filter(
             (trip) =>
               trip.origin.id === originId &&
