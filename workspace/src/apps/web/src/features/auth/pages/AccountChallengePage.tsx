@@ -1,7 +1,7 @@
 import type { ReactElement } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
-import { Link, useSearchParams } from "react-router";
+import { Link, Navigate, useSearchParams } from "react-router";
 import {
   verifyEmail,
   resendVerification,
@@ -18,6 +18,7 @@ export function AccountChallengePage({
 }: {
   reset?: boolean;
 }): ReactElement {
+  if (!isMockApi && !reset) return <Navigate to="/register" replace />;
   return isMockApi ? (
     <MockAccountChallenge reset={reset} />
   ) : (
@@ -34,10 +35,10 @@ function LiveAccountChallenge({ reset }: { reset: boolean }): ReactElement {
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
   const mutation = useMutation({
-    mutationFn: () =>
-      reset
-        ? resetPassword(challengeId, code, password)
-        : verifyEmail(challengeId, code),
+    mutationFn: async () => {
+      if (reset) await resetPassword(challengeId, code, password);
+      else await verifyEmail(challengeId, code);
+    },
     retry: false,
   });
   const resend = useMutation({

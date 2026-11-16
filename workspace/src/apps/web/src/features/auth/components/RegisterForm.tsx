@@ -1,7 +1,14 @@
 import { Toast } from "@/shared/ui/Toast/Toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, type UseFormReturn } from "react-hook-form";
-import { useState, type ReactElement } from "react";
+import { useEffect, useState, type ReactElement } from "react";
+import { isMockApi } from "@/shared/api/config";
+import { EmailVerificationForm } from "./EmailVerificationForm";
+import {
+  clearPendingVerification,
+  readPendingVerification,
+  type PendingVerification,
+} from "../lib/pendingVerification";
 import { Link } from "react-router";
 
 import { registerSchema } from "@/features/auth/schemas/auth.schema";
@@ -97,7 +104,13 @@ function RegisterFields({
     </div>
   );
 }
-export function RegisterForm(): ReactElement {
+export function RegisterForm({
+  pending = null,
+  onVerificationChange = () => {},
+}: {
+  pending?: PendingVerification | null;
+  onVerificationChange?: (pending: PendingVerification | null) => void;
+}): ReactElement {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const action = useAuthAction(),
     form = useForm<RegisterInput>({
@@ -110,7 +123,25 @@ export function RegisterForm(): ReactElement {
         confirmPassword: "",
       },
     });
-  if (action.isSuccess) return <NeutralSuccess />;
+  useEffect(() => {
+    if (action.isSuccess && !isMockApi) {
+      const next = readPendingVerification();
+      if (next) onVerificationChange(next);
+    }
+  }, [action.isSuccess, onVerificationChange]);
+  if (!isMockApi && pending)
+    return (
+      <EmailVerificationForm
+        pending={pending}
+        onChange={onVerificationChange}
+        onEdit={() => {
+          clearPendingVerification();
+          action.reset();
+          onVerificationChange(null);
+        }}
+      />
+    );
+  if (action.isSuccess && isMockApi) return <NeutralSuccess />;
   return (
     <>
       <AuthError error={action.error} />
@@ -135,9 +166,7 @@ export function RegisterForm(): ReactElement {
         })}
       >
         <fieldset className="auth-page__fields" disabled={action.isPending}>
-          <legend className="auth-page__sr-only">
-            Thông tin đăng ký mô phỏng
-          </legend>
+          <legend className="auth-page__sr-only">Thông tin đăng ký</legend>
           <RegisterFields form={form} />
           <p className="auth-page__password-help">
             Tối thiểu 8 ký tự, gồm chữ và số.

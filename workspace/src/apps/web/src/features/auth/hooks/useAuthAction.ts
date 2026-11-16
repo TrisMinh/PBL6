@@ -11,6 +11,7 @@ import type {
   OAuthInput,
 } from "@/features/auth/repositories/authRepository";
 import { httpAuthRepository } from "@/features/auth/repositories/httpAuthRepository";
+import { verifyEmail } from "@/features/auth/repositories/backendAuthRepository";
 import { writeMockSession } from "@/features/auth/lib/sessionStorage";
 import { safeIntendedRedirect } from "@/features/auth/lib/intendedRedirect";
 import { workspaceRedirect } from "@/features/auth/lib/workspaceAccess";
@@ -19,6 +20,7 @@ import { BookingRepositoryError } from "@/features/booking/repositories/bookingR
 type Action =
   | { kind: "login"; input: LoginInput }
   | { kind: "register"; input: RegisterInput }
+  | { kind: "verify"; input: { challengeId: string; code: string } }
   | { kind: "forgot"; input: ForgotInput }
   | { kind: "oauth"; input: OAuthInput };
 interface Attempt {
@@ -59,12 +61,19 @@ async function execute(
     case "register":
       await httpAuthRepository.register(action.input, signal);
       break;
+    case "verify":
+      session = await verifyEmail(action.input.challengeId, action.input.code);
+      break;
     case "forgot":
       await httpAuthRepository.forgot(action.input, signal);
       break;
   }
   if (!ref.current.mounted) throw new BookingRepositoryError("ABORTED");
-  if (session && import.meta.env.VITE_APP_TARGET === "customer" && session.role !== "customer")
+  if (
+    session &&
+    import.meta.env.VITE_APP_TARGET === "customer" &&
+    session.role !== "customer"
+  )
     throw new BookingRepositoryError("INVALID_CREDENTIALS", 403);
   if (session && !writeMockSession(session))
     throw new BookingRepositoryError("STORAGE_UNAVAILABLE");
@@ -80,6 +89,7 @@ interface AuthActionResult {
   isSuccess: boolean;
   error: BookingRepositoryError | null;
   submit: (action: Action) => void;
+  reset: () => void;
 }
 export function useAuthAction(): AuthActionResult {
   const ref = useAttempt(),
@@ -120,6 +130,10 @@ export function useAuthAction(): AuthActionResult {
     isPending: mutation.isPending,
     isSuccess: mutation.isSuccess,
     error: mutation.error,
+    reset: () => {
+      ref.current.locked = false;
+      mutation.reset();
+    },
     submit: (action: Action) => {
       const state = ref.current;
       if (!state.mounted || state.locked) return;

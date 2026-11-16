@@ -8,6 +8,10 @@ import {
 } from "@/shared/api/session";
 import { BookingRepositoryError } from "@/features/booking/repositories/bookingRepositoryError";
 import type { AuthRepository } from "./authRepository";
+import {
+  clearPendingVerification,
+  savePendingVerification,
+} from "../lib/pendingVerification";
 
 const accepted = z.object({
   operationId: z.string().uuid(),
@@ -38,9 +42,13 @@ async function authAction<T>(
             ? "Tài khoản đang bị khóa. Vui lòng thử lại sau hoặc liên hệ hỗ trợ."
             : login && error.status === 429
               ? "Bạn đã thử đăng nhập quá nhiều lần. Vui lòng chờ rồi thử lại."
-              : error.code === "IDENTITY_ALREADY_USED"
-                ? "Email hoặc số điện thoại này đang được sử dụng bởi tài khoản khác. Vui lòng đăng nhập hoặc khôi phục mật khẩu."
-                : error.message;
+              : error.code === "VERIFICATION_EXPIRED"
+                ? "Mã xác minh đã hết hạn. Vui lòng gửi lại mã mới."
+                : error.code === "VERIFICATION_INVALID"
+                  ? "Mã xác minh không đúng hoặc đã được thay thế. Vui lòng kiểm tra mã mới nhất."
+                  : error.code === "IDENTITY_ALREADY_USED"
+                    ? "Email hoặc số điện thoại này đang được sử dụng bởi tài khoản khác. Vui lòng đăng nhập hoặc khôi phục mật khẩu."
+                    : error.message;
       throw mapped;
     }
     throw error;
@@ -65,7 +73,7 @@ export const backendAuthRepository: AuthRepository = {
     }, true),
   register: (input, signal) =>
     authAction(async () => {
-      await apiJson("/api/v1/auth/register", accepted, {
+      const result = await apiJson("/api/v1/auth/register", accepted, {
         method: "POST",
         auth: false,
         signal,
@@ -76,6 +84,7 @@ export const backendAuthRepository: AuthRepository = {
           password: input.password,
         },
       });
+      savePendingVerification(result.operationId, input.email);
     }),
   forgot: (input, signal) =>
     authAction(async () => {
@@ -93,20 +102,27 @@ export const backendAuthRepository: AuthRepository = {
 export async function verifyEmail(
   challengeId: string,
   code: string,
-): Promise<void> {
-  await apiJson("/api/v1/auth/verify", z.unknown(), {
-    method: "POST",
-    auth: false,
-    body: { challengeId, code },
-    idempotencyKey: crypto.randomUUID(),
+): Promise<ReturnType<typeof toUiSession>> {
+  return authAction(async () => {
+    const session = await apiJson("/api/v1/auth/verify", backendSessionSchema, {
+      method: "POST",
+      auth: false,
+      body: { challengeId, code },
+      idempotencyKey: crypto.randomUUID(),
+    });
+    clearPendingVerification();
+    return toUiSession(saveApiSession(session));
   });
 }
 export async function resendVerification(email: string): Promise<void> {
-  await apiJson("/api/v1/auth/resend-verification", accepted, {
-    method: "POST",
-    auth: false,
-    body: { email },
-    idempotencyKey: crypto.randomUUID(),
+  return authAction(async () => {
+    const result = await apiJson("/api/v1/auth/resend-verification", accepted, {
+      method: "POST",
+      auth: false,
+      body: { email },
+      idempotencyKey: crypto.randomUUID(),
+    });
+    savePendingVerification(result.operationId, email);
   });
 }
 export async function resetPassword(
