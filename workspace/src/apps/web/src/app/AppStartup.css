@@ -1,0 +1,36 @@
+.app-startup__screen {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: grid;
+  place-items: center;
+  overflow: auto;
+  background: #f6f9ff;
+  opacity: 1;
+}
+.app-startup__screen .brand-loading {
+  width: 100%;
+  min-height: 100svh;
+  margin: 0;
+}
+.app-startup__screen[data-leaving="true"] {
+  animation: app-startup-exit 240ms ease-out both;
+  pointer-events: none;
+}
+.app-startup__content[data-loading="true"] {
+  visibility: hidden;
+}
+body:has(.app-startup__screen) {
+  overflow: hidden;
+}
+@keyframes app-startup-exit {
+  to {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .app-startup__screen[data-leaving="true"] {
+    animation: none;
+    opacity: 0;
+  }
+}
