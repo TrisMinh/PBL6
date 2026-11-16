@@ -81,7 +81,7 @@ it.each(cases)(
     } else if (status !== "pending")
       expect(
         screen.getByRole("link", { name: "Chọn phương thức khác" }),
-      ).toHaveAttribute("href", "/payment/" + draft.bookingId + "/vnpay");
+      ).toHaveAttribute("href", "/payment/" + draft.bookingId + "/sepay");
     expect(
       screen.queryByText(/test\+review|0912345678/),
     ).not.toBeInTheDocument();
@@ -127,7 +127,7 @@ it.each([
         return HttpResponse.json({});
       }),
     );
-    show("/payment/vnpay/return" + query);
+    show("/payment/sepay/return" + query);
     expect(
       await screen.findByRole("heading", {
         name: "Không thể xác nhận giao dịch",

@@ -16,7 +16,7 @@ it("selects a bank and outcome without asking for real payment credentials", asy
     screen.getByRole("button", { name: "Chọn phương thức thanh toán" }),
   );
   expect(
-    screen.getByRole("dialog", { name: "Thanh toán VNPay mô phỏng" }),
+    screen.getByRole("dialog", { name: "Thanh toán SePay mô phỏng" }),
   ).toBeVisible();
   expect(
     screen.getByRole("tab", { name: "Thẻ ATM / Ngân hàng" }),
@@ -51,4 +51,26 @@ it("lets users cancel and disable submission while a payment is pending", () => 
   );
   fireEvent.click(screen.getByRole("button", { name: "Hủy giao dịch" }));
   expect(pay).toHaveBeenCalledExactlyOnceWith("cancelled");
+});
+
+it("shows SePay QR branding in the original inline layout without contacting a live provider", () => {
+  const pay = vi.fn();
+  render(
+    <MockPaymentGateway
+      inline
+      amount={300000}
+      bookingId="BK-DEMO"
+      pending={false}
+      onPay={pay}
+    />,
+  );
+  expect(screen.getByLabelText("SePay")).toBeVisible();
+  expect(screen.getByRole("tab", { name: "SePay QR" })).toHaveAttribute(
+    "aria-selected",
+    "true",
+  );
+  expect(screen.queryByText(/VNPay/i)).not.toBeInTheDocument();
+  expect(screen.getByText(/MÃ MINH HỌA/)).toBeVisible();
+  fireEvent.click(screen.getByRole("tab", { name: "Thẻ quốc tế" }));
+  expect(screen.getByText("Thẻ thanh toán quốc tế")).toBeVisible();
 });

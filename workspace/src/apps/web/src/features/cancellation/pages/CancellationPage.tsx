@@ -291,13 +291,13 @@ function RefundSummary({
           <dd>{money(amounts.refund)}</dd>
         </div>
         <div>
-          <dt>Hoàn về VNPay</dt>
+          <dt>Hoàn về SePay</dt>
           <dd>{money(amounts.refund)}</dd>
         </div>
       </dl>
       <section className="cancellation-page__payment-method">
         <span>PHƯƠNG THỨC HOÀN TIỀN</span>
-        <strong>Giao dịch VNPay ban đầu</strong>
+        <strong>Giao dịch SePay ban đầu</strong>
         <small>Dự kiến 3–7 ngày làm việc</small>
       </section>
       {reviewing ? (
@@ -497,7 +497,7 @@ export function RefundProcessing({
             <dl>
               <div>
                 <dt>TRẠNG THÁI</dt>
-                <dd>VNPay đang xử lý hoàn tiền</dd>
+                <dd>SePay đang xử lý hoàn tiền</dd>
               </div>
               <div>
                 <dt>SỐ TIỀN</dt>
@@ -521,7 +521,7 @@ export function RefundProcessing({
                 </small>
               </div>
             </div>
-            <p>Bạn có thể rời trang; BLUE sẽ thông báo khi VNPay hoàn tất.</p>
+            <p>Bạn có thể rời trang; BLUE sẽ thông báo khi SePay hoàn tất.</p>
           </div>
           <div className="cancellation-page__progress">
             <span>TIẾN TRÌNH</span>
@@ -533,7 +533,7 @@ export function RefundProcessing({
               </li>
               <li>
                 <strong>Đang hoàn tiền</strong>
-                <small>VNPay đang xử lý</small>
+                <small>SePay đang xử lý</small>
               </li>
               <li>
                 <strong>Thông báo kết quả</strong>

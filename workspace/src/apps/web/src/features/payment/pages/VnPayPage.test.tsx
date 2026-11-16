@@ -60,8 +60,8 @@ function show(): RenderResult {
 it("shows payment options and waiting state without a redundant continue action", async () => {
   await setup();
   show();
-  await screen.findByRole("region", { name: "VNPay mô phỏng" });
-  expect(screen.getByRole("tab", { name: "VNPay QR" })).toHaveAttribute(
+  await screen.findByRole("region", { name: "SePay mô phỏng" });
+  expect(screen.getByRole("tab", { name: "SePay QR" })).toHaveAttribute(
     "aria-selected",
     "true",
   );
@@ -70,13 +70,13 @@ it("shows payment options and waiting state without a redundant continue action"
   ).toBeVisible();
   expect(screen.getByText("Chờ xác nhận thanh toán")).toBeVisible();
   expect(
-    screen.queryByRole("button", { name: "Tiếp tục đến VNPay" }),
+    screen.queryByRole("button", { name: "Tiếp tục đến SePay" }),
   ).not.toBeInTheDocument();
 });
 it("keeps transaction details available separately from payment choices", async () => {
   await setup();
   show();
-  await screen.findByRole("region", { name: "VNPay mô phỏng" });
+  await screen.findByRole("region", { name: "SePay mô phỏng" });
   await userEvent.click(
     screen.getByText("Thông tin giao dịch", { selector: "summary" }),
   );
@@ -87,7 +87,7 @@ it("keeps transaction details available separately from payment choices", async 
 it("switches away from QR to a bank without creating a transaction", async () => {
   await setup();
   show();
-  await screen.findByRole("region", { name: "VNPay mô phỏng" });
+  await screen.findByRole("region", { name: "SePay mô phỏng" });
   await userEvent.click(
     screen.getByRole("tab", { name: "Thẻ ATM / Ngân hàng" }),
   );
@@ -105,7 +105,7 @@ it("rapid payment click creates one transaction and stores IDs before callback r
     }),
   );
   show();
-  await screen.findByRole("region", { name: "VNPay mô phỏng" });
+  await screen.findByRole("region", { name: "SePay mô phỏng" });
   await userEvent.click(
     screen.getByText("Bản trải nghiệm · Mô phỏng kết quả ngân hàng"),
   );
@@ -114,7 +114,7 @@ it("rapid payment click creates one transaction and stores IDs before callback r
   );
   await waitFor(() =>
     expect(screen.getByLabelText("Current path")).toHaveTextContent(
-      "/payment/vnpay/return?transactionId=",
+      "/payment/sepay/return?transactionId=",
     ),
   );
   expect(calls).toBe(1);
@@ -142,7 +142,7 @@ it("safe retry keeps original key/booking while failure detail never renders", a
     }),
   );
   show();
-  await screen.findByRole("region", { name: "VNPay mô phỏng" });
+  await screen.findByRole("region", { name: "SePay mô phỏng" });
   await userEvent.click(
     screen.getByText("Bản trải nghiệm · Mô phỏng kết quả ngân hàng"),
   );
@@ -172,7 +172,7 @@ it("fails malformed booked draft closed without offering payment", async () => {
     await screen.findByRole("heading", { name: "Vui lòng kiểm tra đặt vé" }),
   ).toBeVisible();
   expect(
-    screen.queryByRole("button", { name: "Tiếp tục đến VNPay" }),
+    screen.queryByRole("button", { name: "Tiếp tục đến SePay" }),
   ).not.toBeInTheDocument();
 });
 

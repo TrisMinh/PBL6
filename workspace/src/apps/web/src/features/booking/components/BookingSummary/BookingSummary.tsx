@@ -291,7 +291,7 @@ export function BookingSummary({
             </span>
             <strong>
               {variant === "payment"
-                ? "VNPay Sandbox"
+                ? "SePay Sandbox"
                 : "Chọn ở bước tiếp theo"}
             </strong>
             <small>

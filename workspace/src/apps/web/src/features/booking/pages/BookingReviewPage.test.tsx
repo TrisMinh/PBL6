@@ -91,8 +91,8 @@ it("creates once through guarded review and preserves booking on back and refres
             element: <BookingReviewPage />,
           },
           {
-            path: "/payment/:bookingId/vnpay",
-            element: <h1>Chuẩn bị VNPay</h1>,
+            path: "/payment/:bookingId/sepay",
+            element: <h1>Chuẩn bị SePay</h1>,
           },
         ],
       },
@@ -110,7 +110,7 @@ it("creates once through guarded review and preserves booking on back and refres
   });
   await waitFor(() => expect(button).toBeEnabled());
   await userEvent.dblClick(button);
-  await screen.findByRole("heading", { name: "Chuẩn bị VNPay" });
+  await screen.findByRole("heading", { name: "Chuẩn bị SePay" });
   const saved = useBookingDraftStore.getState().draft;
   expect(saved?.bookingId).toBeTruthy();
   expect(saved?.expiresAt).toBe(draft.expiresAt);
@@ -127,7 +127,7 @@ it("creates once through guarded review and preserves booking on back and refres
   await userEvent.click(
     screen.getByRole("button", { name: /Tiếp tục thanh toán/ }),
   );
-  await screen.findByRole("heading", { name: "Chuẩn bị VNPay" });
+  await screen.findByRole("heading", { name: "Chuẩn bị SePay" });
   expect(mockDb.bookings.size).toBe(1);
   expect(useBookingDraftStore.getState().draft?.bookingId).toBe(
     saved?.bookingId,

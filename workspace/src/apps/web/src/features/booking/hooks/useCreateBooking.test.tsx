@@ -155,7 +155,7 @@ it("persists one attempt before POST, locks double-submit and stores bookingId b
   expect(result.current.isPending).toBe(true);
   release();
   await waitFor(() =>
-    expect(result.current.path).toMatch(/^\/payment\/[^/]+\/vnpay$/),
+    expect(result.current.path).toMatch(/^\/payment\/[^/]+\/sepay$/),
   );
   const draft = useBookingDraftStore.getState().draft;
   expect(draft).toMatchObject({
@@ -165,7 +165,7 @@ it("persists one attempt before POST, locks double-submit and stores bookingId b
     totalVnd: 640000,
     bookingId: expect.any(String),
   });
-  expect(result.current.path).toBe(`/payment/${draft?.bookingId}/vnpay`);
+  expect(result.current.path).toBe(`/payment/${draft?.bookingId}/sepay`);
 });
 it("retries with the same persisted key after ambiguous failure and remount", async () => {
   const state = await setup();

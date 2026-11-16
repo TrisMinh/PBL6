@@ -1,3 +1,5 @@
+import { isMockApi } from "@/shared/api/config";
+import { VnPayReturnPage } from "@/features/payment/pages/VnPayReturnPage";
 import type { MetaDescriptor } from "react-router";
 import type { ReactElement } from "react";
 import { createMeta } from "@/shared/config/seo";
@@ -10,5 +12,5 @@ export function meta(): MetaDescriptor[] {
   });
 }
 export default function SePayRoute(): ReactElement {
-  return <BackendPaymentReturnPage />;
+  return isMockApi ? <VnPayReturnPage /> : <BackendPaymentReturnPage />;
 }

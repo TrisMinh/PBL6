@@ -86,7 +86,7 @@ it("persists one key before POST, locks rapid submits and stores opaque IDs befo
   release();
   await waitFor(() =>
     expect(view.result.current.path).toMatch(
-      /^\/payment\/vnpay\/return\?transactionId=/,
+      /^\/payment\/sepay\/return\?transactionId=/,
     ),
   );
   const draft = useBookingDraftStore.getState().draft;

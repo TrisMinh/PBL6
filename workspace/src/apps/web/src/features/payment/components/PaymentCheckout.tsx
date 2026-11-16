@@ -16,7 +16,7 @@ interface Props {
 }
 export function ProviderPanel({
   amount,
-  label = "VNPay mô phỏng",
+  label = "SePay mô phỏng",
 }: {
   amount: number;
   label?: string;
@@ -24,14 +24,14 @@ export function ProviderPanel({
   return (
     <div className="payment-checkout__provider">
       <span>CỔNG THANH TOÁN</span>
-      <strong>VNPay Sandbox</strong>
+      <strong>SePay Sandbox</strong>
       <span>SỐ TIỀN ĐƯỢC XÁC NHẬN</span>
       <strong className="payment-checkout__amount">
         {formatCurrencyVnd(amount)}
       </strong>
       <p>Phiên thanh toán hết hạn cùng thời gian giữ ghế.</p>
       <div className="payment-checkout__brand" aria-label={label}>
-        <strong>VNPAY</strong>
+        <strong>SePay</strong>
         <span>SANDBOX · SECURE CHECKOUT</span>
       </div>
     </div>
@@ -43,7 +43,7 @@ function TransactionDetails({ draft }: Pick<Props, "draft">): ReactElement {
       <dl>
         <div>
           <dt>NHÀ CUNG CẤP</dt>
-          <dd>VNPay · Môi trường Sandbox</dd>
+          <dd>SePay · Môi trường Sandbox</dd>
         </div>
         <div>
           <dt>MÃ ĐẶT CHỖ</dt>
@@ -75,7 +75,7 @@ function TransactionDetails({ draft }: Pick<Props, "draft">): ReactElement {
 }
 export function PaymentCheckout(props: Props): ReactElement {
   return (
-    <section className="payment-checkout" aria-label="VNPay mô phỏng">
+    <section className="payment-checkout" aria-label="SePay mô phỏng">
       <MockPaymentGateway
         inline
         amount={props.draft.totalVnd}

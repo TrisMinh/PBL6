@@ -12,7 +12,7 @@ describe.each([
   {
     name: "paymentVnPayPath",
     buildPath: paymentVnPayPath,
-    expected: "/payment/A%2FB/vnpay",
+    expected: "/payment/A%2FB/sepay",
   },
   {
     name: "bookingSeatsPath",

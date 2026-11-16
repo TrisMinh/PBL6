@@ -17,7 +17,7 @@ const transaction = {
   createdAt: "2099-01-01T00:00:00.000Z",
   expiresAt: "2099-01-01T00:10:00.000Z",
   returnPath:
-    "/payment/vnpay/return?transactionId=tx-opaque&resultId=result-opaque",
+    "/payment/sepay/return?transactionId=tx-opaque&resultId=result-opaque",
 };
 const ticket = {
   ticketId: "ticket-one",
@@ -44,9 +44,9 @@ describe("payment runtime boundary", () => {
   );
   it.each([
     "https://evil.invalid/path",
-    "/payment/vnpay/return?status=success",
-    "/payment/vnpay/return?transactionId=other&resultId=result-opaque",
-    "/payment/vnpay/return?transactionId=tx-opaque&resultId=result-opaque&email=test+private@example.invalid",
+    "/payment/sepay/return?status=success",
+    "/payment/sepay/return?transactionId=other&resultId=result-opaque",
+    "/payment/sepay/return?transactionId=tx-opaque&resultId=result-opaque&email=test+private@example.invalid",
   ])("rejects untrusted return path %s", (returnPath) =>
     expect(
       paymentCreateSchema.safeParse({ ...transaction, returnPath }).success,

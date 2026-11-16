@@ -45,7 +45,7 @@ const documents: Record<
     sections: [
       [
         "Dữ liệu trong bản demo",
-        "Bản trải nghiệm dùng dữ liệu giả. Không nhập giấy tờ, mật khẩu ngân hàng hoặc thông tin cá nhân nhạy cảm thật. Tài khoản Google/Facebook và VNPay trong demo đều được mô phỏng.",
+        "Bản trải nghiệm dùng dữ liệu giả. Không nhập giấy tờ, mật khẩu ngân hàng hoặc thông tin cá nhân nhạy cảm thật. Tài khoản Google/Facebook và SePay trong demo đều được mô phỏng.",
       ],
       [
         "Lưu trữ trên thiết bị",
@@ -95,8 +95,8 @@ const documents: Record<
         "dat-som",
       ],
       [
-        "Thanh toán VNPay",
-        "Kiểm tra tổng tiền ở bước xem lại đơn, sau đó chọn VNPay để thử luồng thanh toán mô phỏng. Bản trải nghiệm không thu tiền hoặc áp dụng mã giảm giá thật.",
+        "Thanh toán SePay",
+        "Kiểm tra tổng tiền ở bước xem lại đơn, sau đó chọn SePay để thử luồng thanh toán mô phỏng. Bản trải nghiệm không thu tiền hoặc áp dụng mã giảm giá thật.",
         "thanh-toan",
       ],
       [
@@ -128,7 +128,7 @@ const faqs = [
   ],
   [
     "Demo có thu tiền thật không?",
-    "Không. Các tài khoản, Google/Facebook, VNPay, vé và yêu cầu hỗ trợ đều phục vụ mô phỏng trải nghiệm.",
+    "Không. Các tài khoản, Google/Facebook, SePay, vé và yêu cầu hỗ trợ đều phục vụ mô phỏng trải nghiệm.",
   ],
 ];
 export function InformationPage(): ReactElement {

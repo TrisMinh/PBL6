@@ -8,7 +8,7 @@ import { formatCurrencyVnd } from "@/shared/lib/formatCurrencyVnd";
 import type { PaymentStatus } from "../types/payment";
 import "./MockPaymentGateway.css";
 
-const METHODS = ["VNPay QR", "Thẻ ATM / Ngân hàng", "Thẻ quốc tế"] as const;
+const METHODS = ["SePay QR", "Thẻ ATM / Ngân hàng", "Thẻ quốc tế"] as const;
 const BANKS = [
   { code: "VCB", name: "Vietcombank" },
   { code: "BIDV", name: "BIDV" },
@@ -40,15 +40,15 @@ export function MockPaymentGateway({
   pending,
   onPay,
 }: Props): ReactElement {
-  const [method, setMethod] = useState<(typeof METHODS)[number]>("VNPay QR");
+  const [method, setMethod] = useState<(typeof METHODS)[number]>("SePay QR");
   const [bank, setBank] = useState("VCB");
   const [outcome, setOutcome] = useState<PaymentStatus>("success");
   const baseId = useId();
   const content = (
     <>
       <header className="mock-gateway__header">
-        <strong aria-label="VNPay">
-          VN<span>PAY</span>
+        <strong aria-label="SePay">
+          Se<span>Pay</span>
         </strong>
         {!inline && (
           <Dialog.Close asChild>
@@ -65,7 +65,7 @@ export function MockPaymentGateway({
       {inline ? (
         <h2>Chọn phương thức thanh toán</h2>
       ) : (
-        <Dialog.Title>Thanh toán VNPay mô phỏng</Dialog.Title>
+        <Dialog.Title>Thanh toán SePay mô phỏng</Dialog.Title>
       )}
       {!inline && (
         <Dialog.Description id={`${baseId}-description`}>
@@ -115,7 +115,7 @@ export function MockPaymentGateway({
             }}
             onClick={() => setMethod(item)}
           >
-            {item === "VNPay QR" ? (
+            {item === "SePay QR" ? (
               <QrCode
                 size={22}
                 weight="bold"
@@ -148,7 +148,7 @@ export function MockPaymentGateway({
         tabIndex={0}
         className="mock-gateway__panel"
       >
-        {method === "VNPay QR" ? (
+        {method === "SePay QR" ? (
           <div className="mock-gateway__qr">
             <div className="mock-gateway__qr-symbol" aria-hidden="true">
               <QrCode size={inline ? 160 : 112} />

@@ -8,8 +8,8 @@ import { VnPayPage } from "@/features/payment/pages/VnPayPage";
 
 export function meta(): MetaDescriptor[] {
   return createMeta({
-    title: "Thanh toán qua VNPay",
-    description: "Kiểm tra đặt vé và tiếp tục thanh toán qua VNPay.",
+    title: "Thanh toán qua SePay",
+    description: "Kiểm tra đặt vé và tiếp tục thanh toán qua SePay.",
     noIndex: true,
   });
 }

@@ -36,7 +36,7 @@ function actionLabel(draft: BookingDraft): string {
     ? "Kiểm tra giao dịch"
     : draft.paymentAttempt
       ? "Thử lại yêu cầu thanh toán"
-      : "Tiếp tục đến VNPay";
+      : "Tiếp tục đến SePay";
 }
 function PaymentHeading({ draft }: { draft: BookingDraft }): ReactElement {
   return (

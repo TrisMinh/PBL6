@@ -38,7 +38,7 @@ export function ExplorePromoTicker(): ReactElement {
       tone: "orange",
     },
     {
-      title: "Thanh toán qua VNPay",
+      title: "Thanh toán qua SePay",
       tag: "QR · ATM · Thẻ",
       to: "/offers#thanh-toan",
       Icon: QrCode,

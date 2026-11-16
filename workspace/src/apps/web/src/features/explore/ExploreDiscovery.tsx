@@ -55,8 +55,8 @@ const offers: EditorialItem[] = [
 const payments: EditorialItem[] = [
   {
     image: ["editorial", 2, 3],
-    headline: "Thanh toán VNPay",
-    title: "Hướng dẫn thanh toán VNPay",
+    headline: "Thanh toán SePay",
+    title: "Hướng dẫn thanh toán SePay",
     copy: "Xem các bước kiểm tra đơn và thanh toán mô phỏng.",
     to: "/offers#thanh-toan",
   },

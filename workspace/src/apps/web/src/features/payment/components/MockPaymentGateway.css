@@ -40,7 +40,7 @@
   font-weight: 800;
 }
 .mock-gateway__header > strong span {
-  color: var(--color-status-error);
+  color: #059669;
 }
 .mock-gateway__close {
   width: 44px;

@@ -46,7 +46,7 @@ export function getAssistantReply(
     };
   if (/thanh toan|vnpay|ngan hang/.test(value))
     return {
-      text: "Ở bước thanh toán, bạn có thể chọn VNPay QR, ATM/ngân hàng hoặc thẻ quốc tế. Vé chỉ được phát hành khi giao dịch được xác nhận. Bản trải nghiệm hiện không thu tiền thật.",
+      text: "Ở bước thanh toán, bạn có thể chọn SePay QR, ATM/ngân hàng hoặc thẻ quốc tế. Vé chỉ được phát hành khi giao dịch được xác nhận. Bản trải nghiệm hiện không thu tiền thật.",
       actions: [{ label: "Hướng dẫn thanh toán", to: "/offers#thanh-toan" }],
     };
   if (/cach dat|huong dan|dat ve nhu/.test(value))

@@ -118,7 +118,7 @@ function PaymentDetails({ result }: { result: PaymentResult }): ReactElement {
         </div>
         <div>
           <dt>Cổng thanh toán</dt>
-          <dd>VNPay mô phỏng</dd>
+          <dd>SePay mô phỏng</dd>
         </div>
         <div>
           <dt>Thời gian giao dịch</dt>

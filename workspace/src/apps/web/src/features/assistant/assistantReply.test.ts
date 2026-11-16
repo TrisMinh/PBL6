@@ -29,7 +29,7 @@ it("offers supported help and keeps mock route IDs out of live mode", () => {
     "/tickets/lookup",
   );
   expect(getAssistantReply("Hủy vé").actions?.[0].to).toBe("/account/tickets");
-  expect(getAssistantReply("Thanh toán VNPay").text).toContain(
+  expect(getAssistantReply("Thanh toán SePay").text).toContain(
     "không thu tiền thật",
   );
   expect(getAssistantReply("Sài Gòn đi Đà Lạt", false).actions?.[0].to).toBe(
