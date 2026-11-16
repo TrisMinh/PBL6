@@ -1,4 +1,5 @@
 import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
+import { useAnimatedGrid } from "@/shared/hooks/useAnimatedGrid";
 import { Toast } from "@/shared/ui/Toast/Toast";
 import { useEffect, useState, type ReactElement } from "react";
 import { Link, useSearchParams } from "react-router";
@@ -40,14 +41,23 @@ import "./AccountTicketsPage.css";
 function TicketList({
   items,
   showPhotos,
+  layoutKey,
 }: {
   items: readonly TicketDetail[];
   showPhotos: boolean;
+  layoutKey: string;
 }): ReactElement {
+  const list = useAnimatedGrid(
+    layoutKey + items.map((ticket) => ticket.ticketCode).join(","),
+  );
   return (
-    <ul className="account-tickets__list">
+    <ul ref={list} className="account-tickets__list">
       {items.map((ticket) => (
-        <li key={ticket.ticketCode} className="account-tickets__item">
+        <li
+          key={ticket.ticketCode}
+          className="account-tickets__item"
+          data-motion-key={ticket.ticketCode}
+        >
           <article>
             <div className="account-tickets__meta">
               <code>{ticket.ticketCode}</code>
@@ -243,7 +253,11 @@ function History({
           onClose={() => setViewError(false)}
         />
       )}
-      <TicketList items={query.data.items} showPhotos />
+      <TicketList
+        items={query.data.items}
+        showPhotos
+        layoutKey={view.layout + view.size}
+      />
     </div>
   );
 }

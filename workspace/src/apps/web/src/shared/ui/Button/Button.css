@@ -6,7 +6,7 @@
     --button-border-width: 1px;
     --button-focus-width: 2px;
     --button-focus-offset: 2px;
-    --button-transition-duration: 160ms;
+    --button-transition-duration: var(--motion-fast, 160ms);
     --button-disabled-opacity: 0.5;
 
     display: inline-flex;
@@ -30,7 +30,10 @@
     transition:
       background-color var(--button-transition-duration) ease,
       border-color var(--button-transition-duration) ease,
-      color var(--button-transition-duration) ease;
+      color var(--button-transition-duration) ease,
+      box-shadow var(--motion-control, 220ms) var(--motion-ease-out, ease-out),
+      translate var(--motion-control, 220ms) var(--motion-ease-out, ease-out),
+      scale var(--motion-instant, 100ms) ease;
   }
 
   .button--primary {
@@ -98,6 +101,20 @@
   .button > svg,
   .button > img {
     flex-shrink: 0;
+  }
+  @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+    .button:hover:not(:disabled, [aria-busy="true"]) {
+      translate: 0 -1px;
+    }
+    .button--primary:hover:not(:disabled, [aria-busy="true"]) {
+      box-shadow: 0 5px 16px #1557c92b;
+    }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .button:active:not(:disabled, [aria-busy="true"]) {
+      translate: 0 0;
+      scale: 0.98;
+    }
   }
   .button__content {
     display: inline-flex;

@@ -13,6 +13,7 @@ import { AppProviders } from "@/app/AppProviders";
 import { ROUTES } from "@/shared/config/routes";
 import { PageState } from "@/shared/ui/PageState/PageState";
 import { AppStartup, StartupScreen } from "@/app/AppStartup";
+import { MotionExperience } from "@/app/MotionExperience";
 import { STARTUP_BOOTSTRAP_SCRIPT } from "@/app/startupSession";
 import "@/styles/app.css";
 
@@ -77,6 +78,7 @@ export function HydrateFallback(): ReactElement {
 export default function App(): ReactElement {
   return (
     <AppProviders>
+      <MotionExperience />
       <AppStartup>
         <Outlet />
       </AppStartup>

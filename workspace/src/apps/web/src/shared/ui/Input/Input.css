@@ -38,6 +38,10 @@
   color: var(--color-text-primary);
   font: inherit;
   line-height: 1.5;
+  transition:
+    border-color var(--motion-fast, 160ms) ease,
+    box-shadow var(--motion-control, 220ms) var(--motion-ease-out, ease-out),
+    background-color var(--motion-fast, 160ms) ease;
 }
 
 .field__control::placeholder {
@@ -51,6 +55,8 @@
 .field__control:focus-visible {
   outline: var(--field-focus-width) solid var(--color-focus-ring);
   outline-offset: var(--field-focus-offset);
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--color-focus-ring) 10%, transparent);
 }
 
 .field__control[readonly],

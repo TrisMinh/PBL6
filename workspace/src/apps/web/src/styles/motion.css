@@ -1,0 +1,443 @@
+:root {
+  --motion-instant: 100ms;
+  --motion-fast: 160ms;
+  --motion-control: 220ms;
+  --motion-panel: 280ms;
+  --motion-reveal: 520ms;
+  --motion-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* Keep input and hover feedback local, including native controls. */
+:where(button, a, input, textarea, select, summary) {
+  -webkit-tap-highlight-color: transparent;
+}
+:where(button, a, summary) {
+  transition:
+    color var(--motion-fast) ease,
+    background-color var(--motion-fast) ease,
+    border-color var(--motion-fast) ease,
+    box-shadow var(--motion-control) var(--motion-ease-out),
+    scale var(--motion-instant) ease;
+}
+:where(input, textarea, select) {
+  transition:
+    border-color var(--motion-fast) ease,
+    background-color var(--motion-fast) ease,
+    box-shadow var(--motion-control) var(--motion-ease-out);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .app-startup__content[data-loading="false"] .home-hero__copy > * {
+    animation: blue-content-enter var(--motion-reveal) var(--motion-ease-out)
+      backwards;
+  }
+  .app-startup__content[data-loading="false"] .home-hero__title {
+    animation-delay: 60ms;
+  }
+  .app-startup__content[data-loading="false"] .home-hero__description {
+    animation-delay: 110ms;
+  }
+  .app-startup__content[data-loading="false"] .home-hero__search {
+    animation: blue-content-enter var(--motion-reveal) var(--motion-ease-out)
+      140ms backwards;
+  }
+  button:not(
+      :disabled,
+      [aria-disabled="true"],
+      [aria-busy="true"],
+      .blue-assistant__launcher
+    ):active {
+    scale: 0.98;
+  }
+  [data-motion-reveal] {
+    transition:
+      opacity var(--motion-reveal) var(--motion-ease-out),
+      translate var(--motion-reveal) var(--motion-ease-out);
+  }
+  [data-motion-reveal="pending"] {
+    opacity: 0;
+    translate: 0 18px;
+  }
+  [data-motion-reveal="visible"] {
+    opacity: 1;
+    translate: 0 0;
+  }
+
+  /* Animate newly mounted results without remounting existing form state. */
+  :is(
+    .trip-card,
+    .account-tickets__item,
+    .pending-bookings__card,
+    .blue-assistant__message
+  ) {
+    animation: blue-content-enter 360ms var(--motion-ease-out) backwards;
+  }
+  .account-tickets__list > :nth-child(2),
+  :is(.trip-results__list, .pending-bookings__list) > :nth-child(2) > article {
+    animation-delay: 30ms;
+  }
+  .account-tickets__list > :nth-child(3),
+  :is(.trip-results__list, .pending-bookings__list) > :nth-child(3) > article {
+    animation-delay: 60ms;
+  }
+  .account-tickets__list > :nth-child(4),
+  :is(.trip-results__list, .pending-bookings__list) > :nth-child(4) > article {
+    animation-delay: 90ms;
+  }
+
+  :is(
+    .trip-card,
+    .account-tickets__item,
+    .pending-bookings__card,
+    .popular-routes__card,
+    .explore-discovery__card,
+    .explore__province-card
+  ) {
+    transition:
+      box-shadow var(--motion-control) var(--motion-ease-out),
+      border-color var(--motion-control) ease,
+      translate var(--motion-control) var(--motion-ease-out);
+  }
+  :is(
+      .trip-card__photo,
+      .account-tickets__photo,
+      .explore-discovery__image,
+      .popular-routes__card
+    )
+    img {
+    transition: scale 480ms var(--motion-ease-out);
+  }
+  :is(
+    .customer-layout__nav-link,
+    .operator-workspace__nav-link,
+    .admin-layout__nav-link
+  ) {
+    transition:
+      color var(--motion-fast) ease,
+      background-color var(--motion-fast) ease,
+      box-shadow var(--motion-control) var(--motion-ease-out);
+  }
+  :is(.customer-account__trigger, .notification-bell__trigger) {
+    transition:
+      border-color var(--motion-fast) ease,
+      box-shadow var(--motion-control) var(--motion-ease-out),
+      scale var(--motion-control) var(--motion-ease-out);
+  }
+  :is(.account-tickets__segmented, .trip-results__view, .account-tickets__tabs)
+    :is(button, a) {
+    transition:
+      background-color var(--motion-fast) ease,
+      color var(--motion-fast) ease,
+      box-shadow var(--motion-control) var(--motion-ease-out);
+  }
+  :is(.trip-filters, .pending-bookings__toolbar) :is(label, button),
+  .trip-highlights__amenities span {
+    transition:
+      color var(--motion-fast) ease,
+      background-color var(--motion-fast) ease,
+      border-color var(--motion-fast) ease;
+  }
+
+  /* The independent scale/translate properties preserve existing centering transforms. */
+  :is(
+    .seat-conflict__content,
+    .trip-offer__dialog,
+    .organization-dialog__content,
+    .staff-dialog__content,
+    .transaction-filters__dialog
+  )[data-state="open"] {
+    animation: blue-dialog-enter var(--motion-panel) var(--motion-ease-out) both;
+  }
+  :is(
+    .seat-conflict__content,
+    .trip-offer__dialog,
+    .organization-dialog__content,
+    .staff-dialog__content,
+    .transaction-filters__dialog
+  )[data-state="closed"] {
+    animation: blue-dialog-exit var(--motion-fast) ease-in both;
+  }
+  :is(
+    .seat-conflict__overlay,
+    .trip-offer__overlay,
+    .organization-dialog__overlay,
+    .staff-dialog__overlay,
+    .customer-layout__overlay,
+    .operator-workspace__overlay,
+    .transaction-filters__overlay
+  )[data-state="open"] {
+    animation: blue-fade-in var(--motion-control) ease-out both;
+  }
+  :is(
+    .seat-conflict__overlay,
+    .trip-offer__overlay,
+    .organization-dialog__overlay,
+    .staff-dialog__overlay,
+    .customer-layout__overlay,
+    .operator-workspace__overlay,
+    .transaction-filters__overlay
+  )[data-state="closed"] {
+    animation: blue-fade-out var(--motion-fast) ease-in both;
+  }
+  :is(.customer-account__menu, .notification-bell__panel)[data-state="open"] {
+    animation: blue-popover-enter var(--motion-control) var(--motion-ease-out)
+      both;
+  }
+  :is(.customer-account__menu, .notification-bell__panel)[data-state="closed"] {
+    animation: blue-popover-exit 120ms ease-in both;
+  }
+  :is(
+    .customer-layout__drawer,
+    .operator-workspace__drawer
+  )[data-state="open"] {
+    animation: blue-drawer-enter 320ms var(--motion-ease-out) both;
+  }
+  :is(
+    .customer-layout__drawer,
+    .operator-workspace__drawer
+  )[data-state="closed"] {
+    animation: blue-drawer-exit 180ms ease-in both;
+  }
+
+  :is(.date-picker__popup, .time-picker__popup) {
+    opacity: 0;
+    translate: 0 -5px;
+    transition:
+      opacity var(--motion-fast) ease,
+      translate var(--motion-control) var(--motion-ease-out),
+      display var(--motion-control) allow-discrete,
+      overlay var(--motion-control) allow-discrete;
+  }
+  :is(.date-picker__popup, .time-picker__popup):popover-open {
+    opacity: 1;
+    translate: 0 0;
+  }
+  @starting-style {
+    :is(.date-picker__popup, .time-picker__popup):popover-open {
+      opacity: 0;
+      translate: 0 -5px;
+    }
+  }
+
+  @supports (appearance: base-select) {
+    select:not([multiple]):not([size])::picker(select) {
+      opacity: 0;
+      translate: 0 -4px;
+      transition:
+        opacity var(--motion-fast) ease,
+        translate var(--motion-control) var(--motion-ease-out),
+        display var(--motion-control) allow-discrete,
+        overlay var(--motion-control) allow-discrete;
+    }
+    select:not([multiple]):not([size]):open::picker(select) {
+      opacity: 1;
+      translate: 0 0;
+    }
+    @starting-style {
+      select:not([multiple]):not([size]):open::picker(select) {
+        opacity: 0;
+        translate: 0 -4px;
+      }
+    }
+  }
+}
+
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  table tbody tr {
+    transition: background-color var(--motion-fast) ease;
+  }
+  table tbody tr:hover {
+    background-color: var(--color-bg-subtle);
+  }
+  :is(
+    .trip-card,
+    .account-tickets__item,
+    .pending-bookings__card,
+    .popular-routes__card,
+    .explore-discovery__card,
+    .explore__province-card
+  ):hover {
+    translate: 0 -3px;
+    border-color: #aecafa;
+    box-shadow:
+      0 10px 26px #174b9214,
+      0 2px 7px #174b920a;
+  }
+  :is(
+      .trip-card,
+      .account-tickets__item,
+      .popular-routes__card,
+      .explore-discovery__card
+    ):hover
+    :is(.trip-card__photo, .account-tickets__photo, .explore-discovery__image)
+    img {
+    scale: 1.035;
+  }
+  .popular-routes__card:hover img {
+    scale: 1.035;
+  }
+  :is(.customer-account__trigger, .notification-bell__trigger):hover {
+    scale: 1.04;
+  }
+  :is(
+    .trip-card__select,
+    .account-tickets__view,
+    .pending-bookings__continue,
+    .support-banner__cta,
+    .home-footer__social
+  ) {
+    transition:
+      translate var(--motion-control) var(--motion-ease-out),
+      scale var(--motion-instant) ease,
+      box-shadow var(--motion-control) var(--motion-ease-out),
+      background-color var(--motion-fast) ease;
+  }
+  :is(
+      .trip-card__select,
+      .account-tickets__view,
+      .pending-bookings__continue,
+      .support-banner__cta,
+      .home-footer__social
+    ):hover:not(:disabled, [aria-disabled="true"], [aria-busy="true"]) {
+    translate: 0 -1px;
+    box-shadow: 0 5px 14px #1557c926;
+  }
+  :is(
+      .trip-card__select,
+      .account-tickets__view,
+      .pending-bookings__continue,
+      .support-banner__cta,
+      .home-footer__social
+    ):active:not(:disabled, [aria-disabled="true"], [aria-busy="true"]) {
+    translate: 0 0;
+    scale: 0.98;
+  }
+}
+
+@supports (interpolate-size: allow-keywords) {
+  @media (prefers-reduced-motion: no-preference) {
+    :is(
+      .trip-card__details,
+      .payment-checkout__transaction-details,
+      .partner-sales__faq details
+    ) {
+      interpolate-size: allow-keywords;
+    }
+    :is(
+      .trip-card__details,
+      .payment-checkout__transaction-details,
+      .partner-sales__faq details
+    )::details-content {
+      block-size: 0;
+      overflow: clip;
+      transition:
+        block-size var(--motion-panel) var(--motion-ease-out),
+        content-visibility var(--motion-panel) allow-discrete;
+    }
+    :is(
+        .trip-card__details,
+        .payment-checkout__transaction-details,
+        .partner-sales__faq details
+      )[open]::details-content {
+      block-size: auto;
+    }
+  }
+}
+
+@keyframes blue-content-enter {
+  from {
+    opacity: 0;
+    translate: 0 8px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+@keyframes blue-dialog-enter {
+  from {
+    opacity: 0;
+    scale: 0.98;
+    translate: 0 8px;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+    translate: 0 0;
+  }
+}
+@keyframes blue-dialog-exit {
+  to {
+    opacity: 0;
+    scale: 0.985;
+    translate: 0 4px;
+  }
+}
+@keyframes blue-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes blue-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes blue-popover-enter {
+  from {
+    opacity: 0;
+    translate: 0 -5px;
+    scale: 0.985;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1;
+  }
+}
+@keyframes blue-popover-exit {
+  to {
+    opacity: 0;
+    translate: 0 -3px;
+  }
+}
+@keyframes blue-drawer-enter {
+  from {
+    opacity: 0.7;
+    translate: 24px 0;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+@keyframes blue-drawer-exit {
+  to {
+    opacity: 0;
+    translate: 24px 0;
+  }
+}
+
+@media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
+  .customer-layout__desktop-nav .customer-layout__nav-label::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    top: calc(100% + 9px);
+    height: 2px;
+    border-radius: 2px;
+    background-color: currentColor;
+    scale: 0 1;
+    transform-origin: left;
+    transition: scale var(--motion-control) var(--motion-ease-out);
+  }
+  .customer-layout__desktop-nav
+    .customer-layout__nav-link:is([aria-current="page"], :hover)
+    .customer-layout__nav-label::after {
+    scale: 1 1;
+  }
+}

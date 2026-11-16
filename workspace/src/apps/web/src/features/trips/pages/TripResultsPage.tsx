@@ -1,4 +1,5 @@
 import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
+import { useAnimatedGrid } from "@/shared/hooks/useAnimatedGrid";
 import { useLiveCatalogue } from "@/features/explore/liveCatalogue";
 import { DatePicker } from "@/shared/ui/DatePicker/DatePicker";
 import { Rows } from "@phosphor-icons/react/dist/csr/Rows";
@@ -322,6 +323,9 @@ function ResultsList({
     ...availableTrips.slice(6),
   ];
   const pageTrips = pageOrderedTrips.slice((page - 1) * 6, page * 6);
+  const list = useAnimatedGrid(
+    view + pageTrips.map((trip) => trip.id).join(","),
+  );
   return (
     <div className="trip-results__success" data-view={view}>
       <div className="trip-results__heading-row">
@@ -363,9 +367,17 @@ function ResultsList({
           </div>
         </div>
       </div>
-      <ul className="trip-results__list" aria-label="Danh sách chuyến">
+      <ul
+        ref={list}
+        className="trip-results__list"
+        aria-label="Danh sách chuyến"
+      >
         {pageTrips.map((trip) => (
-          <li className="trip-results__item" key={trip.id}>
+          <li
+            className="trip-results__item"
+            key={trip.id}
+            data-motion-key={trip.id}
+          >
             <TripCard
               trip={trip}
               showDate={allRoutes}
