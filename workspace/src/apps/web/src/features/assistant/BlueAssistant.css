@@ -40,14 +40,16 @@
   right: 0;
   display: flex;
   flex-direction: column;
-  width: min(390px, calc(100vw - 40px));
+  width: min(360px, calc(100vw - 24px));
   height: 490px;
   max-height: calc(100dvh - 208px);
   overflow: hidden;
-  border: 1px solid #c4d9f8;
-  border-radius: 18px;
+  border: 1px solid var(--color-border-shell);
+  border-radius: 12px;
   background: white;
-  box-shadow: 0 14px 55px #102b5429;
+  box-shadow: var(--shadow-card);
+  color: var(--color-text-primary);
+  font: 600 13px/1.4 var(--font-body);
   animation: blue-chat-open 0.18s ease-out;
 }
 .blue-assistant__panel--expanded {
@@ -57,16 +59,16 @@
   right: auto;
   bottom: auto;
   transform: translate(-50%, -50%);
-  width: min(900px, calc(100vw - 96px));
-  height: min(740px, calc(100dvh - 96px));
-  max-height: calc(100dvh - 96px);
+  width: min(900px, calc(100vw - 24px));
+  height: min(740px, calc(100dvh - 32px));
+  max-height: calc(100dvh - 32px);
   animation: none;
 }
 .blue-assistant__panel--expanded .blue-assistant__header {
   padding: 16px 20px;
 }
 .blue-assistant__panel--expanded .blue-assistant__header h2 {
-  font-size: 15px;
+  font-size: 13px;
 }
 .blue-assistant__panel--expanded .blue-assistant__messages {
   padding: 22px;
@@ -92,13 +94,13 @@
   display: flex;
   align-items: center;
   gap: 9px;
-  padding: 14px 12px;
+  padding: 12px 16px;
   border-bottom: 1px solid var(--color-border);
-  background: #f2f7ff;
+  background: white;
 }
 .blue-assistant__header > img {
-  width: 34px;
-  height: 36px;
+  width: 28px;
+  height: 30px;
   object-fit: contain;
 }
 .blue-assistant__header > div:first-of-type {
@@ -106,7 +108,8 @@
   min-width: 0;
 }
 .blue-assistant__header h2 {
-  font: 700 13px/1.5 var(--font-body);
+  font: 600 11px/1.5 var(--font-body);
+  color: var(--color-text-secondary);
   margin: 0;
 }
 .blue-assistant__header span {
@@ -125,22 +128,23 @@
   border: 0;
   border-radius: 7px;
   background: transparent;
-  color: #395d8d;
+  color: var(--color-text-secondary);
   cursor: pointer;
 }
 .blue-assistant__tools button:hover {
-  background: #dfeaff;
+  background: var(--color-bg-subtle);
 }
 .blue-assistant__messages {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: 18px 14px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 16px;
   scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
 }
 .blue-assistant__message {
   display: flex;
@@ -148,7 +152,7 @@
   gap: 8px;
 }
 .blue-assistant__message > img {
-  width: 27px;
+  width: 28px;
   height: 30px;
   flex-shrink: 0;
 }
@@ -159,12 +163,13 @@
 .blue-assistant__message p {
   margin: 0;
   padding: 10px 12px;
-  border: 1px solid #e2eaf6;
-  border-radius: 0 12px 12px;
-  color: #173454;
-  background: #f3f7fd;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  color: var(--color-text-primary);
+  background: var(--color-bg-subtle);
   font-size: 12px;
-  line-height: 1.7;
+  font-weight: 400;
+  line-height: 1.6;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
@@ -173,9 +178,9 @@
 }
 .blue-assistant__message--user p {
   color: white;
-  background: #2467df;
-  border-color: #2467df;
-  border-radius: 12px 0 12px 12px;
+  background: var(--color-bg-brand);
+  border-color: var(--color-bg-brand);
+  border-radius: 8px;
 }
 .blue-assistant__links {
   display: flex;
@@ -187,51 +192,51 @@
   display: inline-flex;
   align-items: center;
   padding: 6px 9px;
-  border: 1px solid #b8d3ff;
-  border-radius: 7px;
-  color: #1754bd;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  color: var(--color-bg-brand);
   background: white;
   text-decoration: none;
   font-size: 11px;
   font-weight: 600;
 }
 .blue-assistant__links a:hover {
-  background: #edf4ff;
+  background: var(--color-bg-subtle);
 }
 .blue-assistant__prompts {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  padding: 10px 12px;
-  border-top: 1px solid #edf1f7;
+  padding: 12px 16px;
+  border-top: 1px solid var(--color-border);
 }
 .blue-assistant__prompts button {
   padding: 5px 8px;
-  border: 1px solid #d1e1fa;
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   background: white;
-  color: #315c94;
-  font: 500 10px/1.5 var(--font-body);
+  color: var(--color-brand-shell-strong);
+  font: 500 11px/1.5 var(--font-body);
   cursor: pointer;
 }
 .blue-assistant__prompts button:hover {
-  background: #edf4ff;
+  background: var(--color-bg-subtle);
 }
 .blue-assistant__composer {
   display: flex;
   gap: 8px;
-  padding: 0 12px 12px;
+  padding: 0 16px 16px;
 }
 .blue-assistant__composer input {
   flex: 1;
   min-width: 0;
   height: 40px;
-  border: 1px solid #cbdcf5;
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   padding: 0 11px;
-  font: 12px var(--font-body);
+  font: 13px var(--font-body);
   color: var(--color-text-primary);
-  background: #fafcff;
+  background: white;
 }
 .blue-assistant__composer > button {
   display: grid;
@@ -244,7 +249,7 @@
   cursor: pointer;
 }
 .blue-assistant__composer > button:disabled {
-  background: #dce6f6;
+  background: var(--color-action-disabled);
   cursor: default;
 }
 .blue-assistant__input-label {
