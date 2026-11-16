@@ -7,6 +7,7 @@ public static class IdentityEndpoints
 {
     public static IEndpointRouteBuilder MapIdentityEndpoints(this IEndpointRouteBuilder app)
     {
+        app.MapCustomerPreferencesEndpoints();
         var api = app.MapGroup("/api/v1");
         var auth = api.MapGroup("/auth").AllowAnonymous();
         auth.MapPost("/register", RegisterAsync);

@@ -23,6 +23,7 @@ public sealed class SqlBaselineMigrator(NotificationDatabaseOptions options)
 
         await ApplyFileAsync(connection, "sql.shared", "000_integration_tables.sql", cancellationToken);
         await ApplyFileAsync(connection, "sql.notification", "001_initial.sql", cancellationToken);
+        await ApplyFileAsync(connection, "sql.customer_requests", "002_customer_requests.sql", cancellationToken);
     }
 
     private static async Task ApplyFileAsync(

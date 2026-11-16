@@ -1,3 +1,8 @@
+import { isMockApi } from "@/shared/api/config";
+import {
+  createBackendAdminRepository,
+  createBackendMembershipRepository,
+} from "./backendAdminRepository";
 import { apiFetch as fetch } from "@/shared/api/client";
 import type { z } from "zod";
 import { z as zod } from "zod";
@@ -110,6 +115,7 @@ export function createMembershipRepository(access: AdminAccess): {
   create: (input: MembershipInput, key: string) => Promise<Membership>;
   update: (input: MembershipInput) => Promise<Membership>;
 } {
+  if (!isMockApi) return createBackendMembershipRepository();
   return {
     list: (filters, signal) => {
       const params = new URLSearchParams();
@@ -351,6 +357,7 @@ function transactionMethods(access: AdminAccess): TransactionMethods {
 export function createHttpAdminRepository(
   access: AdminAccess,
 ): AdminRepository {
+  if (!isMockApi) return createBackendAdminRepository();
   return {
     ...organizationMethods(access),
     ...staffMethods(access),

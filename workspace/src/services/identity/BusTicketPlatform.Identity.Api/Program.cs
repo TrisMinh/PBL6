@@ -81,6 +81,8 @@ app.UseAuthorization();
 app.MapPlatformHealth();
 app.MapPlatformOpenApi();
 app.MapIdentityEndpoints();
+app.MapAdminUserProfiles();
+app.MapOperatorStaff();
 
 app.Run();
 

@@ -1,3 +1,4 @@
+import { normalizeVietnamPhone } from "@/shared/lib/normalizeVietnamPhone";
 import { z } from "zod";
 import { apiJson } from "@/shared/api/client";
 import { ApiError, unavailable } from "@/shared/api/error";
@@ -53,7 +54,10 @@ export const backendAuthRepository: AuthRepository = {
         {
           method: "POST",
           auth: false,
-          body: { identifier: input.email, password: input.password },
+          body: {
+            identifier: normalizeVietnamPhone(input.email),
+            password: input.password,
+          },
           signal,
         },
       );
@@ -70,7 +74,7 @@ export const backendAuthRepository: AuthRepository = {
         body: {
           fullName: input.fullName,
           email: input.email,
-          phone: input.phone,
+          phone: normalizeVietnamPhone(input.phone),
           password: input.password,
         },
       });

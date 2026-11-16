@@ -99,9 +99,9 @@ export const backendTripRepository: TripRepository = {
   },
   search: async (input, signal) => {
     const query = new URLSearchParams({
-      origin: input.originId,
-      destination: input.destinationId,
-      departureDate: input.departureDate,
+      ...(input.originId ? { origin: input.originId } : {}),
+      ...(input.destinationId ? { destination: input.destinationId } : {}),
+      ...(input.departureDate ? { departureDate: input.departureDate } : {}),
       passengerCount: String(input.passengerCount),
       page: "0",
       size: "100",
@@ -143,6 +143,26 @@ export const backendTripRepository: TripRepository = {
       items.push(...result.items.map(toTrip));
       if (page + 1 >= result.totalPages) break;
     }
-    return items;
+    const batches: Trip[][] = [];
+    for (let offset = 0; offset < items.length; offset += 100)
+      batches.push(items.slice(offset, offset + 100));
+    const inventory = await Promise.all(
+      batches.map(async (batch) => {
+        const ids = new URLSearchParams({
+          ids: batch.map((trip) => trip.id).join(","),
+        });
+        const counts = await apiJson(
+          `/api/v1/trips/availability?${ids}`,
+          z.record(z.string(), z.number().int().nonnegative()),
+          { signal, auth: false },
+        );
+        return batch.map((trip) => ({
+          ...trip,
+          availableSeatCount: counts[trip.id] ?? 0,
+          seatCountIsCapacity: false,
+        }));
+      }),
+    );
+    return inventory.flat();
   },
 };

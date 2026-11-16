@@ -19,8 +19,12 @@ export const backendTripSchema = z.object({
   operatorName: z.string(),
   busType: z.string(),
   amenities: z.array(z.string()),
-  departureAt: z.string(),
-  arrivalAt: z.string(),
+  departureAt: z.iso
+    .datetime({ offset: true })
+    .transform((value) => new Date(value).toISOString()),
+  arrivalAt: z.iso
+    .datetime({ offset: true })
+    .transform((value) => new Date(value).toISOString()),
   origin: z.string(),
   destination: z.string(),
   fare: moneySchema,
@@ -95,6 +99,9 @@ export const bookingSchema = z.object({
   ),
 });
 export const backendTicketSchema = z.object({
+  unitPrice: z.number().optional(),
+  seatId: z.string().uuid().optional(),
+  bookingItemId: z.string().uuid().optional(),
   id: z.string().uuid(),
   publicCode: z.string(),
   bookingId: z.string().uuid(),

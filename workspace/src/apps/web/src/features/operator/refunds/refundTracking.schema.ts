@@ -23,7 +23,7 @@ export const refundTrackingSchema = refundRequestSchema
     progressLayout: z.enum(["standard", "timeline"]).default("standard"),
     cancelledTickets: z.number().int().nonnegative(),
     cancellationValue: z.number().int().nonnegative().nullable(),
-    paymentMethod: z.literal("VNPay").nullable(),
+    paymentMethod: z.string().nullable(),
     refundReference: z.string().min(1).nullable(),
   })
   .refine(

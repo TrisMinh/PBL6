@@ -170,7 +170,7 @@ public sealed partial class PaymentRepository(PaymentDatabaseOptions options) : 
     public async Task<RefundRecord?> GetRefundAsync(Guid refundId, CancellationToken cancellationToken)
     {
         await using var connection = await OpenAsync(cancellationToken);
-        await using var command = new NpgsqlCommand("SELECT id, payment_id, booking_id_external, requested_by_external, refund_reference, amount, currency, reason_code, status FROM refunds WHERE id = @id;", connection);
+        await using var command = new NpgsqlCommand("SELECT id, payment_id, booking_id_external, requested_by_external, refund_reference, amount, currency, reason_code, status, created_at FROM refunds WHERE id = @id;", connection);
         command.Parameters.AddWithValue("id", refundId);
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
         return await reader.ReadAsync(cancellationToken) ? ReadRefund(reader) : null;
@@ -179,7 +179,7 @@ public sealed partial class PaymentRepository(PaymentDatabaseOptions options) : 
     public async Task<RefundRecord?> GetRefundByReferenceAsync(Guid paymentId, string refundReference, CancellationToken cancellationToken)
     {
         await using var connection = await OpenAsync(cancellationToken);
-        await using var command = new NpgsqlCommand("SELECT id, payment_id, booking_id_external, requested_by_external, refund_reference, amount, currency, reason_code, status FROM refunds WHERE payment_id = @payment AND refund_reference = @ref;", connection);
+        await using var command = new NpgsqlCommand("SELECT id, payment_id, booking_id_external, requested_by_external, refund_reference, amount, currency, reason_code, status, created_at FROM refunds WHERE payment_id = @payment AND refund_reference = @ref;", connection);
         command.Parameters.AddWithValue("payment", paymentId);
         command.Parameters.AddWithValue("ref", refundReference);
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
@@ -280,7 +280,7 @@ public sealed partial class PaymentRepository(PaymentDatabaseOptions options) : 
     }
 
     public Task<(IReadOnlyList<RefundRecord> Items, long Total)> SearchRefundsAsync(Guid? orgId, int page, int size, CancellationToken cancellationToken) =>
-        SearchAsync("r.id, r.payment_id, r.booking_id_external, r.requested_by_external, r.refund_reference, r.amount, r.currency, r.reason_code, r.status", "refunds r JOIN payments p ON p.id = r.payment_id", orgId, page, size, ReadRefund, cancellationToken);
+        SearchAsync("r.id, r.payment_id, r.booking_id_external, r.requested_by_external, r.refund_reference, r.amount, r.currency, r.reason_code, r.status, r.created_at", "refunds r JOIN payments p ON p.id = r.payment_id", orgId, page, size, ReadRefund, cancellationToken);
 
     public async Task InsertSettlementAsync(SettlementRecord settlement, CancellationToken cancellationToken)
     {
@@ -328,7 +328,7 @@ public sealed partial class PaymentRepository(PaymentDatabaseOptions options) : 
         return payout;
     }
 
-    private const string PaymentCols = "id, booking_id_external, customer_id_external, organization_id_external, provider, logical_reference, amount, currency, status, expires_at, row_version, return_uri, checkout_method";
+    private const string PaymentCols = "id, booking_id_external, customer_id_external, organization_id_external, provider, logical_reference, amount, currency, status, expires_at, row_version, return_uri, checkout_method, created_at";
 
     private async Task<PaymentRecord?> QueryPayment(string sql, Guid id, CancellationToken cancellationToken, string? reference = null)
     {
@@ -367,10 +367,10 @@ public sealed partial class PaymentRepository(PaymentDatabaseOptions options) : 
     }
 
     private static PaymentRecord ReadPayment(NpgsqlDataReader reader) =>
-        new(reader.GetGuid(0), reader.GetGuid(1), reader.GetGuid(2), reader.GetGuid(3), reader.GetString(4), reader.GetString(5), reader.GetInt64(6), reader.GetString(7), reader.GetString(8), new DateTimeOffset(DateTime.SpecifyKind(reader.GetDateTime(9), DateTimeKind.Utc)), reader.GetInt64(10), reader.IsDBNull(11) ? null : reader.GetString(11), reader.IsDBNull(12) ? null : reader.GetString(12));
+        new(reader.GetGuid(0), reader.GetGuid(1), reader.GetGuid(2), reader.GetGuid(3), reader.GetString(4), reader.GetString(5), reader.GetInt64(6), reader.GetString(7), reader.GetString(8), new DateTimeOffset(DateTime.SpecifyKind(reader.GetDateTime(9), DateTimeKind.Utc)), reader.GetInt64(10), reader.IsDBNull(11) ? null : reader.GetString(11), reader.IsDBNull(12) ? null : reader.GetString(12), new DateTimeOffset(DateTime.SpecifyKind(reader.GetDateTime(13), DateTimeKind.Utc)));
 
     private static RefundRecord ReadRefund(NpgsqlDataReader reader) =>
-        new(reader.GetGuid(0), reader.GetGuid(1), reader.GetGuid(2), reader.GetGuid(3), reader.GetString(4), reader.GetInt64(5), reader.GetString(6), reader.GetString(7), reader.GetString(8));
+        new(reader.GetGuid(0), reader.GetGuid(1), reader.GetGuid(2), reader.GetGuid(3), reader.GetString(4), reader.GetInt64(5), reader.GetString(6), reader.GetString(7), reader.GetString(8), new DateTimeOffset(DateTime.SpecifyKind(reader.GetDateTime(9), DateTimeKind.Utc)));
 
     private static SettlementRecord ReadSettlement(NpgsqlDataReader reader) =>
         new(reader.GetGuid(0), reader.GetGuid(1), reader.GetGuid(2), reader.IsDBNull(3) ? null : reader.GetGuid(3), reader.GetString(4), reader.GetInt64(5), reader.GetDecimal(6), reader.GetInt64(7), reader.GetInt64(8), reader.GetString(9), reader.GetString(10));

@@ -1,4 +1,5 @@
-import type { ReactElement } from "react";
+import { useEffect, useState, type ReactElement } from "react";
+import { isMockApi } from "@/shared/api/config";
 import { Link } from "react-router";
 import { Info } from "@phosphor-icons/react/dist/csr/Info";
 import { Prohibit } from "@phosphor-icons/react/dist/csr/Prohibit";
@@ -94,6 +95,22 @@ function TicketFacts({ ticket }: { ticket: TicketDetail }): ReactElement {
   );
 }
 function TicketStub({ ticket }: { ticket: TicketDetail }): ReactElement {
+  const [image, setImage] = useState<{ payload: string; url: string }>();
+  const payload = ticket.qrPayload;
+  const qr = image && image.payload === payload ? image.url : undefined;
+  useEffect(() => {
+    if (isMockApi || !payload) return;
+    let active = true;
+    import("qrcode")
+      .then(({ toDataURL }) => toDataURL(payload, { width: 230, margin: 2 }))
+      .then((url) => {
+        if (active) setImage({ payload, url });
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [payload]);
   return (
     <aside className="ticket-card__stub" aria-label="Mã vé và điều hướng">
       <img
@@ -104,11 +121,15 @@ function TicketStub({ ticket }: { ticket: TicketDetail }): ReactElement {
       />
       <figure className="ticket-card__marker">
         <span>MÃ VÉ ĐIỆN TỬ</span>
-        {ticket.status === "issued" ? (
+        {ticket.status === "issued" && (isMockApi || qr) ? (
           <img
-            src={ticketQr}
-            alt="Mã vé minh họa, không dùng để quét"
-            data-presentation-only="true"
+            src={isMockApi ? ticketQr : qr}
+            alt={
+              isMockApi
+                ? "Mã vé minh họa, không dùng để quét"
+                : `Mã QR vé ${ticket.ticketCode}`
+            }
+            data-presentation-only={isMockApi ? "true" : undefined}
           />
         ) : (
           <div className="ticket-card__inactive">
@@ -117,7 +138,11 @@ function TicketStub({ ticket }: { ticket: TicketDetail }): ReactElement {
         )}
         <figcaption>
           {ticket.status === "issued"
-            ? "Minh họa mã vé — không dùng để quét"
+            ? isMockApi
+              ? "Minh họa mã vé — không dùng để quét"
+              : ticket.qrPayload
+                ? "Quét mã khi lên xe"
+                : "Mã QR không khả dụng"
             : "Vé đã hủy — mã vé không còn hiệu lực"}
         </figcaption>
       </figure>
@@ -179,7 +204,9 @@ export function TicketCard(props: Props): ReactElement {
             </p>
           )}
           <p className="ticket-card__policy">
-            Vé và thanh toán trong môi trường mô phỏng.
+            {isMockApi
+              ? "Vé và thanh toán trong môi trường mô phỏng."
+              : "Vui lòng chuẩn bị mã vé và giấy tờ khi lên xe."}
           </p>
         </div>
         <TicketStub ticket={props.ticket} />

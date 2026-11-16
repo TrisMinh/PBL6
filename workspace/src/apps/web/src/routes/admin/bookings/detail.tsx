@@ -1,10 +1,7 @@
-import { isMockApi } from "@/shared/api/config";
-import { BackendAdminDetailPage } from "@/features/admin/BackendAdminPage";
 import type { ReactElement } from "react";
 import { useParams, type MetaDescriptor } from "react-router";
 import { createMeta } from "@/shared/config/seo";
 import { BookingDetailPage } from "@/features/admin/transactions/pages/BookingDetailPage";
-
 export function meta(): MetaDescriptor[] {
   return createMeta({
     title: "Chi tiết đơn đặt vé",
@@ -12,12 +9,7 @@ export function meta(): MetaDescriptor[] {
     noIndex: true,
   });
 }
-
-export default function AdminBookingDetailRoute(): ReactElement {
+export default function Route(): ReactElement {
   const { bookingId = "" } = useParams();
-  return isMockApi ? (
-    <BookingDetailPage bookingId={bookingId} />
-  ) : (
-    <BackendAdminDetailPage resource="bookings" id={bookingId} />
-  );
+  return <BookingDetailPage bookingId={bookingId} />;
 }

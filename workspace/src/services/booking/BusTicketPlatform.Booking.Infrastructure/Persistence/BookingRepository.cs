@@ -202,6 +202,23 @@ public sealed class BookingRepository(BookingDatabaseOptions options, IIdGenerat
     public async Task<IReadOnlyList<InventorySeat>> ListSeatsAsync(Guid tripId, CancellationToken cancellationToken) =>
         await QuerySeats("SELECT id, trip_id, source_seat_id_external, seat_code, seat_type, deck, row_no, column_no, price, status, row_version FROM trip_seats WHERE trip_id = @trip ORDER BY deck, row_no, column_no", tripId, cancellationToken);
 
+    public async Task<IReadOnlyDictionary<Guid, int>> AvailableSeatsAsync(Guid[] tripIds, CancellationToken cancellationToken)
+    {
+        await using var connection = await OpenAsync(cancellationToken);
+        await using var command = new NpgsqlCommand("""
+            SELECT s.trip_id, COUNT(*)::int
+            FROM trip_seats s
+            WHERE s.trip_id = ANY(@trips) AND s.status = 'AVAILABLE'
+            GROUP BY s.trip_id
+            """, connection);
+        command.Parameters.AddWithValue("trips", tripIds);
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        var counts = tripIds.ToDictionary(id => id, _ => 0);
+        while (await reader.ReadAsync(cancellationToken))
+            counts[reader.GetGuid(0)] = reader.GetInt32(1);
+        return counts;
+    }
+
     public async Task<TripSnapshot?> GetTripAsync(Guid tripId, CancellationToken cancellationToken)
     {
         await using var connection = await OpenAsync(cancellationToken);
@@ -304,6 +321,48 @@ public sealed class BookingRepository(BookingDatabaseOptions options, IIdGenerat
                 return hold with { TotalAmount = total, CreatedAt = createdAt, ExpiresAt = expires, Seats = seats };
             }
         }
+    }
+
+    public async Task<SeatHoldRecord?> ReplaceHoldAsync(SeatHoldRecord hold, IReadOnlyList<Guid> seatIds, CancellationToken cancellationToken)
+    {
+        await using var connection = await OpenAsync(cancellationToken);
+        await using var tx = await connection.BeginTransactionAsync(cancellationToken);
+        await using (var guard = new NpgsqlCommand("SELECT id FROM seat_holds WHERE id=@hold AND customer_id_external=@owner AND status='ACTIVE' AND expires_at>NOW() FOR UPDATE", connection, tx))
+        {
+            guard.Parameters.AddWithValue("hold",hold.Id);
+            guard.Parameters.AddWithValue("owner",hold.CustomerId);
+            if(await guard.ExecuteScalarAsync(cancellationToken) is null) return null;
+        }
+        var prices = new Dictionary<Guid,long>();
+        await using (var locks = new NpgsqlCommand("SELECT id,price,status,active_hold_id FROM trip_seats WHERE trip_id=@trip AND (id=ANY(@ids) OR active_hold_id=@hold) ORDER BY id FOR UPDATE", connection, tx))
+        {
+            locks.Parameters.AddWithValue("trip",hold.TripId);
+            locks.Parameters.AddWithValue("ids",seatIds.ToArray());
+            locks.Parameters.AddWithValue("hold",hold.Id);
+            await using var reader=await locks.ExecuteReaderAsync(cancellationToken);
+            while(await reader.ReadAsync(cancellationToken))
+            {
+                var id=reader.GetGuid(0);
+                if(seatIds.Contains(id) && (reader.GetString(2)=="AVAILABLE" || reader.GetString(2)=="HELD" && !reader.IsDBNull(3) && reader.GetGuid(3)==hold.Id)) prices[id]=reader.GetInt64(1);
+            }
+        }
+        if(prices.Count!=seatIds.Count) return null;
+        await using (var update = new NpgsqlCommand("""
+            UPDATE trip_seats SET status='AVAILABLE',active_hold_id=NULL,updated_at=NOW(),row_version=row_version+1 WHERE active_hold_id=@hold AND NOT(id=ANY(@ids));
+            DELETE FROM seat_hold_items WHERE seat_hold_id=@hold;
+            INSERT INTO seat_hold_items(seat_hold_id,trip_seat_id,seat_code,unit_price) SELECT @hold,id,seat_code,price FROM trip_seats WHERE id=ANY(@ids) AND trip_id=@trip;
+            UPDATE trip_seats SET status='HELD',active_hold_id=@hold,updated_at=NOW(),row_version=row_version+1 WHERE id=ANY(@ids) AND trip_id=@trip;
+            UPDATE seat_holds SET total_amount=@total WHERE id=@hold;
+            """,connection,tx))
+        {
+            update.Parameters.AddWithValue("hold",hold.Id);
+            update.Parameters.AddWithValue("trip",hold.TripId);
+            update.Parameters.AddWithValue("ids",seatIds.ToArray());
+            update.Parameters.AddWithValue("total",prices.Values.Sum());
+            await update.ExecuteNonQueryAsync(cancellationToken);
+        }
+        await tx.CommitAsync(cancellationToken);
+        return hold with {TotalAmount=prices.Values.Sum(),Seats=await ListSeatsByIds(seatIds,cancellationToken)};
     }
 
     public async Task<SeatHoldRecord?> GetHoldByTokenHashAsync(string tokenHash, CancellationToken cancellationToken)
@@ -452,6 +511,14 @@ public sealed class BookingRepository(BookingDatabaseOptions options, IIdGenerat
         command.Parameters.AddWithValue("id", bookingId);
         var items = await ReadBookings(command, cancellationToken);
         return items.Count == 0 ? null : items[0];
+    }
+
+    public async Task<BookingRecord?> GetBookingByCodeAsync(string code, CancellationToken cancellationToken)
+    {
+        await using var connection = await OpenAsync(cancellationToken);
+        await using var command = new NpgsqlCommand(BookingSelect + " WHERE b.booking_code = @code;", connection);
+        command.Parameters.AddWithValue("code", code);
+        return (await ReadBookings(command, cancellationToken)).SingleOrDefault();
     }
 
     public Task<IReadOnlyList<BookingRecord>> ListBookingsForCustomerAsync(Guid customerId, int page, int size, CancellationToken cancellationToken) =>
@@ -733,7 +800,7 @@ public sealed class BookingRepository(BookingDatabaseOptions options, IIdGenerat
     private const string BookingSelect = """
         SELECT b.id, b.booking_code, b.seat_hold_id, b.trip_id, b.organization_id_external, b.customer_id_external,
                b.contact_name, b.contact_email, b.contact_phone, b.payment_channel, b.status, b.subtotal_amount,
-               b.discount_amount, b.service_fee_amount, b.total_amount, b.currency, b.expires_at, b.row_version
+               b.discount_amount, b.service_fee_amount, b.total_amount, b.currency, b.expires_at, b.row_version, b.created_at
         FROM bookings b
         """;
 
@@ -817,7 +884,7 @@ public sealed class BookingRepository(BookingDatabaseOptions options, IIdGenerat
                 reader.GetString(15),
                 new DateTimeOffset(DateTime.SpecifyKind(reader.GetDateTime(16), DateTimeKind.Utc)),
                 reader.GetInt64(17),
-                []));
+                [], new DateTimeOffset(DateTime.SpecifyKind(reader.GetDateTime(18), DateTimeKind.Utc))));
         }
 
         await reader.CloseAsync();

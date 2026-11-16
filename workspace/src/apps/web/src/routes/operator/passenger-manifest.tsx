@@ -1,5 +1,3 @@
-import { isMockApi } from "@/shared/api/config";
-import { BackendManifestPage } from "@/features/operator/BackendOperatorPage";
 import type { ReactElement } from "react";
 import { createMeta } from "@/shared/config/seo";
 import { PassengerManifestPage } from "@/features/operator/bookings/PassengerManifestPage";
@@ -10,6 +8,6 @@ export function meta(): ReturnType<typeof createMeta> {
     noIndex: true,
   });
 }
-export default function PassengerManifestRoute(): ReactElement {
-  return isMockApi ? <PassengerManifestPage /> : <BackendManifestPage />;
+export default function Route(): ReactElement {
+  return <PassengerManifestPage />;
 }

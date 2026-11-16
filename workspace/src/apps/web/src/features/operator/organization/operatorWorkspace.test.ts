@@ -1,5 +1,12 @@
-import { beforeEach, describe, expect, it } from "vitest";
-import { operatorBookingFixtures } from "@/mocks/fixtures/operatorBookings";
+import { beforeEach, expect, it, vi } from "vitest";
+const api = vi.hoisted(() => ({
+  rows: vi.fn(),
+  request: vi.fn(),
+  metadata: vi.fn(),
+  saveMetadata: vi.fn(),
+  localDateTime: (v: string) => v.slice(0, 16),
+}));
+vi.mock("../liveOriginalApi", () => api);
 import {
   readWorkspace,
   saveOrganization,
@@ -8,66 +15,98 @@ import {
   settlementTotals,
   settlementCsv,
 } from "./operatorWorkspace";
-
-beforeEach(() => sessionStorage.clear());
-describe("operator demo workspace", () => {
-  it("persists organization changes without modifying member and settlement records", () => {
-    const initial = readWorkspace();
-    saveOrganization({ ...initial.organization, phone: "0912345678" });
-    expect(readWorkspace().organization.phone).toBe("0912345678");
-    expect(readWorkspace().members).toEqual(initial.members);
-    expect(readWorkspace().settlements).toEqual(initial.settlements);
+beforeEach(() => {
+  vi.clearAllMocks();
+  api.rows.mockResolvedValue([]);
+  api.metadata.mockResolvedValue({});
+  api.request.mockResolvedValue({
+    id: "org",
+    name: "Real operator",
+    code: "REAL",
+    contactEmail: "real@example.com",
+    contactPhone: "0901234567",
+    allowPayLater: false,
+    rowVersion: 4,
   });
-  it("rejects duplicate emails and persists a valid invite with its chosen role", () => {
-    expect(() =>
-      saveMember({
-        name: "Test",
-        email: readWorkspace().members[0].email.toUpperCase(),
-        phone: "0901234567",
-        role: "dispatcher",
-      }),
-    ).toThrow(/đã tồn tại/);
-    const saved = saveMember({
-      name: "Phạm Bảo Ngọc",
-      email: "ngoc@example.invalid",
+});
+it("loads the organization from the server without browser fixture seeds", async () => {
+  sessionStorage.setItem(
+    "blue-operator-workspace-v1",
+    JSON.stringify({ organization: { name: "Fake" } }),
+  );
+  const value = await readWorkspace();
+  expect(value.organization.name).toBe("Real operator");
+  expect(value.members).toEqual([]);
+  expect(value.settlements).toEqual([]);
+});
+it("persists primary organization fields with the current server version before metadata", async () => {
+  await saveOrganization({
+    name: "New name",
+    code: "REAL",
+    email: "real@example.com",
+    phone: "0901234567",
+    address: "Address",
+    taxCode: "0312345678",
+    allowPayLater: true,
+  });
+  expect(api.request).toHaveBeenCalledWith(
+    "/api/v1/operator/organization",
+    "PATCH",
+    expect.objectContaining({ name: "New name", expectedVersion: 4 }),
+  );
+  expect(api.saveMetadata).toHaveBeenCalledWith(
+    "organization",
+    "org",
+    expect.objectContaining({ address: "Address" }),
+  );
+});
+it("propagates server errors without reporting a successful local save", async () => {
+  api.request.mockRejectedValue(Error("Access denied"));
+  await expect(
+    saveMember({
+      name: "Person",
+      email: "person@example.com",
       phone: "0901234567",
-      role: "accountant",
-    });
-    expect(
-      readWorkspace().members.find((m) => m.id === saved.id),
-    ).toMatchObject({ role: "accountant", status: "invited" });
+      role: "dispatcher",
+    }),
+  ).rejects.toThrow("Access denied");
+  expect(api.saveMetadata).not.toHaveBeenCalled();
+});
+it("uses real membership id and version for status changes", async () => {
+  api.rows.mockResolvedValue([
+    {
+      id: "member",
+      status: "ACTIVE",
+      roleCodes: ["OPERATOR_ADMIN"],
+      rowVersion: 8,
+    },
+  ]);
+  await setMemberStatus("member", "suspended");
+  expect(api.request).toHaveBeenCalledWith(
+    "/api/v1/operator/staff/member",
+    "PATCH",
+    { role: "OPERATOR_ADMIN", status: "SUSPENDED", expectedVersion: 8 },
+  );
+});
+it("calculates amounts and escapes CSV values", () => {
+  const items = [
+    {
+      code: 'a"b',
+      bookingCode: "BOOK",
+      route: "A",
+      date: "2026-11-16",
+      gross: 100,
+      refunds: 10,
+      commission: 5,
+      status: "pending" as const,
+      reference: "",
+    },
+  ];
+  expect(settlementTotals(items)).toEqual({
+    gross: 100,
+    refunds: 10,
+    commission: 5,
+    net: 85,
   });
-  it("preserves at least one active owner and updates a non-owner member", () => {
-    const members = readWorkspace().members;
-    const owner = members.find((m) => m.role === "owner");
-    const person = members.find((m) => m.role === "dispatcher");
-    if (!owner || !person) throw Error("Missing owner/dispatcher seed");
-    expect(() => setMemberStatus(owner.id, "suspended")).toThrow(
-      /quản trị viên/,
-    );
-    setMemberStatus(person.id, "suspended");
-    expect(
-      readWorkspace().members.find((m) => m.id === person.id)?.status,
-    ).toBe("suspended");
-  });
-  it("calculates settlement totals from amounts rather than static summary labels", () => {
-    const records = readWorkspace().settlements;
-    const totals = settlementTotals(records);
-    expect(totals.net).toBe(totals.gross - totals.refunds - totals.commission);
-    expect(new Set(records.map((r) => r.status)).size).toBe(3);
-    expect(settlementCsv(records.slice(0, 1))).toContain(records[0].code);
-    for (const settlement of records) {
-      const booking = operatorBookingFixtures.find(
-        (item) => item.id === settlement.bookingCode,
-      );
-      expect(booking?.amount).toBe(settlement.gross);
-      expect(settlement.refunds + settlement.commission).toBeLessThanOrEqual(
-        settlement.gross,
-      );
-    }
-  });
-  it("recovers cleanly from corrupt stored data", () => {
-    sessionStorage.setItem("blue-operator-workspace-v1", "not json");
-    expect(readWorkspace().members.length).toBeGreaterThan(4);
-  });
+  expect(settlementCsv(items)).toContain('"a""b"');
 });

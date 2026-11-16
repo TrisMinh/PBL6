@@ -170,7 +170,7 @@ describe.each(
     else if (path === "/payment/sepay/return")
       expect(title).toEqual({ title: "Kết quả thanh toán SePay | BLUE" });
     else if (path === "/payment/:bookingId/vnpay")
-      expect(title).toEqual({ title: "Thanh toán qua VNPay | BLUE" });
+      expect(title).toEqual({ title: "Thanh toán qua SePay | BLUE" });
     else if (path === "/payment/vnpay/return")
       expect(title).toEqual({ title: "Kết quả thanh toán | BLUE" });
     else if (path === "/tickets/:ticketCode")

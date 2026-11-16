@@ -25,7 +25,10 @@ export function getSelectedPassengerSeats(
     if (
       !seat ||
       (requireAvailability &&
-        (isMockApi ? seat.status !== "held" : seat.status !== "available"))
+        (isMockApi
+          ? seat.status !== "held"
+          : seat.status !== "available" &&
+            !(seat.status === "held" && seat.heldBySession)))
     )
       return null;
     seats.push({ id: seat.id, code: seat.code });

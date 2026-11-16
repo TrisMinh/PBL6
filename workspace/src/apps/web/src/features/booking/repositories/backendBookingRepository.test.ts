@@ -169,7 +169,12 @@ it("adapts real inventory, drafts selections locally, then holds and creates usi
   expect(getSelectedPassengerSeats(selected, layout)).toEqual([
     { id: ids.seat, code: "A1" },
   ]);
-  expect(calls.some((c) => c.init?.method === "POST")).toBe(false);
+  expect(
+    calls.filter(
+      (c) => c.path.endsWith("/seat-holds") && c.init?.method === "POST",
+    ),
+  ).toHaveLength(1);
+  expect(Date.parse(selected.expiresAt)).toBeGreaterThan(Date.now());
   const passengers = await backendBookingRepository.replacePassengers(
     session.sessionId,
     { fullName: "Khách", email: "a@example.com", phone: "0901234567" },

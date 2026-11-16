@@ -14,6 +14,8 @@ import "./ProvinceLocationDirectory.css";
 
 const cityImages: Record<string, number> = {
   "ho-chi-minh": 0,
+  "tp-ho-chi-minh": 0,
+  "da-lat": 1,
   "lam-dong": 1,
   "da-nang": 2,
   "ha-noi": 3,
@@ -75,9 +77,17 @@ export function ProvinceLocationDirectory({
   const points = province.points.filter(
     (point) => service === "all" || point.services.includes(service),
   );
-  const station = exploreStations.find(
-    (location) => location.provinceSlug === province.slug,
-  );
+  const station = province.isMock
+    ? exploreStations.find(
+        (location) => location.provinceSlug === province.slug,
+      )
+    : province.points[0]
+      ? {
+          ...province.points[0],
+          displayName: province.name,
+          imageIndex: cityImages[province.slug] ?? 0,
+        }
+      : undefined;
   const image = cityImages[province.slug];
 
   return (
@@ -189,7 +199,10 @@ export function ProvinceLocationDirectory({
                 <Bus size={17} aria-hidden /> Bến xe trong khu vực
               </p>
               <h2 id="province-station-title">{station.name}</h2>
-              <p>{station.displayName} · Bến xe mô phỏng</p>
+              <p>
+                {station.displayName} ·{" "}
+                {province.isMock ? "Bến xe mô phỏng" : "Điểm đón, trả"}
+              </p>
               <Link to={`${ROUTES.explore}#tuyen-pho-bien`}>
                 Xem tuyến phổ biến <ArrowRight size={17} aria-hidden />
               </Link>

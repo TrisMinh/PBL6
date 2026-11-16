@@ -8,6 +8,8 @@ export const passengerSchema = z.object({
   confirmed: z.boolean(),
 });
 export const tripDetailSchema = scheduleTripSchema.extend({
+  vehicleOptions: z.array(z.string()).optional(),
+  driverOptions: z.array(z.string()).optional(),
   vehicle: z.string(),
   driver: z.string(),
   assistant: z.string(),

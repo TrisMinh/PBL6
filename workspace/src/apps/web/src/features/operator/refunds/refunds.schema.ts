@@ -53,8 +53,8 @@ export const refundRequestSchema = z
     vehicleType: z.string(),
     tripCode: z.string(),
     route: z.string(),
-    requestedAt: z.iso.datetime({ offset: true }),
-    departureAt: z.iso.datetime({ offset: true }),
+    requestedAt: z.union([z.iso.datetime({ offset: true }), z.literal("")]),
+    departureAt: z.union([z.iso.datetime({ offset: true }), z.literal("")]),
     status: z.enum(["pending", "processing", "completed", "exception"]),
   })
   .refine(

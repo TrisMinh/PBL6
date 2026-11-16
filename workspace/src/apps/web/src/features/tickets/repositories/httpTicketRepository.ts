@@ -1,3 +1,5 @@
+import { isMockApi } from "@/shared/api/config";
+import { backendTicketRepository } from "./backendTicketRepository";
 import { BookingRepositoryError } from "@/features/booking/repositories/bookingRepositoryError";
 import { MOCK_SESSION_HEADER } from "@/features/auth/config/session";
 import { sessionTokenSchema } from "@/features/auth/schemas/session.schema";
@@ -16,7 +18,7 @@ import {
 } from "@/features/tickets/schemas/ticket.schema";
 import type { TicketRepository } from "@/features/tickets/repositories/ticketRepository";
 
-export const httpTicketRepository: TicketRepository = {
+const mockTicketRepository: TicketRepository = {
   getHistory: async (token, status, signal) => {
     if (!sessionTokenSchema.safeParse(token).success)
       throw new BookingRepositoryError("VALIDATION_ERROR", 400);
@@ -80,3 +82,7 @@ export const httpTicketRepository: TicketRepository = {
     return detail;
   },
 };
+
+export const httpTicketRepository = isMockApi
+  ? mockTicketRepository
+  : backendTicketRepository;

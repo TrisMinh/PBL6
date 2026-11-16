@@ -1,23 +1,30 @@
-import { apiFetch as fetch } from "@/shared/api/client";
-import {
-  stopCatalogueSchema,
-  type CataloguePlace,
-} from "./stopCatalogue.schema";
+import { getOperatorRoutes } from "./routesRepository";
+import type { CataloguePlace } from "./stopCatalogue.schema";
 export async function getStopCatalogue(
   origin: string,
   destination: string,
   distance: number,
   signal?: AbortSignal,
 ): Promise<CataloguePlace[]> {
-  const params = new URLSearchParams({
-    origin,
-    destination,
-    distance: String(distance),
-  });
-  const response = await fetch(`/api/v1/operator/stop-catalogue?${params}`, {
-    signal,
-  });
-  if (!response.ok)
-    throw Error("Không tải được danh mục địa điểm. Vui lòng thử lại.");
-  return stopCatalogueSchema.parse(await response.json()).items;
+  const routes = await getOperatorRoutes(signal);
+  const unique = new Map<string, CataloguePlace>();
+  for (const route of routes)
+    for (const stop of route.stops) {
+      if (stop.km <= distance)
+        unique.set(stop.id, {
+          id: stop.id,
+          province: route.origin,
+          district: route.destination,
+          name: stop.name,
+          address: stop.address,
+          km: stop.km,
+        });
+    }
+  return [...unique.values()].filter(
+    (p) =>
+      p.province === origin ||
+      p.province === destination ||
+      p.district === origin ||
+      p.district === destination,
+  );
 }

@@ -1,5 +1,5 @@
 import * as Dialog from "@radix-ui/react-dialog";
-import { useState, type ReactElement } from "react";
+import { useState, useEffect, type ReactElement } from "react";
 import { Link } from "react-router";
 import { OperatorSidebar } from "../components/OperatorSidebar";
 import { WorkspaceDialogHeading } from "./WorkspaceDialogHeading";
@@ -7,7 +7,7 @@ import { Button } from "@/shared/ui/Button/Button";
 import { Input } from "@/shared/ui/Input/Input";
 import { StatusBadge } from "@/shared/ui/StatusBadge/StatusBadge";
 import {
-  readWorkspace,
+  getSettlements,
   settlementCsv,
   settlementTotals,
   type Settlement,
@@ -22,7 +22,7 @@ const labels = {
 const money = (value: number): string => `${value.toLocaleString("vi-VN")} đ`;
 const date = (value: string): string => value.split("-").reverse().join("/");
 export function SettlementsPage(): ReactElement {
-  const [items] = useState(() => readWorkspace().settlements),
+  const [items, setItems] = useState<Settlement[]>([]),
     [search, setSearch] = useState(""),
     [status, setStatus] = useState("all"),
     [from, setFrom] = useState("2026-09-01"),
@@ -30,6 +30,22 @@ export function SettlementsPage(): ReactElement {
     [detail, setDetail] = useState<Settlement | null>(null),
     [notice, setNotice] = useState(""),
     [page, setPage] = useState(1);
+  useEffect(() => {
+    let active = true;
+    void getSettlements()
+      .then((values) => {
+        if (active) setItems(values);
+      })
+      .catch((error) => {
+        if (active)
+          setNotice(
+            error instanceof Error ? error.message : "Không tải được đối soát.",
+          );
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
   const invalidRange = Boolean(from && to && from > to);
   const filtered = items.filter(
     (r) =>

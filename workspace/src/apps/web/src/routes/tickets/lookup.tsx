@@ -1,5 +1,3 @@
-import { isMockApi } from "@/shared/api/config";
-import { BackendTicketLookupPage } from "@/features/tickets/pages/BackendTicketLookupPage";
 import type { ReactElement } from "react";
 import type { MetaDescriptor } from "react-router";
 
@@ -14,5 +12,5 @@ export function meta(): MetaDescriptor[] {
 }
 
 export default function TicketLookupRoute(): ReactElement {
-  return isMockApi ? <TicketLookupPage /> : <BackendTicketLookupPage />;
+  return <TicketLookupPage />;
 }

@@ -737,9 +737,7 @@ public sealed class TransportService(ITransportRepository store, ITransportEvent
     {
         if (query.PassengerCount is < 1 or > 10
             || query.Page < 0
-            || query.Size > 100
-            || string.IsNullOrWhiteSpace(query.Origin)
-            || string.IsNullOrWhiteSpace(query.Destination))
+            || query.Size > 100)
         {
             return Fail<TripPageDto>(PlatformErrors.Validation("Search query is invalid."));
         }

@@ -29,7 +29,9 @@ const trip = {
 describe("live search request", () => {
   beforeEach(() => vi.mocked(apiJson).mockReset());
   it("sends operator and stop filters with duration sorting", async () => {
-    vi.mocked(apiJson).mockResolvedValue({ items: [trip], totalPages: 1 });
+    vi.mocked(apiJson)
+      .mockResolvedValueOnce({ items: [trip], totalPages: 1 })
+      .mockResolvedValueOnce({ "trip-1": 7 });
     const rows = await backendTripRepository.search({
       ...input,
       filters: {
@@ -51,7 +53,8 @@ describe("live search request", () => {
     expect(rows[0]).toMatchObject({
       policyVersion: "cancel-mvp-v1",
       allowPayLater: true,
-      seatCountIsCapacity: true,
+      seatCountIsCapacity: false,
+      availableSeatCount: 7,
     });
   });
   it("keeps backend duration order across pages instead of reordering by departure", async () => {
@@ -67,10 +70,31 @@ describe("live search request", () => {
         ],
         totalPages: 2,
       })
-      .mockResolvedValueOnce({ items: [trip], totalPages: 2 });
+      .mockResolvedValueOnce({ items: [trip], totalPages: 2 })
+      .mockResolvedValueOnce({ short: 8, "trip-1": 7 });
     expect(
       (await backendTripRepository.search(input)).map((row) => row.id),
     ).toEqual(["short", "trip-1"]);
     expect(String(vi.mocked(apiJson).mock.calls[1][0])).toContain("page=1");
   });
+});
+
+it("loads the public catalogue without inventing route or date criteria", async () => {
+  vi.mocked(apiJson).mockReset();
+  vi.mocked(apiJson)
+    .mockResolvedValueOnce({ items: [trip], totalPages: 1 })
+    .mockResolvedValueOnce({ "trip-1": 7 });
+  const rows = await backendTripRepository.search({
+    ...input,
+    originId: "",
+    destinationId: "",
+    departureDate: "",
+  });
+  const url = new URL(
+    String(vi.mocked(apiJson).mock.calls[0][0]),
+    "https://test.invalid",
+  );
+  expect(url.searchParams.has("origin")).toBe(false);
+  expect(url.searchParams.has("departureDate")).toBe(false);
+  expect(rows[0].origin.id).toBe(input.originId);
 });

@@ -1,3 +1,9 @@
+import { isMockApi } from "@/shared/api/config";
+import {
+  catalogueRoutes,
+  catalogueProvinces,
+  useLiveCatalogue,
+} from "./liveCatalogue";
 import { useEffect, useRef, useState, type ReactElement } from "react";
 import { Link } from "react-router";
 import { ArrowRight } from "@phosphor-icons/react/dist/csr/ArrowRight";
@@ -57,7 +63,7 @@ const payments: EditorialItem[] = [
     image: ["editorial", 2, 3],
     headline: "Thanh toán SePay",
     title: "Hướng dẫn thanh toán SePay",
-    copy: "Xem các bước kiểm tra đơn và thanh toán mô phỏng.",
+    copy: "Xem các bước kiểm tra đơn và thanh toán qua SePay.",
     to: "/offers#thanh-toan",
   },
   {
@@ -98,6 +104,7 @@ const guides: EditorialItem[] = [
 ];
 
 export function FeaturedRoutes(): ReactElement {
+  const catalogue = useLiveCatalogue(!isMockApi);
   const rail = useRef<HTMLDivElement>(null);
   const [edges, setEdges] = useState({ start: true, end: false });
   const tomorrow = new Date(getVietnamTodayDate() + "T00:00:00Z");
@@ -123,7 +130,7 @@ export function FeaturedRoutes(): ReactElement {
       window.removeEventListener("resize", update);
       track.removeEventListener("scroll", update);
     };
-  }, []);
+  }, [catalogue.data]);
 
   function move(direction: number): void {
     const track = rail.current;
@@ -140,7 +147,7 @@ export function FeaturedRoutes(): ReactElement {
       <header className="explore-discovery__row-heading">
         <div>
           <h2 id="featured-route-title">Tuyến đường phổ biến</h2>
-          <p>Giá vé và lịch chạy mẫu cho ngày mai</p>
+          <p>Giá vé và lịch chạy cho ngày mai</p>
         </div>
         <div className="explore-discovery__arrows">
           <button
@@ -162,12 +169,21 @@ export function FeaturedRoutes(): ReactElement {
         </div>
       </header>
       <div ref={rail} className="explore-discovery__rail">
-        {featuredRoutes.map(([originId, destinationId, photo]) => {
-          const trips = demoTrips.filter(
+        {(isMockApi
+          ? featuredRoutes.map(([originId, destinationId, photo]) => ({
+              originId,
+              destinationId,
+              art: photo,
+            }))
+          : catalogueRoutes(catalogue.data ?? [], departureDate)
+        ).map(({ originId, destinationId, art: photo }) => {
+          const trips = (isMockApi ? demoTrips : (catalogue.data ?? [])).filter(
             (trip) =>
               trip.origin.id === originId &&
               trip.destination.id === destinationId &&
-              trip.id.startsWith("demo-" + departureDate + "-"),
+              new Intl.DateTimeFormat("en-CA", {
+                timeZone: "Asia/Ho_Chi_Minh",
+              }).format(new Date(trip.departureTime)) === departureDate,
           );
           const first = trips[0];
           if (!first) return null;
@@ -275,6 +291,18 @@ export function ExploreGuides(): ReactElement {
 }
 
 export function ExploreStations(): ReactElement {
+  const catalogue = useLiveCatalogue(!isMockApi);
+  const stations = isMockApi
+    ? exploreStations
+    : catalogueProvinces(catalogue.data ?? []).flatMap((province, index) =>
+        province.points.map((point) => ({
+          id: point.id,
+          provinceSlug: province.slug,
+          imageIndex: index % 4,
+          name: point.name,
+          displayName: province.name,
+        })),
+      );
   return (
     <section
       id="ben-xe"
@@ -283,10 +311,10 @@ export function ExploreStations(): ReactElement {
     >
       <header>
         <h2 id="explore-station-title">Bến xe khách</h2>
-        <p>Danh mục bến xe mô phỏng · Hình ảnh minh họa</p>
+        <p>Danh mục điểm đón, trả · Hình ảnh minh họa</p>
       </header>
       <div className="explore-discovery__grid">
-        {exploreStations.map((station) => (
+        {stations.map((station) => (
           <Link
             className="explore-discovery__card explore-discovery__station"
             key={station.id}

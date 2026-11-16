@@ -1,3 +1,4 @@
+import { normalizeVietnamPhone } from "@/shared/lib/normalizeVietnamPhone";
 import { Toast } from "@/shared/ui/Toast/Toast";
 import {
   useEffect,
@@ -20,7 +21,8 @@ import { isMockApi } from "@/shared/api/config";
 import { ROUTES } from "@/shared/config/routes";
 import { Button } from "@/shared/ui/Button/Button";
 import { Input } from "@/shared/ui/Input/Input";
-import { LiveProfileCard } from "./LiveProfileCard";
+import { apiJson } from "@/shared/api/client";
+import { z } from "zod";
 import { prepareCustomerAvatar } from "./customerAvatar";
 import {
   customerProfileSchema,
@@ -33,6 +35,11 @@ import {
 } from "./customerPreferences";
 import "./LiveAccountPage.css";
 import "./CustomerPreferencesPage.css";
+
+const serverPreferencesSchema = preferencesSchema.extend({
+  province: z.string(),
+  avatar: z.string(),
+});
 
 const pages = [
   { label: "Hồ sơ cá nhân", path: ROUTES.accountProfile, Icon: UserCircle },
@@ -59,7 +66,10 @@ const notificationOptions = [
 ] as const;
 
 function ProfileEditor({ userId }: { userId: string }): ReactElement {
-  const account = findDemoAccount(userId, true);
+  const [account, setAccount] = useState<
+    | { email: string; fullName?: string; phone?: string; rowVersion?: number }
+    | undefined
+  >(() => (isMockApi ? findDemoAccount(userId, true) : undefined));
   const [saved, setSaved] = useState(() =>
     readCustomerData(userId, "profile", customerProfileSchema, {
       fullName:
@@ -71,8 +81,42 @@ function ProfileEditor({ userId }: { userId: string }): ReactElement {
     }),
   );
   const [draft, setDraft] = useState<CustomerProfile>(saved);
-  const [errors, setErrors] = useState<Partial<CustomerProfile>>({});
   const [feedback, setFeedback] = useState<"saved" | "error" | null>(null);
+  useEffect(() => {
+    if (isMockApi) return;
+    let active = true;
+    Promise.all([
+      apiJson(
+        "/api/v1/users/me",
+        z.object({
+          email: z.string(),
+          fullName: z.string(),
+          phone: z.string(),
+          rowVersion: z.number(),
+        }),
+      ),
+      apiJson("/api/v1/users/me/preferences", serverPreferencesSchema),
+    ])
+      .then(([profile, prefs]) => {
+        if (!active) return;
+        setAccount(profile);
+        const value = {
+          fullName: profile.fullName,
+          phone: profile.phone,
+          province: prefs.province,
+          avatar: prefs.avatar,
+        };
+        setSaved(value);
+        setDraft(value);
+      })
+      .catch(() => {
+        if (active) setFeedback("error");
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+  const [errors, setErrors] = useState<Partial<CustomerProfile>>({});
   const [imageError, setImageError] = useState("");
   const [processing, setProcessing] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
@@ -95,7 +139,7 @@ function ProfileEditor({ userId }: { userId: string }): ReactElement {
     setFeedback(null);
   }
 
-  function submit(event: FormEvent<HTMLFormElement>): void {
+  async function submit(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
     const form = event.currentTarget;
     const parsed = customerProfileSchema.safeParse(draft);
@@ -112,7 +156,45 @@ function ProfileEditor({ userId }: { userId: string }): ReactElement {
       if (field instanceof HTMLInputElement) field.focus();
       return;
     }
-    if (!saveCustomerData(userId, "profile", parsed.data)) {
+    try {
+      if (isMockApi) {
+        if (!saveCustomerData(userId, "profile", parsed.data))
+          throw new Error("Storage unavailable");
+      } else {
+        if (!account?.rowVersion) throw new Error("Profile not loaded");
+        const profile = await apiJson(
+          "/api/v1/users/me",
+          z.object({
+            email: z.string(),
+            fullName: z.string(),
+            phone: z.string(),
+            rowVersion: z.number(),
+          }),
+          {
+            method: "PATCH",
+            idempotencyKey: crypto.randomUUID(),
+            body: {
+              fullName: parsed.data.fullName,
+              phone: normalizeVietnamPhone(parsed.data.phone),
+              expectedVersion: account.rowVersion,
+            },
+          },
+        );
+        setAccount(profile);
+        const preferences = await apiJson(
+          "/api/v1/users/me/preferences",
+          serverPreferencesSchema,
+        );
+        await apiJson("/api/v1/users/me/preferences", serverPreferencesSchema, {
+          method: "PUT",
+          body: {
+            ...preferences,
+            province: parsed.data.province,
+            avatar: parsed.data.avatar,
+          },
+        });
+      }
+    } catch {
       setFeedback("error");
       return;
     }
@@ -242,7 +324,11 @@ function ProfileEditor({ userId }: { userId: string }): ReactElement {
           onChange={(e) => edit("province", e.target.value)}
         />
         <div className="customer-preferences__form-footer">
-          <p>Hồ sơ mẫu được lưu trong phiên trình duyệt này.</p>
+          <p>
+            {isMockApi
+              ? "Hồ sơ mẫu được lưu trong phiên trình duyệt này."
+              : "Hồ sơ được lưu trong tài khoản của bạn."}
+          </p>
           <Button
             type="button"
             variant="secondary"
@@ -281,13 +367,44 @@ function AccountSettings({ userId }: { userId: string }): ReactElement {
   );
   const [draft, setDraft] = useState<CustomerPreferences>(saved);
   const [feedback, setFeedback] = useState<"saved" | "error" | null>(null);
+  useEffect(() => {
+    if (isMockApi) return;
+    let active = true;
+    apiJson("/api/v1/users/me/preferences", serverPreferencesSchema)
+      .then((value) => {
+        if (active) {
+          setSaved(value);
+          setDraft(value);
+        }
+      })
+      .catch(() => {
+        if (active) setFeedback("error");
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
   const dirty = notificationOptions.some(
     ({ key }) => saved[key] !== draft[key],
   );
 
-  function save(event: FormEvent): void {
+  async function save(event: FormEvent): Promise<void> {
     event.preventDefault();
-    if (!saveCustomerData(userId, "settings", draft)) {
+    try {
+      if (isMockApi) {
+        if (!saveCustomerData(userId, "settings", draft))
+          throw new Error("Storage unavailable");
+      } else {
+        const preferences = await apiJson(
+          "/api/v1/users/me/preferences",
+          serverPreferencesSchema,
+        );
+        await apiJson("/api/v1/users/me/preferences", serverPreferencesSchema, {
+          method: "PUT",
+          body: { ...preferences, ...draft },
+        });
+      }
+    } catch {
       setFeedback("error");
       return;
     }
@@ -305,8 +422,9 @@ function AccountSettings({ userId }: { userId: string }): ReactElement {
           <Bell weight="duotone" size={23} aria-hidden /> Tùy chọn thông báo
         </h2>
         <p className="customer-preferences__description">
-          Tùy chọn lưu trong phiên trình duyệt. Bản trải nghiệm chưa gửi thông
-          báo.
+          {isMockApi
+            ? "Tùy chọn lưu trong phiên trình duyệt. Bản trải nghiệm chưa gửi thông báo."
+            : "Tùy chọn thông báo được lưu trong tài khoản của bạn."}
         </p>
         <form onSubmit={save}>
           {notificationOptions.map(({ key, title, description }) => (
@@ -417,11 +535,7 @@ export function CustomerPreferencesPage({
             ))}
           </nav>
           {view === "profile" ? (
-            isMockApi ? (
-              <ProfileEditor key={session.userId} userId={session.userId} />
-            ) : (
-              <LiveProfileCard />
-            )
+            <ProfileEditor key={session.userId} userId={session.userId} />
           ) : (
             <AccountSettings key={session.userId} userId={session.userId} />
           )}

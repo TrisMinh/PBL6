@@ -17,6 +17,7 @@ public sealed class SmtpOptions
     public string Username { get; set; } = "";
     public string Password { get; set; } = "";
     public bool EnableSsl { get; set; }
+    public string FrontendBaseUrl { get; set; } = "http://localhost:5173";
     public bool CaptureChallenges { get; set; } = true;
 
     public bool IsConfigured => !string.IsNullOrWhiteSpace(Host);
@@ -65,10 +66,12 @@ public sealed class ChallengeNotifier(
 
         try
         {
+            var path = challengeType == "PASSWORD_RESET" ? "/reset-password" : "/verify-email";
+            var link = $"{options.FrontendBaseUrl.TrimEnd('/')}{path}?challengeId={challengeId}&email={Uri.EscapeDataString(email)}";
             using var message = new MailMessage(options.From, email)
             {
                 Subject = challengeType == "PASSWORD_RESET" ? "Reset your password" : "Verify your email",
-                Body = $"challengeId={challengeId}; code={code}"
+                Body = $"Mã xác minh: {code}\nMở liên kết để tiếp tục: {link}\nchallengeId={challengeId}; code={code}"
             };
             using var client = new SmtpClient(options.Host, options.Port)
             {

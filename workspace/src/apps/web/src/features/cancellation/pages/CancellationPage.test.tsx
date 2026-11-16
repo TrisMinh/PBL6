@@ -95,7 +95,7 @@ describe("CancellationPage", () => {
     expect(screen.getByText("Mã chuyến RLX-0730")).toBeVisible();
     expect(screen.getByText("6 giờ 30 · Đi thẳng")).toBeVisible();
     expect(screen.getByText("Mức 1 — Hủy trước 48 giờ")).toBeVisible();
-    expect(screen.getByText("Giao dịch VNPay ban đầu")).toBeVisible();
+    expect(screen.getByText("Giao dịch SePay ban đầu")).toBeVisible();
 
     fireEvent.click((await screen.findAllByRole("checkbox"))[0]);
     expect(screen.getByText("Phí hủy 10%")).toBeVisible();
@@ -115,7 +115,7 @@ describe("CancellationPage", () => {
       await screen.findByRole("button", { name: "Xác nhận hủy 2 vé" }),
     );
     expect(await screen.findByText("Theo dõi hoàn tiền")).toBeVisible();
-    expect(screen.getByText("VNPay đang xử lý hoàn tiền")).toBeVisible();
+    expect(screen.getByText("SePay đang xử lý hoàn tiền")).toBeVisible();
     expect(screen.getByText("CHI TIẾT HOÀN TIỀN")).toBeVisible();
     expect(screen.getByText("TIẾN TRÌNH")).toBeVisible();
     expect(screen.getByText("₫576.000")).toBeVisible();

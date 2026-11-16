@@ -3,7 +3,7 @@ import { VnPayPage } from "@/features/payment/pages/VnPayPage";
 import type { MetaDescriptor } from "react-router";
 import type { ReactElement } from "react";
 import { createMeta } from "@/shared/config/seo";
-import { BackendPaymentPage } from "@/features/payment/pages/BackendPaymentPage";
+import { SePayCheckoutPage } from "@/features/payment/pages/SePayCheckoutPage";
 export function meta(): MetaDescriptor[] {
   return createMeta({
     title: "Thanh toán SePay",
@@ -12,5 +12,5 @@ export function meta(): MetaDescriptor[] {
   });
 }
 export default function SePayRoute(): ReactElement {
-  return isMockApi ? <VnPayPage /> : <BackendPaymentPage />;
+  return isMockApi ? <VnPayPage /> : <SePayCheckoutPage />;
 }

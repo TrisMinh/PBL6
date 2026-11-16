@@ -1,3 +1,4 @@
+import { useLiveCatalogue } from "@/features/explore/liveCatalogue";
 import { DatePicker } from "@/shared/ui/DatePicker/DatePicker";
 import { Rows } from "@phosphor-icons/react/dist/csr/Rows";
 import { GridNine } from "@phosphor-icons/react/dist/csr/GridNine";
@@ -529,7 +530,11 @@ function TripCatalogue({
   onChange: (params: URLSearchParams) => void;
   booking: CreateBookingSessionResult;
 }): ReactElement {
-  const catalogue = useMemo(() => createDemoTrips(), []);
+  const liveCatalogue = useLiveCatalogue(!isMockApi);
+  const liveLocations = useLocations();
+  const mockCatalogue = useMemo(() => (isMockApi ? createDemoTrips() : []), []);
+  const catalogue = isMockApi ? mockCatalogue : (liveCatalogue.data ?? []);
+  const locations = isMockApi ? catalogueLocations : (liveLocations.data ?? []);
   const [catalogueTime] = useState(() => Date.now());
   const effective = new URLSearchParams(params);
   effective.set("browse", "1");
@@ -597,7 +602,7 @@ function TripCatalogue({
               defaultValue={params.get("originId") ?? ""}
             >
               <option value="">Tất cả tỉnh, thành</option>
-              {catalogueLocations.map((location) => (
+              {locations.map((location) => (
                 <option key={location.id} value={location.id}>
                   {location.province}
                 </option>
@@ -612,7 +617,7 @@ function TripCatalogue({
               defaultValue={params.get("destinationId") ?? ""}
             >
               <option value="">Tất cả tỉnh, thành</option>
-              {catalogueLocations.map((location) => (
+              {locations.map((location) => (
                 <option key={location.id} value={location.id}>
                   {location.province}
                 </option>
@@ -652,7 +657,21 @@ function TripCatalogue({
           onChange={onChange}
           trips={candidates}
         />
-        {visible.length ? (
+        {!isMockApi && liveCatalogue.isPending ? (
+          <p className="trip-results__loading" role="status">
+            Đang tải chuyến xe…
+          </p>
+        ) : !isMockApi && liveCatalogue.isError ? (
+          <PageState
+            title="Chưa tải được chuyến xe"
+            description="Vui lòng thử lại để xem lịch chạy."
+            action={
+              <Button onClick={() => void liveCatalogue.refetch()}>
+                Thử lại
+              </Button>
+            }
+          />
+        ) : visible.length ? (
           <ResultsList
             trips={visible}
             search={{ passengerCount }}
@@ -687,11 +706,10 @@ export function TripResultsPage(): ReactElement {
   if (params.get("reason") === "expired")
     return <ExpiredBookingState params={params} />;
   if (
-    isMockApi &&
-    (params.get("browse") === "1" ||
-      (!params.has("originId") &&
-        !params.has("destinationId") &&
-        !params.has("departureDate")))
+    params.get("browse") === "1" ||
+    (!params.has("originId") &&
+      !params.has("destinationId") &&
+      !params.has("departureDate"))
   )
     return (
       <TripCatalogue params={params} onChange={setParams} booking={booking} />

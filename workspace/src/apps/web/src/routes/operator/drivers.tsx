@@ -1,5 +1,3 @@
-import { isMockApi } from "@/shared/api/config";
-import { LiveDriversPage } from "@/features/operator/drivers/LiveDriversPage";
 import type { ReactElement } from "react";
 import { createMeta } from "@/shared/config/seo";
 import { DriversPage } from "@/features/operator/drivers/DriversPage";
@@ -10,6 +8,6 @@ export function meta(): ReturnType<typeof createMeta> {
     noIndex: true,
   });
 }
-export default function DriversRoute(): ReactElement {
-  return isMockApi ? <DriversPage /> : <LiveDriversPage />;
+export default function Route(): ReactElement {
+  return <DriversPage />;
 }

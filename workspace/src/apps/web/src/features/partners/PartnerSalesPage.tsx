@@ -1,4 +1,7 @@
 import { Toast } from "@/shared/ui/Toast/Toast";
+import { apiJson } from "@/shared/api/client";
+import { isMockApi } from "@/shared/api/config";
+import { z } from "zod";
 import {
   useEffect,
   useRef,
@@ -105,6 +108,8 @@ function PartnerRegistration(): ReactElement {
     }
   }, [reference]);
 
+  const [sending, setSending] = useState(false);
+
   function submit(event: FormEvent<HTMLFormElement>): void {
     event.preventDefault();
     const form = event.currentTarget;
@@ -130,6 +135,28 @@ function PartnerRegistration(): ReactElement {
     if (invalidName) {
       const invalidInput = form.elements.namedItem(invalidName);
       if (invalidInput instanceof HTMLInputElement) invalidInput.focus();
+      return;
+    }
+    if (!isMockApi) {
+      if (sending) return;
+      setSending(true);
+      void apiJson(
+        "/api/v1/customer-requests/partner",
+        z.object({ reference: z.string() }),
+        {
+          method: "POST",
+          body: {
+            operator,
+            contact,
+            phone,
+            email: field("email"),
+            route: field("route"),
+          },
+        },
+      )
+        .then((response) => setReference(response.reference))
+        .catch(() => setMessage("Chưa gửi được đăng ký. Vui lòng thử lại."))
+        .finally(() => setSending(false));
       return;
     }
     try {
@@ -167,7 +194,11 @@ function PartnerRegistration(): ReactElement {
           <div role="status" tabIndex={-1}>
             <CheckCircle size={32} weight="duotone" aria-hidden />
             <p>
-              <strong>Đã lưu đăng ký trải nghiệm</strong>
+              <strong>
+                {isMockApi
+                  ? "Đã lưu đăng ký trải nghiệm"
+                  : "Đã nhận đăng ký mở bán"}
+              </strong>
             </p>
             <p>
               Mã đăng ký <strong>{reference}</strong>
@@ -248,11 +279,13 @@ function PartnerRegistration(): ReactElement {
               onClose={() => setMessage("")}
             />
           )}
-          <Button type="submit">
+          <Button type="submit" isLoading={sending}>
             Lưu đăng ký <ArrowRight size={17} aria-hidden />
           </Button>
           <p className="partner-sales__note" id="partner-request-note">
-            Bản trải nghiệm lưu đăng ký trong phiên trình duyệt này.
+            {isMockApi
+              ? "Bản trải nghiệm lưu đăng ký trong phiên trình duyệt này."
+              : "Giữ mã đăng ký để tiện trao đổi với BLUE."}
           </p>
         </form>
       )}

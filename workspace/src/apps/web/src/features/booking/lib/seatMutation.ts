@@ -33,9 +33,17 @@ export function optimisticLayout(
 ): SeatLayout {
   const items = layout.items.map((seat): Seat =>
     next.includes(seat.id)
-      ? { ...seat, status: isMockApi ? "held" : seat.status }
-      : isMockApi && previous.includes(seat.id) && seat.status === "held"
-        ? { ...seat, status: "available" }
+      ? {
+          ...seat,
+          status: "held",
+          ...(!isMockApi ? { heldBySession: true } : {}),
+        }
+      : previous.includes(seat.id) && seat.status === "held"
+        ? {
+            ...seat,
+            status: "available",
+            ...(!isMockApi ? { heldBySession: false } : {}),
+          }
         : seat,
   );
   return {
@@ -90,10 +98,10 @@ export async function executeSeatMutation(
   if (
     session.tripId !== variables.previous.tripId ||
     session.passengerCount !==
-      (isMockApi && variables.seatIds.length > 0
+      (variables.seatIds.length > 0
         ? variables.seatIds.length
         : variables.previous.passengerCount) ||
-    session.expiresAt !== variables.previous.expiresAt ||
+    (isMockApi && session.expiresAt !== variables.previous.expiresAt) ||
     (isMockApi &&
       session.totalVnd !==
         variables.layout.trip.fareVnd * variables.seatIds.length)

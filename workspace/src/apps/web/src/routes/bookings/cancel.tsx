@@ -1,5 +1,3 @@
-import { isMockApi } from "@/shared/api/config";
-import { LiveCancellationPage } from "@/features/cancellation/pages/LiveCancellationPage";
 import type { ReactElement } from "react";
 import type { MetaDescriptor } from "react-router";
 
@@ -15,5 +13,5 @@ export function meta(): MetaDescriptor[] {
 }
 
 export default function CancelBookingRoute(): ReactElement {
-  return isMockApi ? <CancellationPage /> : <LiveCancellationPage />;
+  return <CancellationPage />;
 }

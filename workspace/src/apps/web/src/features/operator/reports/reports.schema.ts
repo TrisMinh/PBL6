@@ -31,14 +31,14 @@ export const reportVehicleSchema = z.object({
   trip: z.string(),
   route: z.string(),
   status: z.enum(["running", "parked"]),
-  x: z.number(),
-  y: z.number(),
+  x: z.number().nullable(),
+  y: z.number().nullable(),
 });
 export const reportSchema = z.object({
   range: z.object({ from: z.iso.date(), to: z.iso.date() }),
   totals: z.object({
     revenue: z.number().nonnegative(),
-    costs: z.number().nonnegative(),
+    costs: z.number().nonnegative().nullable(),
     tickets: z.number().int().nonnegative(),
     customers: z.number().int().nonnegative(),
   }),

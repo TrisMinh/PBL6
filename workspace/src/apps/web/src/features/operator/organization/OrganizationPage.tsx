@@ -1,5 +1,5 @@
 import * as Dialog from "@radix-ui/react-dialog";
-import { useState, type FormEvent, type ReactElement } from "react";
+import { useState, useEffect, type FormEvent, type ReactElement } from "react";
 import { OperatorSidebar } from "../components/OperatorSidebar";
 import { WorkspaceDialogHeading } from "./WorkspaceDialogHeading";
 import { Button } from "@/shared/ui/Button/Button";
@@ -10,6 +10,7 @@ import {
   memberStates,
   organizationSchema,
   readWorkspace,
+  emptyWorkspace,
   saveMember,
   saveOrganization,
   setMemberStatus,
@@ -32,7 +33,7 @@ function MemberEditor({
     member ?? { name: "", email: "", phone: "", role: "dispatcher" },
   );
   const [error, setError] = useState("");
-  const submit = (event: FormEvent): void => {
+  const submit = async (event: FormEvent): Promise<void> => {
     event.preventDefault();
     const parsed = memberInputSchema.safeParse(form);
     if (!parsed.success) {
@@ -40,7 +41,7 @@ function MemberEditor({
       return;
     }
     try {
-      saveMember(parsed.data, member?.id);
+      await saveMember(parsed.data, member?.id);
       onSaved();
     } catch (reason) {
       setError(
@@ -95,7 +96,7 @@ function MemberEditor({
       <p className="operator-workspace-demo__muted">
         {member
           ? "Thay đổi chỉ áp dụng cho thành viên trong nhà xe này."
-          : "Lời mời được lưu trong bản demo. Không có email thật được gửi."}
+          : "Lời mời được lưu  Không có email thật được gửi."}
       </p>
       {error && (
         <p role="alert" className="operator-workspace-demo__error">
@@ -113,7 +114,7 @@ function MemberEditor({
 }
 
 export function OrganizationPage(): ReactElement {
-  const [workspace, setWorkspace] = useState(readWorkspace),
+  const [workspace, setWorkspace] = useState(emptyWorkspace),
     [organization, setOrganization] = useState(workspace.organization);
   const [search, setSearch] = useState(""),
     [role, setRole] = useState("all"),
@@ -122,6 +123,27 @@ export function OrganizationPage(): ReactElement {
     [confirm, setConfirm] = useState<WorkspaceMember | null>(null),
     [notice, setNotice] = useState(""),
     [error, setError] = useState("");
+  useEffect(() => {
+    let active = true;
+    void readWorkspace()
+      .then((value) => {
+        if (active) {
+          setWorkspace(value);
+          setOrganization(value.organization);
+        }
+      })
+      .catch((reason) => {
+        if (active)
+          setError(
+            reason instanceof Error
+              ? reason.message
+              : "Không tải được tổ chức.",
+          );
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
   const members = workspace.members.filter(
     (m) =>
       (role === "all" || m.role === role) &&
@@ -130,7 +152,7 @@ export function OrganizationPage(): ReactElement {
         .toLocaleLowerCase("vi")
         .includes(search.toLocaleLowerCase("vi")),
   );
-  const saveProfile = (event: FormEvent): void => {
+  const saveProfile = async (event: FormEvent): Promise<void> => {
     event.preventDefault();
     setError("");
     const parsed = organizationSchema.safeParse(organization);
@@ -141,23 +163,21 @@ export function OrganizationPage(): ReactElement {
       return;
     }
     try {
-      saveOrganization(parsed.data);
-      setWorkspace(readWorkspace());
-      setNotice("Đã lưu thông tin nhà xe trong bản demo.");
+      await saveOrganization(parsed.data);
+      setWorkspace(await readWorkspace());
+      setNotice("Đã lưu thông tin nhà xe ");
     } catch {
-      setError(
-        "Không lưu được dữ liệu. Vui lòng cho phép lưu trữ trên trình duyệt.",
-      );
+      setError("Không lưu được dữ liệu. Vui lòng thử lại.");
     }
   };
-  const changeState = (): void => {
+  const changeState = async (): Promise<void> => {
     if (!confirm) return;
     try {
-      setMemberStatus(
+      await setMemberStatus(
         confirm.id,
         confirm.status === "active" ? "suspended" : "active",
       );
-      setWorkspace(readWorkspace());
+      setWorkspace(await readWorkspace());
       setNotice(
         confirm.status === "active"
           ? "Đã tạm ngưng thành viên."
@@ -397,11 +417,11 @@ export function OrganizationPage(): ReactElement {
                 key={editor === "new" ? "new" : editor.id}
                 member={editor === "new" ? undefined : editor}
                 close={() => setEditor(null)}
-                onSaved={() => {
-                  setWorkspace(readWorkspace());
+                onSaved={async () => {
+                  setWorkspace(await readWorkspace());
                   setNotice(
                     editor === "new"
-                      ? "Đã tạo lời mời thành viên trong bản demo."
+                      ? "Đã tạo lời mời thành viên "
                       : "Đã lưu thông tin thành viên.",
                   );
                   setEditor(null);

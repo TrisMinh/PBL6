@@ -87,7 +87,7 @@ export async function apiFetch(
   )
     throw new ApiError("INVALID_API_PATH", 0, "Đường dẫn API không hợp lệ.");
   if (
-    /\/operator\/[^/?]*-preview(?:[/?]|$)|\/booking-sessions(?:[/?]|$)|\/explore\/(?!routes(?:[/?]|$))|\/locations(?:[/?]|$)|\/auth\/oauth(?:[/?]|$)/.test(
+    /\/operator\/[^/?]*-preview(?:[/?]|$)|\/booking-sessions(?:[/?]|$)|\/locations(?:[/?]|$)|\/auth\/oauth(?:[/?]|$)/.test(
       value,
     )
   )

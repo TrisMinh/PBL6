@@ -15,5 +15,6 @@
   <ItemGroup>
     <EmbeddedResource Include="..\..\..\..\..\docs\database\_shared\000_integration_tables.sql" LogicalName="sql.shared" />
     <EmbeddedResource Include="..\..\..\..\..\docs\database\notification\001_initial.sql" LogicalName="sql.notification" />
+    <EmbeddedResource Include="..\..\..\..\..\docs\database\notification\002_customer_requests.sql" LogicalName="sql.customer_requests" />
   </ItemGroup>
 </Project>

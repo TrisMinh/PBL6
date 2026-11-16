@@ -8,25 +8,55 @@ import { Bus } from "@phosphor-icons/react/dist/csr/Bus";
 import { Pause } from "@phosphor-icons/react/dist/csr/Pause";
 import { Play } from "@phosphor-icons/react/dist/csr/Play";
 import { getVietnamTodayDate } from "@/shared/lib/getVietnamTodayDate";
+import { isMockApi } from "@/shared/api/config";
+import { catalogueRoutes, useLiveCatalogue } from "./liveCatalogue";
 import "./ExplorePromoTicker.css";
 
 export function ExplorePromoTicker(): ReactElement {
   const [paused, setPaused] = useState(false);
+  const catalogue = useLiveCatalogue(!isMockApi);
   const date = new Date(getVietnamTodayDate() + "T00:00:00Z");
   date.setUTCDate(date.getUTCDate() + 1);
-  const route = (originId: string, destinationId: string): string =>
+  const route = (
+    originId: string,
+    destinationId: string,
+    departureDate = date.toISOString().slice(0, 10),
+  ): string =>
     "/trips?" +
     new URLSearchParams({
       originId,
       destinationId,
-      departureDate: date.toISOString().slice(0, 10),
+      departureDate,
       passengerCount: "1",
     });
+  const popular = catalogueRoutes(
+    (catalogue.data ?? []).filter(
+      (trip) => trip.sellable && trip.availableSeatCount > 0,
+    ),
+  );
+  const suggestion = (
+    index: number,
+    demoTitle: string,
+    originId: string,
+    destinationId: string,
+  ): { title: string; to: string } => {
+    if (isMockApi)
+      return { title: demoTitle, to: route(originId, destinationId) };
+    const trip = popular[index];
+    if (!trip)
+      return {
+        title: index === 0 ? "Tìm chuyến đang mở bán" : "Xem lịch chạy",
+        to: "/trips",
+      };
+    return {
+      title: trip.title,
+      to: route(trip.originId, trip.destinationId, trip.departureDate),
+    };
+  };
   const items = [
     {
-      title: "TP. Hồ Chí Minh → Đà Lạt",
+      ...suggestion(0, "TP. Hồ Chí Minh → Đà Lạt", "loc-hcm", "loc-dalat"),
       tag: "Chọn chuyến",
-      to: route("loc-hcm", "loc-dalat"),
       Icon: MapPin,
       tone: "blue",
     },
@@ -39,15 +69,14 @@ export function ExplorePromoTicker(): ReactElement {
     },
     {
       title: "Thanh toán qua SePay",
-      tag: "QR · ATM · Thẻ",
+      tag: isMockApi ? "QR · ATM · Thẻ" : "Xem phương thức",
       to: "/offers#thanh-toan",
       Icon: QrCode,
       tone: "purple",
     },
     {
-      title: "Hà Nội → Đà Nẵng",
+      ...suggestion(1, "Hà Nội → Đà Nẵng", "loc-hanoi", "loc-danang"),
       tag: "Lên kế hoạch",
-      to: route("loc-hanoi", "loc-danang"),
       Icon: MapPin,
       tone: "teal",
     },

@@ -63,7 +63,7 @@ public static class TransportEndpoints
 
     private static IResult NeedUser(Guid correlationId) => PlatformHttp.Error(PlatformErrors.AuthenticationRequired(), correlationId);
 
-    private static async Task<IResult> SearchAsync(HttpContext context, TransportService service, string origin, string destination, DateOnly departureDate, int passengerCount, long? minPrice, long? maxPrice, TimeOnly? departureTimeFrom, TimeOnly? departureTimeTo, Guid? organizationId, string? busType, Guid? pickupStopId, Guid? dropoffStopId, string? amenities, string? sort, int page = 0, int size = 20)
+    private static async Task<IResult> SearchAsync(HttpContext context, TransportService service, string? origin, string? destination, DateOnly? departureDate, int passengerCount, long? minPrice, long? maxPrice, TimeOnly? departureTimeFrom, TimeOnly? departureTimeTo, Guid? organizationId, string? busType, Guid? pickupStopId, Guid? dropoffStopId, string? amenities, string? sort, int page = 0, int size = 20)
     {
         var amenityList = string.IsNullOrWhiteSpace(amenities) ? null : amenities.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         var result = await service.SearchAsync(

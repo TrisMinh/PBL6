@@ -4,7 +4,6 @@ import {
   type UseMutationResult,
 } from "@tanstack/react-query";
 import { useState } from "react";
-import { isMockApi } from "@/shared/api/config";
 
 import {
   beginSeatMutation,
@@ -57,13 +56,7 @@ function replacement(
   id: string,
 ): string[] | null {
   const seat = layout.items.find((seat) => seat.id === id);
-  const currentIds = isMockApi
-    ? draft.selectedSeatIds
-    : draft.selectedSeatIds.filter((seatId) =>
-        layout.items.some(
-          (item) => item.id === seatId && item.status === "available",
-        ),
-      );
+  const currentIds = draft.selectedSeatIds;
   const selected = currentIds.includes(id);
   if (
     !seat ||

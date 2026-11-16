@@ -13,10 +13,10 @@ public sealed record Actor(Guid UserId, Guid? OrganizationId, IReadOnlyList<stri
 
 public sealed record OperationAccepted(Guid OperationId, string Status, string? StatusUrl = null);
 public sealed record CreatePaymentRequest(string Provider, string Method, string ReturnUri);
-public sealed record PaymentDto(Guid Id, Guid BookingId, string Status, long Amount, string Currency, string Provider, IReadOnlyDictionary<string, string>? ProviderAction, string? StatusUrl, long RowVersion);
+public sealed record PaymentDto(Guid Id, Guid BookingId, string Status, long Amount, string Currency, string Provider, IReadOnlyDictionary<string, string>? ProviderAction, string? StatusUrl, long RowVersion, DateTimeOffset? CreatedAt = null, Guid? OrganizationId = null);
 public sealed record PaymentPageDto(int Page, int Size, long TotalElements, int TotalPages, IReadOnlyList<PaymentDto> Items);
 public sealed record CreateRefundRequest(string RefundReference, Guid PaymentId, Guid BookingId, long Amount, string Currency, string Reason);
-public sealed record RefundDto(Guid Id, string RefundReference, Guid PaymentId, Guid BookingId, long Amount, string Currency, string Status, string Reason);
+public sealed record RefundDto(Guid Id, string RefundReference, Guid PaymentId, Guid BookingId, long Amount, string Currency, string Status, string Reason, DateTimeOffset? CreatedAt = null);
 public sealed record RefundPageDto(int Page, int Size, long TotalElements, int TotalPages, IReadOnlyList<RefundDto> Items);
 public sealed record BookingQuote(Guid BookingId, Guid CustomerId, Guid OrganizationId, long Amount, string Currency, string PaymentChannel, decimal CommissionRate, DateTimeOffset? ExpiresAt = null);
 public sealed record BookingSettlementDto(Guid Id, Guid BookingId, Guid OrganizationId, Guid? PaymentId, string PaymentChannel, long GrossAmount, decimal CommissionRate, long CommissionAmount, long OperatorNet, string Currency, string CollectionStatus);
@@ -53,8 +53,8 @@ public interface IPaymentRepository
     Task<PayoutRecord> InsertPayoutAsync(PayoutRecord payout, CancellationToken cancellationToken);
 }
 
-public sealed record PaymentRecord(Guid Id, Guid BookingId, Guid CustomerId, Guid OrganizationId, string Provider, string LogicalReference, long Amount, string Currency, string Status, DateTimeOffset ExpiresAt, long RowVersion, string? ReturnUri, string? CheckoutMethod = null);
-public sealed record RefundRecord(Guid Id, Guid PaymentId, Guid BookingId, Guid RequestedBy, string RefundReference, long Amount, string Currency, string Reason, string Status);
+public sealed record PaymentRecord(Guid Id, Guid BookingId, Guid CustomerId, Guid OrganizationId, string Provider, string LogicalReference, long Amount, string Currency, string Status, DateTimeOffset ExpiresAt, long RowVersion, string? ReturnUri, string? CheckoutMethod = null, DateTimeOffset? CreatedAt = null);
+public sealed record RefundRecord(Guid Id, Guid PaymentId, Guid BookingId, Guid RequestedBy, string RefundReference, long Amount, string Currency, string Reason, string Status, DateTimeOffset? CreatedAt = null);
 public sealed record SettlementRecord(Guid Id, Guid BookingId, Guid OrganizationId, Guid? PaymentId, string PaymentChannel, long Gross, decimal Rate, long Commission, long Net, string Currency, string Status);
 public sealed record PayoutRecord(Guid Id, Guid OrganizationId, DateOnly PeriodStart, DateOnly PeriodEnd, string Currency, long PayableAmount, string Status, DateTimeOffset? TransferredAt);
 
@@ -510,11 +510,13 @@ public sealed class PaymentService(IPaymentRepository store, IPaymentEvents even
             payment.Provider,
             action,
             "/api/v1/payments/" + payment.Id,
-            payment.RowVersion);
+            payment.RowVersion,
+            payment.CreatedAt,
+            payment.OrganizationId);
     }
 
     private static RefundDto Map(RefundRecord refund) =>
-        new(refund.Id, refund.RefundReference, refund.PaymentId, refund.BookingId, refund.Amount, refund.Currency, refund.Status, refund.Reason);
+        new(refund.Id, refund.RefundReference, refund.PaymentId, refund.BookingId, refund.Amount, refund.Currency, refund.Status, refund.Reason, refund.CreatedAt);
 
     private static BookingSettlementDto Map(SettlementRecord item) =>
         new(item.Id, item.BookingId, item.OrganizationId, item.PaymentId, item.PaymentChannel, item.Gross, item.Rate, item.Commission, item.Net, item.Currency, item.Status);

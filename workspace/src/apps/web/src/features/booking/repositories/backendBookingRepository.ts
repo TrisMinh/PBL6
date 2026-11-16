@@ -31,6 +31,13 @@ const metadataSchema = z.object({
     })
     .optional(),
   holdToken: z.string().optional(),
+  selectionRequest: z
+    .object({
+      key: z.string(),
+      seatIds: z.array(z.string()),
+      holdToken: z.string().optional(),
+    })
+    .optional(),
   bookingId: z.string().optional(),
 });
 export const keyFor = (id: string): string => `blue-live-booking:${id}`;
@@ -66,13 +73,29 @@ export async function getLiveSeatLayout(
   tripId: string,
   signal?: AbortSignal,
 ): Promise<SeatLayout> {
-  const [trip, inventory] = await Promise.all([
+  const draft = useBookingDraftStore.getState().draft;
+  const ownership =
+    draft?.tripId === tripId && !draft.bookingId
+      ? metadataSchema.safeParse(
+          JSON.parse(sessionStorage.getItem(keyFor(draft.sessionId)) ?? "null"),
+        )
+      : undefined;
+  const token =
+    ownership?.success && ownership.data.owner === readApiSession()?.user.id
+      ? ownership.data.holdToken
+      : undefined;
+  const [trip, inventory, hold] = await Promise.all([
     getBackendTrip(tripId, signal),
     apiJson(
       `/api/v1/trips/${encodeURIComponent(tripId)}/seats`,
       z.object({ tripId: z.string(), seats: z.array(backendSeatSchema) }),
       { signal },
     ),
+    token
+      ? apiJson(`/api/v1/seat-holds/${encodeURIComponent(token)}`, holdSchema, {
+          signal,
+        })
+      : undefined,
   ]);
   const counters = { lower: 0, upper: 0 };
   const view = toTrip(trip);
@@ -94,6 +117,9 @@ export async function getLiveSeatLayout(
         deck,
         row: Math.floor(index / 3),
         column: index % 3,
+        heldBySession:
+          hold?.status === "ACTIVE" &&
+          hold.seats.some((held) => held.id === seat.id),
         status: (["available", "held", "sold", "disabled"].includes(status)
           ? status
           : "disabled") as SeatStatus,
@@ -119,7 +145,7 @@ export const backendBookingRepository: BookingRepository = {
         passengerCount,
         selectedSeatIds: [],
         passengers: [],
-        // Compatibility field for the shared mock session contract; not a live deadline.
+        // No seats are held until the first authoritative selection response.
         expiresAt: new Date().toISOString(),
         totalVnd: 0,
         status: "active",
@@ -135,10 +161,7 @@ export const backendBookingRepository: BookingRepository = {
         JSON.parse(sessionStorage.getItem(keyFor(id)) ?? "{}").attempt
       )
         throw new ApiError("BOOKING_LOCKED", 409, "Đơn đã được tạo.");
-      const [layout, trip] = await Promise.all([
-        getLiveSeatLayout(draft.tripId, signal),
-        getBackendTrip(draft.tripId, signal),
-      ]);
+      const trip = await getBackendTrip(draft.tripId, signal);
       if (!trip.sellable || !["SCHEDULED", "BOARDING"].includes(trip.status))
         throw new ApiError("TRIP_NOT_SELLABLE", 422, "Chuyến đã ngừng bán.");
       if (seatIds.length > 6 || new Set(seatIds).size !== seatIds.length)
@@ -147,26 +170,123 @@ export const backendBookingRepository: BookingRepository = {
           400,
           "Lựa chọn ghế không hợp lệ.",
         );
-      if (
-        seatIds.some(
-          (id) =>
-            !layout.items.some(
-              (seat) => seat.id === id && seat.status === "available",
-            ),
-        )
-      )
+      let meta = metadataSchema.parse(
+        JSON.parse(sessionStorage.getItem(keyFor(id)) ?? "null"),
+      );
+      const pickup =
+        trip.stops.find(
+          (stop) => stop.id === meta.pickupStopId && stop.pickupAllowed,
+        ) ?? trip.stops.find((stop) => stop.pickupAllowed);
+      const dropoff =
+        trip.stops.find(
+          (stop) => stop.id === meta.dropoffStopId && stop.dropoffAllowed,
+        ) ?? [...trip.stops].reverse().find((stop) => stop.dropoffAllowed);
+      if (!pickup || !dropoff || pickup.sequence >= dropoff.sequence)
         throw new ApiError(
-          "SEAT_CONFLICT",
-          409,
-          "Ghế vừa được người khác chọn. Vui lòng chọn lại.",
+          "VALIDATION_ERROR",
+          400,
+          "Chuyến chưa có điểm đón/trả hợp lệ.",
         );
+      const pickupStopId = pickup.id;
+      const dropoffStopId = dropoff.id;
+      async function reconcileSelection(): Promise<
+        z.infer<typeof holdSchema> | undefined
+      > {
+        const request = meta.selectionRequest;
+        if (!request) return undefined;
+        const hold = await apiJson(
+          request.holdToken
+            ? `/api/v1/seat-holds/${encodeURIComponent(request.holdToken)}`
+            : `/api/v1/trips/${draft.tripId}/seat-holds`,
+          holdSchema,
+          {
+            method: request.holdToken ? "PUT" : "POST",
+            signal,
+            idempotencyKey: request.key,
+            body: {
+              seatIds: request.seatIds,
+              pickupStopId,
+              dropoffStopId,
+            },
+          },
+        ).catch((error: unknown) => {
+          if (
+            error instanceof ApiError &&
+            error.status >= 400 &&
+            error.status < 500 &&
+            error.status !== 429
+          ) {
+            meta = { ...meta, selectionRequest: undefined };
+            sessionStorage.setItem(keyFor(id), JSON.stringify(meta));
+          }
+          throw error;
+        });
+        meta = {
+          ...meta,
+          holdToken: hold.holdToken,
+          selectionRequest: undefined,
+        };
+        sessionStorage.setItem(keyFor(id), JSON.stringify(meta));
+        return hold;
+      }
+      // Finish an ambiguous previous request before changing its selection.
+      const recovered = await reconcileSelection();
+      if (seatIds.length === 0) {
+        if (meta.holdToken)
+          await apiJson(
+            `/api/v1/seat-holds/${encodeURIComponent(meta.holdToken)}`,
+            z.unknown(),
+            {
+              method: "DELETE",
+              signal,
+              idempotencyKey: `release-${meta.holdToken}`,
+            },
+          );
+        sessionStorage.setItem(
+          keyFor(id),
+          JSON.stringify({ ...meta, holdToken: undefined }),
+        );
+        return {
+          ...draft,
+          selectedSeatIds: [],
+          passengers: [],
+          totalVnd: 0,
+          status: "active" as const,
+        };
+      }
+      let hold =
+        recovered &&
+        recovered.seats.length === seatIds.length &&
+        recovered.seats.every((seat) => seatIds.includes(seat.id))
+          ? recovered
+          : undefined;
+      if (!hold) {
+        meta = {
+          ...meta,
+          selectionRequest: {
+            key: crypto.randomUUID(),
+            seatIds: [...seatIds],
+            holdToken: meta.holdToken,
+          },
+        };
+        sessionStorage.setItem(keyFor(id), JSON.stringify(meta));
+        hold = await reconcileSelection();
+      }
+      if (
+        !hold ||
+        hold.status !== "ACTIVE" ||
+        Date.parse(hold.expiresAt) <= Date.now()
+      )
+        throw new ApiError("HOLD_EXPIRED", 409, "Đã hết thời gian giữ ghế.");
       return {
         ...draft,
+        passengerCount: seatIds.length,
+        expiresAt: hold.expiresAt,
         selectedSeatIds: [...seatIds],
         bookingAttemptKey: draft.bookingAttemptKey
           ? crypto.randomUUID()
           : undefined,
-        totalVnd: trip.fare.amount * seatIds.length,
+        totalVnd: hold.seats.reduce((sum, seat) => sum + seat.price.amount, 0),
         passengers: draft.passengers.filter((passenger) =>
           seatIds.includes(passenger.seatId),
         ),

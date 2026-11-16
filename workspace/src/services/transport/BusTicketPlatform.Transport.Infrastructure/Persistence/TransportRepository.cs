@@ -564,7 +564,8 @@ public sealed class TransportRepository(TransportDatabaseOptions options, IIdGen
               AND o.name IS NOT NULL
               AND lower(os.name) LIKE lower(@origin)
               AND lower(ds.name) LIKE lower(@dest)
-              AND (t.departure_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::date = @date
+              AND t.departure_at > NOW()
+              AND (@date IS NULL OR (t.departure_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::date = @date)
               AND t.base_fare >= COALESCE(@minPrice, 0)
               AND t.base_fare <= COALESCE(@maxPrice, 9223372036854775807)
               AND (@org IS NULL OR t.organization_id = @org)
@@ -732,9 +733,9 @@ public sealed class TransportRepository(TransportDatabaseOptions options, IIdGen
 
     private static void BindSearch(NpgsqlCommand command, TripSearchQuery query)
     {
-        command.Parameters.AddWithValue("origin", "%" + query.Origin.Trim() + "%");
-        command.Parameters.AddWithValue("dest", "%" + query.Destination.Trim() + "%");
-        command.Parameters.Add(new NpgsqlParameter("date", NpgsqlTypes.NpgsqlDbType.Date) { Value = query.DepartureDate });
+        command.Parameters.AddWithValue("origin", "%" + (query.Origin ?? "").Trim() + "%");
+        command.Parameters.AddWithValue("dest", "%" + (query.Destination ?? "").Trim() + "%");
+        command.Parameters.Add(new NpgsqlParameter("date", NpgsqlTypes.NpgsqlDbType.Date) { Value = (object?)query.DepartureDate ?? DBNull.Value });
         command.Parameters.Add(new NpgsqlParameter("minPrice", NpgsqlTypes.NpgsqlDbType.Bigint) { Value = (object?)query.MinPrice ?? DBNull.Value });
         command.Parameters.Add(new NpgsqlParameter("maxPrice", NpgsqlTypes.NpgsqlDbType.Bigint) { Value = (object?)query.MaxPrice ?? DBNull.Value });
         command.Parameters.Add(new NpgsqlParameter("org", NpgsqlTypes.NpgsqlDbType.Uuid) { Value = (object?)query.OrganizationId ?? DBNull.Value });

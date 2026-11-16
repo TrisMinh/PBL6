@@ -1,3 +1,6 @@
+import { isMockApi } from "@/shared/api/config";
+import { useQuery } from "@tanstack/react-query";
+import { getCancellationPreview } from "../repositories/backendCancellationRepository";
 import { Toast } from "@/shared/ui/Toast/Toast";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useEffect, useMemo, useRef, useState, type ReactElement } from "react";
@@ -147,7 +150,11 @@ function PolicyCard({ policyLabel }: { policyLabel: string }): ReactElement {
         <img alt="" aria-hidden="true" src={policyIcon} />
         <div>
           <strong>{policyLabel}</strong>
-          <small>Từ 24 giờ trở lên &nbsp; | &nbsp; Phí hủy 10%</small>
+          <small>
+            {isMockApi
+              ? "Từ 24 giờ trở lên | Phí hủy 10%"
+              : "Phí và điều kiện được xác nhận bởi hệ thống"}
+          </small>
         </div>
         <button type="button">Xem policy</button>
       </div>
@@ -274,7 +281,7 @@ function RefundSummary({
     >
       <div className="cancellation-page__summary-title">
         <h2>Tóm tắt hoàn tiền</h2>
-        <span>09:42</span>
+        <span>{isMockApi ? "09:42" : journey.requestedAtLabel}</span>
       </div>
       <SummaryRoute seats={seats} journey={journey} />
       <dl className="cancellation-page__amounts">
@@ -283,7 +290,7 @@ function RefundSummary({
           <dd>{money(amounts.fare)}</dd>
         </div>
         <div>
-          <dt>Phí hủy 10%</dt>
+          <dt>{isMockApi ? "Phí hủy 10%" : "Phí hủy theo báo giá"}</dt>
           <dd>{money(amounts.fee)}</dd>
         </div>
         <div>
@@ -291,14 +298,22 @@ function RefundSummary({
           <dd>{money(amounts.refund)}</dd>
         </div>
         <div>
-          <dt>Hoàn về SePay</dt>
+          <dt>{isMockApi ? "Hoàn về SePay" : "Tiền hoàn theo chính sách"}</dt>
           <dd>{money(amounts.refund)}</dd>
         </div>
       </dl>
       <section className="cancellation-page__payment-method">
         <span>PHƯƠNG THỨC HOÀN TIỀN</span>
-        <strong>Giao dịch SePay ban đầu</strong>
-        <small>Dự kiến 3–7 ngày làm việc</small>
+        <strong>
+          {isMockApi
+            ? "Giao dịch SePay ban đầu"
+            : "Theo phương thức thanh toán ban đầu"}
+        </strong>
+        <small>
+          {isMockApi
+            ? "Dự kiến 3–7 ngày làm việc"
+            : "Thời gian xử lý theo nhà cung cấp thanh toán"}
+        </small>
       </section>
       {reviewing ? (
         <div className="cancellation-dialog__actions">
@@ -497,7 +512,11 @@ export function RefundProcessing({
             <dl>
               <div>
                 <dt>TRẠNG THÁI</dt>
-                <dd>SePay đang xử lý hoàn tiền</dd>
+                <dd>
+                  {isMockApi
+                    ? "SePay đang xử lý hoàn tiền"
+                    : "Đã tiếp nhận yêu cầu hủy vé"}
+                </dd>
               </div>
               <div>
                 <dt>SỐ TIỀN</dt>
@@ -509,7 +528,13 @@ export function RefundProcessing({
               </div>
               <div>
                 <dt>YÊU CẦU LÚC</dt>
-                <dd>{journey.requestedAtLabel}</dd>
+                <dd>
+                  {isMockApi
+                    ? journey.requestedAtLabel
+                    : new Date(refund.createdAt).toLocaleString("vi-VN", {
+                        timeZone: "Asia/Ho_Chi_Minh",
+                      })}
+                </dd>
               </div>
             </dl>
             <div className="cancellation-page__notice">
@@ -521,7 +546,11 @@ export function RefundProcessing({
                 </small>
               </div>
             </div>
-            <p>Bạn có thể rời trang; BLUE sẽ thông báo khi SePay hoàn tất.</p>
+            <p>
+              {isMockApi
+                ? "Bạn có thể rời trang; BLUE sẽ thông báo khi SePay hoàn tất."
+                : "Vé đã hủy. Yêu cầu hoàn tiền được xử lý độc lập theo giao dịch ban đầu."}
+            </p>
           </div>
           <div className="cancellation-page__progress">
             <span>TIẾN TRÌNH</span>
@@ -529,11 +558,24 @@ export function RefundProcessing({
             <ol>
               <li>
                 <strong>Vé đã hủy</strong>
-                <small>Đã ghi nhận lúc {journey.recordedAtLabel}</small>
+                <small>
+                  Đã ghi nhận lúc{" "}
+                  {isMockApi
+                    ? journey.recordedAtLabel
+                    : new Date(refund.createdAt).toLocaleTimeString("vi-VN", {
+                        timeZone: "Asia/Ho_Chi_Minh",
+                      })}
+                </small>
               </li>
               <li>
-                <strong>Đang hoàn tiền</strong>
-                <small>SePay đang xử lý</small>
+                <strong>
+                  {isMockApi ? "Đang hoàn tiền" : "Yêu cầu hoàn tiền"}
+                </strong>
+                <small>
+                  {isMockApi
+                    ? "SePay đang xử lý"
+                    : "Chờ cập nhật từ hệ thống thanh toán"}
+                </small>
               </li>
               <li>
                 <strong>Thông báo kết quả</strong>
@@ -608,11 +650,30 @@ function CancellationForm({
   const chosen = options.tickets.filter((ticket) =>
     selected.includes(ticket.ticketId),
   );
+  const quote = useQuery({
+    queryKey: [
+      "cancellation-quote-original",
+      options.bookingId,
+      [...selected].sort().join(","),
+    ],
+    enabled: !isMockApi && selected.length > 0,
+    queryFn: ({ signal }) =>
+      getCancellationPreview(options.bookingId, selected, signal),
+    retry: false,
+    refetchOnWindowFocus: false,
+    staleTime: 0,
+  });
   const amounts = useMemo<RefundAmounts>(() => {
     const fare = chosen.reduce((total, ticket) => total + ticket.fareVnd, 0);
+    if (!isMockApi)
+      return {
+        fare,
+        fee: quote.data?.fee ?? 0,
+        refund: quote.data?.refundAmount ?? 0,
+      };
     const fee = Math.round(fare * (options.feeRatePercent / 100));
     return { fare, fee, refund: fare - fee };
-  }, [chosen, options.feeRatePercent]);
+  }, [chosen, options.feeRatePercent, quote.data]);
   useEffect(() => {
     if (mutation.isError) submittedRef.current = false;
   }, [mutation.isError]);
@@ -644,11 +705,23 @@ function CancellationForm({
           amounts={amounts}
           journey={options.journey}
           reviewing={false}
-          onReview={() => setDialogOpen(true)}
+          onReview={() => {
+            if (
+              isMockApi ||
+              (quote.data && Date.parse(quote.data.expiresAt) > Date.now())
+            )
+              setDialogOpen(true);
+          }}
           onKeep={() => setSelected([])}
           reviewTriggerId={reviewTriggerId}
         />
       </div>
+      {!isMockApi && quote.isError ? (
+        <Toast
+          tone="error"
+          message="Chưa thể lấy phí hủy. Kiểm tra kết nối và chọn lại vé."
+        />
+      ) : null}
       {mutation.isError ? (
         <Toast
           tone="error"

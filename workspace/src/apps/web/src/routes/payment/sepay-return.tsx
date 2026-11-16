@@ -3,7 +3,7 @@ import { VnPayReturnPage } from "@/features/payment/pages/VnPayReturnPage";
 import type { MetaDescriptor } from "react-router";
 import type { ReactElement } from "react";
 import { createMeta } from "@/shared/config/seo";
-import { BackendPaymentReturnPage } from "@/features/payment/pages/BackendPaymentPage";
+import { SePayReturnPage } from "@/features/payment/pages/SePayReturnPage";
 export function meta(): MetaDescriptor[] {
   return createMeta({
     title: "Kết quả thanh toán SePay",
@@ -12,5 +12,5 @@ export function meta(): MetaDescriptor[] {
   });
 }
 export default function SePayRoute(): ReactElement {
-  return isMockApi ? <VnPayReturnPage /> : <BackendPaymentReturnPage />;
+  return isMockApi ? <VnPayReturnPage /> : <SePayReturnPage />;
 }

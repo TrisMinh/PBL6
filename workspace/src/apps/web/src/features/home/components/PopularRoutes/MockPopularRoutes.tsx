@@ -1,3 +1,8 @@
+import { isMockApi } from "@/shared/api/config";
+import {
+  catalogueRoutes,
+  useLiveCatalogue,
+} from "@/features/explore/liveCatalogue";
 import { useEffect, useRef, useState, type ReactElement } from "react";
 import { Link } from "react-router";
 import { CaretLeft } from "@phosphor-icons/react/dist/csr/CaretLeft";
@@ -44,7 +49,12 @@ function RouteCard({
   route,
   departureDate,
 }: {
-  route: (typeof ROUTES)[number];
+  route: {
+    originId: string;
+    destinationId: string;
+    title: string;
+    art: Artwork;
+  };
   departureDate: string;
 }): ReactElement {
   const search = {
@@ -107,6 +117,7 @@ function RouteCard({
   );
 }
 export function MockPopularRoutes(): ReactElement {
+  const catalogue = useLiveCatalogue(!isMockApi);
   const rail = useRef<HTMLDivElement>(null);
   const [edges, setEdges] = useState({ start: true, end: true });
   const tomorrow = new Date(getVietnamTodayDate() + "T00:00:00Z");
@@ -127,7 +138,7 @@ export function MockPopularRoutes(): ReactElement {
       el.removeEventListener("scroll", update);
       window.removeEventListener("resize", update);
     };
-  }, []);
+  }, [catalogue.data]);
   return (
     <section className="popular-routes" aria-labelledby="popular-routes-title">
       <header className="popular-routes__header">
@@ -165,7 +176,10 @@ export function MockPopularRoutes(): ReactElement {
         role="region"
         tabIndex={0}
       >
-        {ROUTES.map((route) => (
+        {(isMockApi
+          ? ROUTES
+          : catalogueRoutes(catalogue.data ?? [], departureDate)
+        ).map((route) => (
           <RouteCard
             key={route.originId + route.destinationId}
             route={route}

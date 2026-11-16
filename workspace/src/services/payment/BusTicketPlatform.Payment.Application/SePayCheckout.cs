@@ -36,7 +36,13 @@ public static class SePayCheckout
 
     public static Dictionary<string, string> BuildAction(SePayOptions options, PaymentRecord payment, string method)
     {
-        var callback = options.CustomerOrigin.TrimEnd('/') + "/payment/sepay/return?bookingId=" + payment.BookingId;
+        var origin = options.CustomerOrigin.TrimEnd('/');
+        // Sandbox local checkout returns to the same browser origin that owns the session.
+        if (options.Environment == "sandbox" && Uri.TryCreate(payment.ReturnUri, UriKind.Absolute, out var local)
+            && local.Scheme == "http" && local.Port == 5173 && local.UserInfo.Length == 0
+            && local.Host is "localhost" or "127.0.0.1")
+            origin = local.GetLeftPart(UriPartial.Authority);
+        var callback = origin + "/payment/sepay/return?bookingId=" + payment.BookingId;
         var fields = new Dictionary<string, string>
         {
             ["order_amount"] = payment.Amount.ToString(CultureInfo.InvariantCulture),

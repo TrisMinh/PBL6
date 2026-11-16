@@ -1,3 +1,4 @@
+import { readApiSession } from "@/shared/api/session";
 import {
   useMutation,
   useQuery,
@@ -22,7 +23,12 @@ export function useCancellationOptions(
   access: CancellationAccess,
 ): UseQueryResult<CancellationOptions, BookingRepositoryError> {
   return useQuery({
-    queryKey: [CANCELLATION_QUERY_KEY, bookingCode, access.kind],
+    queryKey: [
+      CANCELLATION_QUERY_KEY,
+      readApiSession()?.user.id ?? access.token,
+      bookingCode,
+      access.kind,
+    ],
     queryFn: ({ signal }) =>
       httpCancellationRepository.getOptions(bookingCode, access, signal),
   });
@@ -49,6 +55,7 @@ export function useCreateCancellation(
       await Promise.all([
         client.invalidateQueries({ queryKey: [TICKET_DETAIL_QUERY_KEY] }),
         client.invalidateQueries({ queryKey: ["account-tickets"] }),
+        client.invalidateQueries({ queryKey: ["account-ticket-detail"] }),
       ]);
     },
   });

@@ -1,18 +1,7 @@
+import { apiFetch } from "@/shared/api/client";
 import { useEffect, useState } from "react";
 import type { DriverAttachment } from "./drivers.schema";
 
-const STORE = "files";
-async function database(): Promise<IDBDatabase> {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open("blue-operator-driver-files", 1);
-    request.onupgradeneeded = () => {
-      request.result.createObjectStore(STORE);
-    };
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () =>
-      reject(Error("Không mở được kho tệp trong trình duyệt."));
-  });
-}
 export async function validateDriverFile(
   file: File,
   avatar = false,
@@ -44,57 +33,31 @@ export async function storeDriverFile(
   avatar = false,
 ): Promise<DriverAttachment> {
   await validateDriverFile(file, avatar);
-  const db = await database(),
-    id = crypto.randomUUID();
-  try {
-    await new Promise<void>((resolve, reject) => {
-      const tx = db.transaction(STORE, "readwrite");
-      tx.objectStore(STORE).put(file, id);
-      tx.oncomplete = () => resolve();
-      tx.onerror = tx.onabort = () =>
-        reject(
-          Error(
-            "Không lưu được tệp. Kiểm tra dung lượng trình duyệt và thử lại.",
-          ),
-        );
-    });
-  } finally {
-    db.close();
-  }
-  return {
-    id,
-    name: file.name,
-    type: file.type as DriverAttachment["type"],
-    size: file.size,
-  };
+  const response = await apiFetch("/api/v1/operator/driver-files/", {
+    method: "POST",
+    headers: { "Content-Type": file.type, "X-File-Name": file.name },
+    body: file,
+  });
+  if (!response.ok) throw Error("Không tải được tệp lên máy chủ.");
+  return response.json() as Promise<DriverAttachment>;
 }
 export async function deleteDriverFile(id: string): Promise<void> {
-  const db = await database();
-  try {
-    await new Promise<void>((resolve, reject) => {
-      const tx = db.transaction(STORE, "readwrite");
-      tx.objectStore(STORE).delete(id);
-      tx.oncomplete = () => resolve();
-      tx.onerror = tx.onabort = () => reject(Error("Không xóa được tệp tạm."));
-    });
-  } finally {
-    db.close();
-  }
+  const response = await apiFetch(
+    `/api/v1/operator/driver-files/${encodeURIComponent(id)}`,
+    { method: "DELETE" },
+  );
+  if (!response.ok && response.status !== 404)
+    throw Error("Không xóa được tệp.");
 }
 export async function readDriverFile(id: string): Promise<Blob | undefined> {
-  const db = await database();
-  try {
-    return await new Promise<Blob | undefined>((resolve, reject) => {
-      const tx = db.transaction(STORE, "readonly"),
-        req = tx.objectStore(STORE).get(id);
-      req.onsuccess = () =>
-        resolve(req.result instanceof Blob ? req.result : undefined);
-      req.onerror = () => reject(Error("Không đọc được tệp."));
-    });
-  } finally {
-    db.close();
-  }
+  const response = await apiFetch(
+    `/api/v1/operator/driver-files/${encodeURIComponent(id)}`,
+  );
+  if (response.status === 404) return undefined;
+  if (!response.ok) throw Error("Không đọc được tệp.");
+  return response.blob();
 }
+
 export function useDriverFileUrl(
   file?: File | DriverAttachment,
 ): string | undefined {

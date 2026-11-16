@@ -29,6 +29,8 @@ app.UseAuthorization();
 app.MapPlatformHealth();
 app.MapPlatformOpenApi();
 app.MapTransportEndpoints();
+app.MapAdminOrganizationProfiles();
+app.MapOperatorMetadata();
 
 app.Run();
 

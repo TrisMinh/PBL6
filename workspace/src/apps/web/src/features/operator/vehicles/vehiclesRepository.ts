@@ -1,102 +1,112 @@
-import { apiFetch as fetch } from "@/shared/api/client";
-import { z } from "zod";
+import {
+  rows,
+  metadata,
+  saveMetadata,
+  request,
+  typeIndex,
+  vehicleTypes,
+  type Row,
+} from "../liveOriginalApi";
 import {
   vehicleSchema,
   vehicleInputSchema,
+  vehicleSeatCodes,
   type OperatorVehicle,
   type VehicleInput,
 } from "./vehicles.schema";
-const ENDPOINT = "/api/v1/operator/vehicles-preview";
+const endpoint = "/api/v1/operator/buses";
+function adapt(bus: Row, extra: Row = {}): OperatorVehicle {
+  const type = extra.type ?? typeIndex(bus.type);
+  const codes = vehicleSeatCodes(
+    type,
+    extra.rearSeats,
+    extra.cabinCapacity,
+    extra.lowerRooms,
+  );
+  return vehicleSchema.parse({
+    ...extra,
+    id: bus.id,
+    plate: bus.plateNumber,
+    type,
+    disabledSeats: bus.seats
+      .filter((s: Row) => !s.enabled && codes.includes(s.code))
+      .map((s: Row) => s.code),
+    assignment: null,
+  });
+}
 export async function getOperatorVehicles(
   signal?: AbortSignal,
 ): Promise<OperatorVehicle[]> {
-  const response = await fetch(ENDPOINT, { signal });
-  if (!response.ok)
-    throw Error("Không tải được danh sách xe. Vui lòng thử lại.");
-  return z
-    .object({ items: z.array(vehicleSchema) })
-    .parse(await response.json()).items;
+  const [b, m] = await Promise.all([
+    rows(endpoint, signal),
+    metadata("buses", signal),
+  ]);
+  return b.map((v) => adapt(v, m[v.id]));
+}
+async function bus(id: string): Promise<Row> {
+  const value = (await rows(endpoint)).find((v) => v.id === id);
+  if (!value) throw Error("Không tìm thấy xe.");
+  return value;
+}
+async function replace(id: string, extra: Row): Promise<OperatorVehicle> {
+  const current = await bus(id);
+  const meta = { ...(await metadata("buses"))[id], ...extra };
+  const type = meta.type ?? typeIndex(current.type);
+  const codes = vehicleSeatCodes(
+    type,
+    meta.rearSeats,
+    meta.cabinCapacity,
+    meta.lowerRooms,
+  );
+  const seats = codes.map((code, i) => ({
+    code,
+    deck: code.startsWith("T") ? 2 : 1,
+    row: Math.floor(i / 3) + 1,
+    column: (i % 3) + 1,
+    type: vehicleTypes[type],
+    enabled: !meta.disabledSeats?.includes(code),
+  }));
+  const saved = await request(`${endpoint}/${id}/seats`, "PUT", {
+    expectedVersion: current.expectedVersion,
+    seats,
+  });
+  await saveMetadata("buses", id, meta);
+  return adapt(saved, meta);
+}
+export async function createOperatorVehicle(
+  input: VehicleInput,
+): Promise<OperatorVehicle> {
+  const value = vehicleInputSchema.parse(input);
+  const created = await request(endpoint, "POST", {
+    plateNumber: value.plate,
+    type: vehicleTypes[value.type],
+    amenities: [],
+    expectedVersion: 0,
+  });
+  return replace(created.id, { type: value.type, disabledSeats: [] });
 }
 export async function setVehicleSeatPermission(
   id: string,
   code: string,
   enabled: boolean,
 ): Promise<OperatorVehicle> {
-  const response = await fetch(
-    `${ENDPOINT}/${encodeURIComponent(id)}/seats/${encodeURIComponent(code)}`,
-    {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ enabled }),
-    },
-  );
-  if (!response.ok) throw Error("Không lưu được quyền đặt. Vui lòng thử lại.");
-  return vehicleSchema.parse(await response.json());
-}
-export async function createOperatorVehicle(
-  input: VehicleInput,
-): Promise<OperatorVehicle> {
-  const response = await fetch(ENDPOINT, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(vehicleInputSchema.parse(input)),
+  const current = (await getOperatorVehicles()).find((v) => v.id === id);
+  if (!current) throw Error("Không tìm thấy xe.");
+  return replace(id, {
+    disabledSeats: enabled
+      ? current.disabledSeats.filter((s) => s !== code)
+      : [...new Set([...current.disabledSeats, code])],
   });
-  if (!response.ok)
-    throw Error(
-      response.status === 409
-        ? "Biển số xe đã tồn tại."
-        : "Không thêm được xe. Vui lòng thử lại.",
-    );
-  return vehicleSchema.parse(await response.json());
 }
-
-export async function setVehicleRearConfiguration(
+export const setVehicleRearConfiguration = (
   id: string,
   rearSeats: number,
-): Promise<OperatorVehicle> {
-  const response = await fetch(
-    `${ENDPOINT}/${encodeURIComponent(id)}/rear-configuration`,
-    {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ rearSeats }),
-    },
-  );
-  if (!response.ok)
-    throw Error("Không lưu được cấu hình hàng cuối. Vui lòng thử lại.");
-  return vehicleSchema.parse(await response.json());
-}
-
-export async function setVehicleCabinConfiguration(
+): Promise<OperatorVehicle> => replace(id, { rearSeats });
+export const setVehicleCabinConfiguration = (
   id: string,
   cabinCapacity: number,
-): Promise<OperatorVehicle> {
-  const response = await fetch(
-    `${ENDPOINT}/${encodeURIComponent(id)}/cabin-configuration`,
-    {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ cabinCapacity }),
-    },
-  );
-  if (!response.ok)
-    throw Error("Không lưu được cấu hình cabin. Vui lòng thử lại.");
-  return vehicleSchema.parse(await response.json());
-}
-
-export async function setVehicleRoomConfiguration(
+): Promise<OperatorVehicle> => replace(id, { cabinCapacity });
+export const setVehicleRoomConfiguration = (
   id: string,
   lowerRooms: number,
-): Promise<OperatorVehicle> {
-  const response = await fetch(
-    `${ENDPOINT}/${encodeURIComponent(id)}/room-configuration`,
-    {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ lowerRooms }),
-    },
-  );
-  if (!response.ok)
-    throw Error("Không lưu được cấu hình tầng. Vui lòng thử lại.");
-  return vehicleSchema.parse(await response.json());
-}
+): Promise<OperatorVehicle> => replace(id, { lowerRooms });

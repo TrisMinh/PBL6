@@ -1,5 +1,11 @@
 import { z } from "zod";
-import { operatorBookingFixtures } from "@/mocks/fixtures/operatorBookings";
+import {
+  rows,
+  request,
+  metadata,
+  saveMetadata,
+  localDateTime,
+} from "../liveOriginalApi";
 
 export const memberRoles = {
   owner: "Quản trị nhà xe",
@@ -13,7 +19,6 @@ export const memberStates = {
   suspended: "Tạm ngưng",
 } as const;
 const role = z.enum(["owner", "dispatcher", "accountant", "support"]);
-const status = z.enum(["active", "invited", "suspended"]);
 export const memberInputSchema = z.object({
   name: z.string().trim().min(2, "Nhập họ tên ít nhất 2 ký tự").max(100),
   email: z.email("Email không hợp lệ").trim().toLowerCase(),
@@ -22,9 +27,11 @@ export const memberInputSchema = z.object({
     .regex(/^0\d{9}$/, "Số điện thoại gồm 10 chữ số, bắt đầu bằng 0"),
   role,
 });
-const memberSchema = memberInputSchema.extend({ id: z.string(), status });
-export type WorkspaceMember = z.infer<typeof memberSchema>;
 export type MemberInput = z.infer<typeof memberInputSchema>;
+export type WorkspaceMember = MemberInput & {
+  id: string;
+  status: keyof typeof memberStates;
+};
 export const organizationSchema = z.object({
   name: z.string().trim().min(2).max(100),
   code: z.string(),
@@ -36,176 +43,160 @@ export const organizationSchema = z.object({
     .regex(/^\d{10}(?:\d{3})?$/, "Mã số thuế gồm 10 hoặc 13 chữ số"),
   allowPayLater: z.boolean(),
 });
-const settlementSchema = z.object({
-  code: z.string(),
-  bookingCode: z.string(),
-  route: z.string(),
-  date: z.iso.date(),
-  gross: z.number().nonnegative(),
-  refunds: z.number().nonnegative(),
-  commission: z.number().nonnegative(),
-  status: z.enum(["paid", "pending", "review"]),
-  reference: z.string(),
-});
-export type Settlement = z.infer<typeof settlementSchema>;
-const workspaceSchema = z.object({
-  organization: organizationSchema,
-  members: z.array(memberSchema),
-  settlements: z.array(settlementSchema),
-});
-type Workspace = z.infer<typeof workspaceSchema>;
-const KEY = "blue-operator-workspace-v1";
-const seed = (): Workspace => ({
+export type Settlement = {
+  code: string;
+  bookingCode: string;
+  route: string;
+  date: string;
+  gross: number;
+  refunds: number;
+  commission: number;
+  status: "paid" | "pending" | "review";
+  reference: string;
+};
+type Workspace = {
+  organization: z.infer<typeof organizationSchema>;
+  members: WorkspaceMember[];
+  settlements: Settlement[];
+};
+export const emptyWorkspace: Workspace = {
   organization: {
-    name: "BlueLine Co.",
-    code: "BLUE-LINE",
-    email: "contact@blueline.example.invalid",
-    phone: "0281234567",
-    address: "292 Đinh Bộ Lĩnh, Bình Thạnh, TP. Hồ Chí Minh",
-    taxCode: "0312345678",
-    allowPayLater: true,
+    name: "",
+    code: "",
+    email: "",
+    phone: "",
+    address: "",
+    taxCode: "",
+    allowPayLater: false,
   },
-  members: [
-    {
-      id: "member-1",
-      name: "Nguyễn Hoàng Long",
-      email: "long@blue.example.invalid",
-      phone: "0901234567",
-      role: "owner",
-      status: "active",
+  members: [],
+  settlements: [],
+};
+const roles: Record<string, string> = {
+  owner: "OPERATOR_ADMIN",
+  dispatcher: "OPERATOR_SCHEDULER",
+  accountant: "OPERATOR_FINANCE",
+  support: "OPERATOR_OPERATIONS",
+};
+export async function readWorkspace(): Promise<Workspace> {
+  const [org, staff, extra, settlements] = await Promise.all([
+    request("/api/v1/operator/organization"),
+    rows("/api/v1/operator/staff"),
+    metadata("organization"),
+    getSettlements(),
+  ]);
+  const m = extra[org.id] ?? {};
+  return {
+    organization: {
+      name: org.name,
+      code: org.code,
+      email: org.contactEmail ?? "",
+      phone: org.contactPhone ?? "",
+      address: m.address ?? "",
+      taxCode: m.taxCode ?? m.taxId ?? "",
+      allowPayLater: org.allowPayLater,
     },
-    {
-      id: "member-2",
-      name: "Trần Thu Hà",
-      email: "ha@blue.example.invalid",
-      phone: "0902345678",
-      role: "dispatcher",
-      status: "active",
-    },
-    {
-      id: "member-3",
-      name: "Phạm Ngọc Mai",
-      email: "mai@blue.example.invalid",
-      phone: "0903456789",
-      role: "accountant",
-      status: "active",
-    },
-    {
-      id: "member-4",
-      name: "Võ Thành Đạt",
-      email: "dat@blue.example.invalid",
-      phone: "0904567890",
-      role: "support",
-      status: "invited",
-    },
-    {
-      id: "member-5",
-      name: "Đỗ Minh Anh",
-      email: "anh@blue.example.invalid",
-      phone: "0905678901",
-      role: "dispatcher",
-      status: "suspended",
-    },
-    {
-      id: "member-6",
-      name: "Lê Minh Khang",
-      email: "khang@blue.example.invalid",
-      phone: "0906789012",
-      role: "support",
-      status: "active",
-    },
-  ],
-  settlements: operatorBookingFixtures
-    .filter((b) => b.payment !== "unpaid")
-    .slice(0, 24)
-    .map((booking, i) => {
-      const refunds =
-        booking.payment === "refunded"
-          ? booking.amount
-          : i % 5 === 0
-            ? Math.round(booking.amount * 0.2)
-            : 0;
-      return {
-        code: `DS-2609-${String(i + 1).padStart(3, "0")}`,
-        bookingCode: booking.id,
-        route: `${booking.origin} → ${booking.destination}`,
-        date: booking.createdDate,
-        gross: booking.amount,
-        refunds,
-        commission: Math.round((booking.amount - refunds) * 0.05),
-        status: (["paid", "pending", "review"] as const)[i % 3],
-        reference:
-          i % 3 === 0 ? `BLUE-TRANSFER-${String(i + 1).padStart(5, "0")}` : "",
-      };
-    }),
-});
-export function readWorkspace(): Workspace {
-  try {
-    const raw = sessionStorage.getItem(KEY);
-    if (raw) return workspaceSchema.parse(JSON.parse(raw));
-  } catch {
-    /* A corrupt demo snapshot is replaced with deterministic seeds. */
-  }
-  return seed();
-}
-function persist(value: Workspace): void {
-  sessionStorage.setItem(KEY, JSON.stringify(workspaceSchema.parse(value)));
-}
-export function saveOrganization(input: Workspace["organization"]): void {
-  const current = readWorkspace();
-  persist({ ...current, organization: organizationSchema.parse(input) });
-}
-export function saveMember(input: MemberInput, id?: string): WorkspaceMember {
-  const parsed = memberInputSchema.parse(input),
-    current = readWorkspace();
-  if (
-    current.members.some(
-      (m) => m.id !== id && m.email.toLowerCase() === parsed.email,
-    )
-  )
-    throw Error("Email này đã tồn tại trong tổ chức.");
-  const existing = current.members.find((m) => m.id === id);
-  if (id && !existing) throw Error("Không tìm thấy thành viên.");
-  if (
-    existing?.role === "owner" &&
-    parsed.role !== "owner" &&
-    existing.status === "active" &&
-    current.members.filter((m) => m.role === "owner" && m.status === "active")
-      .length === 1
-  )
-    throw Error("Cần giữ ít nhất một quản trị viên đang hoạt động.");
-  const saved: WorkspaceMember = {
-    ...parsed,
-    id: existing?.id ?? crypto.randomUUID(),
-    status: existing?.status ?? "invited",
+    members: staff.map((v) => ({
+      id: v.id,
+      name: m.members?.[v.id]?.name ?? v.fullName,
+      email: m.members?.[v.id]?.email ?? v.email,
+      phone: m.members?.[v.id]?.phone ?? v.phone,
+      role: (Object.keys(roles).find((r) => v.roleCodes.includes(roles[r])) ??
+        "support") as WorkspaceMember["role"],
+      status: v.status === "ACTIVE" ? "active" : "suspended",
+    })),
+    settlements,
   };
-  persist({
-    ...current,
-    members: existing
-      ? current.members.map((m) => (m.id === id ? saved : m))
-      : [...current.members, saved],
-  });
-  return saved;
 }
-export function setMemberStatus(
+export async function getSettlements(): Promise<Settlement[]> {
+  const [values, bookings] = await Promise.all([
+    rows("/api/v1/operator/settlements"),
+    rows("/api/v1/operator/bookings"),
+  ]);
+  return values.map((v) => {
+    const b = bookings.find((b) => b.id === v.bookingId);
+    return {
+      code: v.id,
+      bookingCode: b?.code ?? v.bookingId,
+      route: "—",
+      date: b?.createdAt ? localDateTime(b.createdAt).slice(0, 10) : "",
+      gross: v.grossAmount,
+      refunds: v.refundAmount ?? 0,
+      commission: v.commissionAmount,
+      status:
+        v.collectionStatus === "PAID"
+          ? "paid"
+          : v.collectionStatus === "COLLECTED"
+            ? "pending"
+            : "review",
+      reference: v.paymentId ?? "",
+    };
+  });
+}
+export async function saveOrganization(
+  input: Workspace["organization"],
+): Promise<void> {
+  const value = organizationSchema.parse(input);
+  const org = await request("/api/v1/operator/organization");
+  await request("/api/v1/operator/organization", "PATCH", {
+    code: value.code,
+    name: value.name,
+    contactEmail: value.email,
+    contactPhone: value.phone,
+    allowPayLater: value.allowPayLater,
+    expectedVersion: org.rowVersion,
+  });
+  await saveMetadata("organization", org.id, {
+    ...(await metadata("organization"))[org.id],
+    address: value.address,
+    taxCode: value.taxCode,
+  });
+}
+export async function saveMember(
+  input: MemberInput,
+  id?: string,
+): Promise<WorkspaceMember> {
+  const value = memberInputSchema.parse(input);
+  const members = await rows("/api/v1/operator/staff");
+  const member = id
+    ? members.find((v) => v.id === id)
+    : await request("/api/v1/operator/staff", "POST", {
+        fullName: value.name,
+        email: value.email,
+        phone: value.phone,
+        role: roles[value.role],
+      });
+  if (!member) throw Error("Không tìm thấy thành viên.");
+  if (id)
+    await request(`/api/v1/operator/staff/${id}`, "PATCH", {
+      role: roles[value.role],
+      status: member.status,
+      expectedVersion: member.rowVersion,
+    });
+  const org = await request("/api/v1/operator/organization"),
+    m = (await metadata("organization"))[org.id] ?? {};
+  await saveMetadata("organization", org.id, {
+    ...m,
+    members: { ...m.members, [member.id]: value },
+  });
+  return {
+    ...value,
+    id: member.id,
+    status: member.status === "ACTIVE" ? "active" : "suspended",
+  };
+}
+export async function setMemberStatus(
   id: string,
   state: WorkspaceMember["status"],
-): void {
-  const current = readWorkspace(),
-    member = current.members.find((m) => m.id === id);
+): Promise<void> {
+  const member = (await rows("/api/v1/operator/staff")).find(
+    (v) => v.id === id,
+  );
   if (!member) throw Error("Không tìm thấy thành viên.");
-  if (
-    member.role === "owner" &&
-    state !== "active" &&
-    current.members.filter((m) => m.role === "owner" && m.status === "active")
-      .length === 1
-  )
-    throw Error("Cần giữ ít nhất một quản trị viên đang hoạt động.");
-  persist({
-    ...current,
-    members: current.members.map((m) =>
-      m.id === id ? { ...m, status: state } : m,
-    ),
+  await request(`/api/v1/operator/staff/${id}`, "PATCH", {
+    role: member.roleCodes[0],
+    status: state === "active" ? "ACTIVE" : "SUSPENDED",
+    expectedVersion: member.rowVersion,
   });
 }
 export function settlementTotals(items: Settlement[]): {

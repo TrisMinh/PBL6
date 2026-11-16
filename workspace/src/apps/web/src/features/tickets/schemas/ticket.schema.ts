@@ -1,3 +1,4 @@
+import { isMockApi } from "@/shared/api/config";
 import { z } from "zod";
 
 import { contactDraftSchema } from "@/features/booking/schemas/passenger.schema";
@@ -5,7 +6,9 @@ import { ticketSummarySchema } from "@/features/payment/schemas/payment.schema";
 import { tripSchema } from "@/features/trips/schemas/tripResponse.schema";
 import { TICKET_CODE_MAX_LENGTH } from "@/features/tickets/config/access";
 
-export const ticketCodeSchema = z.string().regex(/^BLUE-[A-Z0-9-]{1,128}$/);
+export const ticketCodeSchema = z
+  .string()
+  .regex(isMockApi ? /^BLUE-[A-Z0-9-]{1,128}$/ : /^[A-Za-z0-9-]{1,128}$/);
 export const ticketHistoryFilterSchema = z.enum(["all", "issued", "cancelled"]);
 export const lookupTokenSchema = z.string().regex(/^[A-Za-z0-9_-]{32,128}$/);
 export const lookupRequestSchema = z
@@ -54,7 +57,8 @@ export const ticketDetailSchema = ticketSummarySchema
   .extend({ status: z.enum(["issued", "cancelled"]) })
   .extend({
     bookingCode: ticketCodeSchema,
-    transactionId: z.string().regex(/^[A-Za-z0-9_-]{1,128}$/),
+    transactionId: z.string().max(128),
+    qrPayload: z.string().optional(),
     issuedAt: z.iso.datetime(),
     passenger: z
       .object({ fullName: contactDraftSchema.shape.fullName })

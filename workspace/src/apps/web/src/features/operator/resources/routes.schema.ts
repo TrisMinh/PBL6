@@ -13,7 +13,7 @@ export const stopSchema = z.object({
 });
 export const routeInputSchema = z
   .object({
-    id: z.string().regex(/^RT-[A-Z0-9-]{3,40}$/),
+    id: z.string().min(1).max(128),
     name: z.string().trim().min(1).max(100).optional(),
     direction: z.enum(["one-way", "both"]).optional(),
     note: z.string().max(2000).optional(),

@@ -110,6 +110,31 @@ public sealed class BookingFlowTests
         Assert.StartsWith("BT1.", qrPayload);
         Assert.True(TicketQr.TryVerify(qrPayload!, TestJwt.SigningKey, out var signedId));
         Assert.Equal(ticketId, signedId);
+        var bookingCode = booking.Body.GetProperty("code").GetString();
+        var ticketCode = ticket.Body.GetProperty("publicCode").GetString();
+        var deniedLookup = await client.PostAsJsonAsync("/api/v1/tickets/lookup", new
+        {
+            bookingCode, verificationValue = "wrong@example.test"
+        });
+        Assert.Equal(HttpStatusCode.NotFound, deniedLookup.StatusCode);
+        var lookup = await client.PostAsJsonAsync("/api/v1/tickets/lookup", new
+        {
+            bookingCode, verificationValue = "0911111111"
+        });
+        Assert.Equal(HttpStatusCode.OK, lookup.StatusCode);
+        var access = await lookup.Content.ReadFromJsonAsync<JsonElement>();
+        var lookupToken = access.GetProperty("token").GetString()!;
+        Assert.Equal(ticketCode, access.GetProperty("ticketCodes")[0].GetString());
+        using var detailRequest = new HttpRequestMessage(HttpMethod.Get, $"/api/v1/tickets/lookup/{ticketCode}");
+        detailRequest.Headers.Add("X-Ticket-Lookup-Token", lookupToken);
+        var detail = await client.SendAsync(detailRequest);
+        Assert.Equal(HttpStatusCode.OK, detail.StatusCode);
+        var detailJson = await detail.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(seatId, detailJson.GetProperty("seatId").GetGuid());
+        Assert.False(detailJson.TryGetProperty("contact", out _));
+        using var forgedRequest = new HttpRequestMessage(HttpMethod.Get, $"/api/v1/tickets/lookup/{ticketCode}");
+        forgedRequest.Headers.Add("X-Ticket-Lookup-Token", (lookupToken[0] == 'A' ? "B" : "A") + lookupToken[1..]);
+        Assert.Equal(HttpStatusCode.Unauthorized, (await client.SendAsync(forgedRequest)).StatusCode);
         var current = await Send(client, HttpMethod.Get, $"/api/v1/bookings/{booking.Body.GetProperty("id").GetGuid()}", null, token);
         var version = current.Body.GetProperty("rowVersion").GetInt64();
         var preview = await Send(client, HttpMethod.Post, $"/api/v1/bookings/{booking.Body.GetProperty("id").GetGuid()}/cancellation-preview", new { ticketIds = new[] { ticketId } }, token);

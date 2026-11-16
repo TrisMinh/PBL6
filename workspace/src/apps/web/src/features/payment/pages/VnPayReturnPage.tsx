@@ -3,7 +3,10 @@ import { Toast } from "@/shared/ui/Toast/Toast";
 import { Link, useSearchParams } from "react-router";
 
 import type { BookingRepositoryError } from "@/features/booking/repositories/bookingRepositoryError";
-import { PaymentResultCard } from "@/features/payment/components/PaymentResultCard";
+import {
+  PaymentResultCard,
+  type PaymentResultView,
+} from "@/features/payment/components/PaymentResultCard";
 import { usePaymentReturn } from "@/features/payment/hooks/usePaymentReturn";
 import { paymentReturnQuerySchema } from "@/features/payment/schemas/payment.schema";
 import type { PaymentStatus } from "@/features/payment/types/payment";
@@ -83,6 +86,24 @@ function ResolvedReturn({
       />
     );
   return (
+    <PaymentResultContent
+      result={query.data}
+      isFetching={query.isFetching}
+      onRecheck={() => void query.refetch()}
+    />
+  );
+}
+
+export function PaymentResultContent({
+  result,
+  isFetching,
+  onRecheck,
+}: {
+  result: PaymentResultView;
+  isFetching: boolean;
+  onRecheck: () => void;
+}): ReactElement {
+  return (
     <>
       <header className="payment-page__heading">
         <nav className="payment-page__breadcrumb" aria-label="Đường dẫn">
@@ -92,23 +113,23 @@ function ResolvedReturn({
           <span aria-hidden="true">/</span>
           <span aria-current="page">Xác nhận</span>
         </nav>
-        <h1>{HEADINGS[query.data.status]}</h1>
+        <h1>{HEADINGS[result.status]}</h1>
         <p role="status">
-          {query.data.status === "success"
+          {result.status === "success"
             ? "Vé điện tử đã sẵn sàng cho hành trình của bạn."
             : "Theo dõi kết quả giao dịch và lựa chọn bước tiếp theo."}
         </p>
       </header>
-      {query.data.status === "success" && (
+      {result.status === "success" && (
         <Toast
           tone="success"
           message="Thanh toán thành công. Vé của bạn đã được phát hành."
         />
       )}
       <PaymentResultCard
-        result={query.data}
-        isFetching={query.isFetching}
-        onRecheck={() => void query.refetch()}
+        result={result}
+        isFetching={isFetching}
+        onRecheck={onRecheck}
       />
     </>
   );

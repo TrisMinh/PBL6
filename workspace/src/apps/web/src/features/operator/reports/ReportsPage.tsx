@@ -287,18 +287,18 @@ export function ReportsPage(): ReactElement {
   const totals = report?.totals;
   const metrics = totals
     ? [
-        [money(totals.revenue), "Doanh thu", "+12,4%", revenueIcon],
-        [money(totals.costs), "Chi phí", "−8,0%", costIcon],
+        [money(totals.revenue), "Doanh thu", "", revenueIcon],
         [
-          totals.tickets.toLocaleString("vi-VN"),
-          "Vé đã bán",
-          "+8,2%",
-          ticketsIcon,
+          totals.costs === null ? "—" : money(totals.costs),
+          "Chi phí",
+          "",
+          costIcon,
         ],
+        [totals.tickets.toLocaleString("vi-VN"), "Vé đã bán", "", ticketsIcon],
         [
           totals.customers.toLocaleString("vi-VN"),
           "Khách hàng",
-          "+3,1%",
+          "",
           customerIcon,
         ],
       ]
@@ -572,7 +572,10 @@ export function ReportsPage(): ReactElement {
                           type="button"
                           className="operator-reports__marker"
                           aria-label={`${v.name}, ${v.plate}, ${v.status === "running" ? "đang chạy" : "đang đỗ"}`}
-                          style={{ left: v.x, top: v.y }}
+                          style={{
+                            left: v.x ?? undefined,
+                            top: v.y ?? undefined,
+                          }}
                           onClick={() =>
                             setDetail({ kind: "vehicle", item: v })
                           }

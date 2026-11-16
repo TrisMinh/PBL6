@@ -29,6 +29,7 @@ const BOOKING_DATE = new Intl.DateTimeFormat("vi-VN", {
 });
 
 export interface BookingSummaryProps {
+  amounts?: { subtotal: number; fee: number; discount: number };
   primaryAction?: ReactNode;
   paymentOptions?: ReactNode;
   secondaryAction?: ReactNode;
@@ -98,18 +99,16 @@ function SummaryHeader({
   return (
     <header className="booking-summary__header">
       <h2 id={titleId}>{title}</h2>
-      {isMockApi && (
+      {
         <span
           className="booking-summary__timer"
           role="timer"
-          aria-label={
-            isMockApi ? "Thời gian giữ chỗ" : "Thời gian hoàn tất bản nháp"
-          }
+          aria-label="Thời gian giữ chỗ"
           aria-live="off"
         >
           {clock}
         </span>
-      )}
+      }
     </header>
   );
 }
@@ -188,7 +187,11 @@ function DetailedPrice({
   draft,
   layout,
   variant,
-}: Pick<BookingSummaryProps, "draft" | "layout" | "variant">): ReactElement {
+  amounts,
+}: Pick<
+  BookingSummaryProps,
+  "draft" | "layout" | "variant" | "amounts"
+>): ReactElement {
   const selected = layout.items
     .filter((seat) => draft.selectedSeatIds.includes(seat.id))
     .map((seat) => seat.code);
@@ -208,16 +211,16 @@ function DetailedPrice({
       )}
       <div>
         <dt>Giá vé</dt>
-        <dd>{formatCurrencyVnd(draft.totalVnd)}</dd>
+        <dd>{formatCurrencyVnd(amounts?.subtotal ?? draft.totalVnd)}</dd>
       </div>
       <div>
         <dt>Phí dịch vụ</dt>
-        <dd>{formatCurrencyVnd(0)}</dd>
+        <dd>{formatCurrencyVnd(amounts?.fee ?? 0)}</dd>
       </div>
       {(variant === "review" || variant === "payment") && (
         <div>
           <dt>{variant === "payment" ? "Giảm giá" : "Khuyến mãi"}</dt>
-          <dd>{formatCurrencyVnd(0)}</dd>
+          <dd>{formatCurrencyVnd(amounts?.discount ?? 0)}</dd>
         </div>
       )}
       <div className="booking-summary__total">
@@ -248,6 +251,7 @@ export function BookingSummary({
   primaryAction,
   paymentOptions,
   secondaryAction,
+  amounts,
 }: BookingSummaryProps): ReactElement {
   const titleId = useId();
   const seconds = countdown.remainingSeconds;
@@ -277,7 +281,12 @@ export function BookingSummary({
         <SummaryJourney layout={layout} />
       )}
       {isDetailed ? (
-        <DetailedPrice draft={draft} layout={layout} variant={variant} />
+        <DetailedPrice
+          draft={draft}
+          layout={layout}
+          variant={variant}
+          amounts={amounts}
+        />
       ) : (
         <SummaryDetails draft={draft} layout={layout} />
       )}

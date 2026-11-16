@@ -25,7 +25,7 @@ export function canContinueBooking(
           seat.id === id &&
           (!requireAvailability ||
             seat.status === "available" ||
-            (isMockApi && seat.status === "held")),
+            (seat.status === "held" && (isMockApi || seat.heldBySession))),
       ),
     )
   );

@@ -13,10 +13,18 @@ public static class BookingEndpoints
     public static IEndpointRouteBuilder MapBookingEndpoints(this IEndpointRouteBuilder endpoints)
     {
         var api = endpoints.MapGroup("/api/v1");
+        api.MapGet("/trips/availability", async (HttpContext context, BookingService service, string ids) =>
+        {
+            var parts = ids.Split(',', StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length is < 1 or > 100 || parts.Any(part => !Guid.TryParse(part, out _)))
+                return PlatformHttp.Error(PlatformErrors.Validation("Trip IDs are invalid."), context.CorrelationId());
+            return Results.Json(await service.AvailableSeatsAsync(parts.Select(Guid.Parse).Distinct().ToArray(), context.RequestAborted), PlatformHttp.Json);
+        });
         api.MapGet("/trips/{tripId:guid}/seats", GetSeatsAsync).RequireAuthorization();
         api.MapPost("/trips/{tripId:guid}/seat-holds", CreateHoldAsync).RequireAuthorization();
         api.MapGet("/seat-holds/{**holdToken}", GetHoldAsync).RequireAuthorization();
         api.MapDelete("/seat-holds/{**holdToken}", ReleaseHoldAsync).RequireAuthorization();
+        api.MapPut("/seat-holds/{**holdToken}", ReplaceHoldAsync).RequireAuthorization();
         api.MapPost("/bookings", CreateBookingAsync).RequireAuthorization();
         api.MapGet("/bookings", ListBookingsAsync).RequireAuthorization();
         api.MapGet("/bookings/{bookingId:guid}", GetBookingAsync).RequireAuthorization();
@@ -29,6 +37,8 @@ public static class BookingEndpoints
                 : (await service.ListBookingTicketsAsync(actor, bookingId, context.RequestAborted)).ToHttp(context.CorrelationId());
         }).RequireAuthorization();
         api.MapGet("/tickets", ListTicketsAsync).RequireAuthorization();
+        api.MapPost("/tickets/lookup", LookupTicketsAsync).RequireRateLimiting("ticket-lookup");
+        api.MapGet("/tickets/lookup/{code}", LookupTicketAsync);
         api.MapGet("/tickets/{ticketId:guid}", GetTicketAsync).RequireAuthorization();
         api.MapPost("/tickets/validate", ValidateAsync).RequireAuthorization();
         api.MapPost("/tickets/{ticketId:guid}/check-in", CheckInAsync).RequireAuthorization();
@@ -38,6 +48,24 @@ public static class BookingEndpoints
         api.MapPost("/internal/trips/published", ImportAsync);
         api.MapPost("/internal/payments/succeeded", PaymentSucceededAsync);
         return endpoints;
+    }
+
+    public sealed record LookupInput(string? BookingCode, string? VerificationValue);
+
+    private static async Task<IResult> LookupTicketsAsync(HttpContext context, BookingService service, LookupInput input)
+    {
+        context.Response.Headers.CacheControl = "no-store";
+        var code = input.BookingCode?.Trim().ToUpperInvariant() ?? "";
+        var verification = input.VerificationValue?.Trim() ?? "";
+        if (code.Length is < 1 or > 133 || verification.Length is < 1 or > 254)
+            return PlatformHttp.Error(PlatformErrors.Validation("Lookup details are invalid."), context.CorrelationId());
+        return (await service.LookupTicketsAsync(code, verification, context.RequestAborted)).ToHttp(context.CorrelationId());
+    }
+
+    private static async Task<IResult> LookupTicketAsync(HttpContext context, BookingService service, string code)
+    {
+        context.Response.Headers.CacheControl = "no-store";
+        return (await service.LookupTicketAsync(code, context.Request.Headers["X-Ticket-Lookup-Token"].ToString(), context.RequestAborted)).ToHttp(context.CorrelationId());
     }
 
     private static Actor? ActorOf(HttpContext context)
@@ -76,6 +104,16 @@ public static class BookingEndpoints
         return actor is null
             ? PlatformHttp.Error(PlatformErrors.AuthenticationRequired(), context.CorrelationId())
             : (await service.GetHoldAsync(actor, holdToken, context.RequestAborted)).ToHttp(context.CorrelationId());
+    }
+
+    private static async Task<IResult> ReplaceHoldAsync(HttpContext context, BookingService service, IIdempotencyStore store, string holdToken, CreateSeatHoldRequest body)
+    {
+        var actor = ActorOf(context);
+        if (actor is null) return PlatformHttp.Error(PlatformErrors.AuthenticationRequired(), context.CorrelationId());
+        return await context.WithIdempotency(store, "booking:" + actor.UserId, "replace-hold", holdToken, PlatformHttp.HashPayload(body), async () => {
+            var result = await service.ReplaceHoldAsync(actor, holdToken, body, context.RequestAborted);
+            return result.IsSuccess ? (200, (object?)result.Value) : (result.Error!.StatusCode, BusTicketPlatform.BuildingBlocks.Http.ErrorEnvelope.From(result.Error, context.CorrelationId()));
+        });
     }
 
     private static async Task<IResult> ReleaseHoldAsync(HttpContext context, BookingService service, IIdempotencyStore store, string holdToken)

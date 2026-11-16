@@ -23,6 +23,7 @@ public sealed class SqlBaselineMigrator(TransportDatabaseOptions options)
 
         await ApplyFileAsync(connection, "sql.shared", "000_integration_tables.sql", cancellationToken);
         await ApplyFileAsync(connection, "sql.transport", "001_initial.sql", cancellationToken);
+        await ApplyFileAsync(connection, "sql.transport.metadata", "002_operator_metadata.sql", cancellationToken);
     }
 
     private static async Task ApplyFileAsync(

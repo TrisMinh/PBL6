@@ -1,3 +1,5 @@
+import { isMockApi } from "@/shared/api/config";
+import { backendCancellationRepository } from "./backendCancellationRepository";
 import { MOCK_SESSION_HEADER } from "@/features/auth/config/session";
 import { sessionTokenSchema } from "@/features/auth/schemas/session.schema";
 import {
@@ -34,7 +36,7 @@ function bookingPath(bookingCode: string, suffix: string): string {
   return `/api/v1/bookings/${encodeURIComponent(bookingCode)}${suffix}`;
 }
 
-export const httpCancellationRepository: CancellationRepository = {
+const mockCancellationRepository: CancellationRepository = {
   getOptions: (bookingCode, access, signal) =>
     requestBooking(
       bookingPath(bookingCode, "/cancellation"),
@@ -62,3 +64,7 @@ export const httpCancellationRepository: CancellationRepository = {
     );
   },
 };
+
+export const httpCancellationRepository = isMockApi
+  ? mockCancellationRepository
+  : backendCancellationRepository;

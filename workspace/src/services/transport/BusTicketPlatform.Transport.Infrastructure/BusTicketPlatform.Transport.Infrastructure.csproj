@@ -15,5 +15,6 @@
   <ItemGroup>
     <EmbeddedResource Include="..\..\..\..\..\docs\database\_shared\000_integration_tables.sql" LogicalName="sql.shared" />
     <EmbeddedResource Include="..\..\..\..\..\docs\database\transport\001_initial.sql" LogicalName="sql.transport" />
+      <EmbeddedResource Include="..\..\..\..\..\docs\database\transport\002_operator_metadata.sql" LogicalName="sql.transport.metadata" />
   </ItemGroup>
 </Project>

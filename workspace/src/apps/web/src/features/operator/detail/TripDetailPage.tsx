@@ -65,7 +65,7 @@ function DetailContent({ trip }: { trip: TripDetail }): ReactElement {
       void client.invalidateQueries({
         queryKey: ["operator", "schedule-preview"],
       });
-      setMessage("Đã lưu thay đổi trong môi trường mô phỏng.");
+      setMessage("Đã lưu thay đổi.");
     },
     onError: () =>
       setMessage("Không lưu được thay đổi. Dữ liệu nhập được giữ lại."),
@@ -206,27 +206,13 @@ function DetailContent({ trip }: { trip: TripDetail }): ReactElement {
                 label="PHƯƠNG TIỆN"
                 value={draft.vehicle}
                 onChange={(v) => change("vehicle", v)}
-                options={[
-                  ...new Set([
-                    trip.vehicle,
-                    "Chưa phân công",
-                    "45B-204.12",
-                    "51B-208.36",
-                  ]),
-                ]}
+                options={trip.vehicleOptions ?? [trip.vehicle]}
               />
               <DetailField
                 label="TÀI XẾ"
                 value={draft.driver}
                 onChange={(v) => change("driver", v)}
-                options={[
-                  ...new Set([
-                    trip.driver,
-                    "Chưa phân công",
-                    "Hoàng Nam",
-                    "Minh Khang",
-                  ]),
-                ]}
+                options={trip.driverOptions ?? [trip.driver]}
               />
             </div>
             <div className="operator-create__three">

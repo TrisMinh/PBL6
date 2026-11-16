@@ -60,6 +60,31 @@ public sealed class TransportFlowTests
     public TransportFlowTests(TransportPostgresFixture fixture) => _fixture = fixture;
 
     [Fact]
+    public async Task Admin_can_save_original_organization_profile_fields_with_version_check()
+    {
+        var client = _fixture.CreateClient();
+        var token = TestJwt.Mint(Guid.CreateVersion7(), [Roles.PlatformAdmin]);
+        var created = await SendAsync(client, HttpMethod.Post, "/api/v1/admin/organizations", new { code = "LEGAL" + Guid.NewGuid().ToString("N")[..6], name = "Legal Operator", contactEmail = "legal@example.test", contactPhone = "0900000000", expectedVersion = 0 }, token, Idempotency());
+        var id = created.Body.GetProperty("id").GetGuid();
+        var input = new { name = "Renamed Operator", contactEmail = "legal@example.test", contactPhone = "0900000000", status = "inactive", legalName = "Registered Company", taxId = "123456", address = "Actual address", contactName = "Contact Person", expectedVersion = 0 };
+        var saved = await SendAsync(client, HttpMethod.Patch, $"/api/v1/admin/organizations/{id}/profile", input, token);
+        Assert.Equal(HttpStatusCode.OK, saved.Response.StatusCode);
+        Assert.Equal("Registered Company", saved.Body.GetProperty("legalName").GetString());
+        Assert.Equal("INACTIVE", saved.Body.GetProperty("status").GetString());
+        var conflict = await SendAsync(client, HttpMethod.Patch, $"/api/v1/admin/organizations/{id}/profile", input, token);
+        Assert.Equal(HttpStatusCode.Conflict, conflict.Response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Public_catalogue_accepts_unselected_route_and_date()
+    {
+        var response = await _fixture.CreateClient().GetAsync("/api/v1/trips?passengerCount=1&page=0&size=100");
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(JsonValueKind.Array, body.GetProperty("items").ValueKind);
+    }
+
+    [Fact]
     public async Task Ready_succeeds_after_baseline()
     {
         var client = _fixture.CreateClient();

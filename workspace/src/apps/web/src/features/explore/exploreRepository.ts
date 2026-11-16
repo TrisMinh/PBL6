@@ -1,3 +1,6 @@
+import { isMockApi } from "@/shared/api/config";
+import { backendTripRepository } from "@/features/trips/repositories/backendTripRepository";
+import { catalogueProvinces, catalogueSearch } from "./liveCatalogue";
 import { apiFetch as fetch } from "@/shared/api/client";
 import type { z } from "zod";
 import {
@@ -55,14 +58,25 @@ async function request<T>(
 }
 export const exploreRepository = {
   list: async (signal?: AbortSignal): Promise<ProvinceSummary[]> =>
-    (await request("/api/v1/explore/provinces", provinceListSchema, signal))
-      .items,
+    isMockApi
+      ? (await request("/api/v1/explore/provinces", provinceListSchema, signal))
+          .items
+      : catalogueProvinces(
+          await backendTripRepository.search(catalogueSearch, signal),
+        ),
   detail: async (
     slug: string,
     signal?: AbortSignal,
   ): Promise<ProvinceDetail> => {
     if (!provinceSlugSchema.safeParse(slug).success)
       throw new ExploreRepositoryError("INVALID_INPUT");
+    if (!isMockApi) {
+      const detail = catalogueProvinces(
+        await backendTripRepository.search(catalogueSearch, signal),
+      ).find((p) => p.slug === slug);
+      if (!detail) throw new ExploreRepositoryError("HTTP_ERROR", 404);
+      return detail;
+    }
     const detail = await request(
       `/api/v1/explore/provinces/${encodeURIComponent(slug)}`,
       provinceDetailSchema,

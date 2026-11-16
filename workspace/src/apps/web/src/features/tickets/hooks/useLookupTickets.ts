@@ -10,7 +10,8 @@ import type {
   LookupInput,
   TicketAccess,
 } from "@/features/tickets/types/ticketAccess";
-import { ticketPath } from "@/shared/config/routes";
+import { ticketPath, ROUTES } from "@/shared/config/routes";
+import { isMockApi } from "@/shared/api/config";
 
 interface Attempt {
   mounted: boolean;
@@ -70,6 +71,10 @@ export function useLookupTickets(): LookupResult {
           client.removeQueries({ queryKey: [TICKET_DETAIL_QUERY_KEY] });
           void navigate(ticketPath(access.ticketCodes[0]));
         }
+      },
+      onError: (error) => {
+        if (!isMockApi && error.status === 401)
+          void navigate(ROUTES.login, { state: { from: ROUTES.ticketLookup } });
       },
       onSettled: (_data, error, { run }) => {
         if (error && ref.current.run === run) ref.current.locked = false;

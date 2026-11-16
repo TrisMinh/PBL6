@@ -105,6 +105,16 @@ public sealed class SecurityAndAdminTests
         Assert.True(adminLogin.Response.IsSuccessStatusCode, adminLogin.Body.ToString());
         var adminAccess = adminLogin.Body.GetProperty("accessToken").GetString();
 
+        var staffData = IdentityTestData.NewUser();
+        var createdStaff = await IdentityTestData.SendAsync(client, HttpMethod.Post, "/api/v1/admin/users", new { fullName = "Managed Staff", email = staffData.Email, phone = staffData.Phone, expectedVersion = 0 }, bearer: adminAccess, idempotency: IdentityTestData.IdempotencyKey());
+        Assert.Equal(HttpStatusCode.Created, createdStaff.Response.StatusCode);
+        var staffId = createdStaff.Body.GetProperty("id").GetGuid();
+        var editedStaff = await IdentityTestData.SendAsync(client, HttpMethod.Patch, $"/api/v1/admin/users/{staffId}", new { fullName = "Updated Managed Staff", email = staffData.Email, phone = staffData.Phone, expectedVersion = 0 }, bearer: adminAccess);
+        Assert.Equal(HttpStatusCode.OK, editedStaff.Response.StatusCode);
+        Assert.Equal("Updated Managed Staff", editedStaff.Body.GetProperty("fullName").GetString());
+        var staleStaff = await IdentityTestData.SendAsync(client, HttpMethod.Patch, $"/api/v1/admin/users/{staffId}", new { fullName = "Stale", email = staffData.Email, phone = staffData.Phone, expectedVersion = 0 }, bearer: adminAccess);
+        Assert.Equal(HttpStatusCode.Conflict, staleStaff.Response.StatusCode);
+
         var listed = await IdentityTestData.SendAsync(client, HttpMethod.Get, "/api/v1/admin/users?page=0&size=20", bearer: adminAccess);
         Assert.Equal(HttpStatusCode.OK, listed.Response.StatusCode);
 

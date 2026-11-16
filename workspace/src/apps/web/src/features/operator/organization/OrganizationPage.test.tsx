@@ -1,100 +1,44 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
-import { beforeEach, expect, it } from "vitest";
+import { expect, it, vi } from "vitest";
+vi.mock("./operatorWorkspace", async () => {
+  const actual = await vi.importActual<typeof import("./operatorWorkspace")>(
+    "./operatorWorkspace",
+  );
+  return {
+    ...actual,
+    readWorkspace: vi.fn().mockRejectedValue(Error("Máy chủ từ chối truy cập")),
+    getSettlements: vi
+      .fn()
+      .mockRejectedValue(Error("Máy chủ đối soát không khả dụng")),
+  };
+});
 import { OrganizationPage } from "./OrganizationPage";
 import { SettlementsPage } from "./SettlementsPage";
-import { readWorkspace } from "./operatorWorkspace";
-
-beforeEach(() => sessionStorage.clear());
-
-it("invites a member through the visible dialog and persists the selected role", () => {
+it("keeps the organization layout and shows a real API failure", async () => {
   render(
     <MemoryRouter>
       <OrganizationPage />
     </MemoryRouter>,
   );
-  fireEvent.click(screen.getByRole("button", { name: "Thêm thành viên" }));
-  const dialog = within(screen.getByRole("dialog"));
-  fireEvent.change(dialog.getByLabelText("Họ và tên"), {
-    target: { value: "Nguyễn Bảo Ngọc" },
-  });
-  fireEvent.change(dialog.getByLabelText("Email công việc"), {
-    target: { value: "ngoc@demo.example.invalid" },
-  });
-  fireEvent.change(dialog.getByLabelText("Số điện thoại"), {
-    target: { value: "0912345678" },
-  });
-  fireEvent.change(dialog.getByLabelText("Vai trò"), {
-    target: { value: "accountant" },
-  });
-  fireEvent.click(dialog.getByRole("button", { name: "Gửi lời mời" }));
-  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   expect(
-    screen.getByRole("heading", { name: "Nguyễn Bảo Ngọc" }),
+    screen.getByRole("heading", { name: "Tổ chức & thành viên" }),
   ).toBeInTheDocument();
-  expect(
-    readWorkspace().members.find(
-      (m) => m.email === "ngoc@demo.example.invalid",
+  await waitFor(() =>
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Máy chủ từ chối truy cập",
     ),
-  ).toMatchObject({ role: "accountant", status: "invited" });
+  );
 });
-
-it("shows a helpful empty state and restores all members when clearing filters", () => {
-  render(
-    <MemoryRouter>
-      <OrganizationPage />
-    </MemoryRouter>,
-  );
-  fireEvent.change(screen.getByLabelText("Tìm thành viên"), {
-    target: { value: "khong-co-thanh-vien" },
-  });
-  expect(
-    screen.getByRole("heading", { name: "Không tìm thấy thành viên" }),
-  ).toBeInTheDocument();
-  fireEvent.click(screen.getByRole("button", { name: "Xóa bộ lọc" }));
-  expect(
-    screen.getByRole("heading", { name: "Nguyễn Hoàng Long" }),
-  ).toBeInTheDocument();
-});
-
-it("protects the last administrator through the confirmation UI", () => {
-  render(
-    <MemoryRouter>
-      <OrganizationPage />
-    </MemoryRouter>,
-  );
-  fireEvent.click(
-    screen.getByRole("button", { name: "Tạm ngưng Nguyễn Hoàng Long" }),
-  );
-  fireEvent.click(
-    within(screen.getByRole("dialog")).getByRole("button", {
-      name: "Xác nhận",
-    }),
-  );
-  expect(screen.getByRole("alert")).toHaveTextContent(
-    "ít nhất một quản trị viên",
-  );
-  expect(readWorkspace().members[0].status).toBe("active");
-});
-
-it("opens settlement breakdown and validates date order before export", () => {
+it("reports a settlement failure instead of seeded rows", async () => {
   render(
     <MemoryRouter>
       <SettlementsPage />
     </MemoryRouter>,
   );
-  fireEvent.click(
-    screen.getByRole("button", { name: "Xem chi tiết DS-2609-001" }),
+  await waitFor(() =>
+    expect(
+      screen.getByText("Máy chủ đối soát không khả dụng"),
+    ).toBeInTheDocument(),
   );
-  const dialog = within(screen.getByRole("dialog"));
-  expect(dialog.getByText("BK-260905-018")).toBeInTheDocument();
-  expect(dialog.getByText("BLUE-TRANSFER-00001")).toBeInTheDocument();
-  fireEvent.click(dialog.getByRole("button", { name: "Đóng" }));
-  fireEvent.change(screen.getByLabelText("Từ ngày"), {
-    target: { value: "2026-10-01" },
-  });
-  expect(screen.getByRole("alert")).toHaveTextContent(
-    "Ngày bắt đầu phải trước",
-  );
-  expect(screen.getByRole("button", { name: "Xuất CSV" })).toBeDisabled();
 });

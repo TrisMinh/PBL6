@@ -81,7 +81,7 @@ export type CreateDriverInput = z.infer<typeof createDriverSchema>;
 export type DriverAttachment = z.infer<typeof driverAttachmentSchema>;
 export const driverSchema = driverInputSchema.safeExtend({
   ...extras,
-  id: z.string().regex(/^TX-\d{3,}$/),
+  id: z.string().min(1).max(128),
   joinedAt: date,
   status: driverStatusSchema,
 });

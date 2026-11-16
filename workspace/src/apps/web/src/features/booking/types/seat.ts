@@ -9,6 +9,7 @@ export interface Seat {
   row: number;
   column: number;
   status: SeatStatus;
+  heldBySession?: boolean;
 }
 
 export interface SeatLayout {

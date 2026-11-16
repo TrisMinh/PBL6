@@ -1,5 +1,3 @@
-import { isMockApi } from "@/shared/api/config";
-import { BackendOperatorPage } from "@/features/operator/BackendOperatorPage";
 import type { ReactElement } from "react";
 import { createMeta } from "@/shared/config/seo";
 import { RefundRequestsPage } from "@/features/operator/refunds/RefundRequestsPage";
@@ -10,10 +8,6 @@ export function meta(): ReturnType<typeof createMeta> {
     noIndex: true,
   });
 }
-export default function RefundRequestsRoute(): ReactElement {
-  return isMockApi ? (
-    <RefundRequestsPage />
-  ) : (
-    <BackendOperatorPage resource="refunds" />
-  );
+export default function Route(): ReactElement {
+  return <RefundRequestsPage />;
 }

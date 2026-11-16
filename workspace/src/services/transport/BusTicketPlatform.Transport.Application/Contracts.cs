@@ -58,9 +58,9 @@ public sealed record TripTransitionRequest(long ExpectedVersion, string TargetSt
 public sealed record DriverAssignmentDto(Guid TripId, Guid DriverId, DateTimeOffset StartAt, DateTimeOffset EndAt, bool Active);
 public sealed record ExploreRouteDto(string Origin, string Destination, int TripCount, int OperatorCount);
 public sealed record TripSearchQuery(
-    string Origin,
-    string Destination,
-    DateOnly DepartureDate,
+    string? Origin,
+    string? Destination,
+    DateOnly? DepartureDate,
     int PassengerCount,
     long? MinPrice,
     long? MaxPrice,

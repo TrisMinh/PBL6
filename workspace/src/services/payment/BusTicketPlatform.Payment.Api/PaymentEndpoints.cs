@@ -13,6 +13,12 @@ public static class PaymentEndpoints
 {
     public static IEndpointRouteBuilder MapPaymentEndpoints(this IEndpointRouteBuilder endpoints)
     {
+        endpoints.MapGet("/api/v1/payment-methods", (SePayOptions options) => Results.Json(new {
+            provider = "SEPAY",
+            environment = options.Environment,
+            configured = options.IsConfigured,
+            methods = options.IsConfigured ? options.Methods.Where(method => method is "BANK_TRANSFER" or "NAPAS_BANK_TRANSFER" or "CARD").ToArray() : Array.Empty<string>()
+        }, PlatformHttp.Json));
         var api = endpoints.MapGroup("/api/v1").RequireAuthorization();
         api.MapPost("/bookings/{bookingId:guid}/payments", CreateAsync);
         api.MapGet("/bookings/{bookingId:guid}/payments", ListAsync);

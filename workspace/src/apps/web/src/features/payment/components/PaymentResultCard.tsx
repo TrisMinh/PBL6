@@ -25,10 +25,33 @@ import tripPhoto from "@/assets/operator/schedule/imgTripVehicleThumbnail.png";
 import "./PaymentResultCard.css";
 
 interface Props {
-  result: PaymentResult;
+  result: PaymentResultView;
   isFetching: boolean;
   onRecheck: () => void;
 }
+export type PaymentResultView = Omit<
+  Pick<
+    PaymentResult,
+    | "tripId"
+    | "bookingId"
+    | "bookingCode"
+    | "sessionId"
+    | "status"
+    | "amountVnd"
+    | "createdAt"
+    | "tickets"
+  >,
+  "createdAt" | "tickets"
+> & {
+  createdAt?: string | null;
+  tickets: readonly Pick<
+    PaymentResult["tickets"][number],
+    "ticketId" | "ticketCode" | "seatCode"
+  >[];
+  live?: boolean;
+  sandbox?: boolean;
+  canRetry?: boolean;
+};
 const LABELS: Record<PaymentStatus, string> = {
   success: "Đã xác nhận thanh toán",
   failed: "Chưa ghi nhận thanh toán",
@@ -41,7 +64,11 @@ const STATUS_EYEBROWS: Record<PaymentStatus, string> = {
   cancelled: "GIAO DỊCH ĐÃ HỦY",
   pending: "ĐANG XỬ LÝ · TỰ ĐỘNG CẬP NHẬT",
 };
-function JourneyHeader({ result }: { result: PaymentResult }): ReactElement {
+function JourneyHeader({
+  result,
+}: {
+  result: PaymentResultView;
+}): ReactElement {
   const query = useSeats(result.tripId);
   return (
     <header className="payment-result__journey">
@@ -100,7 +127,11 @@ function JourneyHeader({ result }: { result: PaymentResult }): ReactElement {
     </header>
   );
 }
-function PaymentDetails({ result }: { result: PaymentResult }): ReactElement {
+function PaymentDetails({
+  result,
+}: {
+  result: PaymentResultView;
+}): ReactElement {
   const recovery = result.status === "failed" || result.status === "cancelled";
   return (
     <section aria-label="Chi tiết giao dịch">
@@ -118,11 +149,15 @@ function PaymentDetails({ result }: { result: PaymentResult }): ReactElement {
         </div>
         <div>
           <dt>Cổng thanh toán</dt>
-          <dd>SePay mô phỏng</dd>
+          <dd>{result.live ? "SePay" : "SePay mô phỏng"}</dd>
         </div>
         <div>
           <dt>Thời gian giao dịch</dt>
-          <dd>{formatDateTime(result.createdAt, "HH:mm dd/MM/yyyy")}</dd>
+          <dd>
+            {result.createdAt
+              ? formatDateTime(result.createdAt, "HH:mm dd/MM/yyyy")
+              : "—"}
+          </dd>
         </div>
       </dl>
       {result.status !== "success" && (
@@ -139,13 +174,17 @@ function PaymentDetails({ result }: { result: PaymentResult }): ReactElement {
           </span>
         </p>
       )}
-      <p className="payment-result__notice">
-        Đây là môi trường mô phỏng; không thu tiền thật.
-      </p>
+      {(!result.live || result.sandbox) && (
+        <p className="payment-result__notice">
+          {result.live
+            ? "Giao dịch qua SePay Sandbox."
+            : "Đây là môi trường mô phỏng; không thu tiền thật."}
+        </p>
+      )}
     </section>
   );
 }
-function TicketLinks({ result }: { result: PaymentResult }): ReactElement {
+function TicketLinks({ result }: { result: PaymentResultView }): ReactElement {
   return (
     <section aria-label="Vé đã phát hành">
       <h3>Vé đã phát hành</h3>
@@ -179,10 +218,11 @@ function RecoveryActions({
   const draft = useBookingDraftStore((s) => s.draft),
     countdown = useHoldCountdown(draft?.expiresAt ?? "");
   const canRetry =
-    draft?.bookingId === result.bookingId &&
-    draft.sessionId === result.sessionId &&
-    !countdown.isExpired &&
-    countdown.remainingSeconds > 0;
+    result.canRetry ??
+    (draft?.bookingId === result.bookingId &&
+      draft.sessionId === result.sessionId &&
+      !countdown.isExpired &&
+      countdown.remainingSeconds > 0);
   return (
     <div className="payment-result__actions">
       {result.status !== "success" && (

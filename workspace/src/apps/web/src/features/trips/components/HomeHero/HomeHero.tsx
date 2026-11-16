@@ -1,4 +1,3 @@
-import { isMockApi } from "@/shared/api/config";
 import { useEffect, useId, type ReactElement } from "react";
 import { createSearchParams, useLocation, useNavigate } from "react-router";
 
@@ -70,7 +69,7 @@ function HomeSearch(): ReactElement {
         }}
       />
     );
-  if (isMockApi && !locations.data.length)
+  if (!locations.data.length)
     return (
       <p className="home-hero__status" role="status">
         Chưa có điểm đi và điểm đến. Vui lòng thử lại sau.

@@ -8,7 +8,7 @@ export const operatorBookingSchema = z.object({
   destination: z.string(),
   departureDate: z.iso.date(),
   departureTime: z.string(),
-  createdDate: z.iso.date(),
+  createdDate: z.union([z.iso.date(), z.literal("")]),
   seat: z.string(),
   amount: z.number().nonnegative(),
   status: z.enum(["confirmed", "pending", "cancelled"]),

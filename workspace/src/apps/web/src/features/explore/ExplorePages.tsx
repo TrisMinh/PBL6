@@ -36,7 +36,7 @@ function ExploreFailure({
       </h2>
       <p>
         {terminal
-          ? "Tỉnh, thành này chưa có trong danh mục mô phỏng."
+          ? "Tỉnh, thành này chưa có trong danh mục."
           : "Vui lòng thử lại để xem danh mục điểm đón, trả."}
       </p>
       {terminal ? (
@@ -154,7 +154,7 @@ function ProvinceCatalog({
           <p>
             {provinces.length
               ? "Thử tên khác hoặc xóa tìm kiếm để xem toàn bộ danh mục."
-              : "Danh mục mô phỏng sẽ xuất hiện tại đây khi có dữ liệu."}
+              : "Danh mục sẽ xuất hiện tại đây khi có dữ liệu."}
           </p>
           {query && (
             <Button onClick={clear} type="button" variant="secondary">

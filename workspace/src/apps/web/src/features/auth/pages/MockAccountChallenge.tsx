@@ -1,6 +1,12 @@
 import { Toast } from "@/shared/ui/Toast/Toast";
 import { useState, type FormEvent, type ReactElement } from "react";
-import { Link } from "react-router";
+import { Link, useSearchParams } from "react-router";
+import { isMockApi } from "@/shared/api/config";
+import {
+  verifyEmail,
+  resetPassword,
+  resendVerification,
+} from "../repositories/backendAuthRepository";
 import { AuthShell } from "../components/AuthShell";
 import { Button } from "@/shared/ui/Button/Button";
 import { Input } from "@/shared/ui/Input/Input";
@@ -14,6 +20,8 @@ export function MockAccountChallenge({
 }: {
   reset: boolean;
 }): ReactElement {
+  const [params] = useSearchParams();
+  const [pending, setPending] = useState(false);
   const [code, setCode] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -24,11 +32,11 @@ export function MockAccountChallenge({
   async function submit(event: FormEvent): Promise<void> {
     event.preventDefault();
     setNotice("");
-    if (Date.now() >= expiresAt) {
+    if (isMockApi && Date.now() >= expiresAt) {
       setError("Mã đã hết hạn. Vui lòng gửi lại mã.");
       return;
     }
-    if (code !== "123456") {
+    if (isMockApi && code !== "123456") {
       setError("Mã xác minh chưa đúng. Vui lòng kiểm tra lại.");
       return;
     }
@@ -41,7 +49,15 @@ export function MockAccountChallenge({
       return;
     }
     try {
-      await completeDemoChallenge(reset, password);
+      setPending(true);
+      if (isMockApi) await completeDemoChallenge(reset, password);
+      else {
+        const challengeId = params.get("challengeId") ?? "";
+        if (!challengeId)
+          throw new Error("Mở liên kết xác minh trong email để tiếp tục.");
+        if (reset) await resetPassword(challengeId, code, password);
+        else await verifyEmail(challengeId, code);
+      }
       setError("");
       setComplete(true);
     } catch (reason) {
@@ -50,27 +66,41 @@ export function MockAccountChallenge({
           ? reason.message
           : "Không thể xác nhận. Hãy thử lại.",
       );
+    } finally {
+      setPending(false);
     }
   }
   return (
     <AuthShell mode={reset ? "reset" : "verify"}>
       <div className="auth-page__challenge">
         <p className="auth-page__challenge-demo">
-          Mã trải nghiệm: <strong>123456</strong> · Có hiệu lực 10 phút. Không
-          gửi email thật.
+          {isMockApi ? (
+            <>
+              Mã trải nghiệm: <strong>123456</strong> · Có hiệu lực 10 phút.
+              Không gửi email thật.
+            </>
+          ) : (
+            <>
+              Nhập mã xác minh được gửi đến email của bạn. Mở trang này bằng
+              liên kết trong email.
+            </>
+          )}
         </p>
         {complete ? (
           <div className="auth-page__success">
             <Toast
               message={
                 reset
-                  ? "Mật khẩu mô phỏng đã được cập nhật."
+                  ? isMockApi
+                    ? "Mật khẩu mô phỏng đã được cập nhật."
+                    : "Mật khẩu đã được cập nhật."
                   : "Email đã được xác minh."
               }
             />
             <p>
-              Bạn có thể tiếp tục khám phá bằng tài khoản mẫu với mật khẩu
-              BlueDemo2026.
+              {isMockApi
+                ? "Bạn có thể tiếp tục khám phá bằng tài khoản mẫu với mật khẩu BlueDemo2026."
+                : "Bạn có thể đăng nhập bằng thông tin tài khoản của mình."}
             </p>
             <Link to="/login">Tiếp tục đăng nhập</Link>
           </div>
@@ -122,7 +152,7 @@ export function MockAccountChallenge({
                     />
                   </>
                 )}
-                <Button type="submit">
+                <Button type="submit" isLoading={pending}>
                   {reset ? "Lưu mật khẩu mới" : "Xác nhận email"}
                 </Button>
               </fieldset>
@@ -130,7 +160,29 @@ export function MockAccountChallenge({
             <Button
               type="button"
               variant="ghost"
-              onClick={() => {
+              disabled={pending}
+              onClick={async () => {
+                if (!isMockApi) {
+                  const email = params.get("email");
+                  if (!email || reset) {
+                    setError(
+                      "Vui lòng quay lại trang đăng ký hoặc quên mật khẩu để gửi yêu cầu mới.",
+                    );
+                    return;
+                  }
+                  setPending(true);
+                  try {
+                    await resendVerification(email);
+                    setNotice(
+                      "Yêu cầu đã được tiếp nhận. Mở liên kết mới trong email.",
+                    );
+                  } catch {
+                    setError("Chưa gửi lại được mã. Hãy thử lại sau.");
+                  } finally {
+                    setPending(false);
+                  }
+                  return;
+                }
                 setCode("");
                 setExpiresAt(Date.now() + 600000);
                 resendDemoChallenge();

@@ -6,6 +6,7 @@ using BusTicketPlatform.BuildingBlocks.Errors;
 using BusTicketPlatform.Notification.Application;
 using BusTicketPlatform.Notification.Infrastructure;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddBuildingBlocks();
@@ -16,13 +17,21 @@ builder.Services.AddHealthChecks()
     .AddCheck("self", () => HealthCheckResult.Healthy(), tags: ["live", "ready", "startup"])
     .AddNotificationDatabaseCheck();
 builder.Services.AddPlatformSwaggerCors();
+builder.Services.AddRateLimiter(options => options.AddFixedWindowLimiter("customer-requests", limiter =>
+{
+    limiter.PermitLimit = 30;
+    limiter.Window = TimeSpan.FromMinutes(1);
+}));
 var app = builder.Build();
 app.UsePlatformSwaggerCors();
 app.UseBuildingBlocks();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
 app.MapPlatformHealth();
 app.MapPlatformOpenApi();
+app.MapPost("/api/v1/customer-requests/support", CustomerRequests.SupportAsync).RequireRateLimiting("customer-requests");
+app.MapPost("/api/v1/customer-requests/partner", CustomerRequests.PartnerAsync).RequireRateLimiting("customer-requests");
 
 app.MapGet("/api/v1/notifications", async (HttpContext context, NotificationService service, string? cursor, int limit = 20) =>
 {

@@ -29,9 +29,9 @@ export const refundSchema = z
     bookingCode: ticketCodeSchema,
     ticketIds: z.array(paymentIdSchema).min(1).max(6).readonly(),
     seatCodes: z.array(z.string().min(1).max(12)).min(1).max(6).readonly(),
-    amountVnd: z.number().int().positive(),
-    referenceCode: z.string().regex(/^RF-[A-Z0-9-]+$/),
-    status: z.literal("processing"),
+    amountVnd: z.number().int().nonnegative(),
+    referenceCode: z.string().min(1),
+    status: z.enum(["processing", "accepted"]),
     createdAt: z.iso.datetime(),
   })
   .strict()
@@ -76,9 +76,9 @@ export const cancellationOptionsSchema = z
       .strict()
       .readonly(),
     latestRefund: refundSchema.nullable(),
-    refundRatePercent: z.literal(90),
-    feeRatePercent: z.literal(10),
-    policyLabel: z.literal("Mức 1 — Hủy trước 48 giờ"),
+    refundRatePercent: z.number().min(0).max(100),
+    feeRatePercent: z.number().min(0).max(100),
+    policyLabel: z.string().min(1),
   })
   .strict()
   .refine((value) =>

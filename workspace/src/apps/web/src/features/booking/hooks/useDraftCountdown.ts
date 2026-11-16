@@ -1,10 +1,14 @@
 import { isMockApi } from "@/shared/api/config";
 import { useHoldCountdown, type HoldCountdown } from "./useHoldCountdown";
+import { useBookingDraftStore } from "../store/bookingDraftStore";
 export type { HoldCountdown } from "./useHoldCountdown";
 
-// Live drafts own no seats and have no hold deadline. Actual holds/payments
-// continue to use useHoldCountdown with the backend's expiresAt.
 export function useDraftCountdown(expiresAt: string): HoldCountdown {
-  const countdown = useHoldCountdown(isMockApi ? expiresAt : "");
-  return isMockApi ? countdown : { remainingSeconds: 1, isExpired: false };
+  const selected = useBookingDraftStore(
+    (state) => state.draft?.selectedSeatIds.length ?? 0,
+  );
+  const countdown = useHoldCountdown(expiresAt);
+  return isMockApi || selected > 0
+    ? countdown
+    : { remainingSeconds: 0, isExpired: false };
 }
