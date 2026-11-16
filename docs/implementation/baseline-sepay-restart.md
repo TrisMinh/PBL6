@@ -12,3 +12,5 @@ Protected UI paths are byte-identical to the base: features/trips, features/expl
 Validation: 55 focused web tests passed; 19 SePay integration tests passed. These are automated tests, not a new manual payment through the provider portal.
 
 Runtime note: the base already contains separate mock/live presentation branches. This restart preserves the base itself; it does not claim that switching VITE_API_MODE from mock to live yields identical presentation. Do not enable a different presentation globally merely to enable SePay. Any remaining wiring must preserve the original rendered screens and be reviewed as payment-only changes.
+
+Standalone startup: `powershell -ExecutionPolicy Bypass -File .\scripts\start-frontend.ps1`. This intentionally uses the base mock/standalone frontend mode and excludes the live SePay override. The Nginx mock configuration has no gateway dependency. SePay server modules remain available separately; standalone demo checkout does not make real SePay payments.

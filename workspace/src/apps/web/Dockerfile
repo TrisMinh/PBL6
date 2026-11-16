@@ -16,7 +16,10 @@ RUN node scripts/portal.mjs ${APP_TARGET} build
 
 FROM nginxinc/nginx-unprivileged:1.27-alpine AS runtime
 ARG APP_TARGET=customer
+ARG API_MODE=mock
 COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
+COPY docker/nginx.mock.conf /tmp/nginx.mock.conf
+RUN if [ "$API_MODE" = "mock" ]; then cp /tmp/nginx.mock.conf /etc/nginx/conf.d/default.conf; fi
 COPY --from=build /app/build/${APP_TARGET}/client /usr/share/nginx/html
 EXPOSE 8080
 HEALTHCHECK --interval=10s --timeout=3s --start-period=5s --retries=5 \
