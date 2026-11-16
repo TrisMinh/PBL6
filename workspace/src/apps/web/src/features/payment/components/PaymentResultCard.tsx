@@ -235,7 +235,17 @@ function RecoveryActions({
           Chọn phương thức khác
         </Link>
       )}
-      <Link to={ROUTES.accountTickets}>← Về hành trình của tôi</Link>
+      {result.live && result.status === "pending" && canRetry && (
+        <Link to={paymentVnPayPath(result.bookingId)}>Tiếp tục thanh toán</Link>
+      )}
+      <Link
+        to={
+          ROUTES.accountTickets +
+          (result.live && result.status === "pending" ? "?tab=pending" : "")
+        }
+      >
+        ← Về hành trình của tôi
+      </Link>
     </div>
   );
 }

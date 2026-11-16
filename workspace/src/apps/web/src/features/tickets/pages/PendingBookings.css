@@ -1,0 +1,155 @@
+.account-tickets__tabs {
+  display: flex;
+  gap: 8px;
+  margin: 24px 0;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--color-border);
+}
+.account-tickets__tabs a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  padding: 10px 18px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-surface);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+}
+.account-tickets__tabs a[aria-current="page"] {
+  background: var(--color-bg-brand);
+  color: white;
+  border-color: var(--color-bg-brand);
+}
+.pending-bookings__toolbar {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+.pending-bookings__toolbar h2 {
+  margin: 0;
+  font-size: 23px;
+}
+.pending-bookings__toolbar label {
+  display: grid;
+  gap: 6px;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+.pending-bookings__toolbar input {
+  min-height: 42px;
+  width: 280px;
+  max-width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  font: inherit;
+  font-size: 14px;
+}
+.pending-bookings__list {
+  display: grid;
+  gap: 16px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.pending-bookings__card {
+  padding: 20px;
+  border: 1px solid var(--color-border);
+  border-top: 3px solid var(--color-bg-brand);
+  border-radius: 15px;
+  background: var(--color-bg-surface);
+  box-shadow: 0 3px 10px #0e2b520f;
+}
+.pending-bookings__card header,
+.pending-bookings__card footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.pending-bookings__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 8px;
+  background: #fff3de;
+  color: #8a5000;
+  padding: 6px 9px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.pending-bookings__card h3 {
+  margin: 18px 0 6px;
+  font-size: 19px;
+}
+.pending-bookings__card p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+}
+.pending-bookings__card dl {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px 48px;
+  margin: 20px 0;
+  padding: 16px 0;
+  border-block: 1px solid var(--color-border);
+}
+.pending-bookings__card dt {
+  margin-bottom: 6px;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+.pending-bookings__card dd {
+  margin: 0;
+  font-weight: 600;
+  font-size: 14px;
+}
+.pending-bookings__card .pending-bookings__amount {
+  color: var(--color-bg-brand);
+  font-size: 18px;
+}
+.pending-bookings__card footer {
+  justify-content: flex-start;
+}
+.pending-bookings__continue,
+.pending-bookings__check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.pending-bookings__continue {
+  color: white;
+  background: var(--color-bg-brand);
+}
+.pending-bookings__check {
+  border: 1px solid var(--color-border);
+  color: var(--color-bg-brand);
+}
+@media (max-width: 480px) {
+  .pending-bookings__toolbar label,
+  .pending-bookings__toolbar input {
+    width: 100%;
+  }
+  .pending-bookings__card {
+    padding: 16px;
+  }
+  .pending-bookings__card footer a {
+    flex-grow: 1;
+  }
+}

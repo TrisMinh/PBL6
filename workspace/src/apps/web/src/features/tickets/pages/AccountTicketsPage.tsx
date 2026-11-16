@@ -1,6 +1,8 @@
 import { Toast } from "@/shared/ui/Toast/Toast";
 import { useEffect, useState, type ReactElement } from "react";
-import { Link } from "react-router";
+import { Link, useSearchParams } from "react-router";
+import { isMockApi } from "@/shared/api/config";
+import { PendingBookings } from "./PendingBookings";
 import { ArrowRight } from "@phosphor-icons/react/dist/csr/ArrowRight";
 import { Ticket } from "@phosphor-icons/react/dist/csr/Ticket";
 import { SquaresFour } from "@phosphor-icons/react/dist/csr/SquaresFour";
@@ -239,10 +241,7 @@ function History({
           onClose={() => setViewError(false)}
         />
       )}
-      <TicketList
-        items={query.data.items}
-        showPhotos
-      />
+      <TicketList items={query.data.items} showPhotos />
     </div>
   );
 }
@@ -289,23 +288,51 @@ function StatusFilter({
 }
 export function AccountTicketsPage(): ReactElement {
   const { session, revoke } = useAccountSession();
+  const [params] = useSearchParams();
+  const pending = !isMockApi && params.get("tab") === "pending";
   const [status, setStatus] = useState<TicketHistoryFilter>("issued");
   return (
     <section className="account-tickets">
       <AccountHeader />
-      <div className="account-tickets__toolbar">
-        <h2>Danh sách vé</h2>
-        <StatusFilter status={status} onChange={setStatus} />
-      </div>
-      {session?.token ? (
-        <History
-          key={session.userId}
-          session={session}
-          revoke={revoke}
-          status={status}
-        />
+      {!isMockApi && (
+        <nav className="account-tickets__tabs" aria-label="Đơn và vé của tôi">
+          <Link
+            to={ROUTES.accountTickets}
+            aria-current={!pending ? "page" : undefined}
+          >
+            Vé đã đặt
+          </Link>
+          <Link
+            to={ROUTES.accountTickets + "?tab=pending"}
+            aria-current={pending ? "page" : undefined}
+          >
+            Chờ thanh toán
+          </Link>
+        </nav>
+      )}
+      {pending ? (
+        session?.token ? (
+          <PendingBookings key={session.userId} />
+        ) : (
+          <p role="status">Đang kiểm tra phiên…</p>
+        )
       ) : (
-        <p role="status">Đang kiểm tra phiên…</p>
+        <>
+          <div className="account-tickets__toolbar">
+            <h2>Danh sách vé</h2>
+            <StatusFilter status={status} onChange={setStatus} />
+          </div>
+          {session?.token ? (
+            <History
+              key={session.userId}
+              session={session}
+              revoke={revoke}
+              status={status}
+            />
+          ) : (
+            <p role="status">Đang kiểm tra phiên…</p>
+          )}
+        </>
       )}
     </section>
   );

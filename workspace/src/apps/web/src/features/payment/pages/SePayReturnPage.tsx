@@ -80,7 +80,7 @@ export function SePayReturnPage(): ReactElement {
         canRetry:
           booking.status === "PENDING_PAYMENT" &&
           Date.parse(booking.expiresAt) > Date.now() &&
-          (!payment || ["FAILED", "CANCELLED"].includes(payment.status)),
+          !captured,
       };
     },
     refetchInterval: (query) =>
