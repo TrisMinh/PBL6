@@ -20,3 +20,11 @@ The frontend caches live campaign lists briefly, displays the existing condition
 - Browser on port 5180: offer dialog and code selection, apply/remove, invalid code rejection, persistence across reload, responsive review, and created booking subtotal 396000 / discount 50000 / total 346000. The browser payment request was stopped before leaving for hosted checkout; the financial propagation is covered by the service integration suite.
 - Postman collection: four local HTTP requests, five assertions passed (public eligible list, anonymous quote denied, hold ownership, customer cannot create coupons).
 - Local process topology during development: FE 5180 -> gateway 5188 -> Booking 5183 (same existing development PostgreSQL and RabbitMQ). Other services remain on existing local Docker ports. No Docker images rebuilt for these edits.
+
+## SePay localhost return correction
+
+SePay's hosted form requires publicly accessible success/error/cancel URLs: https://developer.sepay.vn/vi/cong-thanh-toan/API/don-hang/form-thanh-toan . Sending a loopback URL directly can be blocked at the provider edge; local unit checks alone do not validate hosted acceptance.
+
+Sandbox checkout now always supplies a public HTTPS URL. For a local browser it supplies `/integrations/payments/sepay/browser-return?state=...`; state is HMAC-authenticated with a separate domain prefix, expires, binds the booking and original loopback origin, and contains no login credentials. The public endpoint verifies it, returns a no-store/no-referrer 302 to the fixed local payment result route, and never changes payment state. Tampered/expired state is rejected; production never redirects to loopback. nginx explicitly proxies this bridge to the gateway instead of serving SPA HTML.
+
+Verification: 31 SePay integration cases passed, including allowed local ports, origin restrictions, signature tampering, expiry, old-payment retry and IPN flows. After rebuilding payment/customer-web, the real public tunnel returned 302 to 127.0.0.1:5173 and an actual hosted Sandbox checkout displayed the bank-transfer QR page without the Cloudflare block. No sandbox payment confirmation was triggered during that browser check.

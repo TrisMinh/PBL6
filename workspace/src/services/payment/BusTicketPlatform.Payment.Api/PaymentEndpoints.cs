@@ -19,6 +19,13 @@ public static class PaymentEndpoints
             configured = options.IsConfigured,
             methods = options.IsConfigured ? options.Methods.Where(method => method is "BANK_TRANSFER" or "NAPAS_BANK_TRANSFER" or "CARD").ToArray() : Array.Empty<string>()
         }, PlatformHttp.Json));
+        endpoints.MapGet("/integrations/payments/sepay/browser-return", (HttpContext context, SePayOptions options, string? state) => {
+            context.Response.Headers.CacheControl = "no-store";
+            context.Response.Headers["Referrer-Policy"] = "no-referrer";
+            return SePayCheckout.TryReadLocalReturn(options, state, out var target)
+                ? Results.Redirect(target)
+                : PlatformHttp.Error(PlatformErrors.Validation("Liên kết quay về đã hết hạn hoặc không hợp lệ."), context.CorrelationId());
+        });
         var api = endpoints.MapGroup("/api/v1").RequireAuthorization();
         api.MapPost("/bookings/{bookingId:guid}/payments", CreateAsync);
         api.MapGet("/bookings/{bookingId:guid}/payments", ListAsync);

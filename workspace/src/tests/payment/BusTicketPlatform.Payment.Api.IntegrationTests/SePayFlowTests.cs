@@ -30,7 +30,17 @@ public sealed class SePayFlowTests(PaymentPostgresFixture fixture)
         var payment=new PaymentRecord(Guid.NewGuid(),booking,Guid.NewGuid(),Guid.NewGuid(),"SEPAY","PAY-TEST",280000,"VND","PROCESSING",DateTimeOffset.UtcNow.AddMinutes(5),0,origin+"/payment/sepay/return?bookingId="+booking);
         var action=SePayCheckout.BuildAction(options,payment,"BANK_TRANSFER");
         foreach(var field in new[]{"success_url","error_url","cancel_url"})
-            Assert.Equal(expected+"/payment/sepay/return?bookingId="+booking,action[field]);
+        {
+            if(environment == "sandbox" && expected != "https://blue.example.test")
+            {
+                Assert.StartsWith("https://blue.example.test/integrations/payments/sepay/browser-return?state=",action[field]);
+                var token=new Uri(action[field]).Query[7..];
+                Assert.True(SePayCheckout.TryReadLocalReturn(options,token,out var target));
+                Assert.Equal(expected+"/payment/sepay/return?bookingId="+booking,target);
+                Assert.False(SePayCheckout.TryReadLocalReturn(options,token+"x",out _));
+            }
+            else Assert.Equal(expected+"/payment/sepay/return?bookingId="+booking,action[field]);
+        }
         Assert.Equal(SePayCheckout.Sign(action,options.SecretKey),action["signature"]);
     }
 
@@ -45,7 +55,25 @@ public sealed class SePayFlowTests(PaymentPostgresFixture fixture)
         var response=await client.SendAsync(request);Assert.Equal(HttpStatusCode.Created,response.StatusCode);
         var resumed=await response.Content.ReadFromJsonAsync<JsonElement>();
         Assert.Equal(first.GetProperty("id").GetGuid(),resumed.GetProperty("id").GetGuid());
-        Assert.StartsWith("http://127.0.0.1:5180/payment/sepay/return?bookingId=",resumed.GetProperty("providerAction").GetProperty("success_url").GetString());
+        var callback=resumed.GetProperty("providerAction").GetProperty("success_url").GetString()!;
+        Assert.StartsWith("https://blue.example.test/integrations/payments/sepay/browser-return?state=",callback);
+        using var bridgeClient=fixture.Factory.CreateClient(new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactoryClientOptions { AllowAutoRedirect=false });
+        var redirect=await bridgeClient.GetAsync(new Uri(callback).PathAndQuery);
+        Assert.Equal(HttpStatusCode.Redirect,redirect.StatusCode);
+        Assert.Equal("http://127.0.0.1:5180/payment/sepay/return?bookingId="+first.GetProperty("bookingId").GetGuid(),redirect.Headers.Location!.ToString());
+        Assert.Equal("no-store",redirect.Headers.CacheControl!.ToString());
+        Assert.Equal(HttpStatusCode.BadRequest,(await bridgeClient.GetAsync("/integrations/payments/sepay/browser-return?state=invalid")).StatusCode);
+    }
+
+    [Fact]
+    public void Expired_local_handoff_is_rejected_and_nonpublic_customer_origin_is_not_configured()
+    {
+        var options=new SePayOptions{Environment="sandbox",CustomerOrigin="https://blue.example.test",MerchantId="test",SecretKey="test-secret",IpnSecretKey="test-ipn"};
+        var payment=new PaymentRecord(Guid.NewGuid(),Guid.NewGuid(),Guid.NewGuid(),Guid.NewGuid(),"SEPAY","PAY-EXPIRED",280000,"VND","PROCESSING",DateTimeOffset.UtcNow.AddDays(-2),0,"http://localhost:5180/payment/sepay/return");
+        var callback=SePayCheckout.BuildAction(options,payment,"BANK_TRANSFER")["success_url"];
+        Assert.False(SePayCheckout.TryReadLocalReturn(options,new Uri(callback).Query[7..],out _));
+        options.CustomerOrigin="http://localhost:5173";
+        Assert.False(options.IsConfigured);
     }
 
     private async Task<JsonElement> Create(HttpClient client, Guid? user = null, string method = "BANK_TRANSFER")

@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 
 namespace BusTicketPlatform.Payment.Application;
 
@@ -18,7 +19,7 @@ public sealed class SePayOptions
         && !string.IsNullOrWhiteSpace(MerchantId) && !string.IsNullOrWhiteSpace(SecretKey)
         && !string.IsNullOrWhiteSpace(IpnSecretKey)
         && Uri.TryCreate(CustomerOrigin, UriKind.Absolute, out var uri)
-        && (uri.Scheme == "https" || Environment == "sandbox" && uri.IsLoopback && uri.Scheme == "http");
+        && uri.Scheme == "https" && !uri.IsLoopback;
 }
 
 public static class SePayCheckout
@@ -37,11 +38,16 @@ public static class SePayCheckout
     public static Dictionary<string, string> BuildAction(SePayOptions options, PaymentRecord payment, string method)
     {
         var origin = options.CustomerOrigin.TrimEnd('/');
-        // Sandbox local checkout returns to the same browser origin that owns the session.
-        if (options.Environment == "sandbox" && Uri.TryCreate(payment.ReturnUri, UriKind.Absolute, out var local)
-            && local.Scheme is "http" or "https" && local.IsLoopback && local.UserInfo.Length == 0)
-            origin = local.GetLeftPart(UriPartial.Authority);
         var callback = origin + "/payment/sepay/return?bookingId=" + payment.BookingId;
+        // SePay requires public callback URLs. A signed public bridge returns the browser to its original local session.
+        if (options.Environment == "sandbox" && Uri.TryCreate(payment.ReturnUri, UriKind.Absolute, out var local)
+            && IsLocalOrigin(local))
+        {
+            var state = JsonSerializer.SerializeToUtf8Bytes(new LocalReturnState(payment.BookingId, local.GetLeftPart(UriPartial.Authority), payment.ExpiresAt.AddHours(24).ToUnixTimeSeconds()));
+            var payload = Encode(state);
+            var signature = HMACSHA256.HashData(Encoding.UTF8.GetBytes(options.SecretKey), Encoding.UTF8.GetBytes("BLUE_SEPAY_LOCAL_RETURN:" + payload));
+            callback = origin + "/integrations/payments/sepay/browser-return?state=" + payload + "." + Encode(signature);
+        }
         var fields = new Dictionary<string, string>
         {
             ["order_amount"] = payment.Amount.ToString(CultureInfo.InvariantCulture),
@@ -62,6 +68,30 @@ public static class SePayCheckout
         fields["type"] = "FORM_POST";
         fields["actionUrl"] = options.CheckoutUrl;
         return fields;
+    }
+
+    private sealed record LocalReturnState(Guid BookingId, string Origin, long Expiry);
+    private static bool IsLocalOrigin(Uri uri) => uri.Scheme is "http" or "https" && uri.IsLoopback && uri.UserInfo.Length == 0;
+    private static string Encode(byte[] bytes) => Convert.ToBase64String(bytes).TrimEnd('=').Replace('+', '-').Replace('/', '_');
+    private static byte[] Decode(string value) => Convert.FromBase64String(value.Replace('-', '+').Replace('_', '/') + new string('=', (4 - value.Length % 4) % 4));
+    public static bool TryReadLocalReturn(SePayOptions options, string? token, out string target)
+    {
+        target = "";
+        if (options.Environment != "sandbox" || string.IsNullOrWhiteSpace(options.SecretKey) || string.IsNullOrWhiteSpace(token) || token.Length > 2048) return false;
+        try
+        {
+            var parts = token.Split('.');
+            if (parts.Length != 2) return false;
+            var expected = HMACSHA256.HashData(Encoding.UTF8.GetBytes(options.SecretKey), Encoding.UTF8.GetBytes("BLUE_SEPAY_LOCAL_RETURN:" + parts[0]));
+            if (!CryptographicOperations.FixedTimeEquals(expected, Decode(parts[1]))) return false;
+            var state = JsonSerializer.Deserialize<LocalReturnState>(Decode(parts[0]));
+            if (state is null || state.BookingId == Guid.Empty || state.Expiry <= DateTimeOffset.UtcNow.ToUnixTimeSeconds()
+                || !Uri.TryCreate(state.Origin, UriKind.Absolute, out var local) || !IsLocalOrigin(local)
+                || state.Origin != local.GetLeftPart(UriPartial.Authority)) return false;
+            target = state.Origin + "/payment/sepay/return?bookingId=" + state.BookingId;
+            return true;
+        }
+        catch (Exception error) when (error is FormatException or JsonException or ArgumentException) { return false; }
     }
 
     public static bool Authenticate(string configured, string supplied) => !string.IsNullOrWhiteSpace(configured)
