@@ -175,7 +175,10 @@ export function FeaturedRoutes(): ReactElement {
               destinationId,
               art: photo,
             }))
-          : catalogueRoutes(catalogue.data ?? [], departureDate)
+          : catalogueRoutes(catalogue.data ?? [], departureDate).slice(
+              0,
+              featuredRoutes.length,
+            )
         ).map(({ originId, destinationId, art: photo }) => {
           const trips = (isMockApi ? demoTrips : (catalogue.data ?? [])).filter(
             (trip) =>

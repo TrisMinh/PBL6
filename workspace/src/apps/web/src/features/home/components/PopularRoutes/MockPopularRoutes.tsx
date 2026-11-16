@@ -178,7 +178,10 @@ export function MockPopularRoutes(): ReactElement {
       >
         {(isMockApi
           ? ROUTES
-          : catalogueRoutes(catalogue.data ?? [], departureDate)
+          : catalogueRoutes(catalogue.data ?? [], departureDate).slice(
+              0,
+              ROUTES.length,
+            )
         ).map((route) => (
           <RouteCard
             key={route.originId + route.destinationId}

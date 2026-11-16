@@ -79,3 +79,37 @@ it("selects route prices and counts only for the displayed service day", () => {
     )[0],
   ).toMatchObject({ minFare: 200, tripCount: 1, departureDate: "2099-01-02" });
 });
+
+it("keeps featured artwork in the original order for live trips", () => {
+  const city = (
+    name: string,
+  ): import("../trips/types/trip").Trip["origin"] => ({
+    id: name,
+    name,
+    displayName: name,
+    province: name,
+  });
+  const routes = [
+    ["Đà Nẵng", "Hà Nội"],
+    ["Hà Nội", "Đà Nẵng"],
+    ["TP. Hồ Chí Minh", "Đà Lạt"],
+  ].map(
+    ([origin, destination]) =>
+      ({
+        origin: city(origin),
+        destination: city(destination),
+        departureTime: "2099-01-02T01:00:00Z",
+        fareVnd: 250000,
+      }) as import("../trips/types/trip").Trip,
+  );
+  const result = catalogueRoutes(routes, "2099-01-02");
+  expect(result.map(({ title }) => title)).toEqual([
+    "TP. Hồ Chí Minh → Đà Lạt",
+    "Hà Nội → Đà Nẵng",
+    "Đà Nẵng → Hà Nội",
+  ]);
+  expect(result.slice(0, 2).map(({ art }) => art)).toEqual([
+    ["travel", 0],
+    ["travel", 1],
+  ]);
+});

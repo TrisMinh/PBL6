@@ -30,7 +30,32 @@ export function provinceSlug(name: string): string {
     .replace(/[^a-z]+/g, "-")
     .replace(/^-|-$/g, "");
 }
+
+const featuredRouteOrder = [
+  "ho-chi-minh:da-lat",
+  "ha-noi:da-nang",
+  "da-lat:da-nang",
+  "ho-chi-minh:ha-noi",
+  "da-lat:ho-chi-minh",
+  "ha-noi:ho-chi-minh",
+];
+const featuredArtwork: Artwork[] = [
+  ["travel", 0],
+  ["travel", 1],
+  ["travel", 2],
+  ["travel", 3],
+  ["extra", 0],
+  ["extra", 1],
+];
+
+function featuredIndex(origin: string, destination: string): number {
+  const city = (name: string): string => provinceSlug(name).replace(/^tp-/, "");
+  return featuredRouteOrder.indexOf(`${city(origin)}:${city(destination)}`);
+}
+
 export function routeArtwork(origin: string, destination: string): Artwork {
+  const featured = featuredArtwork[featuredIndex(origin, destination)];
+  if (featured) return featured;
   const target = provinceSlug(destination);
   if (target.includes("da-lat") || target.includes("lam-dong"))
     return ["travel", 0];
@@ -53,18 +78,20 @@ export function catalogueRoutes(
   trips: readonly Trip[],
   serviceDate?: string,
 ): CatalogueRoute[] {
-  const routes = new Map<string, CatalogueRoute>();
+  const routes = new Map<string, CatalogueRoute & { priority: number }>();
+  const dateFormatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Ho_Chi_Minh",
+  });
   for (const trip of trips) {
-    const date = new Intl.DateTimeFormat("en-CA", {
-      timeZone: "Asia/Ho_Chi_Minh",
-    }).format(new Date(trip.departureTime));
+    const date = dateFormatter.format(new Date(trip.departureTime));
     if (serviceDate && date !== serviceDate) continue;
     const key = JSON.stringify([trip.origin.id, trip.destination.id]);
     const existing = routes.get(key);
     if (existing) {
       existing.minFare = Math.min(existing.minFare, trip.fareVnd);
       existing.tripCount++;
-    } else
+    } else {
+      const priority = featuredIndex(trip.origin.name, trip.destination.name);
       routes.set(key, {
         originId: trip.origin.id,
         destinationId: trip.destination.id,
@@ -72,12 +99,12 @@ export function catalogueRoutes(
         art: routeArtwork(trip.origin.name, trip.destination.name),
         minFare: trip.fareVnd,
         tripCount: 1,
-        departureDate: new Intl.DateTimeFormat("en-CA", {
-          timeZone: "Asia/Ho_Chi_Minh",
-        }).format(new Date(trip.departureTime)),
+        departureDate: date,
+        priority: priority >= 0 ? priority : featuredRouteOrder.length,
       });
+    }
   }
-  return [...routes.values()];
+  return [...routes.values()].sort((a, b) => a.priority - b.priority);
 }
 export function catalogueProvinces(trips: readonly Trip[]): ProvinceDetail[] {
   const provinces = new Map<string, ProvinceDetail>();
