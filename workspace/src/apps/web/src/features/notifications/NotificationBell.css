@@ -5,24 +5,27 @@
   justify-content: center;
   width: 44px;
   height: 44px;
-  border: 1px solid transparent;
-  border-radius: 10px;
-  background: transparent;
+  padding: 3px;
+  border: 2px solid var(--color-account-avatar-border);
+  border-radius: 50%;
+  background: white;
+  box-shadow: var(--shadow-account-avatar);
   color: var(--color-brand-shell-strong);
   cursor: pointer;
   transition:
-    background 160ms ease,
-    border-color 160ms ease;
+    border-color 150ms ease,
+    box-shadow 150ms ease;
 }
 .notification-bell__trigger:hover,
 .notification-bell__trigger[data-state="open"] {
-  border-color: var(--color-border-shell);
-  background: var(--color-bg-subtle);
+  border-color: var(--color-account-avatar-border-active);
+  background: white;
+  box-shadow: var(--shadow-account-avatar-active);
 }
 .notification-bell__badge {
   position: absolute;
-  top: 2px;
-  right: 0;
+  top: -3px;
+  right: -3px;
   min-width: 19px;
   padding: 0 4px;
   border: 2px solid white;
@@ -187,10 +190,13 @@
   cursor: wait;
 }
 .notification-bell__item:focus-visible,
-.notification-bell__trigger:focus-visible,
 .notification-bell__more:focus-visible {
   outline: 2px solid var(--color-focus-ring);
   outline-offset: -2px;
+}
+.notification-bell__trigger:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 3px;
 }
 @keyframes notification-bell-enter {
   from {
