@@ -187,20 +187,13 @@ function LiveNotificationBell(): ReactElement | null {
         <DropdownMenu.Content
           align="end"
           className="notification-bell__panel"
-          sideOffset={8}
+          sideOffset={10}
         >
           <header className="notification-bell__header">
-            <span className="notification-bell__header-icon">
-              <Bell size={23} weight="duotone" aria-hidden />
+            <p className="notification-bell__heading">Thông báo</p>
+            <span className="notification-bell__subtitle">
+              {unread ? `${unread} chưa đọc` : "Đã xem hết"}
             </span>
-            <div>
-              <p className="notification-bell__heading">Thông báo</p>
-              <p className="notification-bell__subtitle">
-                {unread
-                  ? `${unread} thông báo chưa đọc`
-                  : "Bạn đã xem hết thông báo"}
-              </p>
-            </div>
           </header>
           <div className="notification-bell__feed">
             {query.isPending ? (
