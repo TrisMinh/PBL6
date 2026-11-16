@@ -1,3 +1,4 @@
+import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import { useLiveCatalogue } from "@/features/explore/liveCatalogue";
 import { DatePicker } from "@/shared/ui/DatePicker/DatePicker";
 import { Rows } from "@phosphor-icons/react/dist/csr/Rows";
@@ -417,7 +418,7 @@ function ResultsLoading(): ReactElement {
   return (
     <section className="trip-results__loading">
       <h1 className="trip-results__title">Đang tìm chuyến</h1>
-      <p role="status">Đang tải chuyến…</p>
+      <BrandLoading compact title="Đang tải chuyến…" />
     </section>
   );
 }
@@ -658,9 +659,7 @@ function TripCatalogue({
           trips={candidates}
         />
         {!isMockApi && liveCatalogue.isPending ? (
-          <p className="trip-results__loading" role="status">
-            Đang tải chuyến xe…
-          </p>
+          <BrandLoading compact title="Đang tải chuyến xe…" />
         ) : !isMockApi && liveCatalogue.isError ? (
           <PageState
             title="Chưa tải được chuyến xe"

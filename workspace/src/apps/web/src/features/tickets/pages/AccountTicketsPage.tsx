@@ -1,3 +1,4 @@
+import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import { Toast } from "@/shared/ui/Toast/Toast";
 import { useEffect, useState, type ReactElement } from "react";
 import { Link, useSearchParams } from "react-router";
@@ -169,7 +170,8 @@ function History({
   useEffect(() => {
     if (query.error && [401, 410].includes(query.error.status)) revoke();
   }, [query.error, revoke]);
-  if (query.isPending) return <p role="status">Đang tải danh sách vé…</p>;
+  if (query.isPending)
+    return <BrandLoading compact title="Đang tải danh sách vé…" />;
   if (query.isError)
     return (
       <PageState
@@ -314,7 +316,7 @@ export function AccountTicketsPage(): ReactElement {
         session?.token ? (
           <PendingBookings key={session.userId} />
         ) : (
-          <p role="status">Đang kiểm tra phiên…</p>
+          <BrandLoading compact title="Đang kiểm tra phiên…" />
         )
       ) : (
         <>
@@ -330,7 +332,7 @@ export function AccountTicketsPage(): ReactElement {
               status={status}
             />
           ) : (
-            <p role="status">Đang kiểm tra phiên…</p>
+            <BrandLoading compact title="Đang kiểm tra phiên…" />
           )}
         </>
       )}

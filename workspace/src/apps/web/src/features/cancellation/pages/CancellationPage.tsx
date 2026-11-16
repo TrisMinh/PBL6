@@ -1,3 +1,4 @@
+import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import { isMockApi } from "@/shared/api/config";
 import { useQuery } from "@tanstack/react-query";
 import { getCancellationPreview } from "../repositories/backendCancellationRepository";
@@ -609,7 +610,8 @@ function Selection({
   useEffect(() => {
     if (accessError(query.error)) revoke();
   }, [query.error, revoke]);
-  if (query.isPending) return <p role="status">Đang tải vé có thể hủy…</p>;
+  if (query.isPending)
+    return <BrandLoading compact title="Đang tải vé có thể hủy…" />;
   if (query.isError)
     return <SelectionError denied={accessError(query.error)} />;
   if (query.data.latestRefund)
@@ -770,7 +772,7 @@ export function CancellationPage(): ReactElement {
   const guest = useTicketAccess();
   const account = useAccountSession();
   if (!guest.isHydrated || !account.isHydrated)
-    return <p role="status">Đang kiểm tra quyền hủy vé…</p>;
+    return <BrandLoading compact title="Đang kiểm tra quyền hủy vé…" />;
   const parsed = ticketCodeSchema.safeParse(bookingCode?.toUpperCase());
   if (!parsed.success) return <InvalidBooking />;
   const access = resolveAccess(account.session, guest.access);

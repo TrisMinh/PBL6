@@ -101,13 +101,34 @@
   box-shadow: 0 0 9px #1976ff;
   animation: brand-loading-travel 1900ms ease-in-out infinite;
 }
-.brand-loading__copy h1 {
+.brand-loading__copy h1,
+.brand-loading__copy h2 {
   margin: 0;
   color: var(--color-text-primary);
   font-family: var(--font-body);
   font-size: clamp(1.125rem, 2.5vw, 1.375rem);
   font-weight: 650;
   line-height: 1.4;
+}
+.brand-loading--compact {
+  min-height: 220px;
+  padding: 24px 16px;
+}
+.brand-loading--compact .brand-loading__visual {
+  width: 220px;
+  height: 104px;
+  margin-bottom: 14px;
+}
+.brand-loading--compact .brand-loading__logo {
+  width: 144px;
+}
+.brand-loading--compact .brand-loading__road {
+  width: 170px;
+  bottom: 0;
+}
+.brand-loading--compact .brand-loading__copy h2 {
+  font-size: 0.875rem;
+  font-weight: 600;
 }
 .brand-loading__copy p {
   margin: 10px 0 0;

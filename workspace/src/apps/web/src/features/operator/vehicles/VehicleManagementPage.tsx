@@ -1,3 +1,4 @@
+import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import { VipSeatedSeatMap } from "./VipSeatedSeatMap";
 import limousineRoutesIcon from "@/assets/operator/vehicles/limousine/imgFrame2.svg";
 import { LimousineSeatMap } from "./LimousineSeatMap";
@@ -455,10 +456,7 @@ export function VehicleManagementPage(): ReactElement {
           </Button>
         </form>
         {query.isPending ? (
-          <PageState
-            title="Đang tải xe"
-            description="Vui lòng đợi trong giây lát."
-          />
+          <BrandLoading compact title="Đang tải xe" />
         ) : query.isError ? (
           <PageState
             title="Không tải được xe"

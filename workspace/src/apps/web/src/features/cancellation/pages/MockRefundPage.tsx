@@ -1,3 +1,4 @@
+import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import { useState, type ReactElement } from "react";
 import { Link, useParams } from "react-router";
 import { useMockSession } from "@/features/auth/hooks/useMockSession";
@@ -19,7 +20,8 @@ function RefundDetail({
     kind: "account",
     token,
   });
-  if (query.isPending) return <p role="status">Đang tải yêu cầu hoàn tiền…</p>;
+  if (query.isPending)
+    return <BrandLoading compact title="Đang tải yêu cầu hoàn tiền…" />;
   if (query.isError)
     return (
       <PageState
@@ -44,7 +46,8 @@ export function MockRefundPage(): ReactElement {
     mockDb.hydrate(Date.now());
     return mockDb.refunds.get(refundId ?? "");
   });
-  if (!isHydrated) return <p role="status">Đang kiểm tra phiên đăng nhập…</p>;
+  if (!isHydrated)
+    return <BrandLoading compact title="Đang kiểm tra phiên đăng nhập…" />;
   if (!session?.token)
     return (
       <PageState

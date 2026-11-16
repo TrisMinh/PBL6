@@ -1,3 +1,4 @@
+import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import type { ReactElement } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router";
 import { useQuery } from "@tanstack/react-query";
@@ -346,10 +347,7 @@ export function RefundTrackingPage(): ReactElement {
           <h1>Chi tiết hủy vé và hoàn tiền</h1>
         </header>
         {query.isPending ? (
-          <PageState
-            title="Đang tải hồ sơ"
-            description="Vui lòng chờ trong giây lát."
-          />
+          <BrandLoading compact title="Đang tải hồ sơ" />
         ) : query.isError ? (
           <PageState
             title="Không tải được hồ sơ"

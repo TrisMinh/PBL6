@@ -1,3 +1,4 @@
+import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import { BookingTabs } from "./BookingTabs";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useState, type ReactElement, type FormEvent } from "react";
@@ -137,7 +138,7 @@ export function RecentBookingsPage(): ReactElement {
             )}
           </div>
           {query.isPending ? (
-            <p role="status">Đang tải đặt chỗ…</p>
+            <BrandLoading compact title="Đang tải đặt chỗ…" />
           ) : query.isError ? (
             <PageState
               title="Không tải được đặt chỗ"

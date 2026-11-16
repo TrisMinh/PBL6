@@ -1,3 +1,4 @@
+import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import { useQuery } from "@tanstack/react-query";
 import { useState, type ReactElement, type FormEvent } from "react";
 import { useNavigate, useSearchParams } from "react-router";
@@ -370,9 +371,7 @@ export function SchedulePage(): ReactElement {
               </select>
             </div>
             {query.isPending ? (
-              <p className="operator-schedule__state" role="status">
-                Đang tải lịch chuyến…
-              </p>
+              <BrandLoading compact title="Đang tải lịch chuyến…" />
             ) : query.isError ? (
               <PageState
                 title="Chưa tải được lịch chuyến"

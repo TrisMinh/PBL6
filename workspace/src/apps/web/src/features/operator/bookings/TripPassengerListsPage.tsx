@@ -1,3 +1,4 @@
+import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import { useState, type ReactElement, type FormEvent } from "react";
 import { useSearchParams, useNavigate, useLocation } from "react-router";
 import { useQuery } from "@tanstack/react-query";
@@ -125,7 +126,7 @@ export function TripPassengerListsPage(): ReactElement {
             )}
           </div>
           {query.isPending ? (
-            <p role="status">Đang tải chuyến…</p>
+            <BrandLoading compact title="Đang tải chuyến…" />
           ) : query.isError ? (
             <PageState
               title="Không tải được chuyến"

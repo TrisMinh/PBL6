@@ -1,3 +1,4 @@
+import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useRef, useState, type FormEvent, type ReactElement } from "react";
 import { useNavigate, useSearchParams } from "react-router";
@@ -263,10 +264,7 @@ export function RefundRequestsPage(): ReactElement {
               action={<Button onClick={reset}>Đặt lại bộ lọc</Button>}
             />
           ) : query.isPending ? (
-            <PageState
-              title="Đang tải yêu cầu"
-              description="Vui lòng chờ trong giây lát."
-            />
+            <BrandLoading compact title="Đang tải yêu cầu" />
           ) : query.isError ? (
             <PageState
               title="Không tải được danh sách"

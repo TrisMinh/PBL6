@@ -1,3 +1,4 @@
+import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useRef, useState, type ReactElement, type FormEvent } from "react";
 import { Link, useSearchParams } from "react-router";
@@ -350,10 +351,7 @@ export function ReportsPage(): ReactElement {
           </div>
         </header>
         {query.isPending ? (
-          <PageState
-            title="Đang tải báo cáo"
-            description="Vui lòng đợi trong giây lát."
-          />
+          <BrandLoading compact title="Đang tải báo cáo" />
         ) : query.isError ? (
           <PageState
             title="Không tải được báo cáo"

@@ -8,17 +8,23 @@ interface BrandLoadingProps {
   title: string;
   description?: string;
   backHref?: string;
+  compact?: boolean;
 }
 
 export function BrandLoading({
   title,
-  description = "Vui lòng đợi trong giây lát.",
+  description,
   backHref,
+  compact = false,
 }: BrandLoadingProps): ReactElement {
   const titleId = useId();
+  const Heading = compact ? "h2" : "h1";
+  const copy = description ?? (compact ? "" : "Vui lòng đợi trong giây lát.");
   return (
     <section
-      className="brand-loading"
+      className={
+        compact ? "brand-loading brand-loading--compact" : "brand-loading"
+      }
       aria-labelledby={titleId}
       aria-busy="true"
     >
@@ -32,9 +38,14 @@ export function BrandLoading({
           <span className="brand-loading__light" />
         </div>
       </div>
-      <div className="brand-loading__copy" role="status" aria-live="polite">
-        <h1 id={titleId}>{title}</h1>
-        <p>{description}</p>
+      <div
+        className="brand-loading__copy"
+        role="status"
+        aria-live="polite"
+        aria-label={title}
+      >
+        <Heading id={titleId}>{title}</Heading>
+        {copy && <p>{copy}</p>}
       </div>
       {backHref && (
         <Link className="brand-loading__back" to={backHref}>

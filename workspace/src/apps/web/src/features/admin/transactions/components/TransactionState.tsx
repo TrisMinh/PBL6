@@ -1,5 +1,6 @@
 import type { ReactElement } from "react";
 import { Link } from "react-router";
+import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 
 import type { TransactionResource } from "../transactionConfig";
 
@@ -54,13 +55,9 @@ export function TransactionState({
   onClear?: () => void;
 }): ReactElement {
   const copy = STATE_COPY[state];
+  if (state === "loading") return <BrandLoading compact title={copy.title} />;
   return (
-    <div
-      className={`transaction-state transaction-state--${state}`}
-      role={state === "loading" ? "status" : undefined}
-      aria-label={state === "loading" ? copy.title : undefined}
-      aria-busy={state === "loading" ? true : undefined}
-    >
+    <div className={`transaction-state transaction-state--${state}`}>
       <h3>{copy.title}</h3>
       <p>{copy.description}</p>
       {state === "empty" && (

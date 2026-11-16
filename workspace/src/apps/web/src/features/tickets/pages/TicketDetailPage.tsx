@@ -1,3 +1,4 @@
+import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import { useEffect, type ReactElement } from "react";
 import { Link, useParams } from "react-router";
 import { ArrowLeft } from "@phosphor-icons/react/dist/csr/ArrowLeft";
@@ -71,7 +72,7 @@ function TicketContent({
     return (
       <section>
         <h1>Vé điện tử</h1>
-        <p role="status">Đang tải vé…</p>
+        <BrandLoading compact title="Đang tải vé…" />
       </section>
     );
   if (query.isError)
@@ -103,7 +104,7 @@ export function TicketDetailPage(): ReactElement {
     return (
       <div className="ticket-page">
         <h1>Chi tiết vé</h1>
-        <p role="status">Đang kiểm tra quyền xem vé…</p>
+        <BrandLoading compact title="Đang kiểm tra quyền xem vé…" />
       </div>
     );
   return (
@@ -200,7 +201,7 @@ function AccountContent({
     return (
       <section>
         <h1>Vé điện tử</h1>
-        <p role="status">Đang tải vé…</p>
+        <BrandLoading compact title="Đang tải vé…" />
       </section>
     );
   if (query.isError)

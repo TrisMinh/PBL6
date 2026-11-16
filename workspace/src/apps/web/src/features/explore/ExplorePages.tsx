@@ -1,3 +1,4 @@
+import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import { MapPin } from "@phosphor-icons/react/dist/csr/MapPin";
 import { ArrowRight } from "@phosphor-icons/react/dist/csr/ArrowRight";
 import type { ReactElement } from "react";
@@ -188,9 +189,7 @@ export function ExplorePage(): ReactElement {
         aria-label="Tra cứu điểm đón, trả"
       >
         {result.isPending ? (
-          <p className="explore__state" role="status">
-            Đang tải danh mục tỉnh, thành…
-          </p>
+          <BrandLoading compact title="Đang tải danh mục tỉnh, thành…" />
         ) : result.isError ? (
           <ExploreFailure
             error={result.error}
@@ -218,9 +217,7 @@ export function ProvincePage({ slug }: { slug: string }): ReactElement {
       </nav>
       {!result.data && <h1>Điểm đón và điểm trả</h1>}
       {result.isPending ? (
-        <p role="status" className="explore__state">
-          Đang tải điểm đón, trả…
-        </p>
+        <BrandLoading compact title="Đang tải điểm đón, trả…" />
       ) : result.isError ? (
         <ExploreFailure
           error={result.error}

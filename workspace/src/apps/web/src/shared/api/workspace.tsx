@@ -1,3 +1,4 @@
+import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRef, useState, type ReactElement, type ReactNode } from "react";
 import { Link, Navigate, useLocation } from "react-router";
@@ -20,7 +21,7 @@ export function ApiWorkspace({
 }): ReactElement {
   const { session, isHydrated, revoke } = useAccountSession();
   const location = useLocation();
-  if (!isHydrated) return <p role="status">Đang kiểm tra phiên…</p>;
+  if (!isHydrated) return <BrandLoading compact title="Đang kiểm tra phiên…" />;
   if (!session)
     return (
       <Navigate

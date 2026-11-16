@@ -1,3 +1,4 @@
+import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import { useState, type ReactElement, type ReactNode } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
@@ -113,7 +114,8 @@ export function LiveBookingOptions({
     return (
       <ApiFailure error={query.error} retry={() => void query.refetch()} />
     );
-  if (!query.data) return <p role="status">Đang tải điểm đón/trả…</p>;
+  if (!query.data)
+    return <BrandLoading compact title="Đang tải điểm đón/trả…" />;
   const stops = [...query.data.stops].sort((a, b) => a.sequence - b.sequence);
   const pickup = options.pickupStopId ?? stops.find((s) => s.pickupAllowed)?.id;
   const dropoff =

@@ -1,3 +1,4 @@
+import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import { useQuery } from "@tanstack/react-query";
 import type { ReactElement } from "react";
 import { Link, useParams } from "react-router";
@@ -95,7 +96,7 @@ export function LiveRefundPage(): ReactElement {
   if (query.isPending)
     return (
       <section className="cancellation-page">
-        <p role="status">Đang tải thông tin hoàn tiền…</p>
+        <BrandLoading compact title="Đang tải thông tin hoàn tiền…" />
       </section>
     );
   if (query.isError)

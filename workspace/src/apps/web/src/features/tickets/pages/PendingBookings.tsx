@@ -1,3 +1,4 @@
+import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import { useQuery } from "@tanstack/react-query";
 import { useState, type ReactElement } from "react";
 import { Link } from "react-router";
@@ -88,7 +89,7 @@ export function PendingBookings(): ReactElement {
         </label>
       </div>
       {query.isPending ? (
-        <p role="status">Đang tải đơn đặt vé…</p>
+        <BrandLoading compact title="Đang tải đơn đặt vé…" />
       ) : query.isError ? (
         <PageState
           title="Chưa tải được đơn đặt vé"

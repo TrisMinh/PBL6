@@ -1,3 +1,4 @@
+import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import { Toast } from "@/shared/ui/Toast/Toast";
 import type { ReactElement } from "react";
 import { Link } from "react-router";
@@ -110,7 +111,7 @@ function DraftCheckout({ draft }: { draft: BookingDraft }): ReactElement {
     return (
       <section>
         <h1>Thanh toán đơn đặt vé</h1>
-        <p role="status">Đang tải thông tin thanh toán…</p>
+        <BrandLoading compact title="Đang tải thông tin thanh toán…" />
       </section>
     );
   if (query.isError)

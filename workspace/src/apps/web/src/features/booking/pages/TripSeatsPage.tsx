@@ -1,3 +1,4 @@
+import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import { useEffect, type ReactElement } from "react";
 import { Link, useParams, useSearchParams } from "react-router";
 import { z } from "zod";
@@ -52,7 +53,7 @@ function StartTripBooking({
   return (
     <section>
       <h1>Chọn ghế</h1>
-      <p role="status">Đang kiểm tra chuyến…</p>
+      <BrandLoading compact title="Đang kiểm tra chuyến…" />
     </section>
   );
 }

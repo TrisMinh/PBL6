@@ -1,3 +1,4 @@
+import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as Menu from "@radix-ui/react-dropdown-menu";
 import { useState, type ReactElement, type FormEvent } from "react";
@@ -364,7 +365,7 @@ export function RouteManagementPage(): ReactElement {
           </p>
         )}
         {query.isPending ? (
-          <p role="status">Đang tải tuyến…</p>
+          <BrandLoading compact title="Đang tải tuyến…" />
         ) : query.isError ? (
           <PageState
             title="Không tải được tuyến"

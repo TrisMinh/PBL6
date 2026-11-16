@@ -1,3 +1,4 @@
+import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import {
   useCallback,
   useRef,
@@ -314,9 +315,7 @@ export function CreateTripPage({
         />
       )}
       {pending ? (
-        <div className="operator-create__panel" role="status">
-          Đang tải tuyến, xe và tài xế…
-        </div>
+        <BrandLoading compact title="Đang tải tuyến, xe và tài xế…" />
       ) : error ? (
         <WorkflowError error={error} retry={retry} />
       ) : mode === "edit" && (!tripId || existing.data?.status !== "DRAFT") ? (
@@ -454,7 +453,7 @@ export function CreateTripPage({
                       Nhập giờ đi và giờ đến hợp lệ để kiểm tra lịch xe, tài xế.
                     </p>
                   ) : schedule.isPending ? (
-                    <p role="status">Đang tải lịch phân công…</p>
+                    <BrandLoading compact title="Đang tải lịch phân công…" />
                   ) : schedule.isError ? (
                     <p role="alert">
                       Chưa tải được lịch phân công. Danh sách chưa được lọc; hệ

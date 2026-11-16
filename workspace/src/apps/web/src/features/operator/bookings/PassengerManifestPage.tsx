@@ -1,3 +1,4 @@
+import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useState, type ReactElement, type FormEvent } from "react";
 import { Link, useLocation, useParams, useSearchParams } from "react-router";
@@ -81,7 +82,7 @@ export function PassengerManifestPage(): ReactElement {
           <h1>Danh sách hành khách · {tripId}</h1>
         </header>
         {query.isPending ? (
-          <p role="status">Đang tải danh sách hành khách…</p>
+          <BrandLoading compact title="Đang tải danh sách hành khách…" />
         ) : query.isError ? (
           <PageState
             title="Không tải được danh sách hành khách"

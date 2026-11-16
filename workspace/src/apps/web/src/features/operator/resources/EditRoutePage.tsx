@@ -1,3 +1,4 @@
+import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import type { ReactElement } from "react";
 import { Link, useLocation, useParams } from "react-router";
 import { useQuery } from "@tanstack/react-query";
@@ -41,7 +42,7 @@ export function EditRoutePage(): ReactElement {
           </Link>
         </header>
         {query.isPending ? (
-          <p role="status">Đang tải thông tin tuyến…</p>
+          <BrandLoading compact title="Đang tải thông tin tuyến…" />
         ) : (
           <PageState
             title={

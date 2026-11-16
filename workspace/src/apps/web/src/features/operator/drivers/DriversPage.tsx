@@ -1,3 +1,4 @@
+import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import { DriverPhoto, DriverDocument } from "./DriverAttachments";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useRef, useState, type FormEvent, type ReactElement } from "react";
@@ -344,10 +345,7 @@ export function DriversPage(): ReactElement {
           </p>
         )}
         {query.isPending ? (
-          <PageState
-            title="Đang tải tài xế"
-            description="Vui lòng chờ trong giây lát."
-          />
+          <BrandLoading compact title="Đang tải tài xế" />
         ) : query.isError ? (
           <PageState
             title="Không tải được danh sách"

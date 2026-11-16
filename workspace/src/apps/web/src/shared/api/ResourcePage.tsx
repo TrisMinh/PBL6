@@ -1,3 +1,4 @@
+import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import { useState, type ReactElement, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, Navigate, useLocation } from "react-router";
@@ -210,7 +211,8 @@ export function ResourcePage({
     enabled: isHydrated && Boolean(session),
     retry: false,
   });
-  if (!isHydrated) return <p role="status">Đang kiểm tra phiên đăng nhập…</p>;
+  if (!isHydrated)
+    return <BrandLoading compact title="Đang kiểm tra phiên đăng nhập…" />;
   if (!session)
     return (
       <Navigate
@@ -291,9 +293,7 @@ export function ResourcePage({
         </span>
       </div>
       {query.isPending ? (
-        <div className="live-api__loading" role="status">
-          Đang tải danh sách…
-        </div>
+        <BrandLoading compact title="Đang tải danh sách…" />
       ) : query.isError ? (
         <ApiFailure error={query.error} retry={() => void query.refetch()} />
       ) : (
@@ -350,7 +350,8 @@ export function ResourceDetailPage({
     enabled: isHydrated && Boolean(session),
     retry: false,
   });
-  if (!isHydrated) return <p role="status">Đang kiểm tra phiên đăng nhập…</p>;
+  if (!isHydrated)
+    return <BrandLoading compact title="Đang kiểm tra phiên đăng nhập…" />;
   if (!session)
     return <Navigate to="/login" state={{ from: location.pathname }} replace />;
   return (
@@ -369,9 +370,7 @@ export function ResourceDetailPage({
         </Button>
       </header>
       {query.isPending ? (
-        <div className="live-api__loading" role="status">
-          Đang tải thông tin…
-        </div>
+        <BrandLoading compact title="Đang tải thông tin…" />
       ) : query.isError ? (
         <ApiFailure error={query.error} retry={() => void query.refetch()} />
       ) : (

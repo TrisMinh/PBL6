@@ -1,3 +1,4 @@
+import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import type { ReactElement } from "react";
 import { useNavigate, useParams } from "react-router";
 import { useQuery } from "@tanstack/react-query";
@@ -26,10 +27,7 @@ export function EditDriverPage(): ReactElement {
           <h1>Chỉnh sửa hồ sơ tài xế</h1>
         </header>
         {query.isPending ? (
-          <PageState
-            title="Đang tải hồ sơ"
-            description="Vui lòng chờ trong giây lát."
-          />
+          <BrandLoading compact title="Đang tải hồ sơ" />
         ) : query.isError ? (
           <PageState
             title="Không tải được hồ sơ"

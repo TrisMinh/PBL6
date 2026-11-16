@@ -1,3 +1,4 @@
+import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import { normalizeVietnamPhone } from "@/shared/lib/normalizeVietnamPhone";
 import { Toast } from "@/shared/ui/Toast/Toast";
 import {
@@ -541,7 +542,7 @@ export function CustomerPreferencesPage({
           )}
         </div>
       ) : (
-        <p role="status">Đang kiểm tra phiên…</p>
+        <BrandLoading compact title="Đang kiểm tra phiên…" />
       )}
     </div>
   );

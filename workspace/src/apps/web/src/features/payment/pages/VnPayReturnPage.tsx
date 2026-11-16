@@ -1,3 +1,4 @@
+import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import type { ReactElement } from "react";
 import { Toast } from "@/shared/ui/Toast/Toast";
 import { Link, useSearchParams } from "react-router";
@@ -74,7 +75,7 @@ function ResolvedReturn({
     return (
       <section>
         <h1>Xác nhận thanh toán</h1>
-        <p role="status">Đang kiểm tra giao dịch và vé…</p>
+        <BrandLoading compact title="Đang kiểm tra giao dịch và vé…" />
       </section>
     );
   if (query.isError)

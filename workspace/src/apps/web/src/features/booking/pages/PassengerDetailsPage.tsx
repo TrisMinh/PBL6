@@ -1,3 +1,4 @@
+import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import { Toast } from "@/shared/ui/Toast/Toast";
 import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
@@ -171,7 +172,7 @@ function PassengerBooking(
     new Date(props.layout.trip.departureTime).getTime() - 20 * 60 * 1000,
   ).toISOString();
   if (!isHydrated || (loadProfile && liveProfile.isPending))
-    return <p role="status">Đang tải thông tin tài khoản…</p>;
+    return <BrandLoading compact title="Đang tải thông tin tài khoản…" />;
   const contact = liveProfile.data
     ? { ...liveProfile.data, phone: liveProfile.data.phone ?? "" }
     : profile && account
@@ -256,7 +257,7 @@ function DraftPassengers({ draft }: { draft: BookingDraft }): ReactElement {
     return (
       <section>
         <h1>Thông tin hành khách</h1>
-        <p role="status">Đang tải thông tin chuyến đi…</p>
+        <BrandLoading compact title="Đang tải thông tin chuyến đi…" />
       </section>
     );
   return (

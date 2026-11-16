@@ -1,3 +1,4 @@
+import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import { Toast } from "@/shared/ui/Toast/Toast";
 import { isMockApi } from "@/shared/api/config";
 import { isTripUnavailable } from "@/features/trips/lib/isTripUnavailable";
@@ -348,7 +349,7 @@ function DraftSeats({ draft }: { draft: BookingDraft }): ReactElement {
     return (
       <section>
         <h1>Chọn ghế</h1>
-        <p role="status">Đang tải sơ đồ ghế…</p>
+        <BrandLoading compact title="Đang tải sơ đồ ghế…" />
       </section>
     );
   if (query.isError)

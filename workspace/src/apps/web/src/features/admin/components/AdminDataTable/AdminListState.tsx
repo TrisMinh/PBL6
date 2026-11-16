@@ -2,6 +2,7 @@ import type { ReactElement } from "react";
 
 import { Button } from "@/shared/ui/Button/Button";
 import { PageState } from "@/shared/ui/PageState/PageState";
+import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 
 import "./AdminListState.css";
 
@@ -29,17 +30,7 @@ export type AdminListStateProps =
 
 export function AdminListState(props: AdminListStateProps): ReactElement {
   if (props.state === "loading") {
-    return (
-      <section
-        aria-busy="true"
-        aria-label={props.label}
-        aria-live="polite"
-        className="admin-list-state admin-list-state--loading"
-        role="status"
-      >
-        Đang tải dữ liệu
-      </section>
-    );
+    return <BrandLoading compact title={props.label} />;
   }
 
   const action =

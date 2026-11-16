@@ -1,3 +1,4 @@
+import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import { isTripUnavailable } from "@/features/trips/lib/isTripUnavailable";
 import { TripUnavailableState } from "@/features/booking/components/TripUnavailableState";
 import {
@@ -215,7 +216,7 @@ function DraftReview({ draft }: { draft: BookingDraft }): ReactElement {
     return (
       <section>
         <h1>Kiểm tra đặt vé</h1>
-        <p role="status">Đang tải thông tin đặt vé…</p>
+        <BrandLoading compact title="Đang tải thông tin đặt vé…" />
       </section>
     );
   if (query.isError)

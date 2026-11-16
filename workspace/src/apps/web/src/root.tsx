@@ -12,6 +12,7 @@ import {
 import { AppProviders } from "@/app/AppProviders";
 import { ROUTES } from "@/shared/config/routes";
 import { PageState } from "@/shared/ui/PageState/PageState";
+import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import "@/styles/app.css";
 
 import type { Route } from "./+types/root";
@@ -63,6 +64,10 @@ export function Layout({ children }: { children: ReactNode }): ReactElement {
       </body>
     </html>
   );
+}
+
+export function HydrateFallback(): ReactElement {
+  return <BrandLoading title="Đang mở BLUE" />;
 }
 
 export default function App(): ReactElement {

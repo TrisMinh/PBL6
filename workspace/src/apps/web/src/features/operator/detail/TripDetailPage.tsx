@@ -1,3 +1,4 @@
+import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import { useState, type ReactElement, type FormEvent } from "react";
 import { Link, useParams } from "react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -357,7 +358,7 @@ export function TripDetailPage(): ReactElement {
       <OperatorSidebar />
       <main className="operator-schedule__main">
         {query.isPending ? (
-          <p role="status">Đang tải chi tiết chuyến…</p>
+          <BrandLoading compact title="Đang tải chi tiết chuyến…" />
         ) : query.isError ? (
           <PageState
             title={query.error.message}
