@@ -18,9 +18,11 @@ namespace BusTicketPlatform.Payment.Api.IntegrationTests;
 public sealed class SePayBookingFlowTests(PaymentPostgresFixture fixture)
 {
     [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task Two_seats_to_SePay_IPN_to_booking_tickets_manifest_and_refund(bool bookingExpiresBeforeEvent)
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public async Task Two_seats_to_SePay_IPN_to_booking_tickets_manifest_and_refund(bool bookingExpiresBeforeEvent, bool withCoupon)
     {
         var dbName = "booking_" + Guid.NewGuid().ToString("N");
         await using (var connection = new NpgsqlConnection(fixture.Container.GetConnectionString()))
@@ -48,24 +50,32 @@ public sealed class SePayBookingFlowTests(PaymentPostgresFixture fixture)
         Assert.Equal(HttpStatusCode.Accepted, imported.StatusCode);
         var seats = (await Send(bookingClient, HttpMethod.Get, $"/api/v1/trips/{trip}/seats", token)).GetProperty("seats").EnumerateArray().Select(s => s.GetProperty("id").GetGuid()).ToArray();
         var hold = await Send(bookingClient, HttpMethod.Post, $"/api/v1/trips/{trip}/seat-holds", token, new { seatIds = seats, pickupStopId = origin, dropoffStopId = destination });
+        var couponCode = withCoupon ? "BLUE20" : null;
+        var payable = withCoupon ? 250000L : 300000L;
+        if (withCoupon)
+        {
+            await Send(bookingClient, HttpMethod.Put, "/api/v1/admin/coupons", TestJwt.Mint(Guid.NewGuid(), ["PLATFORM_ADMIN"]),
+                new { code=couponCode, percent=20, cap=50000, minimum=250000, startsAt=DateTimeOffset.UtcNow.AddDays(-1), expiresAt=DateTimeOffset.UtcNow.AddDays(1), active=true });
+        }
         var booking = await Send(bookingClient, HttpMethod.Post, "/api/v1/bookings", token, new {
             holdToken = hold.GetProperty("holdToken").GetString(), contact = new { fullName = "Nguyen An", email = "an@example.test", phone = "+84911111111" },
             passengers = seats.Select((seat, index) => new { seatId = seat, fullName = "Passenger " + index, pickupStopId = origin, dropoffStopId = destination }),
-            expectedTotal = 300000, currency = "VND", paymentChannel = "PREPAID"
+            expectedTotal = payable, couponCode, currency = "VND", paymentChannel = "PREPAID"
         });
         var bookingId = booking.GetProperty("id").GetGuid();
         var created = await ReadEvent(connectionString, "BookingCreated", bookingId);
         await PaymentEventHandlers.HandleAsync(fixture.Factory.Services, created, default);
         var payment = await Send(paymentClient, HttpMethod.Post, $"/api/v1/bookings/{bookingId}/payments", token,
             new { provider = "SEPAY", method = "BANK_TRANSFER", returnUri = "https://blue.example.test/payment/sepay/return" });
+        Assert.Equal(payable, decimal.Parse(payment.GetProperty("providerAction").GetProperty("order_amount").GetString()!, System.Globalization.CultureInfo.InvariantCulture));
         var paymentId = payment.GetProperty("id").GetGuid();
         Assert.Equal(0, (await Send(bookingClient, HttpMethod.Get, $"/api/v1/bookings/{bookingId}/tickets", token)).GetArrayLength());
         using var hook = new HttpRequestMessage(HttpMethod.Post, "/integrations/payments/sepay/ipn");
         hook.Headers.Add("X-Secret-Key", "test-only-ipn-key");
         hook.Content = JsonContent.Create(new {
             timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds(), notification_type = "ORDER_PAID",
-            order = new { order_invoice_number = payment.GetProperty("providerAction").GetProperty("order_invoice_number").GetString(), order_amount = "300000.00", order_currency = "VND", order_status = "CAPTURED" },
-            transaction = new { id = Guid.NewGuid().ToString(), transaction_amount = "300000", transaction_currency = "VND", transaction_status = "APPROVED", transaction_type = "PAYMENT" }, customer = new { customer_id = user.ToString() }
+            order = new { order_invoice_number = payment.GetProperty("providerAction").GetProperty("order_invoice_number").GetString(), order_amount = payable.ToString("F2", System.Globalization.CultureInfo.InvariantCulture), order_currency = "VND", order_status = "CAPTURED" },
+            transaction = new { id = Guid.NewGuid().ToString(), transaction_amount = payable.ToString(System.Globalization.CultureInfo.InvariantCulture), transaction_currency = "VND", transaction_status = "APPROVED", transaction_type = "PAYMENT" }, customer = new { customer_id = user.ToString() }
         });
         Assert.Equal(HttpStatusCode.OK, (await paymentClient.SendAsync(hook)).StatusCode);
         if (bookingExpiresBeforeEvent)
@@ -89,6 +99,7 @@ public sealed class SePayBookingFlowTests(PaymentPostgresFixture fixture)
             return;
         }
         Assert.Equal(2, tickets.GetArrayLength());
+        Assert.Equal(payable, tickets.EnumerateArray().Sum(t => t.GetProperty("unitPrice").GetInt64()));
         Assert.All(tickets.EnumerateArray(), ticket => Assert.NotEmpty(ticket.GetProperty("qrPayload").GetString()!));
         var stranger = TestJwt.Mint(Guid.CreateVersion7(), ["CUSTOMER"]);
         using var denied = new HttpRequestMessage(HttpMethod.Get, $"/api/v1/bookings/{bookingId}/tickets"); denied.Headers.Authorization = new AuthenticationHeaderValue("Bearer", stranger);

@@ -484,7 +484,7 @@ public sealed class PaymentService(IPaymentRepository store, IPaymentEvents even
         Dictionary<string, string>? action = null;
         if (payment.Provider == "SEPAY" && sepay.IsConfigured && payment.Status is "PENDING" or "PROCESSING" && payment.ExpiresAt > DateTimeOffset.UtcNow)
         {
-            action = SePayCheckout.BuildAction(sepay, payment, payment.CheckoutMethod ?? "BANK_TRANSFER");
+            action = SePayCheckout.BuildAction(sepay, payment with { ReturnUri = ret }, payment.CheckoutMethod ?? "BANK_TRANSFER");
         }
         else if (payment.Provider != "SEPAY" && vnpay.Enabled && !string.IsNullOrWhiteSpace(ret) && payment.Status is "PENDING" or "PROCESSING")
         {

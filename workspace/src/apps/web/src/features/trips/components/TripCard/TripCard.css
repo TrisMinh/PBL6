@@ -461,9 +461,10 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 4px;
-  margin: 0 0 8px;
+  margin: 4px 0 8px;
   color: var(--color-trip-rating-text);
   font-size: 10px;
+  line-height: 16px;
 }
 .trip-card__rating span {
   color: var(--color-text-secondary);

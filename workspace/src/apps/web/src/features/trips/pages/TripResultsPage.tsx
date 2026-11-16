@@ -31,16 +31,13 @@ import {
 } from "@/features/trips/lib/tripResults";
 import type {
   Trip,
+  Location,
   TripAmenity,
   TripSearch,
 } from "@/features/trips/types/trip";
 import { ROUTES } from "@/shared/config/routes";
 import { Button } from "@/shared/ui/Button/Button";
 import { PageState } from "@/shared/ui/PageState/PageState";
-import calendarIcon from "@/assets/trip-results/calendar.svg";
-import destinationIcon from "@/assets/trip-results/destination.svg";
-import originIcon from "@/assets/trip-results/origin.svg";
-import passengersIcon from "@/assets/trip-results/passengers.svg";
 
 import "./TripResultsPage.css";
 
@@ -116,70 +113,133 @@ function ResultsHeading({
   );
 }
 
-function SearchFact({
-  label,
-  value,
-  icon,
+function TripSearchPanel({
+  locations,
+  params,
+  onChange,
 }: {
-  label: string;
-  value: string;
-  icon: string;
+  locations: readonly Location[];
+  params: URLSearchParams;
+  onChange: (params: URLSearchParams) => void;
 }): ReactElement {
+  const [error, setError] = useState("");
+  function submit(event: FormEvent<HTMLFormElement>): void {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    const originId = String(data.get("originId") ?? "");
+    const destinationId = String(data.get("destinationId") ?? "");
+    const departureDate = String(data.get("departureDate") ?? "");
+    if (originId && destinationId && originId === destinationId) {
+      setError("Điểm đến phải khác điểm đi.");
+      return;
+    }
+    if (originId && destinationId && departureDate) {
+      const parsed = tripSearchSchema.safeParse({
+        originId,
+        destinationId,
+        departureDate,
+        passengerCount: data.get("passengerCount"),
+      });
+      if (!parsed.success) {
+        setError(parsed.error.issues[0]?.message ?? "Kiểm tra lại hành trình.");
+        return;
+      }
+    }
+    const next = new URLSearchParams();
+    for (const name of [
+      "originId",
+      "destinationId",
+      "departureDate",
+      "passengerCount",
+    ]) {
+      const value = String(data.get(name) ?? "");
+      if (value) next.set(name, value);
+    }
+    if (
+      params.get("browse") === "1" ||
+      !originId ||
+      !destinationId ||
+      !departureDate
+    )
+      next.set("browse", "1");
+    const view = params.get("view");
+    if (view) next.set("view", view);
+    setError("");
+    onChange(next);
+  }
   return (
-    <div className="trip-results__search-fact">
-      <span>{label}</span>
-      <strong>
-        <img alt="" src={icon} />
-        {value}
-      </strong>
-    </div>
-  );
-}
-
-function SearchSummary({
-  search,
-  count,
-  originLabel,
-  destinationLabel,
-}: {
-  search: TripSearch;
-  count: number;
-  originLabel: string;
-  destinationLabel: string;
-}): ReactElement {
-  return (
-    <section className="trip-results__search" aria-label="Tìm chuyến hiện tại">
-      <div className="trip-results__trip-types">
-        <span className="trip-results__trip-type trip-results__trip-type--active">
-          Một chiều
-        </span>
-        <span className="trip-results__trip-type">Khứ hồi</span>
-      </div>
-      <p className="trip-results__search-count">{count} chuyến phù hợp</p>
-      <div className="trip-results__search-fields">
-        <SearchFact label="ĐIỂM ĐI" value={originLabel} icon={originIcon} />
-        <span className="trip-results__swap" aria-hidden="true">
-          ⇄
-        </span>
-        <SearchFact
-          label="ĐIỂM ĐẾN"
-          value={destinationLabel}
-          icon={destinationIcon}
-        />
-        <SearchFact
-          label="NGÀY ĐI"
-          value={search.departureDate.split("-").reverse().join("/")}
-          icon={calendarIcon}
-        />
-        <SearchFact
-          label="HÀNH KHÁCH"
-          value={`${search.passengerCount} người`}
-          icon={passengersIcon}
-        />
-        <Link className="trip-results__search-action" to={ROUTES.home}>
-          Tìm chuyến
-        </Link>
-      </div>
+    <section className="trip-catalogue__search" aria-label="Tìm kiếm chuyến xe">
+      <header>
+        <h2>Tìm chuyến xe</h2>
+        <p>Khám phá tất cả chuyến đang mở bán hoặc chọn hành trình của bạn.</p>
+      </header>
+      <form
+        key={
+          params.toString() + locations.map((location) => location.id).join(",")
+        }
+        aria-label="Tìm chuyến hiện tại"
+        onSubmit={submit}
+      >
+        <label>
+          Điểm đi
+          <select
+            aria-label="Điểm đi"
+            name="originId"
+            defaultValue={params.get("originId") ?? ""}
+          >
+            <option value="">Tất cả tỉnh, thành</option>
+            {locations.map((location) => (
+              <option key={location.id} value={location.id}>
+                {location.province}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Điểm đến
+          <select
+            name="destinationId"
+            aria-label="Điểm đến"
+            defaultValue={params.get("destinationId") ?? ""}
+          >
+            <option value="">Tất cả tỉnh, thành</option>
+            {locations.map((location) => (
+              <option key={location.id} value={location.id}>
+                {location.province}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Ngày đi
+          <DatePicker
+            disablePast
+            name="departureDate"
+            aria-label="Ngày đi"
+            defaultValue={params.get("departureDate") ?? ""}
+          />
+        </label>
+        <label>
+          Hành khách
+          <select
+            aria-label="Hành khách"
+            name="passengerCount"
+            defaultValue={params.get("passengerCount") ?? "1"}
+          >
+            {[1, 2, 3, 4, 5, 6].map((n) => (
+              <option key={n} value={n}>
+                {n} người
+              </option>
+            ))}
+          </select>
+        </label>
+        <Button type="submit">Tìm chuyến</Button>
+      </form>
+      {error && (
+        <p className="trip-catalogue__error" role="alert">
+          {error}
+        </p>
+      )}
     </section>
   );
 }
@@ -507,11 +567,10 @@ function ValidResults({
       ?.displayName ?? search.destinationId;
   return (
     <>
-      <SearchSummary
-        search={search}
-        count={query.data?.length ?? 0}
-        originLabel={originLabel}
-        destinationLabel={destinationLabel}
+      <TripSearchPanel
+        locations={locations.data ?? []}
+        params={searchParams}
+        onChange={onChange}
       />
       <div className="trip-results__body">
         <TripFilters
@@ -576,93 +635,14 @@ function TripCatalogue({
     sort.success && sort.data !== "relevance" ? sort.data : "departure",
     parseFilterCriteria(params),
   );
-  function submit(event: FormEvent<HTMLFormElement>): void {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    const next = new URLSearchParams(effective);
-    for (const name of [
-      "originId",
-      "destinationId",
-      "departureDate",
-      "passengerCount",
-    ]) {
-      const value = String(data.get(name) ?? "");
-      if (value) next.set(name, value);
-      else next.delete(name);
-    }
-    next.delete("page");
-    onChange(next);
-  }
   return (
     <div className="trip-results trip-results--catalogue">
       <BookingFeedback booking={booking} />
-      <section
-        className="trip-catalogue__search"
-        aria-label="Tìm kiếm chuyến xe"
-      >
-        <header>
-          <h2>Tìm chuyến xe</h2>
-          <p>
-            Khám phá tất cả chuyến đang mở bán hoặc chọn hành trình của bạn.
-          </p>
-        </header>
-        <form key={params.toString()} onSubmit={submit}>
-          <label>
-            Điểm đi
-            <select
-              aria-label="Điểm đi"
-              name="originId"
-              defaultValue={params.get("originId") ?? ""}
-            >
-              <option value="">Tất cả tỉnh, thành</option>
-              {locations.map((location) => (
-                <option key={location.id} value={location.id}>
-                  {location.province}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Điểm đến
-            <select
-              name="destinationId"
-              aria-label="Điểm đến"
-              defaultValue={params.get("destinationId") ?? ""}
-            >
-              <option value="">Tất cả tỉnh, thành</option>
-              {locations.map((location) => (
-                <option key={location.id} value={location.id}>
-                  {location.province}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Ngày đi
-            <DatePicker
-              disablePast
-              name="departureDate"
-              aria-label="Ngày đi"
-              defaultValue={params.get("departureDate") ?? ""}
-            />
-          </label>
-          <label>
-            Hành khách
-            <select
-              aria-label="Hành khách"
-              name="passengerCount"
-              defaultValue={String(passengerCount)}
-            >
-              {[1, 2, 3, 4, 5, 6].map((n) => (
-                <option key={n} value={n}>
-                  {n} người
-                </option>
-              ))}
-            </select>
-          </label>
-          <Button type="submit">Tìm chuyến</Button>
-        </form>
-      </section>
+      <TripSearchPanel
+        locations={locations}
+        params={params}
+        onChange={onChange}
+      />
       <div className="trip-results__body">
         <TripFilters
           key={effective.toString()}

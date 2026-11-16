@@ -1,0 +1,134 @@
+{
+  "info": {
+    "name": "BLUE live coupons",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:5188"
+    },
+    {
+      "key": "tripId",
+      "value": ""
+    },
+    {
+      "key": "customerToken",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Public eligible offers",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/trips/{{tripId}}/coupons",
+        "header": []
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Public list succeeds\",()=>pm.response.to.have.status(200));",
+              "pm.test(\"Offers have real bounded terms\",()=>{const offers=pm.response.json();pm.expect(offers).to.be.an(\"array\");offers.forEach(c=>{pm.expect(c.percent).to.be.within(1,90);pm.expect(c.cap).to.be.above(0);pm.expect(c.active).to.eql(true);pm.expect(Date.parse(c.expiresAt)).to.be.above(Date.now());});});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Quote requires login",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/coupons/quote",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"holdToken\": \"unknown\", \"code\": \"BLUE20\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Anonymous quote denied\",()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Quote protects held seat ownership",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/coupons/quote",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{customerToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"holdToken\": \"unknown\", \"code\": \"BLUE20\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Unknown hold hidden\",()=>pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Customers cannot create offers",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/api/v1/admin/coupons",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{customerToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"code\": \"FORBIDDEN20\", \"percent\": 20, \"cap\": 50000, \"minimum\": 250000, \"startsAt\": \"2026-01-01T00:00:00Z\", \"expiresAt\": \"2027-01-01T00:00:00Z\", \"active\": true}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Customer cannot change discounts\",()=>pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

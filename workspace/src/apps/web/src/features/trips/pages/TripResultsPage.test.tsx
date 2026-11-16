@@ -68,10 +68,76 @@ function operators(): string[] {
 }
 
 describe("TripResultsPage", () => {
+  it("edits a search on the results page and clears stale filters", async () => {
+    const { router } = renderResults(
+      core + "&vehicleType=cabin-22&page=3&view=list",
+    );
+    await waitFor(() =>
+      expect(
+        screen
+          .getByRole("combobox", { name: "Điểm đi" })
+          .querySelectorAll("option").length,
+      ).toBeGreaterThan(1),
+    );
+    const form = within(
+      await screen.findByRole("form", { name: "Tìm chuyến hiện tại" }),
+    );
+    await userEvent.selectOptions(
+      await form.findByRole("combobox", { name: "Điểm đến" }),
+      "loc-danang",
+    );
+    await userEvent.selectOptions(
+      form.getByRole("combobox", { name: "Hành khách" }),
+      "3",
+    );
+    await userEvent.click(form.getByRole("button", { name: "Tìm chuyến" }));
+    await waitFor(() =>
+      expect(router.state.location.search).toContain(
+        "destinationId=loc-danang",
+      ),
+    );
+    const next = new URLSearchParams(router.state.location.search);
+    expect(router.state.location.pathname).toBe("/trips");
+    expect(next.get("passengerCount")).toBe("3");
+    expect(next.get("view")).toBe("list");
+    expect(next.has("vehicleType")).toBe(false);
+    expect(next.has("page")).toBe(false);
+  });
+
+  it("prevents identical endpoints from submitting", async () => {
+    const { router } = renderResults();
+    await waitFor(() =>
+      expect(
+        screen
+          .getByRole("combobox", { name: "Điểm đi" })
+          .querySelectorAll("option").length,
+      ).toBeGreaterThan(1),
+    );
+    const form = within(
+      await screen.findByRole("form", { name: "Tìm chuyến hiện tại" }),
+    );
+    await waitFor(() =>
+      expect(
+        form
+          .getByRole("combobox", { name: "Điểm đi" })
+          .querySelectorAll("option").length,
+      ).toBeGreaterThan(1),
+    );
+    await userEvent.selectOptions(
+      form.getByRole("combobox", { name: "Điểm đến" }),
+      "loc-hcm",
+    );
+    await userEvent.click(form.getByRole("button", { name: "Tìm chuyến" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Điểm đến phải khác điểm đi.",
+    );
+    expect(router.state.location.search).toBe("?" + core);
+  });
+
   it("renders the complete Results frame with search summary, sidebar, six cards and pagination", async () => {
     renderResults();
     expect(
-      await screen.findByRole("region", { name: "Tìm chuyến hiện tại" }),
+      await screen.findByRole("form", { name: "Tìm chuyến hiện tại" }),
     ).toBeVisible();
     expect(screen.getByRole("region", { name: "Bộ lọc chuyến" })).toBeVisible();
     expect(
@@ -174,11 +240,15 @@ describe("TripResultsPage", () => {
         name: "Chuyến xe Đà Nẵng → Hà Nội",
       }),
     ).toBeVisible();
-    const summary = screen.getByRole("region", { name: "Tìm chuyến hiện tại" });
-    expect(within(summary).getByText("Đà Nẵng")).toBeVisible();
-    expect(within(summary).getByText("Hà Nội")).toBeVisible();
-    expect(summary).not.toHaveTextContent("TP. Hồ Chí Minh");
-    expect(summary).not.toHaveTextContent("Đà Lạt");
+    const summary = within(
+      screen.getByRole("form", { name: "Tìm chuyến hiện tại" }),
+    );
+    expect(summary.getByRole("combobox", { name: "Điểm đi" })).toHaveValue(
+      "loc-danang",
+    );
+    expect(summary.getByRole("combobox", { name: "Điểm đến" })).toHaveValue(
+      "loc-hanoi",
+    );
   });
 
   it("gives each visible sort action truthful semantics and canonical URLs", async () => {
@@ -323,7 +393,7 @@ describe("TripResultsPage", () => {
     ).toBeVisible();
     expect(document.body).not.toHaveTextContent("PRIVATE_SERVER_STACK");
     await userEvent.click(screen.getByRole("button", { name: "Thử lại" }));
-    expect(await screen.findByText("4 chuyến phù hợp")).toBeVisible();
+    expect(await screen.findByText("4 kết quả")).toBeVisible();
     expect(requests).toBe(2);
   });
 
@@ -393,7 +463,7 @@ describe("TripResultsPage", () => {
       }),
     );
     const { client } = renderResults();
-    expect(await screen.findByText("24 chuyến phù hợp")).toBeVisible();
+    expect(await screen.findByText("24 kết quả")).toBeVisible();
     expect(
       screen.getByRole("list", { name: "Danh sách chuyến" }),
     ).toBeVisible();
@@ -433,7 +503,7 @@ describe("TripResultsPage", () => {
       }),
     );
     const { client, router } = renderResults(core + "&extra=a&extra=b");
-    await screen.findByText("4 chuyến phù hợp");
+    await screen.findByText("4 kết quả");
     const relevanceKey = tripKeys.search({
       originId: "loc-hcm",
       destinationId: "loc-dalat",
@@ -493,7 +563,7 @@ describe("TripResultsPage", () => {
     await userEvent.click(
       within(filters()).getByRole("button", { name: "Đặt lại" }),
     );
-    expect(await screen.findByText("1 chuyến phù hợp")).toBeVisible();
+    expect(await screen.findByText("1 kết quả")).toBeVisible();
     expect(request).toHaveBeenCalledTimes(1);
   });
 });

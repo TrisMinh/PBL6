@@ -71,6 +71,7 @@ export const holdSchema = z.object({
   serverTime: z.string(),
 });
 export const bookingSchema = z.object({
+  couponCode: z.string().nullable().optional(),
   id: z.string().uuid(),
   code: z.string(),
   customerId: z.string().uuid(),

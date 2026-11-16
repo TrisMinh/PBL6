@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { couponQuoteSchema } from "@/features/trips/api/coupons";
 import { apiJson } from "@/shared/api/client";
 import {
   backendSeatSchema,
@@ -39,6 +40,8 @@ const metadataSchema = z.object({
     })
     .optional(),
   bookingId: z.string().optional(),
+  coupon: couponQuoteSchema.optional(),
+  couponRejected: z.boolean().optional(),
 });
 export const keyFor = (id: string): string => `blue-live-booking:${id}`;
 function owner(): string {
@@ -225,6 +228,7 @@ export const backendBookingRepository: BookingRepository = {
           ...meta,
           holdToken: hold.holdToken,
           selectionRequest: undefined,
+          coupon: undefined,
         };
         sessionStorage.setItem(keyFor(id), JSON.stringify(meta));
         return hold;
@@ -395,6 +399,7 @@ export const backendBookingRepository: BookingRepository = {
           holdToken: hold.holdToken,
         }),
       );
+      const expectedTotal = meta.coupon?.total ?? draft.totalVnd;
       const booking = await apiJson("/api/v1/bookings", bookingSchema, {
         method: "POST",
         signal,
@@ -410,11 +415,38 @@ export const backendBookingRepository: BookingRepository = {
             pickupStopId: pickup.id,
             dropoffStopId: dropoff.id,
           })),
-          expectedTotal: draft.totalVnd,
+          expectedTotal,
+          ...(meta.coupon ? { couponCode: meta.coupon.code } : {}),
           currency: "VND",
           paymentChannel: meta.paymentChannel ?? "PREPAID",
         },
+      }).catch((error: unknown) => {
+        // A definitive price/coupon rejection created no booking; edits must get a fresh attempt key.
+        if (
+          error instanceof ApiError &&
+          (error.status === 400 ||
+            error.status === 422 ||
+            error.code.includes("PRICE"))
+        ) {
+          sessionStorage.setItem(
+            keyFor(id),
+            JSON.stringify({
+              ...meta,
+              attempt,
+              holdRequest,
+              holdToken: hold.holdToken,
+              couponRejected: true,
+            }),
+          );
+        }
+        throw error;
       });
+      if (booking.total !== expectedTotal)
+        throw new ApiError(
+          "INVALID_RESPONSE",
+          502,
+          "Số tiền xác nhận không khớp đơn đặt vé.",
+        );
       sessionStorage.setItem(
         keyFor(id),
         JSON.stringify({

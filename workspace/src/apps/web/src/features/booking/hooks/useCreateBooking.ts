@@ -91,7 +91,7 @@ async function execute(variables: Variables): Promise<BookingCreationSummary> {
   if (isMockApi && Date.parse(source.expiresAt) <= Date.now())
     throw new BookingRepositoryError("HOLD_EXPIRED", 410);
   if (
-    booking.totalVnd !== source.totalVnd ||
+    (isMockApi && booking.totalVnd !== source.totalVnd) ||
     (source.bookingId && booking.bookingId !== source.bookingId)
   )
     throw new BookingRepositoryError("INVALID_RESPONSE", 201);
@@ -114,9 +114,11 @@ function useBookingMutation(
         useBookingDraftStore.getState().draft !== variables.source
       )
         return;
-      useBookingDraftStore
-        .getState()
-        .setDraft({ ...variables.source, bookingId: booking.bookingId });
+      useBookingDraftStore.getState().setDraft({
+        ...variables.source,
+        bookingId: booking.bookingId,
+        totalVnd: booking.totalVnd,
+      });
       void navigate(
         booking.status === "confirmed"
           ? "/account/tickets"

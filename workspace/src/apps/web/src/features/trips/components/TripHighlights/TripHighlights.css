@@ -149,6 +149,9 @@
   width: 100%;
   min-height: 46px;
 }
+.trip-offer__dialog > .button + .button {
+  margin-top: 10px;
+}
 .trip-offer__close {
   position: absolute;
   top: 16px;

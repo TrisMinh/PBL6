@@ -8,6 +8,52 @@ namespace BusTicketPlatform.Booking.Application;
 
 public sealed class BookingService(IBookingRepository store, IBookingEvents events, IIdGenerator ids, TicketQrOptions ticketQr)
 {
+    public async Task<Result<IReadOnlyList<CouponDto>>> ListCouponsAsync(Guid tripId, CancellationToken ct)
+    {
+        var trip = await store.GetTripAsync(tripId, ct);
+        if (trip is null) return Result<IReadOnlyList<CouponDto>>.Failure(PlatformErrors.NotFound());
+        return Result<IReadOnlyList<CouponDto>>.Success(await store.ListCouponsAsync(trip.OrganizationId, ct));
+    }
+
+    public async Task<Result<CouponDto>> SaveCouponAsync(Actor actor, CouponDto input, CancellationToken ct)
+    {
+        if (!actor.Has("PLATFORM_ADMIN")) return Result<CouponDto>.Failure(PlatformErrors.AccessDenied());
+        var coupon = input with { Code = input.Code?.Trim().ToUpperInvariant() ?? "" };
+        if (!System.Text.RegularExpressions.Regex.IsMatch(coupon.Code, "^[A-Z0-9_-]{3,32}$") || coupon.Percent is < 1 or > 90 || coupon.Cap < 1 || coupon.Minimum < 0 || coupon.ExpiresAt <= coupon.StartsAt)
+            return Result<CouponDto>.Failure(PlatformErrors.Validation("Thông tin mã giảm giá không hợp lệ.", "couponCode"));
+        await store.SaveCouponAsync(coupon, ct);
+        return Result<CouponDto>.Success(coupon);
+    }
+
+    public static long CouponDiscount(CouponDto coupon, long subtotal) => Math.Min(coupon.Cap, (long)decimal.Floor((decimal)subtotal * coupon.Percent / 100));
+
+    private async Task<Result<CouponDto>> ValidCouponAsync(string code, TripSnapshot trip, long subtotal, CancellationToken ct)
+    {
+        var coupon = await store.GetCouponAsync(code.Trim().ToUpperInvariant(), ct);
+        var now = DateTimeOffset.UtcNow;
+        if (coupon is null || !coupon.Active || now < coupon.StartsAt || now >= coupon.ExpiresAt || (coupon.OrganizationId.HasValue && coupon.OrganizationId != trip.OrganizationId))
+            return Result<CouponDto>.Failure(PlatformErrors.Validation("Mã giảm giá không hợp lệ hoặc đã hết hạn.", "couponCode"));
+        if (subtotal < coupon.Minimum) return Result<CouponDto>.Failure(PlatformErrors.Validation($"Đơn tối thiểu {coupon.Minimum:N0} đ để dùng mã này.", "couponCode"));
+        return Result<CouponDto>.Success(coupon);
+    }
+
+    public async Task<Result<CouponQuoteDto>> QuoteCouponAsync(Actor actor, CouponQuoteRequest request, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(request.HoldToken) || string.IsNullOrWhiteSpace(request.Code) || request.Code.Length > 32)
+            return Result<CouponQuoteDto>.Failure(PlatformErrors.Validation("Nhập mã giảm giá hợp lệ.", "couponCode"));
+        await store.ExpireHoldsAsync(ct);
+        var hold = await store.GetHoldByTokenHashAsync(Hash(request.HoldToken), ct);
+        if (hold is null || hold.CustomerId != actor.UserId) return Result<CouponQuoteDto>.Failure(PlatformErrors.NotFound());
+        if (hold.Status != "ACTIVE" || hold.ExpiresAt <= DateTimeOffset.UtcNow) return Result<CouponQuoteDto>.Failure(PlatformErrors.SeatHoldExpired());
+        var trip = await store.GetTripAsync(hold.TripId, ct);
+        if (trip is null || !trip.Sellable) return Result<CouponQuoteDto>.Failure(PlatformErrors.NotFound());
+        var check = await ValidCouponAsync(request.Code, trip, hold.TotalAmount, ct);
+        if (!check.IsSuccess) return Result<CouponQuoteDto>.Failure(check.Error!);
+        var coupon = check.Value!;
+        var discount = CouponDiscount(coupon, hold.TotalAmount);
+        return Result<CouponQuoteDto>.Success(new(coupon.Code, hold.TotalAmount, discount, hold.TotalAmount - discount, hold.Currency, coupon.ExpiresAt < hold.ExpiresAt ? coupon.ExpiresAt : hold.ExpiresAt));
+    }
+
     public async Task<Result<OperationAccepted>> ImportPublishedTripAsync(TripPublishedMessage message, Guid correlationId, CancellationToken cancellationToken)
     {
         var seats = ParseSeats(message);
@@ -194,11 +240,6 @@ public sealed class BookingService(IBookingRepository store, IBookingEvents even
             return Result<BookingDto>.Failure(PlatformErrors.Validation("Passenger seat is not on the hold.", "passengers"));
         }
 
-        if (request.ExpectedTotal != hold.TotalAmount || request.Currency != hold.Currency)
-        {
-            return Result<BookingDto>.Failure(PlatformErrors.PriceMismatch());
-        }
-
         var trip = await store.GetTripAsync(hold.TripId, cancellationToken);
         if (trip is null)
         {
@@ -209,6 +250,19 @@ public sealed class BookingService(IBookingRepository store, IBookingEvents even
         {
             return Result<BookingDto>.Failure(PlatformErrors.PayLaterNotAllowed());
         }
+
+        CouponDto? coupon = null;
+        if (!string.IsNullOrWhiteSpace(request.CouponCode))
+        {
+            if (request.CouponCode.Length > 32) return Result<BookingDto>.Failure(PlatformErrors.Validation("Mã giảm giá không hợp lệ.", "couponCode"));
+            var check = await ValidCouponAsync(request.CouponCode, trip, hold.TotalAmount, cancellationToken);
+            if (!check.IsSuccess) return Result<BookingDto>.Failure(check.Error!);
+            coupon = check.Value!;
+        }
+        var discount = coupon is null ? 0 : CouponDiscount(coupon, hold.TotalAmount);
+        var netTotal = hold.TotalAmount - discount;
+        if (request.ExpectedTotal != netTotal || request.Currency != hold.Currency)
+            return Result<BookingDto>.Failure(PlatformErrors.PriceMismatch());
 
         var bookingId = ids.NewUuidV7();
         var items = new List<BookingItemRecord>();
@@ -248,14 +302,25 @@ public sealed class BookingService(IBookingRepository store, IBookingEvents even
             request.PaymentChannel,
             prepaid ? "PENDING_PAYMENT" : "CONFIRMED",
             hold.TotalAmount,
+            discount,
             0,
-            0,
-            hold.TotalAmount,
+            netTotal,
             hold.Currency,
             hold.ExpiresAt,
             0,
-            request.Passengers);
-        var created = await store.CreateBookingAsync(booking, items, passengers, hold.Id, cancellationToken);
+            request.Passengers, CouponCode: coupon?.Code);
+        // Cumulative rounding keeps every item discount nonnegative and preserves the exact order discount.
+        long runningSubtotal = 0, allocatedDiscount = 0;
+        for (var index = 0; discount > 0 && index < items.Count; index++)
+        {
+            runningSubtotal += items[index].UnitPrice;
+            var cumulativeDiscount = (long)decimal.Floor((decimal)runningSubtotal * discount / hold.TotalAmount);
+            items[index] = items[index] with { Discount = cumulativeDiscount - allocatedDiscount };
+            allocatedDiscount = cumulativeDiscount;
+        }
+        BookingRecord? created;
+        try { created = await store.CreateBookingAsync(booking, items, passengers, hold.Id, cancellationToken); }
+        catch (CouponUnavailableException) { return Result<BookingDto>.Failure(PlatformErrors.Validation("Mã giảm giá vừa thay đổi hoặc hết hạn. Vui lòng áp dụng lại mã.", "couponCode")); }
         if (created is null)
         {
             return Result<BookingDto>.Failure(PlatformErrors.SeatUnavailable());
@@ -664,7 +729,7 @@ public sealed class BookingService(IBookingRepository store, IBookingEvents even
         new(hold.TokenPlain, hold.TripId, hold.Status, hold.Seats.Select(MapSeat).ToArray(), hold.ExpiresAt, DateTimeOffset.UtcNow);
 
     private static BookingDto MapBooking(BookingRecord booking) =>
-        new(booking.Id, booking.Code, booking.CustomerId, booking.TripId, booking.Status, booking.PaymentChannel, new BookingContact(booking.ContactName, booking.ContactEmail, booking.ContactPhone), booking.Subtotal, booking.Discount, booking.Fee, booking.Total, booking.Currency, booking.ExpiresAt, booking.Items, booking.RowVersion, booking.OrganizationId, booking.CreatedAt);
+        new(booking.Id, booking.Code, booking.CustomerId, booking.TripId, booking.Status, booking.PaymentChannel, new BookingContact(booking.ContactName, booking.ContactEmail, booking.ContactPhone), booking.Subtotal, booking.Discount, booking.Fee, booking.Total, booking.Currency, booking.ExpiresAt, booking.Items, booking.RowVersion, booking.OrganizationId, booking.CreatedAt, booking.CouponCode);
 
     private TicketDto MapTicket(TicketRecord ticket, bool includeQr = false) =>
         new(

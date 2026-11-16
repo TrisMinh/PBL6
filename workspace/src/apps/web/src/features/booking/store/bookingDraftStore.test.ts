@@ -57,6 +57,14 @@ function persisted(value: unknown): string {
 }
 
 describe("bookingDraftStore", () => {
+  it("rehydrates a live API timestamp with an explicit UTC offset", async () => {
+    const saved = { ...draft, expiresAt: "2099-01-01T00:00:00+00:00" };
+    const { storage } = fakeStorage(persisted(saved));
+    const store = createBookingDraftStore(storage);
+    await store.persist.rehydrate();
+    expect(store.getState().draft?.expiresAt).toBe(saved.expiresAt);
+  });
+
   it("setDraft stores a detached draft projection from a BookingSession, excluding server status", () => {
     const session: BookingSession = {
       ...draft,

@@ -15,8 +15,8 @@ public sealed record CreateSeatHoldRequest(IReadOnlyList<Guid> SeatIds, Guid Pic
 public sealed record SeatHoldDto(string HoldToken, Guid TripId, string Status, IReadOnlyList<TripSeatDto> Seats, DateTimeOffset ExpiresAt, DateTimeOffset ServerTime);
 public sealed record BookingContact(string FullName, string Email, string Phone);
 public sealed record PassengerInput(Guid SeatId, string FullName, string? DocumentType, string? DocumentNumber, Guid PickupStopId, Guid DropoffStopId);
-public sealed record CreateBookingRequest(string HoldToken, BookingContact Contact, IReadOnlyList<PassengerInput> Passengers, long ExpectedTotal, string Currency, string PaymentChannel);
-public sealed record BookingDto(Guid Id, string Code, Guid CustomerId, Guid TripId, string Status, string PaymentChannel, BookingContact Contact, long Subtotal, long Discount, long Fee, long Total, string Currency, DateTimeOffset ExpiresAt, IReadOnlyList<PassengerInput> Items, long RowVersion, Guid? OrganizationId = null, DateTimeOffset? CreatedAt = null);
+public sealed record CreateBookingRequest(string HoldToken, BookingContact Contact, IReadOnlyList<PassengerInput> Passengers, long ExpectedTotal, string Currency, string PaymentChannel, string? CouponCode = null);
+public sealed record BookingDto(Guid Id, string Code, Guid CustomerId, Guid TripId, string Status, string PaymentChannel, BookingContact Contact, long Subtotal, long Discount, long Fee, long Total, string Currency, DateTimeOffset ExpiresAt, IReadOnlyList<PassengerInput> Items, long RowVersion, Guid? OrganizationId = null, DateTimeOffset? CreatedAt = null, string? CouponCode = null);
 public sealed record BookingPageDto(int Page, int Size, long TotalElements, int TotalPages, IReadOnlyList<BookingDto> Items);
 public sealed record CancellationPreviewRequest(IReadOnlyList<Guid> TicketIds);
 public sealed record CancellationPreviewDto(Guid PreviewId, IReadOnlyList<Guid> TicketIds, string PolicyVersion, long Fee, long RefundAmount, string Currency, DateTimeOffset ExpiresAt);
@@ -46,8 +46,17 @@ public sealed record TripPublishedMessage(
 public sealed record PaymentSucceededMessage(Guid BookingId, Guid PaymentId, long Amount, string Currency);
 public sealed record TripStatusChangedMessage(Guid TripId, string Status);
 
+public sealed class CouponUnavailableException : Exception;
+
+public sealed record CouponDto(string Code, int Percent, long Cap, long Minimum, Guid? OrganizationId, DateTimeOffset StartsAt, DateTimeOffset ExpiresAt, bool Active);
+public sealed record CouponQuoteRequest(string HoldToken, string Code);
+public sealed record CouponQuoteDto(string Code, long Subtotal, long Discount, long Total, string Currency, DateTimeOffset ExpiresAt);
+
 public interface IBookingRepository
 {
+    Task<IReadOnlyList<CouponDto>> ListCouponsAsync(Guid organizationId, CancellationToken cancellationToken) => throw new NotSupportedException();
+    Task<CouponDto?> GetCouponAsync(string code, CancellationToken cancellationToken) => throw new NotSupportedException();
+    Task SaveCouponAsync(CouponDto coupon, CancellationToken cancellationToken) => throw new NotSupportedException();
     Task ImportTripAsync(TripPublishedMessage message, IReadOnlyList<InventorySeat> seats, CancellationToken cancellationToken);
     Task ApplyTripStatusAsync(Guid tripId, string status, CancellationToken cancellationToken);
     Task ExpireHoldsAsync(CancellationToken cancellationToken);
@@ -82,13 +91,13 @@ public interface IBookingRepository
 public sealed record InventorySeat(Guid Id, Guid TripId, Guid SourceSeatId, string Code, string Type, int Deck, int Row, int Column, long Price, string Status, long RowVersion);
 public sealed record TripSnapshot(Guid TripId, Guid OrganizationId, Guid OriginStopId, Guid DestinationStopId, DateTimeOffset DepartureAt, bool Sellable, string Status, string Currency, bool AllowPayLater, string PolicyVersion, Guid? DriverUserId);
 public sealed record SeatHoldRecord(Guid Id, Guid TripId, Guid CustomerId, string IdempotencyKey, string TokenHash, string TokenPlain, string Status, long TotalAmount, string Currency, DateTimeOffset CreatedAt, DateTimeOffset ExpiresAt, IReadOnlyList<InventorySeat> Seats);
-public sealed record BookingItemRecord(Guid Id, Guid BookingId, Guid TripSeatId, Guid SourceSeatId, string SeatCode, long UnitPrice);
+public sealed record BookingItemRecord(Guid Id, Guid BookingId, Guid TripSeatId, Guid SourceSeatId, string SeatCode, long UnitPrice, long Discount = 0);
 public sealed record PassengerRecord(Guid Id, Guid BookingItemId, string FullName, Guid PickupStopId, Guid DropoffStopId, string? DocumentType, byte[]? DocumentCipher, string? Last4);
 public sealed record BookingRecord(
     Guid Id, string Code, Guid HoldId, Guid TripId, Guid OrganizationId, Guid CustomerId,
     string ContactName, string ContactEmail, string ContactPhone, string PaymentChannel, string Status,
     long Subtotal, long Discount, long Fee, long Total, string Currency, DateTimeOffset ExpiresAt, long RowVersion,
-    IReadOnlyList<PassengerInput> Items, DateTimeOffset? CreatedAt = null);
+    IReadOnlyList<PassengerInput> Items, DateTimeOffset? CreatedAt = null, string? CouponCode = null);
 public sealed record TicketRecord(Guid Id, Guid BookingId, Guid BookingItemId, Guid TripId, Guid CustomerId, string PublicCode, string QrHash, string? QrPlain, string PaymentChannel, string Status, string PassengerName, string SeatCode, long UnitPrice, DateTimeOffset IssuedAt, DateTimeOffset? CheckedInAt, long RowVersion);
 public sealed record CancellationPreviewRecord(Guid Id, Guid BookingId, Guid RequestedBy, IReadOnlyList<Guid> BookingItemIds, IReadOnlyList<Guid> TicketIds, string PolicyVersion, long Eligible, decimal FeeRate, long Fee, long Refund, DateTimeOffset ExpiresAt, DateTimeOffset? ConsumedAt = null);
 

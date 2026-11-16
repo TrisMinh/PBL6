@@ -23,32 +23,43 @@
 }
 
 .account-tickets__heading {
-  padding: 24px 26px;
+  padding: 16px 20px;
   border: 1px solid var(--color-border-shell);
-  border-radius: 18px;
+  border-radius: 14px;
   background: linear-gradient(110deg, #e7f1ff, #f8fbff 64%);
 }
 
 .account-tickets__heading-icon {
   display: grid;
   place-items: center;
-  width: 52px;
-  height: 52px;
-  border-radius: 13px;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
   background: var(--color-brand-shell-strong);
   color: white;
 }
 
+.account-tickets__heading-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
 .account-tickets__heading h1 {
   margin: 0;
-  font: 700 clamp(26px, 3vw, 37px)/1.15 var(--font-body);
+  font: 700 clamp(23px, 2vw, 28px)/1.2 var(--font-body);
   letter-spacing: -0.035em;
 }
 
 .account-tickets__heading p {
-  margin: 6px 0 0;
+  margin: 4px 0 0;
   color: var(--color-text-secondary);
-  font-size: 14px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.account-tickets__intro {
+  flex-wrap: nowrap;
 }
 
 .account-tickets__toolbar {

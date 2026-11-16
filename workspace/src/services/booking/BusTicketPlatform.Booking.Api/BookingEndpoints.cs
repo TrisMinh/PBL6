@@ -20,6 +20,18 @@ public static class BookingEndpoints
                 return PlatformHttp.Error(PlatformErrors.Validation("Trip IDs are invalid."), context.CorrelationId());
             return Results.Json(await service.AvailableSeatsAsync(parts.Select(Guid.Parse).Distinct().ToArray(), context.RequestAborted), PlatformHttp.Json);
         });
+        api.MapGet("/trips/{tripId:guid}/coupons", async (HttpContext context, BookingService service, Guid tripId) =>
+            (await service.ListCouponsAsync(tripId, context.RequestAborted)).ToHttp(context.CorrelationId()));
+        api.MapPost("/coupons/quote", async (HttpContext context, BookingService service, CouponQuoteRequest body) => {
+            var actor = ActorOf(context);
+            return actor is null ? PlatformHttp.Error(PlatformErrors.AuthenticationRequired(), context.CorrelationId())
+                : (await service.QuoteCouponAsync(actor, body, context.RequestAborted)).ToHttp(context.CorrelationId());
+        }).RequireAuthorization();
+        api.MapPut("/admin/coupons", async (HttpContext context, BookingService service, CouponDto body) => {
+            var actor = ActorOf(context);
+            return actor is null ? PlatformHttp.Error(PlatformErrors.AuthenticationRequired(), context.CorrelationId())
+                : (await service.SaveCouponAsync(actor, body, context.RequestAborted)).ToHttp(context.CorrelationId());
+        }).RequireAuthorization();
         api.MapGet("/trips/{tripId:guid}/seats", GetSeatsAsync).RequireAuthorization();
         api.MapPost("/trips/{tripId:guid}/seat-holds", CreateHoldAsync).RequireAuthorization();
         api.MapGet("/seat-holds/{**holdToken}", GetHoldAsync).RequireAuthorization();

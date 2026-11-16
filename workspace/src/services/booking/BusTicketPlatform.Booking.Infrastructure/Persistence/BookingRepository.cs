@@ -5,7 +5,7 @@ using System.Text.Json.Nodes;
 
 namespace BusTicketPlatform.Booking.Infrastructure.Persistence;
 
-public sealed class BookingRepository(BookingDatabaseOptions options, IIdGenerator ids) : IBookingRepository
+public sealed partial class BookingRepository(BookingDatabaseOptions options, IIdGenerator ids) : IBookingRepository
 {
     public async Task ImportTripAsync(TripPublishedMessage message, IReadOnlyList<InventorySeat> seats, CancellationToken cancellationToken)
     {
@@ -414,6 +414,20 @@ public sealed class BookingRepository(BookingDatabaseOptions options, IIdGenerat
         await using var tx = await connection.BeginTransactionAsync(cancellationToken);
         try
         {
+        if (booking.CouponCode is not null)
+        {
+            // Lock the rule until commit: an admin cannot change its terms mid-booking.
+            await using var couponCheck = new NpgsqlCommand("""
+                SELECT 1 FROM coupons WHERE code=@coupon AND active AND starts_at<=NOW() AND expires_at>NOW()
+                  AND (organization_id IS NULL OR organization_id=@org) AND minimum<=@subtotal
+                  AND LEAST(cap, FLOOR(@subtotal::numeric * percent / 100)::bigint)=@discount FOR SHARE;
+                """, connection, tx);
+            couponCheck.Parameters.AddWithValue("coupon", booking.CouponCode);
+            couponCheck.Parameters.AddWithValue("org", booking.OrganizationId);
+            couponCheck.Parameters.AddWithValue("subtotal", booking.Subtotal);
+            couponCheck.Parameters.AddWithValue("discount", booking.Discount);
+            if (await couponCheck.ExecuteScalarAsync(cancellationToken) is null) throw new CouponUnavailableException();
+        }
         await using (var deferred = new NpgsqlCommand("SET CONSTRAINTS ALL DEFERRED;", connection, tx))
         {
             await deferred.ExecuteNonQueryAsync(cancellationToken);
@@ -434,10 +448,10 @@ public sealed class BookingRepository(BookingDatabaseOptions options, IIdGenerat
             INSERT INTO bookings (
               id, booking_code, seat_hold_id, trip_id, organization_id_external, customer_id_external, contact_name,
               contact_email, contact_phone, payment_channel, status, subtotal_amount, discount_amount, service_fee_amount,
-              total_amount, currency, expires_at, created_at, updated_at)
+              total_amount, currency, expires_at, created_at, updated_at, coupon_code)
             VALUES (
-              @id, @code, @hold, @trip, @org, @customer, @name, @email, @phone, @channel, @status, @sub, 0, 0,
-              @total, @currency, @expires, NOW(), NOW());
+              @id, @code, @hold, @trip, @org, @customer, @name, @email, @phone, @channel, @status, @sub, @discount, 0,
+              @total, @currency, @expires, NOW(), NOW(), @coupon);
             """, connection, tx))
         {
             insert.Parameters.AddWithValue("id", booking.Id);
@@ -452,6 +466,8 @@ public sealed class BookingRepository(BookingDatabaseOptions options, IIdGenerat
             insert.Parameters.AddWithValue("channel", booking.PaymentChannel);
             insert.Parameters.AddWithValue("status", booking.Status);
             insert.Parameters.AddWithValue("sub", booking.Subtotal);
+            insert.Parameters.AddWithValue("discount", booking.Discount);
+            insert.Parameters.AddWithValue("coupon", NpgsqlTypes.NpgsqlDbType.Varchar, (object?)booking.CouponCode ?? DBNull.Value);
             insert.Parameters.AddWithValue("total", booking.Total);
             insert.Parameters.AddWithValue("currency", booking.Currency);
             insert.Parameters.AddWithValue("expires", booking.ExpiresAt.UtcDateTime);
@@ -461,8 +477,8 @@ public sealed class BookingRepository(BookingDatabaseOptions options, IIdGenerat
         foreach (var item in items)
         {
             await using var itemCmd = new NpgsqlCommand("""
-                INSERT INTO booking_items (id, booking_id, trip_seat_id, source_seat_id_external, seat_code, unit_price, line_total, created_at)
-                VALUES (@id, @booking, @seat, @source, @code, @price, @price, NOW());
+                INSERT INTO booking_items (id, booking_id, trip_seat_id, source_seat_id_external, seat_code, unit_price, discount_amount, line_total, created_at)
+                VALUES (@id, @booking, @seat, @source, @code, @price, @discount, @price - @discount, NOW());
                 UPDATE trip_seats SET status = 'BOOKED', active_hold_id = NULL, active_booking_item_id = @id, updated_at = NOW()
                 WHERE id = @seat;
                 """, connection, tx);
@@ -472,6 +488,7 @@ public sealed class BookingRepository(BookingDatabaseOptions options, IIdGenerat
             itemCmd.Parameters.AddWithValue("source", item.SourceSeatId);
             itemCmd.Parameters.AddWithValue("code", item.SeatCode);
             itemCmd.Parameters.AddWithValue("price", item.UnitPrice);
+            itemCmd.Parameters.AddWithValue("discount", item.Discount);
             await itemCmd.ExecuteNonQueryAsync(cancellationToken);
         }
 
@@ -800,7 +817,7 @@ public sealed class BookingRepository(BookingDatabaseOptions options, IIdGenerat
     private const string BookingSelect = """
         SELECT b.id, b.booking_code, b.seat_hold_id, b.trip_id, b.organization_id_external, b.customer_id_external,
                b.contact_name, b.contact_email, b.contact_phone, b.payment_channel, b.status, b.subtotal_amount,
-               b.discount_amount, b.service_fee_amount, b.total_amount, b.currency, b.expires_at, b.row_version, b.created_at
+               b.discount_amount, b.service_fee_amount, b.total_amount, b.currency, b.expires_at, b.row_version, b.created_at, b.coupon_code
         FROM bookings b
         """;
 
@@ -884,7 +901,7 @@ public sealed class BookingRepository(BookingDatabaseOptions options, IIdGenerat
                 reader.GetString(15),
                 new DateTimeOffset(DateTime.SpecifyKind(reader.GetDateTime(16), DateTimeKind.Utc)),
                 reader.GetInt64(17),
-                [], new DateTimeOffset(DateTime.SpecifyKind(reader.GetDateTime(18), DateTimeKind.Utc))));
+                [], new DateTimeOffset(DateTime.SpecifyKind(reader.GetDateTime(18), DateTimeKind.Utc)), reader.IsDBNull(19) ? null : reader.GetString(19)));
         }
 
         await reader.CloseAsync();
@@ -925,7 +942,7 @@ public sealed class BookingRepository(BookingDatabaseOptions options, IIdGenerat
         await using var connection = await OpenAsync(cancellationToken);
         await using var command = new NpgsqlCommand("""
             SELECT t.id, t.booking_id, t.booking_item_id, b.trip_id, b.customer_id_external, t.public_code, t.qr_token_hash,
-                   t.payment_channel, t.status, p.full_name, i.seat_code, i.unit_price, t.issued_at, t.checked_in_at, t.row_version
+                   t.payment_channel, t.status, p.full_name, i.seat_code, i.line_total, t.issued_at, t.checked_in_at, t.row_version
             FROM tickets t
             JOIN bookings b ON b.id = t.booking_id
             JOIN booking_items i ON i.id = t.booking_item_id

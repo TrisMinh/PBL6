@@ -107,10 +107,11 @@
 }
 
 .province-directory__locations {
-  padding: 20px;
+  padding: 22px;
   border: 1px solid var(--color-border-shell);
-  border-radius: 18px;
+  border-radius: 14px;
   background: white;
+  box-shadow: 0 2px 5px rgb(12 34 73 / 6%);
 }
 
 .province-directory h2 {
@@ -123,8 +124,14 @@
 .province-directory__filters {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 14px;
+  gap: 6px;
+  width: fit-content;
+  max-width: 100%;
+  margin-top: 16px;
+  padding: 4px;
+  border: 1px solid var(--color-border-shell);
+  border-radius: 12px;
+  background: var(--color-bg-subtle);
 }
 
 .province-directory__filters button {
@@ -133,21 +140,22 @@
   gap: 7px;
   min-height: 44px;
   padding: 0 12px;
-  border: 1px solid var(--color-border-shell);
-  border-radius: 999px;
-  background: white;
-  color: var(--color-text-primary);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-text-secondary);
   font: 600 13px var(--font-body);
   cursor: pointer;
 }
 
 .province-directory__filters button:hover {
-  background: var(--color-bg-subtle);
+  background: white;
+  color: var(--color-brand-shell-strong);
 }
 
 .province-directory__filters button[aria-pressed="true"] {
-  border-color: var(--color-brand-shell-strong);
-  background: var(--color-brand-shell-strong);
+  border-color: var(--color-results-active);
+  background: var(--color-results-active);
   color: white;
 }
 
@@ -162,8 +170,13 @@
   font-size: 11px;
 }
 
+.province-directory__filters button[aria-pressed="true"] span {
+  background: rgb(255 255 255 / 18%);
+  color: white;
+}
+
 .province-directory__count {
-  margin: 12px 0 8px;
+  margin: 16px 0 10px;
   color: var(--color-text-secondary);
   font-size: 13px;
 }
@@ -178,10 +191,10 @@
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: start;
   gap: 12px;
-  padding: 13px;
-  border: 1px solid var(--color-border);
+  padding: 16px;
+  border: 1px solid var(--color-border-shell);
   border-radius: 12px;
-  background: var(--color-bg-editorial-control);
+  background: white;
 }
 
 .province-directory__pin {
@@ -190,8 +203,8 @@
   height: 40px;
   place-items: center;
   border-radius: 10px;
-  background: #dfeeff;
-  color: var(--color-brand-shell-strong);
+  background: var(--color-bg-shell-action);
+  color: white;
 }
 
 .province-directory__point h3 {
@@ -221,37 +234,36 @@
 .province-directory__badges {
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
+  gap: 6px;
 }
 
 .province-directory__badges span {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 5px 7px;
-  border-radius: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
   font-size: 11px;
   font-weight: 600;
   white-space: nowrap;
 }
 
 .province-directory__pickup {
-  background: #e0f5ec;
-  color: #126442;
+  background: #087a60;
+  color: white;
 }
 .province-directory__dropoff {
-  background: #e9efff;
-  color: #214e9a;
+  background: var(--color-bg-shell-action);
+  color: white;
 }
 
 .province-directory__notice {
   display: flex;
   align-items: start;
   gap: 8px;
-  margin: 13px 0 0;
-  padding: 10px;
-  border-radius: 9px;
-  background: var(--color-bg-subtle);
+  margin: 16px 0 0;
+  padding: 14px 0 0;
+  border-top: 1px solid var(--color-border-shell);
   color: var(--color-text-secondary);
   font-size: 12px;
   line-height: 1.55;
@@ -337,5 +349,22 @@
   }
   .province-directory__locations {
     padding: 14px;
+  }
+  .province-directory__filters {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+    gap: 3px;
+  }
+  .province-directory__filters button {
+    justify-content: center;
+    gap: 4px;
+    padding-inline: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  .province-directory__filters button span {
+    min-width: 17px;
+    min-height: 17px;
   }
 }

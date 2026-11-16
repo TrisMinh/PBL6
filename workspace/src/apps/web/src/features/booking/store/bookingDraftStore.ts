@@ -63,7 +63,7 @@ const persistedDraftSchema = z.object({
         phone: z.string().optional(),
       }),
     ),
-    expiresAt: z.iso.datetime(),
+    expiresAt: z.iso.datetime({ offset: true }),
     totalVnd: z.number().int().nonnegative(),
   }),
 });

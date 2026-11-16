@@ -9,6 +9,7 @@ import { Ticket } from "@phosphor-icons/react/dist/csr/Ticket";
 import { Copy } from "@phosphor-icons/react/dist/csr/Copy";
 import type { Trip } from "@/features/trips/types/trip";
 import { mockTripHighlights } from "@/mocks/fixtures/tripHighlights";
+import { useTripCoupons } from "../../api/coupons";
 import { isMockApi } from "@/shared/api/config";
 import { formatCurrencyVnd } from "@/shared/lib/formatCurrencyVnd";
 import { Toast } from "@/shared/ui/Toast/Toast";
@@ -40,8 +41,30 @@ export function TripAmenities({ trip }: { trip: Trip }): ReactElement {
   );
 }
 
+interface TripOffer {
+  code: string;
+  percent: number;
+  cap: number;
+  minimum: number;
+}
 export function TripHighlights({ trip }: { trip: Trip }): ReactElement {
-  const offer = isMockApi ? mockTripHighlights[trip.operator.id] : undefined;
+  return isMockApi ? (
+    <OfferHighlights trip={trip} offer={mockTripHighlights[trip.operator.id]} />
+  ) : (
+    <LiveTripHighlights trip={trip} />
+  );
+}
+function LiveTripHighlights({ trip }: { trip: Trip }): ReactElement {
+  const coupons = useTripCoupons(trip.id);
+  return <OfferHighlights trip={trip} offer={coupons.data?.[0]} />;
+}
+function OfferHighlights({
+  trip,
+  offer,
+}: {
+  trip: Trip;
+  offer?: TripOffer;
+}): ReactElement {
   const [notice, setNotice] = useState<{
     text: string;
     error?: boolean;
@@ -96,11 +119,31 @@ export function TripHighlights({ trip }: { trip: Trip }): ReactElement {
                 <li>Giá vé đang hiển thị chưa trừ giảm giá.</li>
               </ul>
               <p id="trip-offer-note" className="trip-offer__note">
-                Ưu đãi mẫu để trải nghiệm giao diện. Mã chưa được áp dụng vào
-                giao dịch thanh toán.
+                {isMockApi
+                  ? "Ưu đãi mẫu để trải nghiệm giao diện. Mã chưa được áp dụng vào giao dịch thanh toán."
+                  : "Áp dụng mã ở bước kiểm tra đặt vé. Hệ thống kiểm tra điều kiện và trừ giảm giá trước khi thanh toán."}
               </p>
+              {!isMockApi && (
+                <Dialog.Close asChild>
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      sessionStorage.setItem(
+                        "blue-coupon-choice",
+                        JSON.stringify({ tripId: trip.id, code: offer.code }),
+                      );
+                      setNotice({
+                        text: `Đã chọn mã ${offer.code}. Áp dụng ở bước kiểm tra đặt vé.`,
+                      });
+                    }}
+                  >
+                    Dùng mã này
+                  </Button>
+                </Dialog.Close>
+              )}
               <Button
                 type="button"
+                variant="secondary"
                 onClick={() => {
                   void copyCode();
                 }}

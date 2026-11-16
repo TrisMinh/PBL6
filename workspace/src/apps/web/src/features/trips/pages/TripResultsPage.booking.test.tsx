@@ -100,7 +100,7 @@ describe("Results booking start", () => {
     "keeps card and booking contract identical for $id",
     async ({ index, id, fare, departure, arrival, available, vehicleType }) => {
       renderResults();
-      await screen.findByText("24 chuyến phù hợp");
+      await screen.findByText("24 kết quả");
       const card = screen.getAllByRole("article")[index];
       if (!card) throw new Error(`Missing result card ${id}`);
       expect(card).toHaveAttribute("id", `trip-${id}`);
@@ -149,7 +149,7 @@ describe("Results booking start", () => {
       }),
     );
     const router = renderResults();
-    await screen.findByText("24 chuyến phù hợp");
+    await screen.findByText("24 kết quả");
     const buttons = screen.getAllByRole("button", { name: "Chọn chuyến" });
     await userEvent.dblClick(buttons[0] ?? document.body);
     await waitFor(() => expect(count).toBe(1));
@@ -196,7 +196,7 @@ describe("Results booking start", () => {
       }),
     );
     const router = renderResults();
-    await screen.findByText("24 chuyến phù hợp");
+    await screen.findByText("24 kết quả");
     await userEvent.click(
       screen.getAllByRole("button", { name: "Chọn chuyến" })[0] ??
         document.body,
@@ -226,7 +226,7 @@ describe("Results booking start", () => {
       }),
     );
     const router = renderResults();
-    await screen.findByText("24 chuyến phù hợp");
+    await screen.findByText("24 kết quả");
     await userEvent.click(screen.getByRole("button", { name: "Trang sau" }));
     const sold = within(
       screen.getAllByRole("article")[0] ?? document.body,
@@ -252,7 +252,7 @@ it("offers search recovery without retrying a nonretryable creation error", asyn
     ),
   );
   const router = renderResults();
-  await screen.findByText("24 chuyến phù hợp");
+  await screen.findByText("24 kết quả");
   await userEvent.click(
     screen.getAllByRole("button", { name: "Chọn chuyến" })[0] ?? document.body,
   );
@@ -270,7 +270,7 @@ it("offers search recovery without retrying a nonretryable creation error", asyn
 
 it("persists the canonical search passenger count through session creation and fresh hydration", async () => {
   renderResults();
-  await screen.findByText("24 chuyến phù hợp");
+  await screen.findByText("24 kết quả");
   await userEvent.click(
     screen.getAllByRole("button", { name: "Chọn chuyến" })[0] ?? document.body,
   );

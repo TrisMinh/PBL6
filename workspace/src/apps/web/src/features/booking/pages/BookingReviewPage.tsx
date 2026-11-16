@@ -124,6 +124,7 @@ function ReadyReview(props: ReviewProps): ReactElement {
         hint="Vui lòng xác nhận thông tin chính xác trước khi tiếp tục"
         variant="review"
         backHref={bookingPassengersPath(props.draft.sessionId)}
+        amounts={content?.amounts}
         paymentOptions={content?.paymentOptions}
         secondaryAction={content?.secondaryAction}
       />
@@ -149,7 +150,10 @@ function ReadyReview(props: ReviewProps): ReactElement {
         description={
           mutation.error?.code === "SEAT_CONFLICT"
             ? "Một hoặc nhiều ghế bạn chọn vừa được người khác giữ hoặc đặt. Vui lòng chọn lại ghế trống để tiếp tục."
-            : "Yêu cầu chưa hoàn tất. Vui lòng kiểm tra kết nối và thông tin trước khi thử lại."
+            : mutation.error?.code === "VALIDATION_ERROR" ||
+                mutation.error?.message?.includes("giảm giá")
+              ? mutation.error.message
+              : "Yêu cầu chưa hoàn tất. Vui lòng kiểm tra kết nối và thông tin trước khi thử lại."
         }
         statusLead={
           mutation.error?.code === "SEAT_CONFLICT"

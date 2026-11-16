@@ -230,7 +230,11 @@ function DetailedPrice({
             : "Tổng cộng"}
         </dt>
         <dd aria-live="polite" aria-atomic="true">
-          {formatCurrencyVnd(draft.totalVnd)}
+          {formatCurrencyVnd(
+            amounts
+              ? amounts.subtotal - amounts.discount + amounts.fee
+              : draft.totalVnd,
+          )}
         </dd>
       </div>
     </dl>
@@ -327,7 +331,7 @@ export function BookingSummary({
           onClick={onContinue}
         >
           {variant === "review"
-            ? `${actionLabel} · ${formatCurrencyVnd(draft.totalVnd)}`
+            ? `${actionLabel} · ${formatCurrencyVnd(amounts ? amounts.subtotal - amounts.discount + amounts.fee : draft.totalVnd)}`
             : actionLabel}
         </Button>
       )}

@@ -264,11 +264,12 @@
       0 10px 26px #174b9214,
       0 2px 7px #174b920a;
   }
+  /* Editorial artwork has its own crop scale; animate the card, not the image. */
   :is(
       .trip-card,
       .account-tickets__item,
       .popular-routes__card,
-      .explore-discovery__card
+      .explore-discovery__card:not(.explore-discovery__editorial)
     ):hover
     :is(.trip-card__photo, .account-tickets__photo, .explore-discovery__image)
     img {

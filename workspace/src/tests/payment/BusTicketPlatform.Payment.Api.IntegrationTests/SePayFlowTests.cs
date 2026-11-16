@@ -14,6 +14,40 @@ namespace BusTicketPlatform.Payment.Api.IntegrationTests;
 [Collection("PaymentApi")]
 public sealed class SePayFlowTests(PaymentPostgresFixture fixture)
 {
+    [Theory]
+    [InlineData("http://127.0.0.1:5173", "sandbox", "http://127.0.0.1:5173")]
+    [InlineData("http://127.0.0.1:5180", "sandbox", "http://127.0.0.1:5180")]
+    [InlineData("http://localhost:5180", "sandbox", "http://localhost:5180")]
+    [InlineData("https://localhost:5180", "sandbox", "https://localhost:5180")]
+    [InlineData("http://127.0.0.1:5180", "production", "https://blue.example.test")]
+    [InlineData("https://attacker.example", "sandbox", "https://blue.example.test")]
+    [InlineData("http://localhost.attacker.example:5180", "sandbox", "https://blue.example.test")]
+    [InlineData("http://user@localhost:5180", "sandbox", "https://blue.example.test")]
+    public void Sandbox_returns_to_the_original_local_origin_without_open_redirects(string origin, string environment, string expected)
+    {
+        var options = new SePayOptions { Environment=environment, CustomerOrigin="https://blue.example.test", MerchantId="test", SecretKey="test-secret", IpnSecretKey="test-ipn" };
+        var booking=Guid.NewGuid();
+        var payment=new PaymentRecord(Guid.NewGuid(),booking,Guid.NewGuid(),Guid.NewGuid(),"SEPAY","PAY-TEST",280000,"VND","PROCESSING",DateTimeOffset.UtcNow.AddMinutes(5),0,origin+"/payment/sepay/return?bookingId="+booking);
+        var action=SePayCheckout.BuildAction(options,payment,"BANK_TRANSFER");
+        foreach(var field in new[]{"success_url","error_url","cancel_url"})
+            Assert.Equal(expected+"/payment/sepay/return?bookingId="+booking,action[field]);
+        Assert.Equal(SePayCheckout.Sign(action,options.SecretKey),action["signature"]);
+    }
+
+    [Fact]
+    public async Task Resuming_an_existing_payment_uses_the_current_browser_origin()
+    {
+        var client=fixture.CreateClient();var user=Guid.NewGuid();var first=await Create(client,user);
+        using var request=new HttpRequestMessage(HttpMethod.Post,$"/api/v1/bookings/{first.GetProperty("bookingId").GetGuid()}/payments");
+        request.Headers.Authorization=new AuthenticationHeaderValue("Bearer",TestJwt.Mint(user,["CUSTOMER"]));
+        request.Headers.Add("Idempotency-Key",Guid.NewGuid().ToString());
+        request.Content=JsonContent.Create(new {provider="SEPAY",method="BANK_TRANSFER",returnUri="http://127.0.0.1:5180/payment/sepay/return"});
+        var response=await client.SendAsync(request);Assert.Equal(HttpStatusCode.Created,response.StatusCode);
+        var resumed=await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(first.GetProperty("id").GetGuid(),resumed.GetProperty("id").GetGuid());
+        Assert.StartsWith("http://127.0.0.1:5180/payment/sepay/return?bookingId=",resumed.GetProperty("providerAction").GetProperty("success_url").GetString());
+    }
+
     private async Task<JsonElement> Create(HttpClient client, Guid? user = null, string method = "BANK_TRANSFER")
     {
         var owner = user ?? Guid.CreateVersion7();

@@ -1,3 +1,5 @@
+import { CouponReview } from "./CouponReview";
+import type { CouponQuote } from "@/features/trips/api/coupons";
 import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import { useState, type ReactElement, type ReactNode } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -21,9 +23,12 @@ export interface LiveReviewContent {
   paymentOptions: ReactNode;
   secondaryAction: ReactNode;
   payLater: boolean;
+  amounts?: { subtotal: number; discount: number; fee: number };
 }
 
 type Options = {
+  coupon?: CouponQuote;
+  couponRejected?: boolean;
   owner?: string;
   pickupStopId?: string;
   dropoffStopId?: string;
@@ -123,7 +128,10 @@ export function LiveBookingOptions({
     [...stops].reverse().find((s) => s.dropoffAllowed)?.id;
   const locked =
     pending ||
-    Boolean(readOptions(draft.sessionId).attempt) ||
+    Boolean(
+      readOptions(draft.sessionId).attempt &&
+      !readOptions(draft.sessionId).couponRejected,
+    ) ||
     release.isPending ||
     Boolean(draft.bookingId);
   const pickupStop = stops.find((stop) => stop.id === pickup);
@@ -208,27 +216,57 @@ export function LiveBookingOptions({
   );
   const payLater = options.paymentChannel === "PAY_LATER";
   const paymentOptions = (
-    <div className="booking-summary__payment-method booking-summary__payment-choice">
-      <label htmlFor="review-payment-channel">Hình thức thanh toán</label>
-      <select
-        id="review-payment-channel"
-        disabled={locked}
-        value={options.paymentChannel ?? "PREPAID"}
-        onChange={(e) => update({ paymentChannel: e.target.value })}
-      >
-        <option value="PREPAID">Thanh toán trực tuyến</option>
-        {query.data.allowPayLater && (
-          <option value="PAY_LATER">Thanh toán sau</option>
-        )}
-      </select>
-      <p>
-        {payLater
-          ? "Thanh toán theo hướng dẫn của nhà xe."
-          : useSePay
-            ? "Bạn sẽ được chuyển sang SePay để thanh toán."
-            : "Chọn thanh toán trực tuyến ở bước tiếp theo."}
-      </p>
-    </div>
+    <>
+      <CouponReview
+        draft={draft}
+        coupon={options.coupon}
+        locked={locked}
+        onPending={onReleasePending}
+        onChange={(coupon) => {
+          const current = readOptions(draft.sessionId);
+          if ((current.attempt && !current.couponRejected) || current.bookingId)
+            return;
+          const next = {
+            ...current,
+            coupon,
+            couponRejected: false,
+            attempt: undefined,
+          };
+          const activeDraft = useBookingDraftStore.getState().draft;
+          if (
+            activeDraft?.sessionId === draft.sessionId &&
+            current.couponRejected
+          )
+            useBookingDraftStore.getState().setDraft({
+              ...activeDraft,
+              bookingAttemptKey: crypto.randomUUID(),
+            });
+          sessionStorage.setItem(keyFor(draft.sessionId), JSON.stringify(next));
+          setOptions(next);
+        }}
+      />
+      <div className="booking-summary__payment-method booking-summary__payment-choice">
+        <label htmlFor="review-payment-channel">Hình thức thanh toán</label>
+        <select
+          id="review-payment-channel"
+          disabled={locked}
+          value={options.paymentChannel ?? "PREPAID"}
+          onChange={(e) => update({ paymentChannel: e.target.value })}
+        >
+          <option value="PREPAID">Thanh toán trực tuyến</option>
+          {query.data.allowPayLater && (
+            <option value="PAY_LATER">Thanh toán sau</option>
+          )}
+        </select>
+        <p>
+          {payLater
+            ? "Thanh toán theo hướng dẫn của nhà xe."
+            : useSePay
+              ? "Bạn sẽ được chuyển sang SePay để thanh toán."
+              : "Chọn thanh toán trực tuyến ở bước tiếp theo."}
+        </p>
+      </div>
+    </>
   );
   const secondaryAction = (
     <div className="booking-summary__cancel">
@@ -254,5 +292,12 @@ export function LiveBookingOptions({
     paymentOptions,
     secondaryAction,
     payLater,
+    amounts: options.coupon
+      ? {
+          subtotal: options.coupon.subtotal,
+          discount: options.coupon.discount,
+          fee: 0,
+        }
+      : undefined,
   });
 }
