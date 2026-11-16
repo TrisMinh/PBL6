@@ -217,6 +217,8 @@ export function CustomerLayout(): ReactElement {
     "/booking/:sessionId/review",
   ].some((path) => Boolean(matchPath({ path, end: true }, location.pathname)));
   const isPaymentFrame = [
+    "/payment/:bookingId/sepay",
+    "/payment/sepay/return",
     "/payment/:bookingId/vnpay",
     "/payment/vnpay/return",
   ].some((path) => Boolean(matchPath({ path, end: true }, location.pathname)));

@@ -25,3 +25,5 @@ app.MapPlatformOpenApi();
 app.MapPaymentEndpoints();
 app.Run();
 public partial class Program;
+
+namespace BusTicketPlatform.Payment.Api { public sealed class PaymentApiMarker; }

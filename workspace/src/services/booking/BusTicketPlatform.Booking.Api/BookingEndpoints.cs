@@ -22,6 +22,12 @@ public static class BookingEndpoints
         api.MapGet("/bookings/{bookingId:guid}", GetBookingAsync).RequireAuthorization();
         api.MapPost("/bookings/{bookingId:guid}/cancellation-preview", PreviewAsync).RequireAuthorization();
         api.MapPost("/bookings/{bookingId:guid}/cancel", CancelAsync).RequireAuthorization();
+        api.MapGet("/bookings/{bookingId:guid}/tickets", async (HttpContext context, BookingService service, Guid bookingId) =>
+        {
+            var actor = ActorOf(context);
+            return actor is null ? PlatformHttp.Error(PlatformErrors.AuthenticationRequired(), context.CorrelationId())
+                : (await service.ListBookingTicketsAsync(actor, bookingId, context.RequestAborted)).ToHttp(context.CorrelationId());
+        }).RequireAuthorization();
         api.MapGet("/tickets", ListTicketsAsync).RequireAuthorization();
         api.MapGet("/tickets/{ticketId:guid}", GetTicketAsync).RequireAuthorization();
         api.MapPost("/tickets/validate", ValidateAsync).RequireAuthorization();

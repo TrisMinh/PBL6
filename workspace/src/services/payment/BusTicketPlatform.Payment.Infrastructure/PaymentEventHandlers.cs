@@ -84,6 +84,6 @@ public static class PaymentEventHandlers
         var currency = EventPayload.String(message.Payload, "currency", "VND");
         var reason = EventPayload.String(message.Payload, "reason", message.EventType);
         return services.GetRequiredService<PaymentService>()
-            .ApplyRefundRequestedAsync(bookingId, paymentId, amount, currency, reason, cancellationToken);
+            .ApplyRefundRequestedAsync(bookingId, paymentId, amount, currency, reason, cancellationToken, "EVENT-" + message.EventId.ToString("N"), message.EventType == "RefundRequested");
     }
 }

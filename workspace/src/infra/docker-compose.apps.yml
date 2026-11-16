@@ -87,6 +87,12 @@ services:
     environment:
       <<: *api-env
       ConnectionStrings__Payment: Host=postgres;Port=5432;Database=payment;Username=platform;Password=${POSTGRES_PASSWORD:-postgres}
+      SePay__Environment: ${SEPAY_ENVIRONMENT:-sandbox}
+      SePay__MerchantId: ${SEPAY_MERCHANT_ID:-}
+      SePay__SecretKey: ${SEPAY_SECRET_KEY:-}
+      SePay__IpnSecretKey: ${SEPAY_IPN_SECRET_KEY:-}
+      SePay__CustomerOrigin: ${CUSTOMER_PUBLIC_ORIGIN:-http://localhost:5173}
+      Payment__Enabled: ${VNPAY_ENABLED:-false}
       Payment__CheckoutBaseUrl: http://localhost:8099/checkout
       Payment__TmnCode: ${VNPAY_TMN_CODE:-LOCALDEV}
       Payment__HashSecret: ${VNPAY_HASH_SECRET:-local-dev-only-vnpay-hash-secret-32b}

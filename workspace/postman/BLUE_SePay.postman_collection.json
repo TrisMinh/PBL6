@@ -1,0 +1,258 @@
+{
+  "info": {
+    "name": "BLUE SePay checkout and IPN",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Use an isolated local payment database and the documented test-only credentials. Never replay fixture IPNs into a real-money environment. No credentials are committed."
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5098"
+    },
+    {
+      "key": "bookingId",
+      "value": ""
+    },
+    {
+      "key": "customerId",
+      "value": ""
+    },
+    {
+      "key": "organizationId",
+      "value": ""
+    },
+    {
+      "key": "accessToken",
+      "value": ""
+    },
+    {
+      "key": "ipnSecret",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Register isolated booking quote",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/internal/quotes",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"bookingId\": \"{{bookingId}}\",\n  \"customerId\": \"{{customerId}}\",\n  \"organizationId\": \"{{organizationId}}\",\n  \"amount\": 300000,\n  \"currency\": \"VND\",\n  \"paymentChannel\": \"PREPAID\",\n  \"commissionRate\": 0.1\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Quote accepted\", () => pm.response.to.have.status(204));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create signed SePay checkout",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "{{bookingId}}-create"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/bookings/{{bookingId}}/payments",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{accessToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"provider\": \"SEPAY\",\n  \"method\": \"BANK_TRANSFER\",\n  \"returnUri\": \"https://blue.example.test/return\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Created\", () => pm.response.to.have.status(201));",
+              "const p = pm.response.json(); pm.collectionVariables.set(\"paymentId\",p.id); pm.collectionVariables.set(\"invoice\",p.providerAction.order_invoice_number);",
+              "pm.test(\"Signed POST checkout\", () => { pm.expect(p.providerAction.type).eq(\"FORM_POST\"); pm.expect(p.providerAction.actionUrl).eq(\"https://pay-sandbox.sepay.vn/v1/checkout/init\"); pm.expect(p.providerAction.order_amount).eq(\"300000\"); pm.expect(p.providerAction.signature).to.be.a(\"string\"); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reject unauthenticated IPN",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/integrations/payments/sepay/ipn",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"timestamp\": 1757058220,\n  \"notification_type\": \"ORDER_PAID\",\n  \"order\": {\n    \"order_invoice_number\": \"{{invoice}}\",\n    \"order_status\": \"CAPTURED\",\n    \"order_currency\": \"VND\",\n    \"order_amount\": \"300000.00\"\n  },\n  \"transaction\": {\n    \"id\": \"{{bookingId}}-provider-transaction\",\n    \"transaction_type\": \"PAYMENT\",\n    \"transaction_status\": \"APPROVED\",\n    \"transaction_currency\": \"VND\",\n    \"transaction_amount\": \"300000\"\n  },\n  \"customer\": {\n    \"customer_id\": \"{{customerId}}\"\n  }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Unauthenticated callback rejected\", () => pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Accept authenticated paid IPN",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Secret-Key",
+            "value": "{{ipnSecret}}"
+          }
+        ],
+        "url": "{{baseUrl}}/integrations/payments/sepay/ipn",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"timestamp\": 1757058220,\n  \"notification_type\": \"ORDER_PAID\",\n  \"order\": {\n    \"order_invoice_number\": \"{{invoice}}\",\n    \"order_status\": \"CAPTURED\",\n    \"order_currency\": \"VND\",\n    \"order_amount\": \"300000.00\"\n  },\n  \"transaction\": {\n    \"id\": \"{{bookingId}}-provider-transaction\",\n    \"transaction_type\": \"PAYMENT\",\n    \"transaction_status\": \"APPROVED\",\n    \"transaction_currency\": \"VND\",\n    \"transaction_amount\": \"300000\"\n  },\n  \"customer\": {\n    \"customer_id\": \"{{customerId}}\"\n  }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"IPN acknowledged\", () => { pm.response.to.have.status(200); pm.expect(pm.response.json().success).eq(true); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Replay identical paid IPN",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Secret-Key",
+            "value": "{{ipnSecret}}"
+          }
+        ],
+        "url": "{{baseUrl}}/integrations/payments/sepay/ipn",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"timestamp\": 1757058220,\n  \"notification_type\": \"ORDER_PAID\",\n  \"order\": {\n    \"order_invoice_number\": \"{{invoice}}\",\n    \"order_status\": \"CAPTURED\",\n    \"order_currency\": \"VND\",\n    \"order_amount\": \"300000.00\"\n  },\n  \"transaction\": {\n    \"id\": \"{{bookingId}}-provider-transaction\",\n    \"transaction_type\": \"PAYMENT\",\n    \"transaction_status\": \"APPROVED\",\n    \"transaction_currency\": \"VND\",\n    \"transaction_amount\": \"300000\"\n  },\n  \"customer\": {\n    \"customer_id\": \"{{customerId}}\"\n  }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Duplicate acknowledged\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Read persisted payment",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/payments/{{paymentId}}",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{accessToken}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Persisted server capture\", () => { pm.response.to.have.status(200); const p = pm.response.json(); pm.expect(p.status).eq(\"SUCCEEDED\"); pm.expect(p.amount).eq(300000); pm.expect(p.providerAction == null).eq(true); });"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

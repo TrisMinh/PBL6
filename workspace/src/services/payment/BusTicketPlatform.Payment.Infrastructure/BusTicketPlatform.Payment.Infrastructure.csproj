@@ -15,5 +15,7 @@
   <ItemGroup>
     <EmbeddedResource Include="..\..\..\..\..\docs\database\_shared\000_integration_tables.sql" LogicalName="sql.shared" />
     <EmbeddedResource Include="..\..\..\..\..\docs\database\payment\001_initial.sql" LogicalName="sql.payment" />
+    <EmbeddedResource Include="..\..\..\..\..\docs\database\payment\002_sepay.sql" LogicalName="sql.sepay" />
+    <EmbeddedResource Include="..\..\..\..\..\docs\database\payment\003_legacy_payment_organization.sql" LogicalName="sql.payment-organization" />
   </ItemGroup>
 </Project>

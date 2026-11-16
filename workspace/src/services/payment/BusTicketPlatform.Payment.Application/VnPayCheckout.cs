@@ -8,6 +8,7 @@ namespace BusTicketPlatform.Payment.Application;
 public sealed class VnPayOptions
 {
     public const string SectionName = "Payment";
+    public bool Enabled { get; set; }
 
     public string CheckoutBaseUrl { get; set; } = "http://localhost:8099/checkout";
     public string TmnCode { get; set; } = "LOCALDEV";

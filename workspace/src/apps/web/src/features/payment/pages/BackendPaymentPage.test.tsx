@@ -83,12 +83,12 @@ it("counts down from the backend deadline and preserves it when reopening the pa
 it("stops at zero, explains expiry and disables payment at the backend deadline", async () => {
   showPayment();
   expect(
-    screen.getByRole("button", { name: "Tiếp tục đến VNPay" }),
+    screen.getByRole("button", { name: "Tiếp tục đến SePay" }),
   ).toBeEnabled();
   await act(() => vi.advanceTimersByTimeAsync(600000));
   expect(
     screen.queryByRole("button", {
-      name: /Tiếp tục đến VNPay|Thanh toán qua VNPay/,
+      name: /Tiếp tục đến SePay|Thanh toán qua SePay/,
     }),
   ).not.toBeInTheDocument();
   expect(screen.getByRole("alert")).toHaveTextContent(
@@ -111,7 +111,7 @@ it("shows recovery when the backend already returns EXPIRED on reload", () => {
   expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
   expect(
     screen.queryByRole("button", {
-      name: /Tiếp tục đến VNPay|Thanh toán qua VNPay/,
+      name: /Tiếp tục đến SePay|Thanh toán qua SePay/,
     }),
   ).not.toBeInTheDocument();
 });
@@ -119,7 +119,6 @@ it("shows recovery when the backend already returns EXPIRED on reload", () => {
 it("does not show an active hold countdown for a completed booking", () => {
   showPayment("CONFIRMED");
   expect(screen.queryByRole("timer")).not.toBeInTheDocument();
-  expect(
-    screen.getByRole("button", { name: "Thanh toán qua VNPay" }),
-  ).toBeDisabled();
+  expect(screen.queryByRole("button", { name: /Tiếp tục đến|Thanh toán qua/ })).not.toBeInTheDocument();
+  expect(screen.getByRole("link", { name: /Xem đơn và vé/ })).toBeInTheDocument();
 });

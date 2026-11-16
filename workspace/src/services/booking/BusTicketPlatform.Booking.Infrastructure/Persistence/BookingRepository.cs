@@ -472,7 +472,7 @@ public sealed class BookingRepository(BookingDatabaseOptions options, IIdGenerat
     public Task<long> CountBookingsAsync(Guid? organizationId, CancellationToken cancellationToken) =>
         CountAsync("SELECT COUNT(*) FROM bookings WHERE (@org::uuid IS NULL OR organization_id_external = @org)", organizationId ?? Guid.Empty, cancellationToken, organizationId);
 
-    public async Task ApplyPaidAsync(Guid bookingId, IReadOnlyList<TicketRecord> tickets, CancellationToken cancellationToken)
+    public async Task<bool> ApplyPaidAsync(Guid bookingId, IReadOnlyList<TicketRecord> tickets, CancellationToken cancellationToken, Guid correlationId = default)
     {
         _ = tickets;
         await using var connection = await OpenAsync(cancellationToken);
@@ -482,11 +482,16 @@ public sealed class BookingRepository(BookingDatabaseOptions options, IIdGenerat
             SET status = CASE WHEN payment_channel = 'PREPAID' THEN 'PAID' ELSE status END,
                 paid_at = CASE WHEN payment_channel = 'PREPAID' THEN NOW() ELSE paid_at END,
                 updated_at = NOW(), row_version = row_version + 1
-            WHERE id = @id;
+            WHERE id = @id AND (
+              (payment_channel = 'PREPAID' AND status = 'PENDING_PAYMENT' AND expires_at > NOW())
+              OR (payment_channel = 'PAY_LATER' AND status = 'CONFIRMED'
+                AND NOT EXISTS (SELECT 1 FROM tickets WHERE booking_id = @id)))
+              AND NOT EXISTS (SELECT 1 FROM booking_items i JOIN trip_seats s ON s.id = i.trip_seat_id
+                WHERE i.booking_id = @id AND (s.status <> 'BOOKED' OR s.active_booking_item_id IS DISTINCT FROM i.id));
             """, connection, tx))
         {
             update.Parameters.AddWithValue("id", bookingId);
-            await update.ExecuteNonQueryAsync(cancellationToken);
+            if (await update.ExecuteNonQueryAsync(cancellationToken) == 0) return false;
         }
 
         await using (var select = new NpgsqlCommand("""
@@ -526,7 +531,30 @@ public sealed class BookingRepository(BookingDatabaseOptions options, IIdGenerat
             }
         }
 
+        foreach (var type in new[] { "BookingPaid", "TicketIssued" })
+        {
+            await using var outbox = new NpgsqlCommand("""
+                INSERT INTO outbox_messages (id, message_type, schema_version, aggregate_id, payload, correlation_id, occurred_at, attempt_count)
+                SELECT @event, @type, 1, b.id,
+                    jsonb_build_object('eventId', @event, 'eventType', @type, 'version', 1, 'occurredAt', NOW(),
+                      'producer', 'booking', 'correlationId', @correlation, 'aggregateId', b.id, 'tenantId', b.organization_id_external,
+                      'payload', jsonb_build_object('bookingId', b.id, 'bookingCode', b.booking_code,
+                        'organizationId', b.organization_id_external, 'customerId', b.customer_id_external, 'tripId', b.trip_id,
+                        'status', b.status, 'paymentChannel', b.payment_channel, 'currency', b.currency,
+                        'seatCount', (SELECT COUNT(*) FROM booking_items WHERE booking_id = b.id),
+                        'grossAmount', b.total_amount, 'netAmount', b.total_amount, 'cancellationFee', 0, 'refundedAmount', 0,
+                        'bookedAt', b.created_at, 'expiresAt', b.expires_at, 'routeName', '',
+                        'departureAt', (SELECT departure_at FROM trip_snapshots WHERE trip_id = b.trip_id))), @correlation, NOW(), 0
+                FROM bookings b WHERE b.id = @booking AND (@type <> 'BookingPaid' OR b.payment_channel = 'PREPAID');
+                """, connection, tx);
+            outbox.Parameters.AddWithValue("event", ids.NewUuidV7());
+            outbox.Parameters.AddWithValue("type", type);
+            outbox.Parameters.AddWithValue("correlation", correlationId);
+            outbox.Parameters.AddWithValue("booking", bookingId);
+            await outbox.ExecuteNonQueryAsync(cancellationToken);
+        }
         await tx.CommitAsync(cancellationToken);
+        return true;
     }
 
     public async Task<CancellationPreviewRecord> InsertPreviewAsync(CancellationPreviewRecord preview, CancellationToken cancellationToken)
@@ -631,6 +659,9 @@ public sealed class BookingRepository(BookingDatabaseOptions options, IIdGenerat
 
         await tx.CommitAsync(cancellationToken);
     }
+
+    public Task<IReadOnlyList<TicketRecord>> ListTicketsForBookingAsync(Guid bookingId, CancellationToken cancellationToken) =>
+        QueryTickets(" WHERE b.id = @id ORDER BY i.seat_code", bookingId, 0, 100, cancellationToken);
 
     public Task<IReadOnlyList<TicketRecord>> ListTicketsForCustomerAsync(Guid customerId, int page, int size, CancellationToken cancellationToken) =>
         QueryTickets(" WHERE b.customer_id_external = @id ORDER BY t.issued_at DESC OFFSET @offset LIMIT @limit", customerId, page, size, cancellationToken);

@@ -221,7 +221,7 @@ export function LiveBookingOptions({
       <p>
         {payLater
           ? "Thanh toán theo hướng dẫn của nhà xe."
-          : "Chọn phương thức VNPay ở bước tiếp theo."}
+          : "Chọn thanh toán trực tuyến ở bước tiếp theo."}
       </p>
     </div>
   );

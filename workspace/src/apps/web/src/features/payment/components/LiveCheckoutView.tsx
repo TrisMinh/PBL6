@@ -9,7 +9,7 @@ import { ApiFailure } from "@/shared/api/ResourcePage";
 import { getBackendTrip } from "@/features/trips/repositories/backendTripRepository";
 import { formatCurrencyVnd as money } from "@/shared/lib/formatCurrencyVnd";
 import { Button } from "@/shared/ui/Button/Button";
-import { ProviderPanel } from "./PaymentCheckout";
+import { QrCode, ShieldCheck } from "@phosphor-icons/react";
 import safety from "@/assets/payment/payment-safety.svg";
 import bus from "@/assets/cancellation/bus.svg";
 import "./PaymentCheckout.css";
@@ -18,6 +18,7 @@ import "../../cancellation/pages/CancellationPage.css";
 import "./LiveCheckoutView.css";
 
 interface Props {
+  providerName?: string;
   booking: z.infer<typeof bookingSchema>;
   remainingTime: string;
   onPay: () => void;
@@ -26,6 +27,7 @@ interface Props {
 }
 export function LiveCheckoutView({
   booking,
+  providerName = "SePay",
   remainingTime,
   onPay,
   busy,
@@ -71,29 +73,44 @@ export function LiveCheckoutView({
           Chuyến đi → Chọn ghế → Hành khách → Thanh toán
         </nav>
         <h1>Thanh toán đơn đặt vé</h1>
-        <p>Hoàn tất giao dịch trên VNPay trong thời gian giữ chỗ.</p>
+        <p>Hoàn tất giao dịch trên {providerName} trong thời gian giữ chỗ.</p>
       </header>
       <div className="live-checkout__columns">
         <section
           className="payment-checkout"
-          aria-label="Thanh toán VNPay Sandbox"
+          aria-label={`Thanh toán ${providerName}`}
         >
           <header className="payment-checkout__intro">
-            <h2>Thanh toán an toàn qua VNPay</h2>
+            <h2>Thanh toán an toàn qua {providerName}</h2>
             <p>
-              Bạn sẽ được chuyển tới VNPay Sandbox để chọn ngân hàng và xác nhận
+              Bạn sẽ được chuyển tới {providerName} để quét mã QR và xác nhận
               giao dịch.
             </p>
           </header>
           <div className="payment-checkout__grid">
-            <ProviderPanel amount={booking.total} label="VNPay Sandbox" />
+            <div className="payment-checkout__provider">
+              <span>CỔNG THANH TOÁN</span>
+              <strong>{providerName}</strong>
+              <div className="live-checkout__gateway-brand">
+                <QrCode size={52} weight="duotone" aria-hidden="true" />
+                <strong>{providerName}</strong>
+              </div>
+              <p>Mã thanh toán được tạo trên cổng {providerName}.</p>
+              <strong className="payment-checkout__amount">
+                {money(booking.total)}
+              </strong>
+              <p>
+                <ShieldCheck size={16} aria-hidden="true" /> Xác nhận giao dịch
+                từ máy chủ
+              </p>
+            </div>
             <div className="payment-checkout__details">
               <h3>Thông tin giao dịch</h3>
               <p>Dữ liệu do máy chủ BLUE tạo riêng cho đơn đặt vé này.</p>
               <dl>
                 <div>
                   <dt>NHÀ CUNG CẤP</dt>
-                  <dd>VNPay · Môi trường Sandbox</dd>
+                  <dd>{providerName}</dd>
                 </div>
                 <div>
                   <dt>MÃ ĐẶT CHỖ</dt>
@@ -121,7 +138,9 @@ export function LiveCheckoutView({
           <div className="payment-checkout__safety">
             <img src={safety} alt="" width={24} height={24} />
             <div>
-              <strong>Kiểm tra đúng số tiền trước khi chuyển tới VNPay</strong>
+              <strong>
+                Kiểm tra đúng số tiền trước khi chuyển tới {providerName}
+              </strong>
               <p>
                 Sau khi quay lại, BLUE sẽ kiểm tra trạng thái từ máy chủ — không
                 dựa vào nội dung redirect.
@@ -189,7 +208,7 @@ export function LiveCheckoutView({
           </dl>
           <div className="cancellation-page__payment-method">
             <span>CỔNG THANH TOÁN</span>
-            <strong>VNPay Sandbox</strong>
+            <strong>{providerName}</strong>
             <small>Xác nhận kết quả từ máy chủ</small>
           </div>
           <Button
@@ -197,7 +216,7 @@ export function LiveCheckoutView({
             disabled={remainingTime === "00:00"}
             onClick={onPay}
           >
-            Tiếp tục đến VNPay
+            Tiếp tục đến {providerName}
           </Button>
           <Link className="live-checkout__back" to="/account/tickets">
             Kiểm tra đơn đặt vé

@@ -87,6 +87,8 @@ describe("routeConfig", () => {
         "/booking/:sessionId/seats",
         "/booking/:sessionId/passengers",
         "/booking/:sessionId/review",
+        "/payment/:bookingId/sepay",
+        "/payment/sepay/return",
         "/payment/:bookingId/vnpay",
         "/payment/vnpay/return",
         "/admin/organizations",
@@ -119,7 +121,8 @@ describe("routeConfig", () => {
         );
         const needsBookingSession =
           entry.path.startsWith("/booking/") ||
-          entry.path === "/payment/:bookingId/vnpay";
+          entry.path === "/payment/:bookingId/vnpay" ||
+          entry.path === "/payment/:bookingId/sepay";
         expect(
           entry.ancestors.includes("./routes/guards/booking-session.tsx"),
         ).toBe(needsBookingSession);
@@ -162,6 +165,10 @@ describe.each(
       expect(title).toEqual({ title: "Thông tin hành khách | BLUE" });
     else if (path === "/booking/:sessionId/review")
       expect(title).toEqual({ title: "Kiểm tra đặt vé | BLUE" });
+    else if (path === "/payment/:bookingId/sepay")
+      expect(title).toEqual({ title: "Thanh toán SePay | BLUE" });
+    else if (path === "/payment/sepay/return")
+      expect(title).toEqual({ title: "Kết quả thanh toán SePay | BLUE" });
     else if (path === "/payment/:bookingId/vnpay")
       expect(title).toEqual({ title: "Thanh toán qua VNPay | BLUE" });
     else if (path === "/payment/vnpay/return")

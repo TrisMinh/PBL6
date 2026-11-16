@@ -107,9 +107,10 @@ services:
       Messaging__AmqpUri: amqp://platform:${RABBITMQ_PASSWORD:?RABBITMQ_PASSWORD is required}@rabbitmq:5672/bus-ticket
       ConnectionStrings__Payment: Host=postgres;Port=5432;Database=payment;Username=platform;Password=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
       AllowedHosts: localhost;127.0.0.1;payment;${API_ALLOWED_HOSTS:?API_ALLOWED_HOSTS is required}
-      Payment__CheckoutBaseUrl: ${VNPAY_CHECKOUT_URL:?VNPAY_CHECKOUT_URL is required}
-      Payment__TmnCode: ${VNPAY_TMN_CODE:?VNPAY_TMN_CODE is required}
-      Payment__HashSecret: ${VNPAY_HASH_SECRET:?VNPAY_HASH_SECRET is required}
+      Payment__Enabled: "false"
+      Payment__CheckoutBaseUrl: ${VNPAY_CHECKOUT_URL:-https://sandbox.vnpayment.vn/paymentv2/vpcpay.html}
+      Payment__TmnCode: ${VNPAY_TMN_CODE:-}
+      Payment__HashSecret: ${VNPAY_HASH_SECRET:-}
 
   notification:
     <<: *api-hardening
@@ -139,6 +140,10 @@ services:
       Cors__Origins__0: ${CUSTOMER_ORIGIN:?CUSTOMER_ORIGIN is required}
 
   customer-web:
+    build:
+      args:
+        API_MODE: live
+        PAYMENT_PROVIDER: sepay
     ports: !override
       - 127.0.0.1:${CUSTOMER_HTTP_PORT:-8080}:8080
     read_only: true
@@ -152,6 +157,9 @@ services:
       retries: 10
 
   operator-web:
+    build:
+      args:
+        API_MODE: live
     ports: !override
       - 127.0.0.1:${OPERATOR_HTTP_PORT:-8081}:8080
     read_only: true
@@ -160,6 +168,9 @@ services:
     security_opt: [no-new-privileges:true]
 
   admin-web:
+    build:
+      args:
+        API_MODE: live
     ports: !override
       - 127.0.0.1:${ADMIN_HTTP_PORT:-8082}:8080
     read_only: true

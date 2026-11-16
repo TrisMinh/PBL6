@@ -39,3 +39,5 @@ app.MapBookingEndpoints();
 app.Run();
 
 public partial class Program;
+
+namespace BusTicketPlatform.Booking.Api { public sealed class BookingApiMarker; }

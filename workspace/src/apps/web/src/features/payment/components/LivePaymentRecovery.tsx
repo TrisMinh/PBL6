@@ -1,3 +1,4 @@
+import { livePaymentPath } from "@/features/payment/checkoutAction";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router";
 import type { ReactElement } from "react";
@@ -165,7 +166,7 @@ export function LivePaymentRecovery({
               </Button>
               <Link
                 className="live-payment-recovery__alternative"
-                to={canRetry ? `/payment/${bookingId}/vnpay` : "/"}
+                to={canRetry ? livePaymentPath(bookingId) : "/"}
               >
                 {canRetry ? "Quay lại thanh toán" : "Tìm chuyến khác"}
               </Link>

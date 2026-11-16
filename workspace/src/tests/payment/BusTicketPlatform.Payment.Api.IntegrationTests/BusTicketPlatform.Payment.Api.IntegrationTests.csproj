@@ -17,5 +17,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\services\payment\BusTicketPlatform.Payment.Api\BusTicketPlatform.Payment.Api.csproj" />
     <ProjectReference Include="..\..\..\services\payment\BusTicketPlatform.Payment.Infrastructure\BusTicketPlatform.Payment.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\services\booking\BusTicketPlatform.Booking.Api\BusTicketPlatform.Booking.Api.csproj" />
   </ItemGroup>
 </Project>

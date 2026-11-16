@@ -82,6 +82,7 @@ const allRoutes = [
     route("/tickets/:ticketCode", "./routes/tickets/detail.tsx"),
     route("/bookings/:bookingCode/cancel", "./routes/bookings/cancel.tsx"),
     route("/refunds/:refundId", "./routes/bookings/refund.tsx"),
+    route("/payment/sepay/return", "./routes/payment/sepay-return.tsx"),
     route("/payment/vnpay/return", "./routes/payment/vnpay-return.tsx"),
     route("*", "./routes/not-found.tsx"),
     layout("./routes/guards/booking-session.tsx", [
@@ -91,6 +92,7 @@ const allRoutes = [
         "./routes/booking/passengers.tsx",
       ),
       route("/booking/:sessionId/review", "./routes/booking/review.tsx"),
+      route("/payment/:bookingId/sepay", "./routes/payment/sepay.tsx"),
       route("/payment/:bookingId/vnpay", "./routes/payment/vnpay.tsx"),
     ]),
   ]),

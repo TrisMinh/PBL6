@@ -1,3 +1,4 @@
+import { livePaymentPath } from "@/features/payment/checkoutAction";
 import type { ReactElement } from "react";
 import { useSessionClock } from "@/shared/lib/useSessionClock";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -52,7 +53,7 @@ export function BackendTicketsPage(): ReactElement {
             label: "Thanh toán",
             render: (row) =>
               row.status === "PENDING_PAYMENT" ? (
-                <Link to={`/payment/${row.id}/vnpay`}>Tiếp tục thanh toán</Link>
+                <Link to={livePaymentPath(String(row.id))}>Tiếp tục thanh toán</Link>
               ) : (
                 "—"
               ),

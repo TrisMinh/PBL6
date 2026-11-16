@@ -24,6 +24,11 @@ public sealed record SettlementPageDto(int Page, int Size, long TotalElements, i
 public sealed record CreatePayoutRequest(Guid OrganizationId, DateOnly PeriodStart, DateOnly PeriodEnd, string Currency, long PayableAmount);
 public sealed record OperatorPayoutDto(Guid Id, Guid OrganizationId, DateOnly PeriodStart, DateOnly PeriodEnd, string Currency, long PayableAmount, string Status, DateTimeOffset? TransferredAt);
 
+public interface ICheckoutRequestRecovery
+{
+    Task AbandonCheckoutAsync(string scope, string target, string key, string hash, CancellationToken cancellationToken);
+}
+
 public interface IPaymentRepository
 {
     Task UpsertQuoteAsync(BookingQuote quote, CancellationToken cancellationToken);
@@ -48,7 +53,7 @@ public interface IPaymentRepository
     Task<PayoutRecord> InsertPayoutAsync(PayoutRecord payout, CancellationToken cancellationToken);
 }
 
-public sealed record PaymentRecord(Guid Id, Guid BookingId, Guid CustomerId, Guid OrganizationId, string Provider, string LogicalReference, long Amount, string Currency, string Status, DateTimeOffset ExpiresAt, long RowVersion, string? ReturnUri);
+public sealed record PaymentRecord(Guid Id, Guid BookingId, Guid CustomerId, Guid OrganizationId, string Provider, string LogicalReference, long Amount, string Currency, string Status, DateTimeOffset ExpiresAt, long RowVersion, string? ReturnUri, string? CheckoutMethod = null);
 public sealed record RefundRecord(Guid Id, Guid PaymentId, Guid BookingId, Guid RequestedBy, string RefundReference, long Amount, string Currency, string Reason, string Status);
 public sealed record SettlementRecord(Guid Id, Guid BookingId, Guid OrganizationId, Guid? PaymentId, string PaymentChannel, long Gross, decimal Rate, long Commission, long Net, string Currency, string Status);
 public sealed record PayoutRecord(Guid Id, Guid OrganizationId, DateOnly PeriodStart, DateOnly PeriodEnd, string Currency, long PayableAmount, string Status, DateTimeOffset? TransferredAt);
@@ -59,7 +64,7 @@ public interface IPaymentEvents
     Task RefundSucceededAsync(RefundRecord refund, Guid correlationId, CancellationToken cancellationToken);
 }
 
-public sealed class PaymentService(IPaymentRepository store, IPaymentEvents events, IIdGenerator ids, VnPayOptions vnpay)
+public sealed class PaymentService(IPaymentRepository store, IPaymentEvents events, IIdGenerator ids, VnPayOptions vnpay, SePayOptions sepay, ISePayPaymentStore sepayStore)
 {
     public Task RegisterQuoteAsync(BookingQuote quote, CancellationToken cancellationToken) =>
         store.UpsertQuoteAsync(quote, cancellationToken);
@@ -95,12 +100,12 @@ public sealed class PaymentService(IPaymentRepository store, IPaymentEvents even
 
     public async Task<Result<PaymentDto>> CreateAsync(Actor actor, Guid bookingId, CreatePaymentRequest request, Guid correlationId, CancellationToken cancellationToken)
     {
-        if (request.Provider != "VNPAY_SANDBOX")
+        if (request.Provider is not ("VNPAY_SANDBOX" or "SEPAY") || request.Provider == "VNPAY_SANDBOX" && !vnpay.Enabled)
         {
             return Result<PaymentDto>.Failure(PlatformErrors.Validation("Unsupported provider.", "provider"));
         }
 
-        if (!VnPayCheckout.IsSupportedMethod(request.Method))
+        if (request.Provider == "SEPAY" ? !sepay.Methods.Contains(request.Method) || request.Method is not ("BANK_TRANSFER" or "NAPAS_BANK_TRANSFER" or "CARD") : !VnPayCheckout.IsSupportedMethod(request.Method))
         {
             return Result<PaymentDto>.Failure(PlatformErrors.Validation("Unsupported method.", "method"));
         }
@@ -110,13 +115,16 @@ public sealed class PaymentService(IPaymentRepository store, IPaymentEvents even
             return Result<PaymentDto>.Failure(PlatformErrors.Validation("Return URI is invalid.", "returnUri"));
         }
 
+        if (request.Provider == "SEPAY" && !sepay.IsConfigured)
+            return Result<PaymentDto>.Failure(PlatformErrors.ResourceConflict("SePay is not configured on the server."));
+
         var quote = await WaitForQuoteAsync(bookingId, cancellationToken);
         if (quote is null || quote.CustomerId != actor.UserId)
         {
             return Result<PaymentDto>.Failure(PlatformErrors.NotFound());
         }
 
-        if (quote.PaymentChannel != "PREPAID")
+        if (quote.PaymentChannel != "PREPAID" || request.Provider == "SEPAY" && quote.Currency != "VND")
         {
             return Result<PaymentDto>.Failure(PlatformErrors.PaymentNotAllowed());
         }
@@ -127,8 +135,10 @@ public sealed class PaymentService(IPaymentRepository store, IPaymentEvents even
         }
 
         var existing = await store.GetByBookingAsync(bookingId, cancellationToken);
-        if (existing is not null)
+        if (existing is not null && existing.Status is not ("FAILED" or "CANCELLED"))
         {
+            if (existing.Provider != request.Provider || existing.CheckoutMethod is not null && existing.CheckoutMethod != request.Method)
+                return Result<PaymentDto>.Failure(PlatformErrors.PaymentNotAllowed());
             return Result<PaymentDto>.Success(Map(existing, request.ReturnUri));
         }
 
@@ -146,10 +156,13 @@ public sealed class PaymentService(IPaymentRepository store, IPaymentEvents even
                 ? holdExpiry
                 : DateTimeOffset.UtcNow.AddMinutes(15),
             0,
-            request.ReturnUri);
+            request.ReturnUri, request.Provider == "SEPAY" ? request.Method : null);
         await store.InsertPaymentAsync(payment, cancellationToken);
         _ = correlationId;
-        return Result<PaymentDto>.Success(Map(payment, request.ReturnUri));
+        var persisted = await store.GetByBookingAsync(bookingId, cancellationToken) ?? payment;
+        if (persisted.Provider != request.Provider || persisted.CheckoutMethod is not null && persisted.CheckoutMethod != request.Method)
+            return Result<PaymentDto>.Failure(PlatformErrors.PaymentNotAllowed());
+        return Result<PaymentDto>.Success(Map(persisted, request.ReturnUri));
     }
 
     public async Task<Result<IReadOnlyList<PaymentDto>>> ListBookingAsync(Actor actor, Guid bookingId, CancellationToken cancellationToken)
@@ -186,7 +199,7 @@ public sealed class PaymentService(IPaymentRepository store, IPaymentEvents even
             return Result<OperationAccepted>.Failure(PlatformErrors.NotFound());
         }
 
-        if (payment.Status is "SUCCEEDED" or "REFUNDED")
+        if (payment.Status is "SUCCEEDED" or "REFUNDED" or "REFUND_PENDING" or "PARTIALLY_REFUNDED")
         {
             return Result<OperationAccepted>.Failure(PlatformErrors.PaymentNotAllowed());
         }
@@ -197,7 +210,7 @@ public sealed class PaymentService(IPaymentRepository store, IPaymentEvents even
 
     public async Task<Result> HandleWebhookAsync(string provider, IReadOnlyDictionary<string, object> body, Guid correlationId, CancellationToken cancellationToken)
     {
-        if (!string.Equals(provider, "vnpay-sandbox", StringComparison.OrdinalIgnoreCase))
+        if (!vnpay.Enabled || !string.Equals(provider, "vnpay-sandbox", StringComparison.OrdinalIgnoreCase))
         {
             return Result.Failure(PlatformErrors.WebhookInvalid());
         }
@@ -232,6 +245,8 @@ public sealed class PaymentService(IPaymentRepository store, IPaymentEvents even
         {
             return Result.Failure(PlatformErrors.NotFound());
         }
+
+        if (payment.Provider != "VNPAY_SANDBOX") return Result.Failure(PlatformErrors.WebhookInvalid());
 
         var amountRaw = Read(body, "vnp_Amount");
         var currency = Read(body, "vnp_CurrCode");
@@ -299,7 +314,7 @@ public sealed class PaymentService(IPaymentRepository store, IPaymentEvents even
 
         if (request.BookingId != payment.BookingId || request.Amount <= 0
             || !string.Equals(request.Currency, payment.Currency, StringComparison.OrdinalIgnoreCase)
-            || payment.Status is not ("SUCCEEDED" or "PARTIALLY_REFUNDED"))
+            || payment.Status is not ("SUCCEEDED" or "PARTIALLY_REFUNDED" or "REFUND_PENDING"))
         {
             return Result<OperationAccepted>.Failure(PlatformErrors.PaymentNotAllowed());
         }
@@ -308,6 +323,14 @@ public sealed class PaymentService(IPaymentRepository store, IPaymentEvents even
         if (existing is not null)
         {
             return Result<OperationAccepted>.Success(new OperationAccepted(existing.Id, "ACCEPTED"));
+        }
+
+        if (payment.Provider == "SEPAY")
+        {
+            if (!await sepayStore.QueueSePayRefundAsync(payment, request.RefundReference, request.Amount, request.Reason, actor.UserId, cancellationToken))
+                return Result<OperationAccepted>.Failure(PlatformErrors.ResourceConflict("The refund exceeds the remaining captured amount."));
+            var queued = await store.GetRefundByReferenceAsync(payment.Id, request.RefundReference, cancellationToken);
+            return Result<OperationAccepted>.Success(new OperationAccepted(queued!.Id, "REQUESTED"));
         }
 
         var refund = new RefundRecord(ids.NewUuidV7(), request.PaymentId, request.BookingId, actor.UserId, request.RefundReference, request.Amount, request.Currency, request.Reason, "SUCCEEDED");
@@ -385,13 +408,22 @@ public sealed class PaymentService(IPaymentRepository store, IPaymentEvents even
         long amount,
         string currency,
         string reason,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        string? eventReference = null,
+        bool explicitRefund = true)
     {
         var payment = paymentId != Guid.Empty
             ? await store.GetAsync(paymentId, cancellationToken)
             : await store.GetByBookingAsync(bookingId, cancellationToken);
-        if (payment is null || payment.Status is not ("SUCCEEDED" or "PARTIALLY_REFUNDED"))
+        if (payment is null || payment.Status is not ("SUCCEEDED" or "PARTIALLY_REFUNDED" or "REFUND_PENDING"))
         {
+            return;
+        }
+
+        if (payment.Provider == "SEPAY")
+        {
+            if (!explicitRefund) return;
+            await sepayStore.QueueSePayRefundAsync(payment, eventReference ?? "BOOKING-" + bookingId.ToString("N"), amount > 0 ? amount : payment.Amount, reason, Guid.Empty, cancellationToken);
             return;
         }
 
@@ -450,7 +482,11 @@ public sealed class PaymentService(IPaymentRepository store, IPaymentEvents even
     {
         var ret = returnUri ?? payment.ReturnUri;
         Dictionary<string, string>? action = null;
-        if (!string.IsNullOrWhiteSpace(ret) && payment.Status is "PENDING" or "PROCESSING")
+        if (payment.Provider == "SEPAY" && sepay.IsConfigured && payment.Status is "PENDING" or "PROCESSING" && payment.ExpiresAt > DateTimeOffset.UtcNow)
+        {
+            action = SePayCheckout.BuildAction(sepay, payment, payment.CheckoutMethod ?? "BANK_TRANSFER");
+        }
+        else if (payment.Provider != "SEPAY" && vnpay.Enabled && !string.IsNullOrWhiteSpace(ret) && payment.Status is "PENDING" or "PROCESSING")
         {
             action = new Dictionary<string, string>
             {
