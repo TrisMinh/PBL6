@@ -1,3 +1,4 @@
+import { HomeSearch } from "@/features/trips/components/HomeHero/HomeHero";
 import { DatePicker } from "@/shared/ui/DatePicker/DatePicker";
 import { Rows } from "@phosphor-icons/react/dist/csr/Rows";
 import { GridNine } from "@phosphor-icons/react/dist/csr/GridNine";
@@ -695,6 +696,26 @@ export function TripResultsPage(): ReactElement {
   )
     return (
       <TripCatalogue params={params} onChange={setParams} booking={booking} />
+    );
+  if (
+    !isMockApi &&
+    !params.has("originId") &&
+    !params.has("destinationId") &&
+    !params.has("departureDate")
+  )
+    return (
+      <section className="trip-results">
+        <header>
+          <h1>Tìm chuyến xe</h1>
+          <p>
+            Chọn điểm đi, điểm đến và ngày khởi hành để xem các chuyến đang mở
+            bán.
+          </p>
+        </header>
+        <div id="booking-search">
+          <HomeSearch />
+        </div>
+      </section>
     );
   const search = parseTripSearch(params);
   return (

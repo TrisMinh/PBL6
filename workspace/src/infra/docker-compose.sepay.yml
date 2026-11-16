@@ -1,0 +1,21 @@
+# Use after docker-compose.yml and docker-compose.apps.yml. All portals share the real backend.
+services:
+  payment:
+    environment:
+      Payment__Enabled: "false"
+  customer-web:
+    build:
+      args:
+        APP_TARGET: customer
+        API_MODE: live
+        PAYMENT_PROVIDER: sepay
+  operator-web:
+    build:
+      args:
+        APP_TARGET: operator
+        API_MODE: live
+  admin-web:
+    build:
+      args:
+        APP_TARGET: admin
+        API_MODE: live

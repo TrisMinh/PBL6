@@ -243,8 +243,7 @@ public sealed class BookingService(IBookingRepository store, IBookingEvents even
         await events.BookingCreatedAsync(created, correlationId, cancellationToken);
         if (!prepaid)
         {
-            await store.ApplyPaidAsync(created.Id, [], cancellationToken);
-            await events.TicketsReadyAsync(created, correlationId, cancellationToken);
+            await store.ApplyPaidAsync(created.Id, [], cancellationToken, correlationId);
         }
 
         return Result<BookingDto>.Success(MapBooking(created));
@@ -406,10 +405,24 @@ public sealed class BookingService(IBookingRepository store, IBookingEvents even
             return Result.Success();
         }
 
-        await store.ApplyPaidAsync(booking.Id, [], cancellationToken);
-        await events.BookingPaidAsync(booking, correlationId, cancellationToken);
-        await events.TicketsReadyAsync(booking, correlationId, cancellationToken);
+        if (booking.PaymentChannel != "PREPAID" || message.Amount != booking.Total || message.Currency != booking.Currency)
+            return Result.Failure(PlatformErrors.PaymentNotAllowed());
+        if (!await store.ApplyPaidAsync(booking.Id, [], cancellationToken, correlationId))
+        {
+            var current = await store.GetBookingAsync(booking.Id, cancellationToken);
+            if (current?.Status != "PAID")
+                await events.RefundRequestedAsync(booking.Id, message.PaymentId, message.Amount, message.Currency,
+                    "PAYMENT_AFTER_BOOKING_CLOSED", correlationId, cancellationToken);
+        }
         return Result.Success();
+    }
+
+    public async Task<Result<IReadOnlyList<TicketDto>>> ListBookingTicketsAsync(Actor actor, Guid bookingId, CancellationToken cancellationToken)
+    {
+        var booking = await store.GetBookingAsync(bookingId, cancellationToken);
+        if (booking is null || !CanRead(actor, booking)) return Result<IReadOnlyList<TicketDto>>.Failure(PlatformErrors.NotFound());
+        var tickets = await store.ListTicketsForBookingAsync(bookingId, cancellationToken);
+        return Result<IReadOnlyList<TicketDto>>.Success(tickets.Select(ticket => MapTicket(ticket, includeQr: ticket.CustomerId == actor.UserId && ticket.Status == "ISSUED")).ToArray());
     }
 
     public async Task<Result<TicketPageDto>> ListTicketsAsync(Actor actor, int page, int size, CancellationToken cancellationToken)

@@ -62,11 +62,12 @@ public interface IBookingRepository
     Task<long> CountBookingsForCustomerAsync(Guid customerId, CancellationToken cancellationToken);
     Task<IReadOnlyList<BookingRecord>> SearchBookingsAsync(Guid? organizationId, int page, int size, CancellationToken cancellationToken);
     Task<long> CountBookingsAsync(Guid? organizationId, CancellationToken cancellationToken);
-    Task ApplyPaidAsync(Guid bookingId, IReadOnlyList<TicketRecord> tickets, CancellationToken cancellationToken);
+    Task<bool> ApplyPaidAsync(Guid bookingId, IReadOnlyList<TicketRecord> tickets, CancellationToken cancellationToken, Guid correlationId = default);
     Task<CancellationPreviewRecord> InsertPreviewAsync(CancellationPreviewRecord preview, CancellationToken cancellationToken);
     Task<CancellationPreviewRecord?> GetPreviewAsync(Guid previewId, CancellationToken cancellationToken);
     Task CancelAsync(Guid bookingId, IReadOnlyList<Guid> ticketIds, long fee, long refund, CancellationToken cancellationToken);
     Task<IReadOnlyList<TicketRecord>> ListTicketsForCustomerAsync(Guid customerId, int page, int size, CancellationToken cancellationToken);
+    Task<IReadOnlyList<TicketRecord>> ListTicketsForBookingAsync(Guid bookingId, CancellationToken cancellationToken);
     Task<long> CountTicketsForCustomerAsync(Guid customerId, CancellationToken cancellationToken);
     Task<TicketRecord?> GetTicketAsync(Guid ticketId, CancellationToken cancellationToken);
     Task<TicketRecord?> GetTicketByHashAsync(string tokenHash, CancellationToken cancellationToken);

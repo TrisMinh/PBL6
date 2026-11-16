@@ -20,13 +20,18 @@ public sealed class PaymentApiCollection : ICollectionFixture<PaymentPostgresFix
 public sealed class PaymentPostgresFixture : IAsyncLifetime
 {
     public PostgreSqlContainer Container { get; } = new PostgreSqlBuilder().WithImage("postgres:17-alpine").WithDatabase("payment").WithUsername("platform").WithPassword("postgres").Build();
-    public WebApplicationFactory<Program> Factory { get; private set; } = null!;
+    public WebApplicationFactory<BusTicketPlatform.Payment.Api.PaymentApiMarker> Factory { get; private set; } = null!;
     public async Task InitializeAsync()
     {
         await Container.StartAsync();
-        Factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
+        Factory = new WebApplicationFactory<BusTicketPlatform.Payment.Api.PaymentApiMarker>().WithWebHostBuilder(builder =>
         {
             builder.UseSetting("Authentication:SigningKey", TestJwt.SigningKey);
+            builder.UseSetting("Payment:Enabled", "true");
+            builder.UseSetting("SePay:MerchantId", "TEST_MERCHANT");
+            builder.UseSetting("SePay:SecretKey", "test-only-merchant-key");
+            builder.UseSetting("SePay:IpnSecretKey", "test-only-ipn-key");
+            builder.UseSetting("SePay:CustomerOrigin", "https://blue.example.test");
             builder.ConfigureTestServices(services =>
             {
                 services.RemoveAll<PaymentDatabaseOptions>();

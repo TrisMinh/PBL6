@@ -19,8 +19,15 @@ public static class PaymentInfrastructureExtensions
         services.AddSingleton(options);
         services.AddSingleton<SqlBaselineMigrator>();
         services.AddHostedService<SqlBaselineHostedService>();
-        services.AddSingleton<IIdempotencyStore, IdempotencyStore>();
-        services.AddSingleton<IPaymentRepository, PaymentRepository>();
+        services.AddSingleton<IdempotencyStore>();
+        services.AddSingleton<IIdempotencyStore>(sp => sp.GetRequiredService<IdempotencyStore>());
+        services.AddSingleton<ICheckoutRequestRecovery>(sp => sp.GetRequiredService<IdempotencyStore>());
+        services.AddSingleton<PaymentRepository>();
+        services.AddSingleton<IPaymentRepository>(sp => sp.GetRequiredService<PaymentRepository>());
+        services.AddSingleton<ISePayPaymentStore>(sp => sp.GetRequiredService<PaymentRepository>());
+        var sepay = new SePayOptions();
+        configuration.GetSection("SePay").Bind(sepay);
+        services.AddSingleton(sepay);
         services.AddSingleton<OutboxWriter>();
         services.AddSingleton(sp => new BusTicketPlatform.BuildingBlocks.Messaging.OutboxRelay(sp.GetRequiredService<PaymentDatabaseOptions>().ConnectionString));
         services.AddHostedService<BusTicketPlatform.BuildingBlocks.Messaging.OutboxDispatchHostedService>();
@@ -28,6 +35,7 @@ public static class PaymentInfrastructureExtensions
         {
             var vnPay = new VnPayOptions();
             var section = configuration.GetSection(VnPayOptions.SectionName);
+            vnPay.Enabled = bool.TryParse(section["Enabled"], out var enabled) && enabled;
             vnPay.CheckoutBaseUrl = section["CheckoutBaseUrl"] ?? vnPay.CheckoutBaseUrl;
             vnPay.TmnCode = section["TmnCode"] ?? vnPay.TmnCode;
             vnPay.HashSecret = section["HashSecret"] ?? vnPay.HashSecret;

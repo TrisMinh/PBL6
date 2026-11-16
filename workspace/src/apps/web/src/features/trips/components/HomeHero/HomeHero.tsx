@@ -36,7 +36,7 @@ function useSearchNavigation(): (search: TripSearch) => void {
   };
 }
 
-function HomeSearch(): ReactElement {
+export function HomeSearch(): ReactElement {
   const locations = useLocations();
   const onSearch = useSearchNavigation();
   const location = useLocation();

@@ -30,6 +30,7 @@ public static class PaymentEndpoints
         endpoints.MapPost("/integrations/payments/{provider}/webhooks", WebhookAsync);
         endpoints.MapGet("/integrations/payments/{provider}/return", ReturnAsync);
         endpoints.MapPost("/internal/quotes", QuoteAsync);
+        endpoints.MapPost("/integrations/payments/sepay/ipn", SePayIpnAsync);
         return endpoints;
     }
 
@@ -41,7 +42,7 @@ public static class PaymentEndpoints
             : new Actor(userId.Value, context.User.OrganizationId(), context.User.Claims.Where(c => c.Type.EndsWith("/role", StringComparison.Ordinal) || c.Type == System.Security.Claims.ClaimTypes.Role).Select(c => c.Value).Distinct().ToArray());
     }
 
-    private static async Task<IResult> CreateAsync(HttpContext context, PaymentService service, IIdempotencyStore store, Guid bookingId, CreatePaymentRequest body)
+    private static async Task<IResult> CreateAsync(HttpContext context, PaymentService service, IIdempotencyStore store, ICheckoutRequestRecovery recovery, Guid bookingId, CreatePaymentRequest body)
     {
         var actor = ActorOf(context);
         if (actor is null)
@@ -49,10 +50,23 @@ public static class PaymentEndpoints
             return PlatformHttp.Error(PlatformErrors.AuthenticationRequired(), context.CorrelationId());
         }
 
-        return await context.WithIdempotency(store, "payment", "create", bookingId.ToString(), PlatformHttp.HashPayload(body), async () =>
+        var scope = "payment:" + actor.UserId;
+        var hash = PlatformHttp.HashPayload(body);
+        return await context.WithIdempotency(store, scope, "create", bookingId.ToString(), hash, async () =>
         {
-            var result = await service.CreateAsync(actor, bookingId, body, context.CorrelationId(), context.RequestAborted);
-            return result.IsSuccess ? (201, (object?)result.Value) : (result.Error!.StatusCode, BusTicketPlatform.BuildingBlocks.Http.ErrorEnvelope.From(result.Error, context.CorrelationId()));
+            try
+            {
+                var result = await service.CreateAsync(actor, bookingId, body, context.CorrelationId(), context.RequestAborted);
+                return result.IsSuccess ? (201, (object?)result.Value) : (result.Error!.StatusCode, BusTicketPlatform.BuildingBlocks.Http.ErrorEnvelope.From(result.Error, context.CorrelationId()));
+            }
+            catch
+            {
+                // Recover only a request that acquired the idempotency record, never a competing BeginAsync.
+                var key = context.Request.IdempotencyKey();
+                if (!string.IsNullOrEmpty(key))
+                    await recovery.AbandonCheckoutAsync(scope, bookingId.ToString(), key, hash, CancellationToken.None);
+                throw;
+            }
         });
     }
 
@@ -132,6 +146,22 @@ public static class PaymentEndpoints
     {
         var actor = ActorOf(context);
         return actor is null ? PlatformHttp.Error(PlatformErrors.AuthenticationRequired(), context.CorrelationId()) : (await service.CreatePayoutAsync(actor, body, context.RequestAborted)).ToHttp(context.CorrelationId(), 201);
+    }
+
+    private static async Task<IResult> SePayIpnAsync(HttpContext context, SePayOptions options, ISePayPaymentStore store)
+    {
+        if (!options.IsConfigured) return Results.Json(new { error = "SePay is not configured" }, statusCode: 503);
+        if (!SePayCheckout.Authenticate(options.IpnSecretKey, context.Request.Headers["X-Secret-Key"].ToString()))
+            return Results.Unauthorized();
+        if (context.Request.ContentLength > 65536) return Results.BadRequest();
+        JsonElement body;
+        try { body = await context.Request.ReadFromJsonAsync<JsonElement>(context.RequestAborted); }
+        catch (JsonException) { return Results.BadRequest(); }
+        var parsed = SePayIpn.Parse(body);
+        if (!parsed.IsSuccess) return PlatformHttp.Error(parsed.Error!, context.CorrelationId());
+        var hash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(body.GetRawText())));
+        var result = await store.ApplySePayAsync(parsed.Value!, hash, context.CorrelationId(), context.RequestAborted);
+        return result.IsSuccess ? Results.Ok(new { success = true }) : PlatformHttp.Error(result.Error!, context.CorrelationId());
     }
 
     private static async Task<IResult> WebhookAsync(HttpContext context, PaymentService service, string provider)

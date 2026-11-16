@@ -1,3 +1,4 @@
+import { livePaymentPath } from "@/features/payment/checkoutAction";
 import { useState, type ReactElement } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router";
@@ -69,7 +70,7 @@ function AccountList({ view }: { view: "tickets" | "bookings" }): ReactElement {
           detail: `${booking.items.length} hành khách · ${formatCurrencyVnd(booking.total)}`,
           href:
             booking.status === "PENDING_PAYMENT"
-              ? `/payment/${booking.id}/vnpay`
+              ? livePaymentPath(booking.id)
               : `/bookings/${booking.id}/cancel`,
           action:
             booking.status === "PENDING_PAYMENT"

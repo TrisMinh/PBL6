@@ -1,0 +1,8 @@
+# Avoid the Windows PostgreSQL/RabbitMQ services while using Docker's isolated platform databases.
+services:
+  postgres:
+    ports: !override ["127.0.0.1:55432:5432"]
+  rabbitmq:
+    ports: !override ["127.0.0.1:55672:5672", "127.0.0.1:55673:15672"]
+  redis:
+    ports: !override ["127.0.0.1:56379:6379"]

@@ -3,7 +3,7 @@ using Npgsql;
 
 namespace BusTicketPlatform.Payment.Infrastructure.Persistence;
 
-public sealed class PaymentRepository(PaymentDatabaseOptions options) : IPaymentRepository
+public sealed partial class PaymentRepository(PaymentDatabaseOptions options) : IPaymentRepository, ISePayPaymentStore
 {
     public async Task UpsertQuoteAsync(BookingQuote quote, CancellationToken cancellationToken)
     {
@@ -40,7 +40,7 @@ public sealed class PaymentRepository(PaymentDatabaseOptions options) : IPayment
     }
 
     public Task<PaymentRecord?> GetByBookingAsync(Guid bookingId, CancellationToken cancellationToken) =>
-        QueryPayment("SELECT " + PaymentCols + " FROM payments WHERE booking_id_external = @id", bookingId, cancellationToken);
+        QueryPayment("SELECT " + PaymentCols + " FROM payments WHERE booking_id_external = @id ORDER BY created_at DESC, id DESC LIMIT 1", bookingId, cancellationToken);
 
     public Task<PaymentRecord?> GetAsync(Guid paymentId, CancellationToken cancellationToken) =>
         QueryPayment("SELECT " + PaymentCols + " FROM payments WHERE id = @id", paymentId, cancellationToken);
@@ -51,11 +51,18 @@ public sealed class PaymentRepository(PaymentDatabaseOptions options) : IPayment
     public async Task InsertPaymentAsync(PaymentRecord payment, CancellationToken cancellationToken)
     {
         await using var connection = await OpenAsync(cancellationToken);
+        await using var tx = await connection.BeginTransactionAsync(cancellationToken);
+        await using (var locked = new NpgsqlCommand("SELECT pg_advisory_xact_lock(hashtext(@booking))", connection, tx))
+        {
+            locked.Parameters.AddWithValue("booking", payment.BookingId.ToString());
+            await locked.ExecuteScalarAsync(cancellationToken);
+        }
         await using var command = new NpgsqlCommand("""
             INSERT INTO payments (
-              id, booking_id_external, customer_id_external, organization_id_external, provider, logical_reference, amount, currency, status, expires_at, created_at, updated_at)
-            VALUES (@id, @booking, @customer, @org, @provider, @ref, @amount, @currency, @status, @expires, NOW(), NOW());
-            """, connection);
+              id, booking_id_external, customer_id_external, organization_id_external, provider, logical_reference, amount, currency, status, expires_at, created_at, updated_at, return_uri, checkout_method)
+            SELECT @id, @booking, @customer, @org, @provider, @ref, @amount, @currency, @status, @expires, NOW(), NOW(), @return, @method
+            WHERE NOT EXISTS (SELECT 1 FROM payments WHERE booking_id_external = @booking AND status NOT IN ('FAILED','CANCELLED'));
+            """, connection, tx);
         command.Parameters.AddWithValue("id", payment.Id);
         command.Parameters.AddWithValue("booking", payment.BookingId);
         command.Parameters.AddWithValue("customer", payment.CustomerId);
@@ -66,7 +73,10 @@ public sealed class PaymentRepository(PaymentDatabaseOptions options) : IPayment
         command.Parameters.AddWithValue("currency", payment.Currency);
         command.Parameters.AddWithValue("status", payment.Status);
         command.Parameters.AddWithValue("expires", payment.ExpiresAt.UtcDateTime);
+        command.Parameters.AddWithValue("return", (object?)payment.ReturnUri ?? DBNull.Value);
+        command.Parameters.AddWithValue("method", (object?)payment.CheckoutMethod ?? DBNull.Value);
         await command.ExecuteNonQueryAsync(cancellationToken);
+        await tx.CommitAsync(cancellationToken);
     }
 
     public async Task UpdatePaymentAsync(PaymentRecord payment, CancellationToken cancellationToken)
@@ -80,9 +90,10 @@ public sealed class PaymentRepository(PaymentDatabaseOptions options) : IPayment
               cancelled_at = CASE WHEN @status = 'CANCELLED' THEN NOW() WHEN @status = 'SUCCEEDED' THEN NULL ELSE cancelled_at END,
               refunded_at = CASE WHEN @status = 'REFUNDED' THEN NOW() ELSE refunded_at END,
               updated_at = NOW(), row_version = row_version + 1
-            WHERE id = @id;
+            WHERE id = @id AND row_version = @version;
             """, connection);
         command.Parameters.AddWithValue("id", payment.Id);
+        command.Parameters.AddWithValue("version", payment.RowVersion);
         command.Parameters.AddWithValue("status", payment.Status);
         await command.ExecuteNonQueryAsync(cancellationToken);
     }
@@ -123,8 +134,13 @@ public sealed class PaymentRepository(PaymentDatabaseOptions options) : IPayment
 
     public async Task<IReadOnlyList<PaymentRecord>> ListByBookingAsync(Guid bookingId, CancellationToken cancellationToken)
     {
-        var item = await GetByBookingAsync(bookingId, cancellationToken);
-        return item is null ? [] : [item];
+        await using var connection = await OpenAsync(cancellationToken);
+        await using var command = new NpgsqlCommand("SELECT " + PaymentCols + " FROM payments WHERE booking_id_external = @id ORDER BY created_at DESC, id DESC", connection);
+        command.Parameters.AddWithValue("id", bookingId);
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        var items = new List<PaymentRecord>();
+        while (await reader.ReadAsync(cancellationToken)) items.Add(ReadPayment(reader));
+        return items;
     }
 
     public Task<(IReadOnlyList<PaymentRecord> Items, long Total)> SearchPaymentsAsync(Guid? orgId, int page, int size, CancellationToken cancellationToken) =>
@@ -312,7 +328,7 @@ public sealed class PaymentRepository(PaymentDatabaseOptions options) : IPayment
         return payout;
     }
 
-    private const string PaymentCols = "id, booking_id_external, customer_id_external, organization_id_external, provider, logical_reference, amount, currency, status, expires_at, row_version";
+    private const string PaymentCols = "id, booking_id_external, customer_id_external, organization_id_external, provider, logical_reference, amount, currency, status, expires_at, row_version, return_uri, checkout_method";
 
     private async Task<PaymentRecord?> QueryPayment(string sql, Guid id, CancellationToken cancellationToken, string? reference = null)
     {
@@ -351,7 +367,7 @@ public sealed class PaymentRepository(PaymentDatabaseOptions options) : IPayment
     }
 
     private static PaymentRecord ReadPayment(NpgsqlDataReader reader) =>
-        new(reader.GetGuid(0), reader.GetGuid(1), reader.GetGuid(2), reader.GetGuid(3), reader.GetString(4), reader.GetString(5), reader.GetInt64(6), reader.GetString(7), reader.GetString(8), new DateTimeOffset(DateTime.SpecifyKind(reader.GetDateTime(9), DateTimeKind.Utc)), reader.GetInt64(10), null);
+        new(reader.GetGuid(0), reader.GetGuid(1), reader.GetGuid(2), reader.GetGuid(3), reader.GetString(4), reader.GetString(5), reader.GetInt64(6), reader.GetString(7), reader.GetString(8), new DateTimeOffset(DateTime.SpecifyKind(reader.GetDateTime(9), DateTimeKind.Utc)), reader.GetInt64(10), reader.IsDBNull(11) ? null : reader.GetString(11), reader.IsDBNull(12) ? null : reader.GetString(12));
 
     private static RefundRecord ReadRefund(NpgsqlDataReader reader) =>
         new(reader.GetGuid(0), reader.GetGuid(1), reader.GetGuid(2), reader.GetGuid(3), reader.GetString(4), reader.GetInt64(5), reader.GetString(6), reader.GetString(7), reader.GetString(8));

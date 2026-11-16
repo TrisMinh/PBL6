@@ -23,6 +23,8 @@ public sealed class SqlBaselineMigrator(PaymentDatabaseOptions options)
 
         await ApplyFileAsync(connection, "sql.shared", "000_integration_tables.sql", cancellationToken);
         await ApplyFileAsync(connection, "sql.payment", "001_initial.sql", cancellationToken);
+        await ApplyFileAsync(connection, "sql.sepay", "002_sepay.sql", cancellationToken);
+        await ApplyFileAsync(connection, "sql.payment-organization", "003_legacy_payment_organization.sql", cancellationToken);
     }
 
     private static async Task ApplyFileAsync(

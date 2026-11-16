@@ -18,7 +18,6 @@ const cwd = fileURLToPath(new URL("..", import.meta.url));
 const env = {
   ...process.env,
   BLUE_APP_TARGET: target,
-  VITE_API_MODE: process.env.VITE_API_MODE ?? "mock",
 };
 function run(file, args) {
   return new Promise((done, reject) => {

@@ -136,3 +136,50 @@
     width: 100%;
   }
 }
+
+.live-payment-result {
+  max-width: 960px;
+  margin: 0 auto;
+}
+.live-payment-result__receipt {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  padding: 24px;
+  margin: 24px 0;
+  border: 1px solid #d4e2fa;
+  border-radius: 16px;
+  background: #fff;
+}
+.live-payment-result__receipt > span,
+.live-payment-result__tickets article > span {
+  color: #536e94;
+  font-size: 12px;
+  font-weight: 600;
+}
+.live-payment-result__tickets {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.live-payment-result__tickets article {
+  background: white;
+  border: 1px solid #d4e2fa;
+  border-top: 3px solid #2166ed;
+  border-radius: 16px;
+  padding: 24px;
+}
+.live-payment-result__tickets h2 {
+  margin: 12px 0 8px;
+  font-size: 20px;
+}
+.live-payment-result__ticket-link {
+  display: inline-flex;
+  padding: 10px 16px;
+  border-radius: 10px;
+  color: white;
+  background: #2166ed;
+  text-decoration: none;
+  font-weight: 600;
+}

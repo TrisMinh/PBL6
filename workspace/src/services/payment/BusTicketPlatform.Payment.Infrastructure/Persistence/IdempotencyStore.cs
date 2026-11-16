@@ -4,7 +4,7 @@ using Npgsql;
 
 namespace BusTicketPlatform.Payment.Infrastructure.Persistence;
 
-public sealed class IdempotencyStore(PaymentDatabaseOptions options, IIdGenerator ids) : IIdempotencyStore
+public sealed class IdempotencyStore(PaymentDatabaseOptions options, IIdGenerator ids) : IIdempotencyStore, BusTicketPlatform.Payment.Application.ICheckoutRequestRecovery
 {
     public async Task<IdempotencyOutcome> BeginAsync(
         string actorScope,
@@ -86,4 +86,18 @@ public sealed class IdempotencyStore(PaymentDatabaseOptions options, IIdGenerato
         command.Parameters.AddWithValue("snapshot", responseSnapshot);
         await command.ExecuteNonQueryAsync(cancellationToken);
     }
+    public async Task AbandonCheckoutAsync(string scope, string target, string key, string hash, CancellationToken cancellationToken)
+    {
+        // Only checkout creation is recovered here. Re-execution resolves the same persisted invoice under the booking lock.
+        await using var connection = new NpgsqlConnection(options.ConnectionString);
+        await connection.OpenAsync(cancellationToken);
+        await using var command = new NpgsqlCommand("""
+            DELETE FROM idempotency_records WHERE actor_scope = @scope AND operation = 'create'
+              AND target_reference = @target AND idempotency_key = @key AND request_hash = @hash AND processing_state = 'PROCESSING';
+            """, connection);
+        command.Parameters.AddWithValue("scope", scope); command.Parameters.AddWithValue("target", target);
+        command.Parameters.AddWithValue("key", key); command.Parameters.AddWithValue("hash", hash);
+        await command.ExecuteNonQueryAsync(cancellationToken);
+    }
+
 }

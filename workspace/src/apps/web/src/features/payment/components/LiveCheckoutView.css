@@ -110,3 +110,11 @@
     font-size: 28px;
   }
 }
+
+.live-checkout__gateway-brand {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  padding: 24px;
+  color: var(--color-primary, #2166ed);
+}
