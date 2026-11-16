@@ -348,6 +348,47 @@ public sealed class BookingFlowTests
         Assert.False(validation.Body.GetProperty("valid").GetBoolean());
     }
 
+    // Security audit: these assert the required boundary, rather than accepting the vulnerable result.
+    [Fact]
+    [Trait("Category", "SecurityAudit")]
+    public async Task Security_anonymous_payment_event_cannot_issue_tickets()
+    {
+        var client = _fixture.CreateClient();
+        var trip = await ImportTrip(client);
+        var token = TestJwt.Mint(Guid.CreateVersion7(), ["CUSTOMER"]);
+        var hold = await CreateHold(client, trip, trip.SeatIds, token);
+        var total = hold.Body.GetProperty("seats")[0].GetProperty("price").GetProperty("amount").GetInt64();
+        var booking = await CreateBooking(client, trip, hold.Body.GetProperty("holdToken").GetString()!, token,
+            total, "PREPAID", [Passenger(trip, trip.SeatIds[0], "Audit Passenger")]);
+        Assert.Equal(HttpStatusCode.Created, booking.Response.StatusCode);
+        var id = booking.Body.GetProperty("id").GetGuid();
+        var forged = await client.PostAsJsonAsync("/api/v1/internal/payments/succeeded",
+            new { bookingId = id, paymentId = Guid.CreateVersion7(), amount = total, currency = "VND" });
+        var current = await Send(client, HttpMethod.Get, $"/api/v1/bookings/{id}", null, token);
+        var tickets = await Send(client, HttpMethod.Get, "/api/v1/tickets", null, token);
+        Assert.True(forged.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden,
+            $"Anonymous payment event returned {(int)forged.StatusCode}; booking={current.Body.GetProperty("status")}; tickets={tickets.Body.GetProperty("items").GetArrayLength()}");
+        Assert.Equal("PENDING_PAYMENT", current.Body.GetProperty("status").GetString());
+    }
+
+    [Fact]
+    [Trait("Category", "SecurityAudit")]
+    public async Task Security_operator_without_organization_cannot_list_all_bookings()
+    {
+        var client = _fixture.CreateClient();
+        var trip = await ImportTrip(client);
+        var customer = TestJwt.Mint(Guid.CreateVersion7(), ["CUSTOMER"]);
+        var hold = await CreateHold(client, trip, trip.SeatIds, customer);
+        var total = hold.Body.GetProperty("seats")[0].GetProperty("price").GetProperty("amount").GetInt64();
+        var booking = await CreateBooking(client, trip, hold.Body.GetProperty("holdToken").GetString()!, customer,
+            total, "PREPAID", [Passenger(trip, trip.SeatIds[0], "Audit Passenger")]);
+        Assert.Equal(HttpStatusCode.Created, booking.Response.StatusCode);
+        var operatorToken = TestJwt.Mint(Guid.CreateVersion7(), ["OPERATOR_ADMIN"]);
+        var response = await Send(client, HttpMethod.Get, "/api/v1/operator/bookings", null, operatorToken);
+        Assert.True(response.Response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden,
+            $"Operator with no organization returned {(int)response.Response.StatusCode}: {response.Body}");
+    }
+
     private async Task ExecuteSql(string sql, Guid id)
     {
         await using var connection = new NpgsqlConnection(_fixture.Container.GetConnectionString());

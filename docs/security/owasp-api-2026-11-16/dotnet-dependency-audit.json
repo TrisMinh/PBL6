@@ -1,0 +1,127 @@
+{
+  "version": 1,
+  "parameters": "--vulnerable --include-transitive",
+  "sources": [
+    "https://api.nuget.org/v3/index.json",
+    "C:/Program Files (x86)/Microsoft SDKs/NuGetPackages/"
+  ],
+  "projects": [
+    {
+      "path": "C:/Users/minht/OneDrive/Desktop/PBL6/workspace/src/services/identity/BusTicketPlatform.Identity.Domain/BusTicketPlatform.Identity.Domain.csproj"
+    },
+    {
+      "path": "C:/Users/minht/OneDrive/Desktop/PBL6/workspace/src/services/identity/BusTicketPlatform.Identity.Application/BusTicketPlatform.Identity.Application.csproj"
+    },
+    {
+      "path": "C:/Users/minht/OneDrive/Desktop/PBL6/workspace/src/services/identity/BusTicketPlatform.Identity.Infrastructure/BusTicketPlatform.Identity.Infrastructure.csproj"
+    },
+    {
+      "path": "C:/Users/minht/OneDrive/Desktop/PBL6/workspace/src/services/identity/BusTicketPlatform.Identity.Api/BusTicketPlatform.Identity.Api.csproj"
+    },
+    {
+      "path": "C:/Users/minht/OneDrive/Desktop/PBL6/workspace/src/building-blocks/BusTicketPlatform.BuildingBlocks/BusTicketPlatform.BuildingBlocks.csproj"
+    },
+    {
+      "path": "C:/Users/minht/OneDrive/Desktop/PBL6/workspace/src/building-blocks/BusTicketPlatform.BuildingBlocks.AspNetCore/BusTicketPlatform.BuildingBlocks.AspNetCore.csproj"
+    },
+    {
+      "path": "C:/Users/minht/OneDrive/Desktop/PBL6/workspace/src/gateway/BusTicketPlatform.Gateway/BusTicketPlatform.Gateway.csproj"
+    },
+    {
+      "path": "C:/Users/minht/OneDrive/Desktop/PBL6/workspace/src/tests/architecture/BusTicketPlatform.ArchitectureTests/BusTicketPlatform.ArchitectureTests.csproj"
+    },
+    {
+      "path": "C:/Users/minht/OneDrive/Desktop/PBL6/workspace/src/tests/building-blocks/BusTicketPlatform.BuildingBlocks.UnitTests/BusTicketPlatform.BuildingBlocks.UnitTests.csproj"
+    },
+    {
+      "path": "C:/Users/minht/OneDrive/Desktop/PBL6/workspace/src/tests/gateway/BusTicketPlatform.Gateway.IntegrationTests/BusTicketPlatform.Gateway.IntegrationTests.csproj"
+    },
+    {
+      "path": "C:/Users/minht/OneDrive/Desktop/PBL6/workspace/src/tests/identity/BusTicketPlatform.Identity.Api.IntegrationTests/BusTicketPlatform.Identity.Api.IntegrationTests.csproj"
+    },
+    {
+      "path": "C:/Users/minht/OneDrive/Desktop/PBL6/workspace/src/building-blocks/BusTicketPlatform.BuildingBlocks.Messaging/BusTicketPlatform.BuildingBlocks.Messaging.csproj"
+    },
+    {
+      "path": "C:/Users/minht/OneDrive/Desktop/PBL6/workspace/src/tests/messaging/BusTicketPlatform.Messaging.IntegrationTests/BusTicketPlatform.Messaging.IntegrationTests.csproj"
+    },
+    {
+      "path": "C:/Users/minht/OneDrive/Desktop/PBL6/workspace/src/tests/contracts/BusTicketPlatform.ContractTests/BusTicketPlatform.ContractTests.csproj"
+    },
+    {
+      "path": "C:/Users/minht/OneDrive/Desktop/PBL6/workspace/src/services/transport/BusTicketPlatform.Transport.Domain/BusTicketPlatform.Transport.Domain.csproj"
+    },
+    {
+      "path": "C:/Users/minht/OneDrive/Desktop/PBL6/workspace/src/services/transport/BusTicketPlatform.Transport.Application/BusTicketPlatform.Transport.Application.csproj"
+    },
+    {
+      "path": "C:/Users/minht/OneDrive/Desktop/PBL6/workspace/src/services/transport/BusTicketPlatform.Transport.Infrastructure/BusTicketPlatform.Transport.Infrastructure.csproj"
+    },
+    {
+      "path": "C:/Users/minht/OneDrive/Desktop/PBL6/workspace/src/services/transport/BusTicketPlatform.Transport.Api/BusTicketPlatform.Transport.Api.csproj"
+    },
+    {
+      "path": "C:/Users/minht/OneDrive/Desktop/PBL6/workspace/src/tests/transport/BusTicketPlatform.Transport.Api.IntegrationTests/BusTicketPlatform.Transport.Api.IntegrationTests.csproj"
+    },
+    {
+      "path": "C:/Users/minht/OneDrive/Desktop/PBL6/workspace/src/services/booking/BusTicketPlatform.Booking.Domain/BusTicketPlatform.Booking.Domain.csproj"
+    },
+    {
+      "path": "C:/Users/minht/OneDrive/Desktop/PBL6/workspace/src/services/booking/BusTicketPlatform.Booking.Application/BusTicketPlatform.Booking.Application.csproj"
+    },
+    {
+      "path": "C:/Users/minht/OneDrive/Desktop/PBL6/workspace/src/services/booking/BusTicketPlatform.Booking.Infrastructure/BusTicketPlatform.Booking.Infrastructure.csproj"
+    },
+    {
+      "path": "C:/Users/minht/OneDrive/Desktop/PBL6/workspace/src/services/booking/BusTicketPlatform.Booking.Api/BusTicketPlatform.Booking.Api.csproj"
+    },
+    {
+      "path": "C:/Users/minht/OneDrive/Desktop/PBL6/workspace/src/tests/booking/BusTicketPlatform.Booking.Api.IntegrationTests/BusTicketPlatform.Booking.Api.IntegrationTests.csproj"
+    },
+    {
+      "path": "C:/Users/minht/OneDrive/Desktop/PBL6/workspace/src/services/payment/BusTicketPlatform.Payment.Domain/BusTicketPlatform.Payment.Domain.csproj"
+    },
+    {
+      "path": "C:/Users/minht/OneDrive/Desktop/PBL6/workspace/src/services/payment/BusTicketPlatform.Payment.Application/BusTicketPlatform.Payment.Application.csproj"
+    },
+    {
+      "path": "C:/Users/minht/OneDrive/Desktop/PBL6/workspace/src/services/payment/BusTicketPlatform.Payment.Infrastructure/BusTicketPlatform.Payment.Infrastructure.csproj"
+    },
+    {
+      "path": "C:/Users/minht/OneDrive/Desktop/PBL6/workspace/src/services/payment/BusTicketPlatform.Payment.Api/BusTicketPlatform.Payment.Api.csproj"
+    },
+    {
+      "path": "C:/Users/minht/OneDrive/Desktop/PBL6/workspace/src/tests/payment/BusTicketPlatform.Payment.Api.IntegrationTests/BusTicketPlatform.Payment.Api.IntegrationTests.csproj"
+    },
+    {
+      "path": "C:/Users/minht/OneDrive/Desktop/PBL6/workspace/src/services/notification/BusTicketPlatform.Notification.Domain/BusTicketPlatform.Notification.Domain.csproj"
+    },
+    {
+      "path": "C:/Users/minht/OneDrive/Desktop/PBL6/workspace/src/services/notification/BusTicketPlatform.Notification.Application/BusTicketPlatform.Notification.Application.csproj"
+    },
+    {
+      "path": "C:/Users/minht/OneDrive/Desktop/PBL6/workspace/src/services/notification/BusTicketPlatform.Notification.Infrastructure/BusTicketPlatform.Notification.Infrastructure.csproj"
+    },
+    {
+      "path": "C:/Users/minht/OneDrive/Desktop/PBL6/workspace/src/services/notification/BusTicketPlatform.Notification.Api/BusTicketPlatform.Notification.Api.csproj"
+    },
+    {
+      "path": "C:/Users/minht/OneDrive/Desktop/PBL6/workspace/src/tests/notification/BusTicketPlatform.Notification.Api.IntegrationTests/BusTicketPlatform.Notification.Api.IntegrationTests.csproj"
+    },
+    {
+      "path": "C:/Users/minht/OneDrive/Desktop/PBL6/workspace/src/services/reporting/BusTicketPlatform.Reporting.Domain/BusTicketPlatform.Reporting.Domain.csproj"
+    },
+    {
+      "path": "C:/Users/minht/OneDrive/Desktop/PBL6/workspace/src/services/reporting/BusTicketPlatform.Reporting.Application/BusTicketPlatform.Reporting.Application.csproj"
+    },
+    {
+      "path": "C:/Users/minht/OneDrive/Desktop/PBL6/workspace/src/services/reporting/BusTicketPlatform.Reporting.Infrastructure/BusTicketPlatform.Reporting.Infrastructure.csproj"
+    },
+    {
+      "path": "C:/Users/minht/OneDrive/Desktop/PBL6/workspace/src/services/reporting/BusTicketPlatform.Reporting.Api/BusTicketPlatform.Reporting.Api.csproj"
+    },
+    {
+      "path": "C:/Users/minht/OneDrive/Desktop/PBL6/workspace/src/tests/reporting/BusTicketPlatform.Reporting.Api.IntegrationTests/BusTicketPlatform.Reporting.Api.IntegrationTests.csproj"
+    }
+  ]
+}

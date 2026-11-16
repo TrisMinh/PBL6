@@ -102,6 +102,26 @@ public sealed class AuthFlowTests
     }
 
     [Fact]
+    [Trait("Category", "SecurityAudit")]
+    public async Task Security_logged_out_access_token_cannot_read_profile()
+    {
+        var client = _fixture.CreateClient();
+        var (email, phone, password, name) = IdentityTestData.NewUser();
+        await IdentityTestData.SendAsync(client, HttpMethod.Post, "/api/v1/auth/register",
+            new { fullName = name, email, phone, password });
+        var notice = _fixture.Mailbox.LastFor(email)!;
+        var verified = await IdentityTestData.SendAsync(client, HttpMethod.Post, "/api/v1/auth/verify",
+            new { challengeId = notice.ChallengeId, code = notice.Code }, idempotency: IdentityTestData.IdempotencyKey());
+        Assert.Equal(HttpStatusCode.OK, verified.Response.StatusCode);
+        var access = verified.Body.GetProperty("accessToken").GetString();
+        var logout = await IdentityTestData.SendAsync(client, HttpMethod.Post, "/api/v1/auth/logout",
+            bearer: access, idempotency: IdentityTestData.IdempotencyKey());
+        Assert.Equal(HttpStatusCode.NoContent, logout.Response.StatusCode);
+        var profile = await IdentityTestData.SendAsync(client, HttpMethod.Get, "/api/v1/users/me", bearer: access);
+        Assert.Equal(HttpStatusCode.Unauthorized, profile.Response.StatusCode);
+    }
+
+    [Fact]
     public async Task Register_rejects_duplicate_active_identity_and_weak_passwords()
     {
         var client = _fixture.CreateClient();

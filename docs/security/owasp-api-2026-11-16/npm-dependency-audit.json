@@ -1,0 +1,102 @@
+{
+  "advisories": {
+    "1243074": {
+      "findings": [
+        {
+          "version": "2.3.0",
+          "paths": [
+            ".>@react-router/serve>@react-router/express>express>body-parser",
+            ".>@react-router/serve>express>body-parser",
+            ".>@react-router/dev>@react-router/serve>@react-router/express>express>body-parser",
+            ".>@react-router/dev>@react-router/serve>express>body-parser"
+          ],
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ],
+      "id": 1243074,
+      "title": "body-parser vulnerable to Denial of Service via trailing bytes after a compressed request body",
+      "module_name": "body-parser",
+      "vulnerable_versions": ">=2.0.0 <2.4.0",
+      "patched_versions": ">=2.4.0",
+      "severity": "high",
+      "cwe": "CWE-248",
+      "github_advisory_id": "GHSA-27r3-jxmh-p828",
+      "url": "https://github.com/advisories/GHSA-27r3-jxmh-p828"
+    },
+    "1244623": {
+      "findings": [
+        {
+          "version": "10.2.6",
+          "paths": [
+            ".>@eslint/js>eslint>@eslint/config-array>minimatch",
+            ".>@eslint/js>eslint>minimatch",
+            ".>eslint>@eslint/config-array>minimatch",
+            ".>eslint>minimatch",
+            ".>eslint-config-prettier>eslint>@eslint/config-array>minimatch",
+            ".>eslint-config-prettier>eslint>minimatch",
+            ".>eslint-plugin-react-hooks>eslint>@eslint/config-array>minimatch",
+            ".>eslint-plugin-react-hooks>eslint>minimatch",
+            ".>eslint-plugin-react-refresh>eslint>@eslint/config-array>minimatch",
+            ".>eslint-plugin-react-refresh>eslint>minimatch",
+            ".>typescript-eslint>@typescript-eslint/eslint-plugin>@typescript-eslint/parser>@typescript-eslint/typescript-estree>minimatch",
+            ".>typescript-eslint>@typescript-eslint/eslint-plugin>@typescript-eslint/parser>eslint>@eslint/config-array>minimatch",
+            ".>typescript-eslint>@typescript-eslint/eslint-plugin>@typescript-eslint/parser>eslint>minimatch",
+            ".>typescript-eslint>@typescript-eslint/eslint-plugin>@typescript-eslint/type-utils>@typescript-eslint/typescript-estree>minimatch",
+            ".>typescript-eslint>@typescript-eslint/eslint-plugin>@typescript-eslint/type-utils>@typescript-eslint/utils>@eslint-community/eslint-utils>eslint>@eslint/config-array>minimatch",
+            ".>typescript-eslint>@typescript-eslint/eslint-plugin>@typescript-eslint/type-utils>@typescript-eslint/utils>@eslint-community/eslint-utils>eslint>minimatch",
+            ".>typescript-eslint>@typescript-eslint/eslint-plugin>@typescript-eslint/type-utils>@typescript-eslint/utils>@typescript-eslint/typescript-estree>minimatch",
+            ".>typescript-eslint>@typescript-eslint/eslint-plugin>@typescript-eslint/type-utils>@typescript-eslint/utils>eslint>@eslint/config-array>minimatch",
+            ".>typescript-eslint>@typescript-eslint/eslint-plugin>@typescript-eslint/type-utils>@typescript-eslint/utils>eslint>minimatch",
+            ".>typescript-eslint>@typescript-eslint/eslint-plugin>@typescript-eslint/type-utils>eslint>@eslint/config-array>minimatch",
+            ".>typescript-eslint>@typescript-eslint/eslint-plugin>@typescript-eslint/type-utils>eslint>minimatch",
+            ".>typescript-eslint>@typescript-eslint/eslint-plugin>@typescript-eslint/utils>@eslint-community/eslint-utils>eslint>@eslint/config-array>minimatch",
+            ".>typescript-eslint>@typescript-eslint/eslint-plugin>@typescript-eslint/utils>@eslint-community/eslint-utils>eslint>minimatch",
+            ".>typescript-eslint>@typescript-eslint/eslint-plugin>@typescript-eslint/utils>@typescript-eslint/typescript-estree>minimatch",
+            ".>typescript-eslint>@typescript-eslint/eslint-plugin>@typescript-eslint/utils>eslint>@eslint/config-array>minimatch",
+            ".>typescript-eslint>@typescript-eslint/eslint-plugin>@typescript-eslint/utils>eslint>minimatch",
+            ".>typescript-eslint>@typescript-eslint/eslint-plugin>eslint>@eslint/config-array>minimatch",
+            ".>typescript-eslint>@typescript-eslint/eslint-plugin>eslint>minimatch",
+            ".>typescript-eslint>@typescript-eslint/parser>@typescript-eslint/typescript-estree>minimatch",
+            ".>typescript-eslint>@typescript-eslint/parser>eslint>@eslint/config-array>minimatch",
+            ".>typescript-eslint>@typescript-eslint/parser>eslint>minimatch",
+            ".>typescript-eslint>@typescript-eslint/typescript-estree>minimatch",
+            ".>typescript-eslint>@typescript-eslint/utils>@eslint-community/eslint-utils>eslint>@eslint/config-array>minimatch",
+            ".>typescript-eslint>@typescript-eslint/utils>@eslint-community/eslint-utils>eslint>minimatch",
+            ".>typescript-eslint>@typescript-eslint/utils>@typescript-eslint/typescript-estree>minimatch",
+            ".>typescript-eslint>@typescript-eslint/utils>eslint>@eslint/config-array>minimatch",
+            ".>typescript-eslint>@typescript-eslint/utils>eslint>minimatch",
+            ".>typescript-eslint>eslint>@eslint/config-array>minimatch",
+            ".>typescript-eslint>eslint>minimatch"
+          ],
+          "dev": true,
+          "optional": false,
+          "bundled": false
+        }
+      ],
+      "id": 1244623,
+      "title": "minimatch has potential denial of service via globparts amplification",
+      "module_name": "minimatch",
+      "vulnerable_versions": ">=7.0.0 <11.0.1",
+      "patched_versions": ">=11.0.1",
+      "severity": "moderate",
+      "cwe": "CWE-405",
+      "github_advisory_id": "GHSA-g3hv-75wg-m249",
+      "url": "https://github.com/advisories/GHSA-g3hv-75wg-m249"
+    }
+  },
+  "metadata": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 0,
+      "moderate": 1,
+      "high": 1,
+      "critical": 0
+    },
+    "dependencies": 235,
+    "devDependencies": 263,
+    "optionalDependencies": 51,
+    "totalDependencies": 526
+  }
+}

@@ -1,0 +1,329 @@
+{
+  "identity": {
+    "/api/v1/users/me/preferences": [
+      "GET",
+      "PUT"
+    ],
+    "/api/v1/auth/register": [
+      "POST"
+    ],
+    "/api/v1/auth/verify": [
+      "POST"
+    ],
+    "/api/v1/auth/resend-verification": [
+      "POST"
+    ],
+    "/api/v1/auth/login": [
+      "POST"
+    ],
+    "/api/v1/auth/refresh": [
+      "POST"
+    ],
+    "/api/v1/auth/logout": [
+      "POST"
+    ],
+    "/api/v1/auth/forgot-password": [
+      "POST"
+    ],
+    "/api/v1/auth/reset-password": [
+      "POST"
+    ],
+    "/api/v1/users/me": [
+      "GET",
+      "PATCH"
+    ],
+    "/api/v1/admin/users": [
+      "GET",
+      "POST"
+    ],
+    "/api/v1/admin/users/{userId}": [
+      "GET"
+    ],
+    "/api/v1/admin/users/{userId}/status": [
+      "PATCH"
+    ],
+    "/api/v1/admin/users/{userId}/roles": [
+      "PUT"
+    ],
+    "/api/v1/admin/organizations/{organizationId}/members": [
+      "GET",
+      "POST"
+    ],
+    "/api/v1/admin/organizations/{organizationId}/members/{membershipId}": [
+      "PATCH"
+    ],
+    "/api/v1/admin/users/{id}": [
+      "PATCH"
+    ],
+    "/api/v1/operator/staff": [
+      "GET",
+      "POST"
+    ],
+    "/api/v1/operator/staff/{id}": [
+      "PATCH"
+    ]
+  },
+  "transport": {
+    "/api/v1/explore/routes": [
+      "GET"
+    ],
+    "/api/v1/trips": [
+      "GET"
+    ],
+    "/api/v1/trips/{tripId}": [
+      "GET"
+    ],
+    "/api/v1/trips/{tripId}/stops": [
+      "GET"
+    ],
+    "/api/v1/driver/assignments": [
+      "GET"
+    ],
+    "/internal/trips/{tripId}/inventory-ready": [
+      "POST"
+    ],
+    "/api/v1/admin/organizations": [
+      "POST",
+      "GET"
+    ],
+    "/api/v1/admin/organizations/{organizationId}": [
+      "GET"
+    ],
+    "/api/v1/operator/organization": [
+      "GET",
+      "PATCH"
+    ],
+    "/api/v1/operator/buses": [
+      "GET",
+      "POST"
+    ],
+    "/api/v1/operator/buses/{busId}": [
+      "PATCH"
+    ],
+    "/api/v1/operator/buses/{busId}/deactivate": [
+      "POST"
+    ],
+    "/api/v1/operator/buses/{busId}/seats": [
+      "PUT"
+    ],
+    "/api/v1/operator/drivers": [
+      "GET",
+      "POST"
+    ],
+    "/api/v1/operator/drivers/{driverId}": [
+      "PATCH"
+    ],
+    "/api/v1/operator/drivers/{driverId}/deactivate": [
+      "POST"
+    ],
+    "/api/v1/operator/routes": [
+      "GET",
+      "POST"
+    ],
+    "/api/v1/operator/routes/{routeId}": [
+      "PATCH"
+    ],
+    "/api/v1/operator/routes/{routeId}/stops": [
+      "PUT"
+    ],
+    "/api/v1/operator/routes/{routeId}/deactivate": [
+      "POST"
+    ],
+    "/api/v1/operator/trips": [
+      "GET",
+      "POST"
+    ],
+    "/api/v1/operator/trips/{tripId}": [
+      "PATCH",
+      "DELETE"
+    ],
+    "/api/v1/operator/trips/{tripId}/publish": [
+      "POST"
+    ],
+    "/api/v1/operator/trips/{tripId}/cancel": [
+      "POST"
+    ],
+    "/api/v1/operator/trips/{tripId}/status-transitions": [
+      "POST"
+    ],
+    "/api/v1/admin/organizations/{id}/profile": [
+      "GET",
+      "PATCH"
+    ],
+    "/api/v1/operator/resource-metadata/{kind}": [
+      "GET"
+    ],
+    "/api/v1/operator/resource-metadata/{kind}/{id}": [
+      "PUT"
+    ],
+    "/api/v1/operator/driver-files": [
+      "POST"
+    ],
+    "/api/v1/operator/driver-files/{id}": [
+      "GET",
+      "DELETE"
+    ]
+  },
+  "booking": {
+    "/api/v1/trips/availability": [
+      "GET"
+    ],
+    "/api/v1/trips/{tripId}/coupons": [
+      "GET"
+    ],
+    "/api/v1/coupons/quote": [
+      "POST"
+    ],
+    "/api/v1/admin/coupons": [
+      "PUT"
+    ],
+    "/api/v1/trips/{tripId}/seats": [
+      "GET"
+    ],
+    "/api/v1/trips/{tripId}/seat-holds": [
+      "POST"
+    ],
+    "/api/v1/seat-holds/{holdToken}": [
+      "GET",
+      "DELETE",
+      "PUT"
+    ],
+    "/api/v1/bookings": [
+      "POST",
+      "GET"
+    ],
+    "/api/v1/bookings/{bookingId}": [
+      "GET"
+    ],
+    "/api/v1/bookings/{bookingId}/cancellation-preview": [
+      "POST"
+    ],
+    "/api/v1/bookings/{bookingId}/cancel": [
+      "POST"
+    ],
+    "/api/v1/bookings/{bookingId}/tickets": [
+      "GET"
+    ],
+    "/api/v1/tickets": [
+      "GET"
+    ],
+    "/api/v1/tickets/lookup": [
+      "POST"
+    ],
+    "/api/v1/tickets/lookup/{code}": [
+      "GET"
+    ],
+    "/api/v1/tickets/{ticketId}": [
+      "GET"
+    ],
+    "/api/v1/tickets/validate": [
+      "POST"
+    ],
+    "/api/v1/tickets/{ticketId}/check-in": [
+      "POST"
+    ],
+    "/api/v1/operator/trips/{tripId}/manifest": [
+      "GET"
+    ],
+    "/api/v1/admin/bookings": [
+      "GET"
+    ],
+    "/api/v1/operator/bookings": [
+      "GET"
+    ],
+    "/api/v1/internal/trips/published": [
+      "POST"
+    ],
+    "/api/v1/internal/payments/succeeded": [
+      "POST"
+    ]
+  },
+  "payment": {
+    "/api/v1/payment-methods": [
+      "GET"
+    ],
+    "/integrations/payments/sepay/browser-return": [
+      "GET"
+    ],
+    "/integrations/payments/{provider}/webhooks": [
+      "POST"
+    ],
+    "/integrations/payments/{provider}/return": [
+      "GET"
+    ],
+    "/internal/quotes": [
+      "POST"
+    ],
+    "/integrations/payments/sepay/ipn": [
+      "POST"
+    ],
+    "/api/v1/bookings/{bookingId}/payments": [
+      "POST",
+      "GET"
+    ],
+    "/api/v1/payments/{paymentId}": [
+      "GET"
+    ],
+    "/api/v1/payments/{paymentId}/cancel": [
+      "POST"
+    ],
+    "/api/v1/refunds": [
+      "POST"
+    ],
+    "/api/v1/refunds/{refundId}": [
+      "GET"
+    ],
+    "/api/v1/admin/payments": [
+      "GET"
+    ],
+    "/api/v1/admin/refunds": [
+      "GET"
+    ],
+    "/api/v1/operator/refunds": [
+      "GET"
+    ],
+    "/api/v1/operator/refunds/{refundId}": [
+      "GET"
+    ],
+    "/api/v1/operator/settlements": [
+      "GET"
+    ],
+    "/api/v1/admin/settlements": [
+      "GET"
+    ],
+    "/api/v1/admin/payouts": [
+      "POST"
+    ]
+  },
+  "notification": {
+    "/api/v1/customer-requests/support": [
+      "POST"
+    ],
+    "/api/v1/customer-requests/partner": [
+      "POST"
+    ],
+    "/api/v1/notifications": [
+      "GET"
+    ],
+    "/api/v1/notifications/{notificationId}/read": [
+      "PATCH"
+    ],
+    "/internal/notifications": [
+      "POST"
+    ]
+  },
+  "reporting": {
+    "/api/v1/reports/revenue": [
+      "GET"
+    ],
+    "/api/v1/reports/bookings": [
+      "GET"
+    ],
+    "/api/v1/reports/occupancy": [
+      "GET"
+    ],
+    "/internal/projections/bookings": [
+      "POST"
+    ]
+  }
+}

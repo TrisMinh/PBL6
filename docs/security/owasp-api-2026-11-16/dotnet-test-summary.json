@@ -1,0 +1,352 @@
+[
+  {
+    "file": "architecture.trx",
+    "suite": "BusTicketPlatform.ArchitectureTests.LayerDependencyTests",
+    "counters": {
+      "total": "16",
+      "executed": "16",
+      "passed": "16",
+      "failed": "0",
+      "error": "0",
+      "timeout": "0",
+      "aborted": "0",
+      "inconclusive": "0",
+      "passedButRunAborted": "0",
+      "notRunnable": "0",
+      "notExecuted": "0",
+      "disconnected": "0",
+      "warning": "0",
+      "completed": "0",
+      "inProgress": "0",
+      "pending": "0"
+    },
+    "failed": []
+  },
+  {
+    "file": "booking-security.trx",
+    "suite": "BusTicketPlatform.Booking.Api.IntegrationTests.BookingFlowTests",
+    "counters": {
+      "total": "2",
+      "executed": "2",
+      "passed": "0",
+      "failed": "2",
+      "error": "0",
+      "timeout": "0",
+      "aborted": "0",
+      "inconclusive": "0",
+      "passedButRunAborted": "0",
+      "notRunnable": "0",
+      "notExecuted": "0",
+      "disconnected": "0",
+      "warning": "0",
+      "completed": "0",
+      "inProgress": "0",
+      "pending": "0"
+    },
+    "failed": [
+      {
+        "name": "BusTicketPlatform.Booking.Api.IntegrationTests.BookingFlowTests.Security_operator_without_organization_cannot_list_all_bookings",
+        "message": "Operator with no organization returned 200: {\"page\":0,\"size\":20,\"totalElements\":2,\"totalPages\":1,\"items\":[{\"id\":\"01a1e4b2-49f7-7ee8-9dfb-2238d13df207\",\"code\":\"BK2238D13DF207\",\"customerId\":\"01a1e4b2-4899-7bf7-9c34-41d2db30c4ee\",\"tripId\":\"01a1e4b2-480e-78e7-92b2-cbc18fb90f02\",\"status\":\"PENDING_PAYMENT\",\"paymentChannel\":\"PREPAID\",\"contact\":{\"fullName\":\"Nguyen Van A\",\"email\":\"a@example.test\",\"phone\":\"\\u002B84911111111\"},\"subtotal\":150000,\"discount\":0,\"fee\":0,\"total\":150000,\"currency\":\"VND\",\"expiresAt\":\"2026-11-16T14:20:51.739224+00:00\",\"items\":[{\"seatId\":\"01a1e4b2-4813-79cd-af92-7f65e839a322\",\"fullName\":\"Audit Passenger\",\"pickupStopId\":\"01a1e4b2-480e-7608-bc51-7d45411c08a9\",\"dropoffStopId\":\"01a1e4b2-480e-7cb2-8cfc-0cba4478678d\"}],\"rowVersion\":0,\"organizationId\":\"01a1e4b2-480e-72b8-acf1-0bd9a58dd3e5\",\"createdAt\":\"2026-11-16T14:10:52.023349+00:00\"},{\"id\":\"01a1e4b2-467c-740f-93c6-8b66f3e4fe98\",\"code\":\"BK8B66F3E4FE98\",\"customerId\":\"01a1e4b2-4526-7d43-a03b-4abed446ad30\",\"tripId\":\"01a1e4b2-42f6-7622-aaaf-ea9e63c4d4eb\",\"status\":\"PAID\",\"paymentChannel\":\"PREPAID\",\"contact\":{\"fullName\":\"Nguyen Van A\",\"email\":\"a@example.test\",\"phone\":\"\\u002B84911111111\"},\"subtotal\":150000,\"discount\":0,\"fee\":0,\"total\":150000,\"currency\":\"VND\",\"expiresAt\":\"2026-11-16T14:20:50.957847+00:00\",\"items\":[{\"seatId\":\"01a1e4b2-43d7-7843-b3c5-11cd4d7b64d1\",\"fullName\":\"Audit Passenger\",\"pickupStopId\":\"01a1e4b2-42f6-7fb2-8547-62ff08a78344\",\"dropoffStopId\":\"01a1e4b2-42f6-7940-9e4c-d303a4fdf06d\"}],\"rowVersion\":1,\"organizationId\":\"01a1e4b2-4301-7f19-8a44-f252d724df79\",\"createdAt\":\"2026-11-16T14:10:51.13796+00:00\"}]}"
+      },
+      {
+        "name": "BusTicketPlatform.Booking.Api.IntegrationTests.BookingFlowTests.Security_anonymous_payment_event_cannot_issue_tickets",
+        "message": "Anonymous payment event returned 204; booking=PAID; tickets=1"
+      }
+    ]
+  },
+  {
+    "file": "gateway.trx",
+    "suite": "BusTicketPlatform.Gateway.IntegrationTests.GatewayHealthAndErrorTests",
+    "counters": {
+      "total": "10",
+      "executed": "10",
+      "passed": "10",
+      "failed": "0",
+      "error": "0",
+      "timeout": "0",
+      "aborted": "0",
+      "inconclusive": "0",
+      "passedButRunAborted": "0",
+      "notRunnable": "0",
+      "notExecuted": "0",
+      "disconnected": "0",
+      "warning": "0",
+      "completed": "0",
+      "inProgress": "0",
+      "pending": "0"
+    },
+    "failed": []
+  },
+  {
+    "file": "identity-security.trx",
+    "suite": "BusTicketPlatform.Identity.Api.IntegrationTests.AuthFlowTests",
+    "counters": {
+      "total": "1",
+      "executed": "1",
+      "passed": "0",
+      "failed": "1",
+      "error": "0",
+      "timeout": "0",
+      "aborted": "0",
+      "inconclusive": "0",
+      "passedButRunAborted": "0",
+      "notRunnable": "0",
+      "notExecuted": "0",
+      "disconnected": "0",
+      "warning": "0",
+      "completed": "0",
+      "inProgress": "0",
+      "pending": "0"
+    },
+    "failed": [
+      {
+        "name": "BusTicketPlatform.Identity.Api.IntegrationTests.AuthFlowTests.Security_logged_out_access_token_cannot_read_profile",
+        "message": "Assert.Equal() Failure: Values differ\r\nExpected: Unauthorized\r\nActual:   OK"
+      }
+    ]
+  },
+  {
+    "file": "owasp-audit_net10.0_20261116210027.trx",
+    "suite": "BusTicketPlatform.ContractTests.ContractGateTests",
+    "counters": {
+      "total": "10",
+      "executed": "10",
+      "passed": "10",
+      "failed": "0",
+      "error": "0",
+      "timeout": "0",
+      "aborted": "0",
+      "inconclusive": "0",
+      "passedButRunAborted": "0",
+      "notRunnable": "0",
+      "notExecuted": "0",
+      "disconnected": "0",
+      "warning": "0",
+      "completed": "0",
+      "inProgress": "0",
+      "pending": "0"
+    },
+    "failed": []
+  },
+  {
+    "file": "owasp-audit_net10.0_20261116210032.trx",
+    "suite": "BusTicketPlatform.BuildingBlocks.UnitTests.ErrorMapperTests",
+    "counters": {
+      "total": "17",
+      "executed": "17",
+      "passed": "17",
+      "failed": "0",
+      "error": "0",
+      "timeout": "0",
+      "aborted": "0",
+      "inconclusive": "0",
+      "passedButRunAborted": "0",
+      "notRunnable": "0",
+      "notExecuted": "0",
+      "disconnected": "0",
+      "warning": "0",
+      "completed": "0",
+      "inProgress": "0",
+      "pending": "0"
+    },
+    "failed": []
+  },
+  {
+    "file": "owasp-audit_net10.0_20261116210043.trx",
+    "suite": "BusTicketPlatform.Notification.Api.IntegrationTests.NotificationHealthTests",
+    "counters": {
+      "total": "2",
+      "executed": "2",
+      "passed": "2",
+      "failed": "0",
+      "error": "0",
+      "timeout": "0",
+      "aborted": "0",
+      "inconclusive": "0",
+      "passedButRunAborted": "0",
+      "notRunnable": "0",
+      "notExecuted": "0",
+      "disconnected": "0",
+      "warning": "0",
+      "completed": "0",
+      "inProgress": "0",
+      "pending": "0"
+    },
+    "failed": []
+  },
+  {
+    "file": "owasp-audit_net10.0_20261116210044.trx",
+    "suite": "BusTicketPlatform.Booking.Api.IntegrationTests.BookingFlowTests",
+    "counters": {
+      "total": "15",
+      "executed": "15",
+      "passed": "15",
+      "failed": "0",
+      "error": "0",
+      "timeout": "0",
+      "aborted": "0",
+      "inconclusive": "0",
+      "passedButRunAborted": "0",
+      "notRunnable": "0",
+      "notExecuted": "0",
+      "disconnected": "0",
+      "warning": "0",
+      "completed": "0",
+      "inProgress": "0",
+      "pending": "0"
+    },
+    "failed": []
+  },
+  {
+    "file": "owasp-audit_net10.0_20261116210045.trx",
+    "suite": "BusTicketPlatform.Reporting.Api.IntegrationTests.ReportingHealthTests",
+    "counters": {
+      "total": "3",
+      "executed": "3",
+      "passed": "3",
+      "failed": "0",
+      "error": "0",
+      "timeout": "0",
+      "aborted": "0",
+      "inconclusive": "0",
+      "passedButRunAborted": "0",
+      "notRunnable": "0",
+      "notExecuted": "0",
+      "disconnected": "0",
+      "warning": "0",
+      "completed": "0",
+      "inProgress": "0",
+      "pending": "0"
+    },
+    "failed": []
+  },
+  {
+    "file": "owasp-audit_net10.0_20261116210048.trx",
+    "suite": "BusTicketPlatform.Payment.Api.IntegrationTests.SePayFlowTests",
+    "counters": {
+      "total": "37",
+      "executed": "37",
+      "passed": "37",
+      "failed": "0",
+      "error": "0",
+      "timeout": "0",
+      "aborted": "0",
+      "inconclusive": "0",
+      "passedButRunAborted": "0",
+      "notRunnable": "0",
+      "notExecuted": "0",
+      "disconnected": "0",
+      "warning": "0",
+      "completed": "0",
+      "inProgress": "0",
+      "pending": "0"
+    },
+    "failed": []
+  },
+  {
+    "file": "owasp-audit_net10.0_20261116210057.trx",
+    "suite": "BusTicketPlatform.Identity.Api.IntegrationTests.PasswordPolicyTests",
+    "counters": {
+      "total": "18",
+      "executed": "18",
+      "passed": "18",
+      "failed": "0",
+      "error": "0",
+      "timeout": "0",
+      "aborted": "0",
+      "inconclusive": "0",
+      "passedButRunAborted": "0",
+      "notRunnable": "0",
+      "notExecuted": "0",
+      "disconnected": "0",
+      "warning": "0",
+      "completed": "0",
+      "inProgress": "0",
+      "pending": "0"
+    },
+    "failed": []
+  },
+  {
+    "file": "owasp-audit_net10.0_20261116210059.trx",
+    "suite": "BusTicketPlatform.Transport.Api.IntegrationTests.TransportFlowTests",
+    "counters": {
+      "total": "11",
+      "executed": "11",
+      "passed": "10",
+      "failed": "1",
+      "error": "0",
+      "timeout": "0",
+      "aborted": "0",
+      "inconclusive": "0",
+      "passedButRunAborted": "0",
+      "notRunnable": "0",
+      "notExecuted": "0",
+      "disconnected": "0",
+      "warning": "0",
+      "completed": "0",
+      "inProgress": "0",
+      "pending": "0"
+    },
+    "failed": [
+      {
+        "name": "BusTicketPlatform.Transport.Api.IntegrationTests.TransportFlowTests.Admin_can_save_original_organization_profile_fields_with_version_check",
+        "message": "Assert.Equal() Failure: Values differ\r\nExpected: Conflict\r\nActual:   InternalServerError"
+      }
+    ]
+  },
+  {
+    "file": "owasp-audit_net10.0_20261116210112.trx",
+    "suite": "BusTicketPlatform.Messaging.IntegrationTests.MessagingSmokeTests",
+    "counters": {
+      "total": "4",
+      "executed": "4",
+      "passed": "4",
+      "failed": "0",
+      "error": "0",
+      "timeout": "0",
+      "aborted": "0",
+      "inconclusive": "0",
+      "passedButRunAborted": "0",
+      "notRunnable": "0",
+      "notExecuted": "0",
+      "disconnected": "0",
+      "warning": "0",
+      "completed": "0",
+      "inProgress": "0",
+      "pending": "0"
+    },
+    "failed": []
+  },
+  {
+    "file": "reporting-security.trx",
+    "suite": "BusTicketPlatform.Reporting.Api.IntegrationTests.SecurityAuditTests",
+    "counters": {
+      "total": "2",
+      "executed": "2",
+      "passed": "0",
+      "failed": "2",
+      "error": "0",
+      "timeout": "0",
+      "aborted": "0",
+      "inconclusive": "0",
+      "passedButRunAborted": "0",
+      "notRunnable": "0",
+      "notExecuted": "0",
+      "disconnected": "0",
+      "warning": "0",
+      "completed": "0",
+      "inProgress": "0",
+      "pending": "0"
+    },
+    "failed": [
+      {
+        "name": "BusTicketPlatform.Reporting.Api.IntegrationTests.SecurityAuditTests.Anonymous_clients_cannot_inject_reporting_projections",
+        "message": "Anonymous projection write returned 204"
+      },
+      {
+        "name": "BusTicketPlatform.Reporting.Api.IntegrationTests.SecurityAuditTests.Operator_without_organization_cannot_read_platform_reports",
+        "message": "Tenantless operator returned 200: {\"data\":[{\"bookingid\":\"01a1e4b4-0aa4-773f-8a8d-a4f62c68ace0\",\"bookingcode\":\"AUD124a0c26a4ee\",\"status\":\"PAID\",\"paymentchannel\":\"PREPAID\",\"grossamount\":150000,\"bookedat\":\"2026-11-16T14:12:46.884992Z\"},{\"bookingid\":\"01a1e4b4-0a8e-78fd-99b3-1d9fe19d1109\",\"bookingcode\":\"AUDc0b08694414d\",\"status\":\"PAID\",\"paymentchannel\":\"PREPAID\",\"grossamount\":150000,\"bookedat\":\"2026-11-16T14:12:46.862705Z\"},{\"bookingid\":\"01a1e4b4-0a22-71cd-8015-bf26ef636fc2\",\"bookingcode\":\"AUD2429c77b26db\",\"status\":\"PAID\",\"paymentchannel\":\"PREPAID\",\"grossamount\":150000,\"bookedat\":\"2026-11-16T14:12:46.754224Z\"}],\"generatedAt\":\"2026-11-16T14:12:46.9613945+00:00\",\"dataAsOf\":\"2026-11-16T14:12:46.9613948+00:00\",\"timezone\":\"UTC\",\"metricDefinitions\":{\"booking_count\":\"Booking rows in range\"}}"
+      }
+    ]
+  }
+]

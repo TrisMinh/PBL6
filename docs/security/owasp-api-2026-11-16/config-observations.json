@@ -1,0 +1,47 @@
+[
+  {
+    "container": "/pbl6-local-identity-1",
+    "jwtUsesRepositoryDefault": true,
+    "environment": [
+      "Production"
+    ],
+    "ports": {
+      "8080/tcp": [
+        {
+          "HostIp": "",
+          "HostPort": "5081"
+        }
+      ]
+    }
+  },
+  {
+    "container": "/pbl6-local-booking-1",
+    "jwtUsesRepositoryDefault": true,
+    "environment": [
+      "Production"
+    ],
+    "ports": {
+      "8080/tcp": [
+        {
+          "HostIp": "",
+          "HostPort": "5083"
+        }
+      ]
+    }
+  },
+  {
+    "container": "/pbl6-local-payment-1",
+    "jwtUsesRepositoryDefault": true,
+    "environment": [
+      "Production"
+    ],
+    "ports": {
+      "8080/tcp": [
+        {
+          "HostIp": "",
+          "HostPort": "5084"
+        }
+      ]
+    }
+  }
+]

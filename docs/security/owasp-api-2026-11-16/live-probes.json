@@ -1,0 +1,374 @@
+{
+  "at": "2026-11-16T14:13:37.914432+00:00",
+  "checks": [
+    {
+      "name": "identity openapi",
+      "url": "http://127.0.0.1:5081/openapi/v1.json",
+      "status": 200,
+      "expected": [
+        200
+      ],
+      "passed": true,
+      "location": null,
+      "headers": {
+        "Content-Security-Policy": null,
+        "X-Frame-Options": null,
+        "Referrer-Policy": null,
+        "X-Content-Type-Options": null,
+        "Access-Control-Allow-Origin": null
+      }
+    },
+    {
+      "name": "transport openapi",
+      "url": "http://127.0.0.1:5082/openapi/v1.json",
+      "status": 200,
+      "expected": [
+        200
+      ],
+      "passed": true,
+      "location": null,
+      "headers": {
+        "Content-Security-Policy": null,
+        "X-Frame-Options": null,
+        "Referrer-Policy": null,
+        "X-Content-Type-Options": null,
+        "Access-Control-Allow-Origin": null
+      }
+    },
+    {
+      "name": "booking openapi",
+      "url": "http://127.0.0.1:5083/openapi/v1.json",
+      "status": 200,
+      "expected": [
+        200
+      ],
+      "passed": true,
+      "location": null,
+      "headers": {
+        "Content-Security-Policy": null,
+        "X-Frame-Options": null,
+        "Referrer-Policy": null,
+        "X-Content-Type-Options": null,
+        "Access-Control-Allow-Origin": null
+      }
+    },
+    {
+      "name": "payment openapi",
+      "url": "http://127.0.0.1:5084/openapi/v1.json",
+      "status": 200,
+      "expected": [
+        200
+      ],
+      "passed": true,
+      "location": null,
+      "headers": {
+        "Content-Security-Policy": null,
+        "X-Frame-Options": null,
+        "Referrer-Policy": null,
+        "X-Content-Type-Options": null,
+        "Access-Control-Allow-Origin": null
+      }
+    },
+    {
+      "name": "notification openapi",
+      "url": "http://127.0.0.1:5085/openapi/v1.json",
+      "status": 200,
+      "expected": [
+        200
+      ],
+      "passed": true,
+      "location": null,
+      "headers": {
+        "Content-Security-Policy": null,
+        "X-Frame-Options": null,
+        "Referrer-Policy": null,
+        "X-Content-Type-Options": null,
+        "Access-Control-Allow-Origin": null
+      }
+    },
+    {
+      "name": "reporting openapi",
+      "url": "http://127.0.0.1:5086/openapi/v1.json",
+      "status": 200,
+      "expected": [
+        200
+      ],
+      "passed": true,
+      "location": null,
+      "headers": {
+        "Content-Security-Policy": null,
+        "X-Frame-Options": null,
+        "Referrer-Policy": null,
+        "X-Content-Type-Options": null,
+        "Access-Control-Allow-Origin": null
+      }
+    },
+    {
+      "name": "anonymous protected endpoint",
+      "url": "http://127.0.0.1:5081/api/v1/users/me",
+      "status": 401,
+      "expected": [
+        401
+      ],
+      "passed": true,
+      "location": null,
+      "headers": {
+        "Content-Security-Policy": null,
+        "X-Frame-Options": null,
+        "Referrer-Policy": null,
+        "X-Content-Type-Options": null,
+        "Access-Control-Allow-Origin": null
+      }
+    },
+    {
+      "name": "anonymous protected endpoint",
+      "url": "http://127.0.0.1:5082/api/v1/admin/organizations",
+      "status": 401,
+      "expected": [
+        401
+      ],
+      "passed": true,
+      "location": null,
+      "headers": {
+        "Content-Security-Policy": null,
+        "X-Frame-Options": null,
+        "Referrer-Policy": null,
+        "X-Content-Type-Options": null,
+        "Access-Control-Allow-Origin": null
+      }
+    },
+    {
+      "name": "anonymous protected endpoint",
+      "url": "http://127.0.0.1:5083/api/v1/bookings",
+      "status": 401,
+      "expected": [
+        401
+      ],
+      "passed": true,
+      "location": null,
+      "headers": {
+        "Content-Security-Policy": null,
+        "X-Frame-Options": null,
+        "Referrer-Policy": null,
+        "X-Content-Type-Options": null,
+        "Access-Control-Allow-Origin": null
+      }
+    },
+    {
+      "name": "anonymous protected endpoint",
+      "url": "http://127.0.0.1:5083/api/v1/tickets",
+      "status": 401,
+      "expected": [
+        401
+      ],
+      "passed": true,
+      "location": null,
+      "headers": {
+        "Content-Security-Policy": null,
+        "X-Frame-Options": null,
+        "Referrer-Policy": null,
+        "X-Content-Type-Options": null,
+        "Access-Control-Allow-Origin": null
+      }
+    },
+    {
+      "name": "anonymous protected endpoint",
+      "url": "http://127.0.0.1:5084/api/v1/admin/payments",
+      "status": 401,
+      "expected": [
+        401
+      ],
+      "passed": true,
+      "location": null,
+      "headers": {
+        "Content-Security-Policy": null,
+        "X-Frame-Options": null,
+        "Referrer-Policy": null,
+        "X-Content-Type-Options": null,
+        "Access-Control-Allow-Origin": null
+      }
+    },
+    {
+      "name": "anonymous protected endpoint",
+      "url": "http://127.0.0.1:5085/api/v1/notifications",
+      "status": 401,
+      "expected": [
+        401
+      ],
+      "passed": true,
+      "location": null,
+      "headers": {
+        "Content-Security-Policy": null,
+        "X-Frame-Options": null,
+        "Referrer-Policy": null,
+        "X-Content-Type-Options": null,
+        "Access-Control-Allow-Origin": null
+      }
+    },
+    {
+      "name": "anonymous protected endpoint",
+      "url": "http://127.0.0.1:5086/api/v1/reports/revenue?from=2026-11-01T00:00:00Z&to=2026-12-01T00:00:00Z&timezone=UTC",
+      "status": 401,
+      "expected": [
+        401
+      ],
+      "passed": true,
+      "location": null,
+      "headers": {
+        "Content-Security-Policy": null,
+        "X-Frame-Options": null,
+        "Referrer-Policy": null,
+        "X-Content-Type-Options": null,
+        "Access-Control-Allow-Origin": null
+      }
+    },
+    {
+      "name": "invalid bearer",
+      "url": "http://127.0.0.1:5083/api/v1/bookings",
+      "status": 401,
+      "expected": [
+        401
+      ],
+      "passed": true,
+      "location": null,
+      "headers": {
+        "Content-Security-Policy": null,
+        "X-Frame-Options": null,
+        "Referrer-Policy": null,
+        "X-Content-Type-Options": null,
+        "Access-Control-Allow-Origin": null
+      }
+    },
+    {
+      "name": "SePay invalid browser state",
+      "url": "http://127.0.0.1:5084/integrations/payments/sepay/browser-return?state=tampered",
+      "status": 400,
+      "expected": [
+        400
+      ],
+      "passed": true,
+      "location": null,
+      "headers": {
+        "Content-Security-Policy": null,
+        "X-Frame-Options": null,
+        "Referrer-Policy": "no-referrer",
+        "X-Content-Type-Options": null,
+        "Access-Control-Allow-Origin": null
+      }
+    },
+    {
+      "name": "SePay unauthenticated IPN",
+      "url": "http://127.0.0.1:5084/integrations/payments/sepay/ipn",
+      "status": 401,
+      "expected": [
+        401
+      ],
+      "passed": true,
+      "location": null,
+      "headers": {
+        "Content-Security-Policy": null,
+        "X-Frame-Options": null,
+        "Referrer-Policy": null,
+        "X-Content-Type-Options": null,
+        "Access-Control-Allow-Origin": null
+      }
+    },
+    {
+      "name": "legacy return rejects arbitrary redirect",
+      "url": "http://127.0.0.1:5084/integrations/payments/vnpay/return?vnp_ReturnUrl=https%3A%2F%2Fexample.invalid%2Fphishing",
+      "status": 302,
+      "expected": [
+        400,
+        404,
+        422,
+        503
+      ],
+      "passed": false,
+      "location": "https://example.invalid/phishing",
+      "headers": {
+        "Content-Security-Policy": null,
+        "X-Frame-Options": null,
+        "Referrer-Policy": null,
+        "X-Content-Type-Options": null,
+        "Access-Control-Allow-Origin": null
+      }
+    },
+    {
+      "name": "legacy return rejects arbitrary redirect",
+      "url": "http://127.0.0.1:5080/integrations/payments/vnpay/return?vnp_ReturnUrl=https%3A%2F%2Fexample.invalid%2Fphishing",
+      "status": 302,
+      "expected": [
+        400,
+        404,
+        422,
+        503
+      ],
+      "passed": false,
+      "location": "https://example.invalid/phishing",
+      "headers": {
+        "Content-Security-Policy": null,
+        "X-Frame-Options": null,
+        "Referrer-Policy": null,
+        "X-Content-Type-Options": null,
+        "Access-Control-Allow-Origin": null
+      }
+    },
+    {
+      "name": "front legacy route observation",
+      "url": "http://127.0.0.1:5173/integrations/payments/vnpay/return?vnp_ReturnUrl=https%3A%2F%2Fexample.invalid%2Fphishing",
+      "status": 200,
+      "expected": [
+        200,
+        400,
+        404,
+        422,
+        503
+      ],
+      "passed": true,
+      "location": null,
+      "headers": {
+        "Content-Security-Policy": null,
+        "X-Frame-Options": "DENY",
+        "Referrer-Policy": "strict-origin-when-cross-origin",
+        "X-Content-Type-Options": "nosniff",
+        "Access-Control-Allow-Origin": null
+      }
+    },
+    {
+      "name": "customer document headers",
+      "url": "http://127.0.0.1:5173/",
+      "status": 200,
+      "expected": [
+        200
+      ],
+      "passed": true,
+      "location": null,
+      "headers": {
+        "Content-Security-Policy": null,
+        "X-Frame-Options": "DENY",
+        "Referrer-Policy": "strict-origin-when-cross-origin",
+        "X-Content-Type-Options": "nosniff",
+        "Access-Control-Allow-Origin": null
+      }
+    },
+    {
+      "name": "untrusted CORS preflight",
+      "url": "http://127.0.0.1:5080/api/v1/bookings",
+      "status": 204,
+      "expected": [
+        204,
+        200,
+        405
+      ],
+      "passed": true,
+      "location": null,
+      "headers": {
+        "Content-Security-Policy": null,
+        "X-Frame-Options": null,
+        "Referrer-Policy": null,
+        "X-Content-Type-Options": null,
+        "Access-Control-Allow-Origin": null
+      }
+    }
+  ]
+}
