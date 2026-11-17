@@ -1,5 +1,7 @@
 # Production readiness checklist
 
+> Tài liệu lịch sử của đợt 30/10/2026, không xác nhận phiên bản hiện tại đã đủ an toàn. Xem [audit 16/11](../security/owasp-api-2026-11-16/README.md) và [task khắc phục](../security/SECURITY-REMEDIATION-TASKS.md). Đợt dọn 17/11 giữ workbook/summary Round 2, bỏ log/JUnit thô và runner cũ; các file đó vẫn có trong lịch sử Git.
+
 ## Automated release gates
 
 - [x] Full .NET solution tests pass.

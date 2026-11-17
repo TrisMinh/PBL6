@@ -131,6 +131,6 @@ Frontend, trong `workspace/src/apps/web`:
 node node_modules/vitest/vitest.mjs run
 ```
 
-`live-readonly-audit.py` trả exit 1 khi còn lỗi, không dùng status 200 làm tiêu chí đạt chung. Inventory và probe có thể ghi đè bằng chứng khi chạy lại. `collect-audit-evidence.py` thu thập kết quả từ Temp và tạo collection dựa trên ma trận có sẵn; không chứa credential.
+`live-readonly-audit.py` trả exit 1 khi còn lỗi, không dùng status 200 làm tiêu chí đạt chung. Inventory và probe có thể ghi đè bằng chứng khi chạy lại. `collect-audit-evidence.py` thu thập kết quả từ Temp; không chứa credential. Từ đợt dọn ngày 17/11, script dùng độc lập với collection lịch sử; collection hiện hành `BLUE_OWASP_Protected_Endpoints.postman_collection.json` được giữ trực tiếp trong source.
 
 Bằng chứng: `dotnet-test-summary.json`, `frontend-test-results.txt`, `postman-current-results.txt`, `live-probes.json`, `endpoint-inventory.json`, `config-observations.json`, hai file dependency audit. Các finding chưa được sửa trong lượt này; cần sửa rồi chạy lại các ca đỏ trước khi xem là đạt.

@@ -10,17 +10,6 @@ temp = pathlib.Path(os.environ["TEMP"])
 out = root / "docs/security/owasp-api-2026-11-16"
 out.mkdir(parents=True, exist_ok=True)
 
-source = root / "workspace/postman/PBL6_SEC01_Protected_Endpoint_Matrix.postman_collection.json"
-collection = json.loads(source.read_text(encoding="utf-8-sig"))
-collection["info"]["name"] = "BLUE OWASP audit - current protected endpoint matrix"
-collection["info"].pop("_postman_id", None)
-for item in collection["item"]:
-    if item["request"]["url"] == "http://localhost:5080/api/v1/admin/organizations" and item["request"]["method"] == "GET":
-        item["event"][0]["script"]["exec"] = [
-            "pm.test('Organization listing rejects missing bearer token',()=>pm.response.to.have.status(401));"
-        ]
-(root / "workspace/postman/BLUE_OWASP_Protected_Endpoints.postman_collection.json").write_text(json.dumps(collection, indent=2), encoding="utf-8")
-
 ns = {"t":"http://microsoft.com/schemas/VisualStudio/TeamTest/2010"}
 summary=[]
 for path in sorted((temp / "blue-owasp-test-results").glob("*.trx")):

@@ -34,3 +34,10 @@ test-results-portals/
 # Local workbook rendering/inspection scratch files
 outputs/pbl6-round2/previews/
 outputs/pbl6-round2/*.inspect.ndjson
+
+# Generated API run artifacts and Python bytecode
+workspace/postman/runs/
+outputs/pbl6-round2/logs/
+outputs/pbl6-round2/junit/
+__pycache__/
+*.pyc
