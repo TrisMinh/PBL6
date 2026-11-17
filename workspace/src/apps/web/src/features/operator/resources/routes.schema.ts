@@ -40,7 +40,9 @@ export const routeInputSchema = z
 export type RouteInput = z.infer<typeof routeInputSchema>;
 export type RouteStop = z.infer<typeof stopSchema>;
 export const operatorRouteSchema = routeInputSchema.safeExtend({
-  updatedAt: z.iso.datetime(),
+  distance: z.number().finite().nonnegative().max(5000),
+  stops: z.array(stopSchema.extend({ address: z.string().max(200) })).max(30),
+  updatedAt: z.union([z.iso.datetime({ offset: true }), z.literal("")]),
 });
 export type OperatorRoute = z.infer<typeof operatorRouteSchema>;
 export const routeResponseSchema = z.object({

@@ -28,6 +28,7 @@ export async function readTrip(
         );
   return tripDetailSchema.parse({
     ...adaptSchedule(t, buses, drivers),
+    rowVersion: t.rowVersion,
     vehicle: bus?.plateNumber ?? "Chưa phân công",
     driver: driver?.fullName ?? driver?.licenseNumber ?? "Chưa phân công",
     assistant: "",
@@ -45,6 +46,16 @@ export async function readTrip(
     })),
     vehicleOptions: buses.map((v) => v.plateNumber),
     driverOptions: drivers.map((v) => v.fullName ?? v.licenseNumber),
+  });
+}
+export async function cancelTrip(
+  id: string,
+  expectedVersion: number,
+  reason: string,
+): Promise<void> {
+  await request(`/api/v1/operator/trips/${id}/cancel`, "POST", {
+    expectedVersion,
+    reason,
   });
 }
 export async function updateTrip(

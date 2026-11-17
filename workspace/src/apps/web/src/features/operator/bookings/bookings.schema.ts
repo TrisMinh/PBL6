@@ -17,8 +17,8 @@ export const operatorBookingSchema = z.object({
 export type OperatorBooking = z.infer<typeof operatorBookingSchema>;
 export const bookingFiltersSchema = z.object({
   search: z.string().max(100).default(""),
-  from: z.iso.date().default("2026-08-28"),
-  to: z.iso.date().default("2026-09-05"),
+  from: z.union([z.iso.date(), z.literal("")]).default("2026-08-28"),
+  to: z.union([z.iso.date(), z.literal("")]).default("2026-09-05"),
   status: z.enum(["all", "confirmed", "pending", "cancelled"]).default("all"),
   payment: z.enum(["all", "paid", "unpaid", "refunded"]).default("all"),
   page: z.coerce.number().int().min(1).max(10000).default(1),

@@ -5,6 +5,9 @@ export const TRIP_LIST_STATUS = {
   scheduled: "Đã lên lịch",
   conflict: "Có xung đột",
   departing: "Sắp khởi hành",
+  departed: "Đã khởi hành",
+  completed: "Hoàn thành",
+  cancelled: "Đã hủy",
 };
 export const tripListSchema = z.object({
   id: z.string(),
@@ -17,15 +20,32 @@ export const tripListSchema = z.object({
   booked: z.number().int().nonnegative(),
   capacity: z.number().int().positive(),
   checkedIn: z.number().int().nonnegative(),
-  status: z.enum(["boarding", "scheduled", "conflict", "departing"]),
+  status: z.enum([
+    "boarding",
+    "scheduled",
+    "conflict",
+    "departing",
+    "departed",
+    "completed",
+    "cancelled",
+  ]),
 });
 export type PassengerTrip = z.infer<typeof tripListSchema>;
 export const tripListFiltersSchema = z.object({
   search: z.string().max(100).default(""),
-  date: z.iso.date().default("2026-09-05"),
+  date: z.union([z.iso.date(), z.literal("")]).default("2026-09-05"),
   route: z.string().max(100).default("all"),
   status: z
-    .enum(["all", "boarding", "scheduled", "conflict", "departing"])
+    .enum([
+      "all",
+      "boarding",
+      "scheduled",
+      "conflict",
+      "departing",
+      "departed",
+      "completed",
+      "cancelled",
+    ])
     .default("all"),
 });
 export type TripListFilters = z.infer<typeof tripListFiltersSchema>;

@@ -12,7 +12,14 @@ export const scheduleTripSchema = z
     crew: z.string(),
     passengers: z.number().int().nonnegative(),
     capacity: z.number().int().positive(),
-    status: z.enum(["boarding", "scheduled", "draft"]),
+    status: z.enum([
+      "boarding",
+      "scheduled",
+      "draft",
+      "departed",
+      "completed",
+      "cancelled",
+    ]),
     assignment: z.enum(["complete", "missing", "conflict"]),
   })
   .strict();

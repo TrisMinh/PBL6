@@ -23,7 +23,7 @@ function adapt(route: Row, extra: Row = {}): OperatorRoute {
     distance: route.distanceKm ?? 0,
     hours: (route.durationMinutes ?? 0) / 60,
     status: route.status === "ACTIVE" ? "active" : "paused",
-    updatedAt: extra.updatedAt ?? "1970-01-01T00:00:00.000Z",
+    updatedAt: route.updatedAt ?? extra.updatedAt ?? "",
     stops: route.stops.map((s: Row, i: number) => ({
       id: s.id,
       name: s.name,

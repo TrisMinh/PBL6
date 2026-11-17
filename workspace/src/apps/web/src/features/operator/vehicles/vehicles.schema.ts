@@ -32,6 +32,21 @@ export const vehicleInputSchema = z.object({
 export const seatPermissionSchema = z.object({ enabled: z.boolean() });
 export const vehicleSchema = vehicleInputSchema
   .extend({
+    // Existing fleet records can have legacy plates; new vehicle input stays strict.
+    plate: z.string().trim().min(1).max(80),
+    layoutLabel: z.string().optional(),
+    actualSeats: z
+      .array(
+        z.object({
+          code: z.string().min(1),
+          deck: z.number().int(),
+          row: z.number().int(),
+          column: z.number().int(),
+          enabled: z.boolean(),
+          type: z.string(),
+        }),
+      )
+      .optional(),
     id: z.string().min(1),
     disabledSeats: z.array(z.string()).max(100),
     lowerRooms: z.union([z.literal(10), z.literal(11)]).optional(),
@@ -86,7 +101,10 @@ export const vehicleSchema = vehicleInputSchema
       });
     if (
       new Set(vehicle.disabledSeats).size !== vehicle.disabledSeats.length ||
-      vehicle.disabledSeats.some((code) => !codes.includes(code))
+      vehicle.disabledSeats.some(
+        (code) =>
+          !(vehicle.actualSeats?.map((s) => s.code) ?? codes).includes(code),
+      )
     )
       ctx.addIssue({
         code: "custom",
@@ -172,6 +190,7 @@ export const rearConfigurationSchema = z.object({
   rearSeats: z.union([z.literal(2), z.literal(3), z.literal(4), z.literal(5)]),
 });
 export function vehicleCapacity(vehicle: OperatorVehicle): number {
+  if (vehicle.actualSeats) return vehicle.actualSeats.length;
   return vehicleSeatCodes(
     vehicle.type,
     vehicle.rearSeats,

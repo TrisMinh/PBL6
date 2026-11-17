@@ -1,5 +1,6 @@
 import { rows, request, localDateTime, type Row } from "../liveOriginalApi";
 import { bookingsResponseSchema, type BookingFilters } from "./bookings.schema";
+import { ApiError } from "@/shared/api/error";
 export async function operatorBookingRows(
   signal?: AbortSignal,
 ): Promise<Row[]> {
@@ -7,15 +8,28 @@ export async function operatorBookingRows(
     rows("/api/v1/operator/bookings", signal),
     rows("/api/v1/operator/trips", signal),
   ]);
-  return Promise.all(
-    bookings.map(async (b) => {
-      const t = trips.find((t) => t.id === b.tripId);
-      const inventory = await request(
-        `/api/v1/trips/${b.tripId}/seats`,
+  const inventories = new Map<string, Promise<Row>>();
+  const inventoryFor = (tripId: string): Promise<Row> => {
+    let inventory = inventories.get(tripId);
+    if (!inventory) {
+      inventory = request(
+        `/api/v1/trips/${tripId}/seats`,
         "GET",
         undefined,
         signal,
-      );
+      ).catch((error) => {
+        if (error instanceof ApiError && error.status === 404)
+          return { seats: [] };
+        throw error;
+      });
+      inventories.set(tripId, inventory);
+    }
+    return inventory;
+  };
+  return Promise.all(
+    bookings.map(async (b) => {
+      const t = trips.find((t) => t.id === b.tripId);
+      const inventory = await inventoryFor(b.tripId);
       const departure = t ? localDateTime(t.departureAt) : "";
       return {
         id: b.code,
@@ -38,13 +52,16 @@ export async function operatorBookingRows(
         status:
           b.status === "CANCELLED"
             ? "cancelled"
-            : b.status === "CONFIRMED"
+            : ["CONFIRMED", "PAID", "COMPLETED", "CHECKED_IN"].includes(
+                  b.status,
+                )
               ? "confirmed"
               : "pending",
         payment:
           b.status === "CANCELLED"
             ? "unpaid"
-            : b.status === "CONFIRMED" && b.paymentChannel !== "PAY_LATER"
+            : ["PAID", "COMPLETED", "CHECKED_IN"].includes(b.status) ||
+                (b.status === "CONFIRMED" && b.paymentChannel !== "PAY_LATER")
               ? "paid"
               : "unpaid",
         source: b,
@@ -60,7 +77,8 @@ export async function getOperatorBookings(
   const items = (await operatorBookingRows(signal)).filter(
     (b) =>
       (!b.createdDate ||
-        (b.createdDate >= filters.from && b.createdDate <= filters.to)) &&
+        ((!filters.from || b.createdDate >= filters.from) &&
+          (!filters.to || b.createdDate <= filters.to))) &&
       (filters.status === "all" || b.status === filters.status) &&
       (filters.payment === "all" || b.payment === filters.payment) &&
       `${b.id} ${b.name} ${b.phone}`

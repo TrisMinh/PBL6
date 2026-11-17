@@ -18,14 +18,21 @@ import {
 import { getOperatorBookings } from "./bookingsRepository";
 import "../schedule/SchedulePage.css";
 import "./RecentBookingsPage.css";
+import { operatorDefaultRange } from "../operatorDates";
 const dateLabel = (value: string): string =>
   value.split("-").reverse().join("/");
 const number = (value: number): string =>
   new Intl.NumberFormat("vi-VN").format(value);
 export function RecentBookingsPage(): ReactElement {
   const [params, setParams] = useSearchParams();
-  const parsed = bookingFiltersSchema.safeParse(Object.fromEntries(params));
-  const applied = parsed.success ? parsed.data : bookingFiltersSchema.parse({});
+  const defaults = operatorDefaultRange("bookings");
+  const parsed = bookingFiltersSchema.safeParse({
+    ...defaults,
+    ...Object.fromEntries(params),
+  });
+  const applied = parsed.success
+    ? parsed.data
+    : bookingFiltersSchema.parse(defaults);
   const [filters, setFilters] = useState<BookingFilters>(applied);
   const [dateOpen, setDateOpen] = useState(false),
     [notice, setNotice] = useState("");
@@ -38,7 +45,7 @@ export function RecentBookingsPage(): ReactElement {
   const data = query.data;
   const apply = (event: FormEvent): void => {
     event.preventDefault();
-    if (filters.from > filters.to) {
+    if (filters.from && filters.to && filters.from > filters.to) {
       setNotice("Ngày bắt đầu phải trước hoặc bằng ngày kết thúc.");
       return;
     }
@@ -53,7 +60,10 @@ export function RecentBookingsPage(): ReactElement {
       ),
     );
   };
-  const pages = Math.max(1, Math.ceil((data?.total ?? 0) / 9));
+  const pages = Math.max(
+    1,
+    Math.ceil((data?.total ?? 0) / (data?.pageSize ?? 10)),
+  );
   return (
     <div className="operator-schedule operator-bookings">
       <OperatorSidebar />
@@ -77,7 +87,9 @@ export function RecentBookingsPage(): ReactElement {
               onClick={() => setDateOpen(true)}
               aria-label="Thời gian đặt chỗ"
             >
-              {dateLabel(filters.from)} – {dateLabel(filters.to)}
+              {filters.from || filters.to
+                ? `${dateLabel(filters.from)} – ${dateLabel(filters.to)}`
+                : "Tất cả thời gian"}
             </button>
           </div>
           <label className="operator-bookings__filter">
@@ -154,7 +166,9 @@ export function RecentBookingsPage(): ReactElement {
               action={
                 <Button
                   onClick={() => {
-                    const defaults = bookingFiltersSchema.parse({});
+                    const defaults = bookingFiltersSchema.parse(
+                      operatorDefaultRange("bookings"),
+                    );
                     setFilters(defaults);
                     update(defaults);
                   }}

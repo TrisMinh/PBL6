@@ -15,6 +15,7 @@ import driversIcon from "@/assets/operator/schedule/imgFrame5.svg";
 import reportsIcon from "@/assets/operator/schedule/imgFrame6.svg";
 import membersIcon from "@/assets/operator/schedule/imgFrame7.svg";
 import cancellationsIcon from "@/assets/operator/schedule/imgFrame8.svg";
+import { useOperatorWorkspace } from "@/shared/layouts/OperatorWorkspaceContext";
 const GROUPS = [
   {
     title: "VẬN HÀNH",
@@ -47,7 +48,8 @@ export function OperatorSidebar({
 }: {
   routesIconOverride?: string;
   iconsOverride?: Record<string, string>;
-} = {}): ReactElement {
+} = {}): ReactElement | null {
+  const embedded = useOperatorWorkspace();
   const navigate = useNavigate();
   const pathname = useLocation().pathname;
   const isRefunds = pathname.startsWith("/operator/refund-requests");
@@ -59,6 +61,7 @@ export function OperatorSidebar({
   const [menuOpen, setMenuOpen] = useState(false);
   const isOrganization = pathname.startsWith("/operator/organization");
   const isSettlements = pathname.startsWith("/operator/settlements");
+  if (embedded) return null;
   return (
     <>
       <aside

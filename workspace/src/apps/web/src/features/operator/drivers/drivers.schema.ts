@@ -81,6 +81,9 @@ export type CreateDriverInput = z.infer<typeof createDriverSchema>;
 export type DriverAttachment = z.infer<typeof driverAttachmentSchema>;
 export const driverSchema = driverInputSchema.safeExtend({
   ...extras,
+  // Read historical/backend records without weakening create/update validation.
+  phone: z.string().max(32),
+  licenseNumber: z.string().min(1).max(80),
   id: z.string().min(1).max(128),
   joinedAt: date,
   status: driverStatusSchema,

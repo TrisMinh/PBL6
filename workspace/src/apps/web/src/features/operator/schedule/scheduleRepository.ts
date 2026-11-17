@@ -34,12 +34,7 @@ export function adaptSchedule(
     crew: driver?.fullName ?? driver?.licenseNumber ?? "Chưa phân công",
     passengers: Math.max(0, capacity - (t.availableSeatCount ?? capacity)),
     capacity: Math.max(1, capacity),
-    status:
-      t.status === "DRAFT"
-        ? "draft"
-        : t.status === "BOARDING"
-          ? "boarding"
-          : "scheduled",
+    status: String(t.status).toLowerCase(),
     assignment: bus && driver ? "complete" : "missing",
   });
 }
@@ -47,7 +42,5 @@ export async function getSchedule(
   signal?: AbortSignal,
 ): Promise<ScheduleTrip[]> {
   const { trips, buses, drivers } = await scheduleResources(signal);
-  return trips
-    .filter((t) => !["CANCELLED", "COMPLETED", "DEPARTED"].includes(t.status))
-    .map((t) => adaptSchedule(t, buses, drivers));
+  return trips.map((t) => adaptSchedule(t, buses, drivers));
 }

@@ -34,7 +34,7 @@ export async function operatorRefundRows(signal?: AbortSignal): Promise<Row[]> {
           ? "completed"
           : refund.status === "FAILED"
             ? "exception"
-            : refund.status === "PENDING"
+            : ["PENDING", "REQUESTED"].includes(refund.status)
               ? "pending"
               : "processing",
       cancelledTickets: b.status === "cancelled" ? b.source.items.length : 0,

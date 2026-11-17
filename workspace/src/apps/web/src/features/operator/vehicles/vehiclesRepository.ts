@@ -14,6 +14,7 @@ import {
   type OperatorVehicle,
   type VehicleInput,
 } from "./vehicles.schema";
+import { stateLabel } from "@/shared/api/livePresentation";
 const endpoint = "/api/v1/operator/buses";
 function adapt(bus: Row, extra: Row = {}): OperatorVehicle {
   const type = extra.type ?? typeIndex(bus.type);
@@ -23,13 +24,25 @@ function adapt(bus: Row, extra: Row = {}): OperatorVehicle {
     extra.cabinCapacity,
     extra.lowerRooms,
   );
+  const actualSeats = (bus.seats ?? []) as Row[];
+  const customLayout =
+    actualSeats.length > 0 &&
+    (actualSeats.length !== codes.length ||
+      actualSeats.some((s) => !codes.includes(s.code)));
   return vehicleSchema.parse({
     ...extra,
     id: bus.id,
     plate: bus.plateNumber,
     type,
-    disabledSeats: bus.seats
-      .filter((s: Row) => !s.enabled && codes.includes(s.code))
+    ...(customLayout
+      ? {
+          actualSeats,
+          layoutLabel:
+            bus.type === "STANDARD" ? "Xe ghế ngồi" : stateLabel(bus.type),
+        }
+      : {}),
+    disabledSeats: actualSeats
+      .filter((s: Row) => !s.enabled)
       .map((s: Row) => s.code),
     assignment: null,
   });
@@ -92,6 +105,20 @@ export async function setVehicleSeatPermission(
 ): Promise<OperatorVehicle> {
   const current = (await getOperatorVehicles()).find((v) => v.id === id);
   if (!current) throw Error("Không tìm thấy xe.");
+  if (current.actualSeats) {
+    if (!current.actualSeats.some((s) => s.code === code))
+      throw Error("Không tìm thấy ghế trên xe.");
+    const original = await bus(id);
+    const seats = current.actualSeats.map((s) => ({
+      ...s,
+      enabled: s.code === code ? enabled : s.enabled,
+    }));
+    const saved = await request(`${endpoint}/${id}/seats`, "PUT", {
+      expectedVersion: original.expectedVersion,
+      seats,
+    });
+    return adapt(saved, (await metadata("buses"))[id]);
+  }
   return replace(id, {
     disabledSeats: enabled
       ? current.disabledSeats.filter((s) => s !== code)

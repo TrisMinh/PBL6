@@ -372,7 +372,7 @@
   grid-template-columns: 237px minmax(0, 1fr) 96px;
   align-items: center;
   gap: 20px;
-  height: 116px;
+  min-height: 132px;
   padding: 14px 20px 14px 14px;
   border: 1px solid var(--op-border);
   border-radius: 10px;
@@ -382,7 +382,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  height: 84px;
+  min-height: 84px;
   border-right: 1px solid var(--op-divider);
 }
 .operator-schedule__thumbnail {
@@ -403,6 +403,19 @@
   margin: 7px 0;
   font-size: 13px;
   font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.operator-schedule__identity > div {
+  min-width: 0;
+}
+.operator-schedule__identity time {
+  display: block;
+  margin-top: 5px;
+  font-size: 10px;
+  color: var(--op-muted);
+}
+.operator-schedule__identity small {
+  overflow-wrap: anywhere;
 }
 .operator-schedule__identity small {
   display: block;
@@ -411,7 +424,7 @@
 }
 .operator-schedule__journey {
   display: grid;
-  grid-template-columns: 76px 180px 76px;
+  grid-template-columns: minmax(64px, 1fr) minmax(40px, 1fr) minmax(64px, 1fr);
   column-gap: 12px;
   row-gap: 18px;
   align-self: stretch;
@@ -427,6 +440,8 @@
 .operator-schedule__journey small {
   color: var(--color-text-muted);
   font-size: 10px;
+  display: block;
+  overflow-wrap: anywhere;
 }
 .operator-schedule__rail {
   position: relative;
@@ -505,6 +520,8 @@
 .operator-schedule__footer nav {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
 }
 .operator-schedule__footer button {
   min-width: 32px;
@@ -712,11 +729,5 @@
   .operator-schedule__footer button {
     min-width: 44px;
     height: 44px;
-  }
-}
-
-@media (width >= 1350px) {
-  .operator-schedule__route-art {
-    max-width: none;
   }
 }

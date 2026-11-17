@@ -5,7 +5,9 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/shared/ui/Button/Button";
 import { PageState } from "@/shared/ui/PageState/PageState";
 import { OperatorSidebar } from "../components/OperatorSidebar";
-import { readTrip, updateTrip } from "./detailRepository";
+import { readTrip, updateTrip, cancelTrip } from "./detailRepository";
+import * as Dialog from "@radix-ui/react-dialog";
+import { isMockApi } from "@/shared/api/config";
 import { tripEditSchema, type TripDetail } from "./detail.schema";
 import "../schedule/SchedulePage.css";
 import "../create/CreateTripPage.css";
@@ -58,7 +60,21 @@ function DetailContent({ trip }: { trip: TripDetail }): ReactElement {
   const [waiting, setWaiting] = useState(false);
   const [full, setFull] = useState(false);
   const [message, setMessage] = useState("");
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
   const client = useQueryClient();
+  const cancellation = useMutation({
+    mutationFn: () =>
+      cancelTrip(trip.id, trip.rowVersion ?? 0, cancelReason.trim()),
+    onSuccess: async () => {
+      setCancelOpen(false);
+      setMessage(
+        "Đã gửi yêu cầu hủy chuyến. Thông tin vé và hoàn tiền được xử lý theo trạng thái đơn.",
+      );
+      await client.invalidateQueries({ queryKey: ["operator"] });
+    },
+    onError: (error: Error) => setMessage(error.message),
+  });
   const mutation = useMutation({
     mutationFn: (data: unknown) => updateTrip(trip.id, data),
     onSuccess: (data) => {
@@ -113,164 +129,198 @@ function DetailContent({ trip }: { trip: TripDetail }): ReactElement {
   return (
     <>
       <header className="operator-schedule__header">
-        <h1>Chi tiết chuyến {trip.id}</h1>
+        <h1 title={trip.id}>
+          Chi tiết chuyến{" "}
+          {/^[0-9a-f-]{36}$/i.test(trip.id)
+            ? `CX-${trip.id.slice(-8).toUpperCase()}`
+            : trip.id}
+        </h1>
         <Link className="operator-create__back" to="/operator/trips">
           ← Lịch chuyến
         </Link>
       </header>
       <div className="operator-detail__columns">
         <form onSubmit={submit}>
-          <section className="operator-create__panel operator-detail__route">
-            <h2>Tuyến &amp; thời gian</h2>
-            <p>Chọn hành trình và thời điểm xuất bến.</p>
-            <div className="operator-create__route-fields">
-              <DetailField
-                label="ĐIỂM ĐI"
-                value={draft.origin}
-                onChange={(v) => change("origin", v)}
-                options={["TP.HCM", "Đà Lạt", "Nha Trang", "Phan Thiết"]}
-              />
-              <button
-                type="button"
-                aria-label="Đổi chiều hành trình"
-                className="operator-schedule__swap"
-                onClick={() =>
-                  setDraft((old) => ({
-                    ...old,
-                    origin: old.destination,
-                    destination: old.origin,
-                    pickup: old.dropoff,
-                    dropoff: old.pickup,
-                  }))
-                }
-              >
-                <img src={swap} alt="" width={16} height={16} />
-              </button>
-              <DetailField
-                label="ĐIỂM ĐẾN"
-                value={draft.destination}
-                onChange={(v) => change("destination", v)}
-                options={["Đà Lạt", "TP.HCM", "Nha Trang", "Phan Thiết"]}
-              />
-            </div>
-            <div className="operator-create__three">
-              <DetailField
-                label="NGÀY CHẠY"
-                type="date"
-                value={draft.date}
-                onChange={(v) => change("date", v)}
-              />
-              <DetailField
-                label="GIỜ KHỞI HÀNH"
-                type="time"
-                value={draft.departure}
-                onChange={(v) => change("departure", v)}
-              />
-              <label className="operator-create__field">
-                <span>THỜI GIAN DỰ KIẾN</span>
-                <strong>{duration(trip.departure, trip.arrival)}</strong>
-              </label>
-            </div>
-            <div className="operator-create__two">
-              {(["pickup", "dropoff"] as const).map((key) => (
-                <div key={key} className="operator-create__stops">
-                  <label htmlFor={`detail-${key}`}>
-                    {key === "pickup" ? "Điểm đón" : "Điểm trả"}
-                  </label>
-                  <button
-                    type="button"
-                    aria-label={`Sửa ${key === "pickup" ? "điểm đón" : "điểm trả"}`}
-                    onClick={() =>
-                      document.getElementById(`detail-${key}`)?.focus()
-                    }
-                  >
-                    <img src={plus} alt="" width={14} height={14} />
-                  </button>
-                  <div>
-                    <img src={pin} alt="" width={17} height={17} />
-                    <textarea
-                      id={`detail-${key}`}
-                      value={draft[key]}
-                      onChange={(e) => change(key, e.target.value)}
-                      required
-                    />
+          {!isMockApi && (
+            <p className="operator-detail__readonly">
+              Thông tin đã lưu của chuyến. Chỉ bản nháp có thể chỉnh sửa trước
+              khi phát hành.
+            </p>
+          )}
+          <fieldset className="operator-detail__fields" disabled={!isMockApi}>
+            <section className="operator-create__panel operator-detail__route">
+              <h2>Tuyến &amp; thời gian</h2>
+              <p>Chọn hành trình và thời điểm xuất bến.</p>
+              <div className="operator-create__route-fields">
+                <DetailField
+                  label="ĐIỂM ĐI"
+                  value={draft.origin}
+                  onChange={(v) => change("origin", v)}
+                  options={["TP.HCM", "Đà Lạt", "Nha Trang", "Phan Thiết"]}
+                />
+                <button
+                  type="button"
+                  aria-label="Đổi chiều hành trình"
+                  className="operator-schedule__swap"
+                  onClick={() =>
+                    setDraft((old) => ({
+                      ...old,
+                      origin: old.destination,
+                      destination: old.origin,
+                      pickup: old.dropoff,
+                      dropoff: old.pickup,
+                    }))
+                  }
+                >
+                  <img src={swap} alt="" width={16} height={16} />
+                </button>
+                <DetailField
+                  label="ĐIỂM ĐẾN"
+                  value={draft.destination}
+                  onChange={(v) => change("destination", v)}
+                  options={["Đà Lạt", "TP.HCM", "Nha Trang", "Phan Thiết"]}
+                />
+              </div>
+              <div className="operator-create__three">
+                <DetailField
+                  label="NGÀY CHẠY"
+                  type="date"
+                  value={draft.date}
+                  onChange={(v) => change("date", v)}
+                />
+                <DetailField
+                  label="GIỜ KHỞI HÀNH"
+                  type="time"
+                  value={draft.departure}
+                  onChange={(v) => change("departure", v)}
+                />
+                <label className="operator-create__field">
+                  <span>THỜI GIAN DỰ KIẾN</span>
+                  <strong>{duration(trip.departure, trip.arrival)}</strong>
+                </label>
+              </div>
+              <div className="operator-create__two">
+                {(["pickup", "dropoff"] as const).map((key) => (
+                  <div key={key} className="operator-create__stops">
+                    <label htmlFor={`detail-${key}`}>
+                      {key === "pickup" ? "Điểm đón" : "Điểm trả"}
+                    </label>
+                    <button
+                      type="button"
+                      aria-label={`Sửa ${key === "pickup" ? "điểm đón" : "điểm trả"}`}
+                      onClick={() =>
+                        document.getElementById(`detail-${key}`)?.focus()
+                      }
+                    >
+                      <img src={plus} alt="" width={14} height={14} />
+                    </button>
+                    <div>
+                      <img src={pin} alt="" width={17} height={17} />
+                      <textarea
+                        id={`detail-${key}`}
+                        value={draft[key]}
+                        onChange={(e) => change(key, e.target.value)}
+                        required
+                      />
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          </section>
-          <section className="operator-create__panel operator-detail__crew">
-            <h2>Xe &amp; nhân sự</h2>
-            <p>Phân công nguồn lực phù hợp cho lịch chạy.</p>
-            <div className="operator-create__two">
-              <DetailField
-                label="PHƯƠNG TIỆN"
-                value={draft.vehicle}
-                onChange={(v) => change("vehicle", v)}
-                options={trip.vehicleOptions ?? [trip.vehicle]}
+                ))}
+              </div>
+            </section>
+            <section className="operator-create__panel operator-detail__crew">
+              <h2>Xe &amp; nhân sự</h2>
+              <p>Phân công nguồn lực phù hợp cho lịch chạy.</p>
+              <div className="operator-create__two">
+                <DetailField
+                  label="PHƯƠNG TIỆN"
+                  value={draft.vehicle}
+                  onChange={(v) => change("vehicle", v)}
+                  options={trip.vehicleOptions ?? [trip.vehicle]}
+                />
+                <DetailField
+                  label="TÀI XẾ"
+                  value={draft.driver}
+                  onChange={(v) => change("driver", v)}
+                  options={trip.driverOptions ?? [trip.driver]}
+                />
+              </div>
+              <div className="operator-create__three">
+                <label className="operator-create__field">
+                  <span>LOẠI XE</span>
+                  <strong>{trip.vehicleLabel}</strong>
+                </label>
+                <label className="operator-create__field">
+                  <span>SỨC CHỨA</span>
+                  <strong>{trip.capacity} ghế</strong>
+                </label>
+                <DetailField
+                  label="PHỤ XE"
+                  value={draft.assistant}
+                  onChange={(v) => change("assistant", v)}
+                  options={
+                    isMockApi
+                      ? ["Chưa phân công", "Thuận Phát"]
+                      : ["Chưa phân công"]
+                  }
+                />
+              </div>
+              <div
+                className={`operator-detail__assignment${ready ? "operator-detail__assignment--ready" : ""}`}
+              >
+                <strong>
+                  {ready ? "Đã chọn nguồn lực" : "Chưa đủ nguồn lực"}
+                </strong>
+                <small>
+                  {ready
+                    ? isMockApi
+                      ? "Dữ liệu phân công mô phỏng; chưa kiểm tra xung đột lịch."
+                      : "Phân công đã được lưu trên chuyến."
+                    : "Chọn phương tiện và tài xế trước khi lưu thay đổi."}
+                </small>
+              </div>
+            </section>
+            <section className="operator-create__panel operator-detail__notes">
+              <h2>Ghi chú vận hành</h2>
+              <p>Thông tin nội bộ dành cho nhân viên phụ trách chuyến.</p>
+              <textarea
+                aria-label="Ghi chú vận hành"
+                maxLength={1000}
+                placeholder="Chưa có ghi chú cho chuyến này."
+                value={draft.note}
+                onChange={(e) => change("note", e.target.value)}
               />
-              <DetailField
-                label="TÀI XẾ"
-                value={draft.driver}
-                onChange={(v) => change("driver", v)}
-                options={trip.driverOptions ?? [trip.driver]}
-              />
-            </div>
-            <div className="operator-create__three">
-              <label className="operator-create__field">
-                <span>LOẠI XE</span>
-                <strong>{trip.vehicleLabel}</strong>
-              </label>
-              <label className="operator-create__field">
-                <span>SỨC CHỨA</span>
-                <strong>{trip.capacity} ghế</strong>
-              </label>
-              <DetailField
-                label="PHỤ XE"
-                value={draft.assistant}
-                onChange={(v) => change("assistant", v)}
-                options={["Chưa phân công", "Thuận Phát"]}
-              />
-            </div>
-            <div
-              className={`operator-detail__assignment${ready ? "operator-detail__assignment--ready" : ""}`}
-            >
-              <strong>
-                {ready ? "Đã chọn nguồn lực" : "Chưa đủ nguồn lực"}
-              </strong>
-              <small>
-                {ready
-                  ? "Dữ liệu phân công mô phỏng; chưa kiểm tra xung đột lịch."
-                  : "Chọn phương tiện và tài xế trước khi lưu thay đổi."}
-              </small>
-            </div>
-          </section>
-          <section className="operator-create__panel operator-detail__notes">
-            <h2>Ghi chú vận hành</h2>
-            <p>Thông tin nội bộ dành cho nhân viên phụ trách chuyến.</p>
-            <textarea
-              aria-label="Ghi chú vận hành"
-              maxLength={1000}
-              placeholder="Chưa có ghi chú cho chuyến này."
-              value={draft.note}
-              onChange={(e) => change("note", e.target.value)}
-            />
-          </section>
+            </section>
+          </fieldset>
           <footer className="operator-detail__actions">
             <Button
               type="button"
               variant="danger"
+              disabled={
+                !isMockApi &&
+                !["draft", "scheduled", "boarding"].includes(trip.status)
+              }
               onClick={() =>
-                setMessage(
-                  "Hủy chuyến cần quy trình xử lý vé và hoàn tiền riêng. Chưa có chuyến hoặc vé nào bị hủy.",
-                )
+                isMockApi
+                  ? setMessage(
+                      "Hủy chuyến cần quy trình xử lý vé và hoàn tiền riêng. Chưa có chuyến hoặc vé nào bị hủy.",
+                    )
+                  : (setMessage(""), setCancelOpen(true))
               }
             >
               Hủy chuyến
             </Button>
-            <Button type="submit" isLoading={mutation.isPending}>
-              Lưu thay đổi
-            </Button>
+            {isMockApi ? (
+              <Button type="submit" isLoading={mutation.isPending}>
+                Lưu thay đổi
+              </Button>
+            ) : trip.status === "draft" ? (
+              <Link
+                className="button button--primary"
+                to={`/operator/trips/draft/edit?tripId=${encodeURIComponent(trip.id)}`}
+              >
+                Chỉnh sửa bản nháp
+              </Link>
+            ) : null}
           </footer>
           <p className="operator-detail__message" role="status">
             {message}
@@ -337,6 +387,50 @@ function DetailContent({ trip }: { trip: TripDetail }): ReactElement {
           </Button>
         </aside>
       </div>
+      <Dialog.Root
+        open={cancelOpen}
+        onOpenChange={(value) => {
+          if (!cancellation.isPending) setCancelOpen(value);
+        }}
+      >
+        <Dialog.Portal>
+          <Dialog.Overlay className="operator-schedule__overlay" />
+          <Dialog.Content className="operator-schedule__dialog">
+            <Dialog.Title>Hủy chuyến xe?</Dialog.Title>
+            <Dialog.Description>
+              Hệ thống sẽ kiểm tra điều kiện hủy, cập nhật vé và xử lý hoàn tiền
+              theo đơn đã đặt.
+            </Dialog.Description>
+            <label>
+              Lý do hủy
+              <textarea
+                aria-label="Lý do hủy"
+                value={cancelReason}
+                maxLength={500}
+                onChange={(e) => setCancelReason(e.target.value)}
+              />
+            </label>
+            {message && <p role="alert">{message}</p>}
+            <div className="operator-detail__actions">
+              <Button
+                variant="secondary"
+                disabled={cancellation.isPending}
+                onClick={() => setCancelOpen(false)}
+              >
+                Giữ chuyến
+              </Button>
+              <Button
+                variant="danger"
+                isLoading={cancellation.isPending}
+                disabled={cancelReason.trim().length < 2}
+                onClick={() => cancellation.mutate()}
+              >
+                Xác nhận hủy chuyến
+              </Button>
+            </div>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
     </>
   );
 }

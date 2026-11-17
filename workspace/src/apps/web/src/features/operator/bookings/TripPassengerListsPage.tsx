@@ -8,6 +8,7 @@ import { Button } from "@/shared/ui/Button/Button";
 import { PageState } from "@/shared/ui/PageState/PageState";
 import { BookingTabs } from "./BookingTabs";
 import { getPassengerTrips } from "./tripListsRepository";
+import { isMockApi } from "@/shared/api/config";
 import {
   tripListFiltersSchema,
   TRIP_LIST_STATUS,
@@ -21,10 +22,14 @@ export function TripPassengerListsPage(): ReactElement {
   const [params, setParams] = useSearchParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const parsed = tripListFiltersSchema.safeParse(Object.fromEntries(params));
+  const defaults = isMockApi ? {} : { date: "" };
+  const parsed = tripListFiltersSchema.safeParse({
+    ...defaults,
+    ...Object.fromEntries(params),
+  });
   const applied = parsed.success
     ? parsed.data
-    : tripListFiltersSchema.parse({});
+    : tripListFiltersSchema.parse(defaults);
   const [filters, setFilters] = useState<TripListFilters>(applied),
     [dateText, setDateText] = useState(dateLabel(applied.date));
   const [notice, setNotice] = useState(""),
@@ -142,7 +147,9 @@ export function TripPassengerListsPage(): ReactElement {
               action={
                 <Button
                   onClick={() => {
-                    const defaults = tripListFiltersSchema.parse({});
+                    const defaults = tripListFiltersSchema.parse(
+                      isMockApi ? {} : { date: "" },
+                    );
                     setFilters(defaults);
                     setDateText(dateLabel(defaults.date));
                     setParams(new URLSearchParams(defaults));

@@ -14,6 +14,8 @@ import {
 } from "./operatorWorkspace";
 import "../schedule/SchedulePage.css";
 import "./OperatorWorkspace.css";
+import { operatorDefaultRange } from "../operatorDates";
+import { isMockApi } from "@/shared/api/config";
 const labels = {
   paid: "Đã chuyển tiền",
   pending: "Chờ đối soát",
@@ -22,11 +24,12 @@ const labels = {
 const money = (value: number): string => `${value.toLocaleString("vi-VN")} đ`;
 const date = (value: string): string => value.split("-").reverse().join("/");
 export function SettlementsPage(): ReactElement {
+  const defaults = operatorDefaultRange("settlements");
   const [items, setItems] = useState<Settlement[]>([]),
     [search, setSearch] = useState(""),
     [status, setStatus] = useState("all"),
-    [from, setFrom] = useState("2026-09-01"),
-    [to, setTo] = useState("2026-09-30"),
+    [from, setFrom] = useState(defaults.from),
+    [to, setTo] = useState(defaults.to),
     [detail, setDetail] = useState<Settlement | null>(null),
     [notice, setNotice] = useState(""),
     [page, setPage] = useState(1);
@@ -66,7 +69,7 @@ export function SettlementsPage(): ReactElement {
     );
     const link = document.createElement("a");
     link.href = url;
-    link.download = "blue-doi-soat-demo.csv";
+    link.download = "blue-doi-soat.csv";
     link.click();
     URL.revokeObjectURL(url);
     setNotice(`Đã xuất ${filtered.length} bản ghi đối soát.`);
@@ -74,8 +77,8 @@ export function SettlementsPage(): ReactElement {
   const reset = (): void => {
     setSearch("");
     setStatus("all");
-    setFrom("2026-09-01");
-    setTo("2026-09-30");
+    setFrom(defaults.from);
+    setTo(defaults.to);
     setPage(1);
   };
   return (
@@ -128,7 +131,9 @@ export function SettlementsPage(): ReactElement {
           <div className="operator-workspace-demo__section-heading">
             <h2 id="settlement-list">Chi tiết đối soát</h2>
             <p className="operator-workspace-demo__muted">
-              Dữ liệu minh họa · Hoa hồng 5% sau khoản hoàn
+              {isMockApi
+                ? "Dữ liệu minh họa · Hoa hồng 5% sau khoản hoàn"
+                : "Hoa hồng và thực nhận theo từng giao dịch đã ghi nhận"}
             </p>
           </div>
           <div className="operator-workspace-demo__filters">
@@ -212,7 +217,9 @@ export function SettlementsPage(): ReactElement {
                     <p>
                       Thực nhận{" "}
                       <strong>
-                        {money(row.gross - row.refunds - row.commission)}
+                        {money(
+                          row.net ?? row.gross - row.refunds - row.commission,
+                        )}
                       </strong>
                     </p>
                   </div>

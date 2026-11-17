@@ -45,6 +45,45 @@ function VehicleSeatMap({
   pending: boolean;
   toggle: (code: string, enabled: boolean) => void;
 }): ReactElement {
+  const actualSeats = vehicle.actualSeats;
+  if (actualSeats) {
+    const decks = [...new Set(actualSeats.map((s) => s.deck))].sort(
+      (a, b) => a - b,
+    );
+    return (
+      <div
+        className="operator-vehicles__server-map"
+        aria-label={`Sơ đồ ${vehicle.plate}`}
+      >
+        {decks.map((deck) => (
+          <section key={deck}>
+            <h4>Tầng {deck}</h4>
+            <div className="operator-vehicles__server-seats">
+              {actualSeats
+                .filter((s) => s.deck === deck)
+                .sort((a, b) => a.row - b.row || a.column - b.column)
+                .map((seat) => (
+                  <button
+                    key={seat.code}
+                    type="button"
+                    aria-label={`Ghế ${seat.code}`}
+                    aria-pressed={seat.enabled}
+                    disabled={pending}
+                    onClick={() => toggle(seat.code, !seat.enabled)}
+                    style={{
+                      gridRow: seat.row + 1,
+                      gridColumn: seat.column + 1,
+                    }}
+                  >
+                    {seat.code}
+                  </button>
+                ))}
+            </div>
+          </section>
+        ))}
+      </div>
+    );
+  }
   if (vehicle.type === 2 || vehicle.type === 4)
     return (
       <VipSeatedSeatMap vehicle={vehicle} pending={pending} toggle={toggle} />
@@ -512,7 +551,9 @@ export function VehicleManagementPage(): ReactElement {
                       </span>
                       <span className="operator-vehicles__row-copy">
                         <strong>{v.plate}</strong>
-                        <span>{VEHICLE_TYPES[v.type].name}</span>
+                        <span>
+                          {v.layoutLabel ?? VEHICLE_TYPES[v.type].name}
+                        </span>
                       </span>
                       <small>
                         {vehicleCapacity(v)}{" "}
@@ -543,13 +584,18 @@ export function VehicleManagementPage(): ReactElement {
               >
                 <header>
                   <h2>{vehicle.plate}</h2>
-                  <p>{VEHICLE_TYPES[vehicle.type].name}</p>
+                  <p>
+                    {vehicle.layoutLabel ?? VEHICLE_TYPES[vehicle.type].name}
+                  </p>
                 </header>
                 <h3>Thông tin xe</h3>
                 <div className="operator-vehicles__facts">
                   {[
                     ["BIỂN SỐ", vehicle.plate],
-                    ["LOẠI XE", VEHICLE_TYPES[vehicle.type].name],
+                    [
+                      "LOẠI XE",
+                      vehicle.layoutLabel ?? VEHICLE_TYPES[vehicle.type].name,
+                    ],
                     [
                       "SỨC CHỨA",
                       `${vehicleCapacity(vehicle)} ${vehicle.type === 14 ? "cabin" : vehicle.type === 10 || vehicle.type === 11 || vehicle.type === 12 || vehicle.type === 13 ? "phòng" : "chỗ"}`,
@@ -612,53 +658,54 @@ export function VehicleManagementPage(): ReactElement {
                     permission.mutate({ id: vehicle.id, code, enabled });
                   }}
                 />
-                {(vehicle.type === 1 ||
-                  vehicle.type === 2 ||
-                  vehicle.type === 6 ||
-                  vehicle.type === 4 ||
-                  vehicle.type === 7 ||
-                  vehicle.type === 5) && (
-                  <label className="operator-vehicles__rear">
-                    <span>CẤU HÌNH HÀNG CUỐI</span>
-                    <select
-                      aria-label="Cấu hình hàng cuối"
-                      value={
-                        vehicle.rearSeats ??
-                        (vehicle.type === 2 || vehicle.type === 6 ? 5 : 3)
-                      }
-                      disabled={
-                        permission.isPending ||
-                        rear.isPending ||
-                        cabin.isPending ||
-                        room.isPending
-                      }
-                      onChange={(event) => {
-                        if (lock.current) return;
-                        lock.current = true;
-                        rear.mutate({
-                          id: vehicle.id,
-                          rearSeats: Number(event.target.value),
-                        });
-                      }}
-                    >
-                      {(vehicle.type === 2 || vehicle.type === 6
-                        ? [4, 5]
-                        : vehicle.type === 7 || vehicle.type === 5
-                          ? [3, 4, 5]
-                          : [2, 3, 4]
-                      ).map((count) => (
-                        <option key={count} value={count}>
-                          {count}{" "}
-                          {vehicle.type === 5 ||
-                          vehicle.type === 6 ||
-                          vehicle.type === 7
-                            ? "giường / tầng"
-                            : "ghế"}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                )}
+                {!vehicle.actualSeats &&
+                  (vehicle.type === 1 ||
+                    vehicle.type === 2 ||
+                    vehicle.type === 6 ||
+                    vehicle.type === 4 ||
+                    vehicle.type === 7 ||
+                    vehicle.type === 5) && (
+                    <label className="operator-vehicles__rear">
+                      <span>CẤU HÌNH HÀNG CUỐI</span>
+                      <select
+                        aria-label="Cấu hình hàng cuối"
+                        value={
+                          vehicle.rearSeats ??
+                          (vehicle.type === 2 || vehicle.type === 6 ? 5 : 3)
+                        }
+                        disabled={
+                          permission.isPending ||
+                          rear.isPending ||
+                          cabin.isPending ||
+                          room.isPending
+                        }
+                        onChange={(event) => {
+                          if (lock.current) return;
+                          lock.current = true;
+                          rear.mutate({
+                            id: vehicle.id,
+                            rearSeats: Number(event.target.value),
+                          });
+                        }}
+                      >
+                        {(vehicle.type === 2 || vehicle.type === 6
+                          ? [4, 5]
+                          : vehicle.type === 7 || vehicle.type === 5
+                            ? [3, 4, 5]
+                            : [2, 3, 4]
+                        ).map((count) => (
+                          <option key={count} value={count}>
+                            {count}{" "}
+                            {vehicle.type === 5 ||
+                            vehicle.type === 6 ||
+                            vehicle.type === 7
+                              ? "giường / tầng"
+                              : "ghế"}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  )}
                 {vehicle.type === 13 && (
                   <label className="operator-vehicles__rear">
                     <span>CẤU HÌNH CABIN</span>

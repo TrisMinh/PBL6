@@ -12,13 +12,14 @@ export const memberRoles = {
   dispatcher: "Điều phối",
   accountant: "Kế toán",
   support: "Chăm sóc khách hàng",
+  driver: "Tài xế",
 } as const;
 export const memberStates = {
   active: "Đang hoạt động",
   invited: "Chờ chấp nhận",
   suspended: "Tạm ngưng",
 } as const;
-const role = z.enum(["owner", "dispatcher", "accountant", "support"]);
+const role = z.enum(["owner", "dispatcher", "accountant", "support", "driver"]);
 export const memberInputSchema = z.object({
   name: z.string().trim().min(2, "Nhập họ tên ít nhất 2 ký tự").max(100),
   email: z.email("Email không hợp lệ").trim().toLowerCase(),
@@ -53,6 +54,7 @@ export type Settlement = {
   commission: number;
   status: "paid" | "pending" | "review";
   reference: string;
+  net?: number;
 };
 type Workspace = {
   organization: z.infer<typeof organizationSchema>;
@@ -77,13 +79,13 @@ const roles: Record<string, string> = {
   dispatcher: "OPERATOR_SCHEDULER",
   accountant: "OPERATOR_FINANCE",
   support: "OPERATOR_OPERATIONS",
+  driver: "DRIVER",
 };
 export async function readWorkspace(): Promise<Workspace> {
-  const [org, staff, extra, settlements] = await Promise.all([
+  const [org, staff, extra] = await Promise.all([
     request("/api/v1/operator/organization"),
     rows("/api/v1/operator/staff"),
     metadata("organization"),
-    getSettlements(),
   ]);
   const m = extra[org.id] ?? {};
   return {
@@ -105,13 +107,14 @@ export async function readWorkspace(): Promise<Workspace> {
         "support") as WorkspaceMember["role"],
       status: v.status === "ACTIVE" ? "active" : "suspended",
     })),
-    settlements,
+    settlements: [],
   };
 }
 export async function getSettlements(): Promise<Settlement[]> {
-  const [values, bookings] = await Promise.all([
+  const [values, bookings, refunds] = await Promise.all([
     rows("/api/v1/operator/settlements"),
     rows("/api/v1/operator/bookings"),
+    rows("/api/v1/operator/refunds"),
   ]);
   return values.map((v) => {
     const b = bookings.find((b) => b.id === v.bookingId);
@@ -121,8 +124,11 @@ export async function getSettlements(): Promise<Settlement[]> {
       route: "—",
       date: b?.createdAt ? localDateTime(b.createdAt).slice(0, 10) : "",
       gross: v.grossAmount,
-      refunds: v.refundAmount ?? 0,
+      refunds: refunds
+        .filter((r) => r.bookingId === v.bookingId && r.status === "SUCCEEDED")
+        .reduce((sum, r) => sum + Number(r.amount), 0),
       commission: v.commissionAmount,
+      net: v.operatorNet,
       status:
         v.collectionStatus === "PAID"
           ? "paid"
@@ -210,10 +216,11 @@ export function settlementTotals(items: Settlement[]): {
       gross: sum.gross + row.gross,
       refunds: sum.refunds + row.refunds,
       commission: sum.commission + row.commission,
+      net: sum.net + (row.net ?? row.gross - row.refunds - row.commission),
     }),
-    { gross: 0, refunds: 0, commission: 0 },
+    { gross: 0, refunds: 0, commission: 0, net: 0 },
   );
-  return { ...total, net: total.gross - total.refunds - total.commission };
+  return total;
 }
 export function settlementCsv(items: Settlement[]): string {
   const cell = (value: string | number): string =>
@@ -241,7 +248,7 @@ export function settlementCsv(items: Settlement[]): string {
         r.gross,
         r.refunds,
         r.commission,
-        r.gross - r.refunds - r.commission,
+        r.net ?? r.gross - r.refunds - r.commission,
         r.status,
         r.reference,
       ]),

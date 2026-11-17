@@ -23,6 +23,8 @@ import scheduledDot from "@/assets/operator/schedule/imgStatusDot1.svg";
 import draftDot from "@/assets/operator/schedule/imgStatusDot2.svg";
 import createIcon from "@/assets/operator/schedule/imgIconCalendarPlus.svg";
 import "./SchedulePage.css";
+import { isMockApi } from "@/shared/api/config";
+import { paginationWindow } from "../components/paginationWindow";
 
 const CITIES = ["TP.HCM", "Đà Lạt", "Nha Trang", "Phan Thiết"];
 const STATUS = [
@@ -30,6 +32,9 @@ const STATUS = [
   ["draft", "Nháp"],
   ["scheduled", "Đã lên lịch"],
   ["boarding", "Đang đón khách"],
+  ["departed", "Đã khởi hành"],
+  ["completed", "Hoàn thành"],
+  ["cancelled", "Đã hủy"],
 ] as const;
 const PERIODS = [
   ["morning", "06:00 — 12:00"],
@@ -140,8 +145,16 @@ export function ScheduleCard({
         />
         <div>
           <span>MÃ CHUYẾN</span>
-          <h3>{displayCode ?? trip.id}</h3>
+          <h3 title={trip.id}>
+            {displayCode ??
+              (/^[0-9a-f-]{36}$/i.test(trip.id)
+                ? `CX-${trip.id.slice(-8).toUpperCase()}`
+                : trip.id)}
+          </h3>
           <small>{trip.vehicleLabel}</small>
+          <time dateTime={trip.date}>
+            {trip.date.split("-").reverse().join("/")}
+          </time>
         </div>
       </div>
       <div className="operator-schedule__journey">
@@ -153,7 +166,14 @@ export function ScheduleCard({
         <div className="operator-schedule__rail">
           <span className="operator-schedule__status">
             <img src={status[1]} alt="" />
-            {statusLabel ?? status[0]}
+            {statusLabel ??
+              (trip.status === "cancelled"
+                ? "ĐÃ HỦY"
+                : trip.status === "completed"
+                  ? "HOÀN THÀNH"
+                  : trip.status === "departed"
+                    ? "ĐÃ KHỞI HÀNH"
+                    : status[0])}
           </span>
           <img
             className="operator-schedule__route-art"
@@ -198,15 +218,21 @@ export function ScheduleCard({
 export function SchedulePage(): ReactElement {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
-  const [origin, setOrigin] = useState(params.get("origin") ?? "TP.HCM");
-  const [destination, setDestination] = useState(
-    params.get("destination") ?? "Đà Lạt",
+  const [origin, setOrigin] = useState(
+    params.get("origin") ?? (isMockApi ? "TP.HCM" : ""),
   );
-  const [date, setDate] = useState(params.get("date") ?? "2026-08-28");
+  const [destination, setDestination] = useState(
+    params.get("destination") ?? (isMockApi ? "Đà Lạt" : ""),
+  );
+  const [date, setDate] = useState(
+    params.get("date") ?? (isMockApi ? "2026-08-28" : ""),
+  );
   const [status, setStatus] = useState(params.get("status") ?? "");
-  const [period, setPeriod] = useState(params.get("period") ?? "morning");
+  const [period, setPeriod] = useState(
+    params.get("period") ?? (isMockApi ? "morning" : ""),
+  );
   const [assignment, setAssignment] = useState(
-    params.get("assignment") ?? "complete",
+    params.get("assignment") ?? (isMockApi ? "complete" : ""),
   );
   const query = useQuery({
     queryKey: ["operator", "schedule-preview"],
@@ -214,6 +240,13 @@ export function SchedulePage(): ReactElement {
   });
   const criteria: ScheduleCriteria = Object.fromEntries(params);
   const trips = selectSchedule(query.data ?? [], criteria);
+  const cities = isMockApi
+    ? CITIES
+    : [
+        ...new Set(
+          (query.data ?? []).flatMap((t) => [t.origin, t.destination]),
+        ),
+      ].sort((a, b) => a.localeCompare(b, "vi"));
   const pages = Math.max(1, Math.ceil(trips.length / 5));
   const requestedPage = Number(params.get("page") ?? "1");
   const page =
@@ -236,12 +269,12 @@ export function SchedulePage(): ReactElement {
     update({ origin, destination, date, status });
   };
   const reset = (): void => {
-    setOrigin("TP.HCM");
-    setDestination("Đà Lạt");
-    setDate("2026-08-28");
+    setOrigin(isMockApi ? "TP.HCM" : "");
+    setDestination(isMockApi ? "Đà Lạt" : "");
+    setDate(isMockApi ? "2026-08-28" : "");
     setStatus("");
-    setPeriod("morning");
-    setAssignment("complete");
+    setPeriod(isMockApi ? "morning" : "");
+    setAssignment(isMockApi ? "complete" : "");
     setParams({});
   };
   const changePage = (value: number): void => {
@@ -273,7 +306,7 @@ export function SchedulePage(): ReactElement {
             onChange={setOrigin}
             options={[
               ["", "Tất cả"],
-              ...CITIES.map((city): [string, string] => [city, city]),
+              ...cities.map((city): [string, string] => [city, city]),
             ]}
           />
           <button
@@ -293,7 +326,7 @@ export function SchedulePage(): ReactElement {
             onChange={setDestination}
             options={[
               ["", "Tất cả"],
-              ...CITIES.map((city): [string, string] => [city, city]),
+              ...cities.map((city): [string, string] => [city, city]),
             ]}
           />
           <label className="operator-schedule__query-field">
@@ -414,8 +447,12 @@ export function SchedulePage(): ReactElement {
                 >
                   ‹
                 </button>
-                {Array.from({ length: pages }, (_, index) => index + 1).map(
-                  (number) => (
+                {paginationWindow(page, pages).map((number) =>
+                  typeof number === "string" ? (
+                    <span key={number} aria-hidden="true">
+                      …
+                    </span>
+                  ) : (
                     <button
                       key={number}
                       aria-label={`Trang ${number}`}

@@ -27,6 +27,7 @@ import membersIcon from "@/assets/operator/schedule/imgFrame7.svg";
 import refundsIcon from "@/assets/operator/schedule/imgFrame8.svg";
 import "./OperatorLayout.css";
 import { workspaceAccess } from "@/features/auth/lib/workspaceAccess";
+import { OperatorWorkspaceContext } from "./OperatorWorkspaceContext";
 
 const groups = [
   {
@@ -59,7 +60,7 @@ const groups = [
       { to: "/operator/settlements", label: "Đối soát", icon: bookingsIcon },
       { to: "/operator/reports", label: "Báo cáo", icon: reportsIcon },
       {
-        to: "/operator/trips?view=organization",
+        to: "/operator/organization",
         label: "Hồ sơ nhà xe",
         icon: membersIcon,
       },
@@ -256,7 +257,9 @@ function LiveOperatorLayout(): ReactElement {
           className="operator-workspace__main"
           tabIndex={-1}
         >
-          <Outlet />
+          <OperatorWorkspaceContext.Provider value={true}>
+            <Outlet />
+          </OperatorWorkspaceContext.Provider>
         </main>
       </div>
     </div>

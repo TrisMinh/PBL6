@@ -8,6 +8,8 @@ import { Button } from "@/shared/ui/Button/Button";
 import { Input } from "@/shared/ui/Input/Input";
 import { PageState } from "@/shared/ui/PageState/PageState";
 import { getOperatorReport } from "./reportsRepository";
+import { operatorDefaultRange } from "../operatorDates";
+import { isMockApi } from "@/shared/api/config";
 import {
   reportFiltersSchema,
   reportPeriodSchema,
@@ -255,8 +257,9 @@ function RevenueChart({ report }: { report: OperatorReport }): ReactElement {
 export function ReportsPage(): ReactElement {
   const returnFocus = useRef<HTMLElement | null>(null);
   const [params, setParams] = useSearchParams();
-  const from = params.get("from") ?? "2026-08-01",
-    to = params.get("to") ?? "2026-08-31";
+  const defaults = operatorDefaultRange("reports");
+  const from = params.get("from") ?? defaults.from,
+    to = params.get("to") ?? defaults.to;
   const period = reportPeriodSchema
     .catch("month")
     .parse(params.get("period") ?? "month");
@@ -314,7 +317,7 @@ export function ReportsPage(): ReactElement {
         <header className="operator-schedule__header operator-reports__header">
           <div>
             <h1>Báo cáo tổng quan</h1>
-            <span>Dữ liệu minh họa</span>
+            <span>{isMockApi ? "Dữ liệu minh họa" : "Dữ liệu nhà xe"}</span>
           </div>
           <div className="operator-reports__header-actions">
             <button
@@ -419,7 +422,7 @@ export function ReportsPage(): ReactElement {
                   ) : (
                     <PageState
                       title="Chưa có doanh thu"
-                      description="Không có dữ liệu minh họa trong khoảng ngày đã chọn."
+                      description="Không có doanh thu trong khoảng ngày đã chọn."
                     />
                   )}
                 </section>
@@ -624,8 +627,9 @@ export function ReportsPage(): ReactElement {
           >
             <Dialog.Title>Khoảng thời gian báo cáo</Dialog.Title>
             <Dialog.Description>
-              Chọn ngày bắt đầu và kết thúc. Dữ liệu minh họa có trong tháng
-              8/2026.
+              {isMockApi
+                ? "Chọn ngày bắt đầu và kết thúc. Dữ liệu minh họa có trong tháng 8/2026."
+                : "Chọn khoảng ngày để xem dữ liệu đã ghi nhận của nhà xe."}
             </Dialog.Description>
             <DateRangeForm
               key={`${from}-${to}`}
@@ -675,7 +679,9 @@ export function ReportsPage(): ReactElement {
                     : "Vị trí xe minh họa"}
             </Dialog.Title>
             <Dialog.Description>
-              Dữ liệu minh họa của phân hệ Operator.
+              {isMockApi
+                ? "Dữ liệu minh họa của phân hệ Operator."
+                : "Thông tin từ dữ liệu vận hành của nhà xe."}
             </Dialog.Description>
             {detail?.kind === "notifications" && (
               <p>

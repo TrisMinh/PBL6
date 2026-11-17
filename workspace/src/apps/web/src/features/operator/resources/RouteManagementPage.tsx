@@ -561,19 +561,23 @@ export function RouteManagementPage(): ReactElement {
                     </Button>
                     <p>
                       Cập nhật lần cuối{" "}
-                      {new Intl.DateTimeFormat("vi-VN", {
-                        timeZone: "Asia/Ho_Chi_Minh",
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric",
-                      }).format(new Date(route.updatedAt))}{" "}
+                      {route.updatedAt
+                        ? new Intl.DateTimeFormat("vi-VN", {
+                            timeZone: "Asia/Ho_Chi_Minh",
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                          }).format(new Date(route.updatedAt))
+                        : "Chưa cập nhật"}{" "}
                       ·{" "}
-                      {new Intl.DateTimeFormat("vi-VN", {
-                        timeZone: "Asia/Ho_Chi_Minh",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        hour12: false,
-                      }).format(new Date(route.updatedAt))}
+                      {route.updatedAt
+                        ? new Intl.DateTimeFormat("vi-VN", {
+                            timeZone: "Asia/Ho_Chi_Minh",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: false,
+                          }).format(new Date(route.updatedAt))
+                        : "—"}
                     </p>
                   </footer>
                 </>
