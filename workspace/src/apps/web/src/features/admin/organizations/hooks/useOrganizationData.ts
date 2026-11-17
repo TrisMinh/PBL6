@@ -41,6 +41,7 @@ export function useOrganizations(
   const repository = useAdminRepository();
   return useQuery({
     queryKey: adminKeys.organizations.list(params),
+    enabled: Boolean(repository),
     queryFn: ({ signal }) =>
       requireRepository(repository).listOrganizations(params, signal),
     gcTime: 0,
@@ -56,7 +57,7 @@ export function useOrganization(
     queryKey: adminKeys.organizations.detail(organizationId),
     queryFn: ({ signal }) =>
       requireRepository(repository).getOrganization(organizationId, signal),
-    enabled: Boolean(organizationId),
+    enabled: Boolean(repository && organizationId),
     gcTime: 0,
     refetchOnWindowFocus: false,
   });

@@ -42,6 +42,7 @@ export function useStaff(
   const repository = useAdminRepository();
   return useQuery({
     queryKey: adminKeys.staff.list(params),
+    enabled: Boolean(repository),
     queryFn: ({ signal }) =>
       requireRepository(repository).listStaff(params, signal),
     gcTime: 0,
@@ -55,7 +56,7 @@ export function useStaffMember(staffId: string): UseQueryResult<Staff, Error> {
     queryKey: adminKeys.staff.detail(staffId),
     queryFn: ({ signal }) =>
       requireRepository(repository).getStaff(staffId, signal),
-    enabled: Boolean(staffId),
+    enabled: Boolean(repository && staffId),
     gcTime: 0,
     refetchOnWindowFocus: false,
   });
@@ -73,6 +74,7 @@ export function useStaffOrganizations(): UseQueryResult<
   const repository = useAdminRepository();
   return useQuery({
     queryKey: adminKeys.organizations.list(ORGANIZATION_PARAMS),
+    enabled: Boolean(repository),
     queryFn: ({ signal }) =>
       requireRepository(repository).listOrganizations(
         ORGANIZATION_PARAMS,

@@ -24,14 +24,20 @@ export function writeMockSession(session: AuthSession): boolean {
     return false;
   }
 }
-export function clearMockSession(): void {
+export function clearMockSession(expectedToken?: string): void {
   if (!isMockApi) {
     clearApiSession();
     return;
   }
   try {
-    const existed =
-      window.sessionStorage.getItem(MOCK_SESSION_STORAGE_KEY) !== null;
+    const raw = window.sessionStorage.getItem(MOCK_SESSION_STORAGE_KEY);
+    if (expectedToken !== undefined) {
+      const current = authenticatedSessionSchema.safeParse(
+        raw ? JSON.parse(raw) : null,
+      );
+      if (!current.success || current.data.token !== expectedToken) return;
+    }
+    const existed = raw !== null;
     window.sessionStorage.removeItem(MOCK_SESSION_STORAGE_KEY);
     if (existed) notify();
   } catch {

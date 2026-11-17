@@ -1,7 +1,11 @@
 import { http, HttpResponse } from "msw";
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { MOCK_SESSION_HEADER } from "@/features/auth/config/session";
+import {
+  MOCK_SESSION_HEADER,
+  MOCK_SESSION_STORAGE_KEY,
+} from "@/features/auth/config/session";
+import { writeMockSession } from "@/features/auth/lib/sessionStorage";
 import type { AdminListParams } from "@/features/admin/schemas/adminListParams.schema";
 import type {
   AdminBooking,
@@ -26,6 +30,7 @@ describe("HTTP admin repository", () => {
   const db = createMockDb();
 
   beforeEach(() => {
+    sessionStorage.clear();
     db.reset();
     db.authSessions.set(ADMIN_TOKEN, {
       token: ADMIN_TOKEN,
@@ -43,6 +48,32 @@ describe("HTTP admin repository", () => {
     });
     server.use(...createAdminHandlers({ db, now: () => NOW }));
   });
+
+  it.each([401, 403, 503])(
+    "only clears a rejected session on HTTP %i",
+    async (status) => {
+      writeMockSession({
+        userId: "mock-admin",
+        role: "admin",
+        token: ADMIN_TOKEN,
+        expiresAt: new Date(Date.now() + 60_000).toISOString(),
+      });
+      server.use(
+        http.get(
+          "/api/v1/admin/staff",
+          () => new HttpResponse(null, { status }),
+        ),
+      );
+      await expect(
+        createHttpAdminRepository({ sessionToken: ADMIN_TOKEN }).listStaff(
+          DEFAULT_PARAMS,
+        ),
+      ).rejects.toMatchObject({ code: "HTTP_ERROR", status });
+      expect(sessionStorage.getItem(MOCK_SESSION_STORAGE_KEY) === null).toBe(
+        status === 401,
+      );
+    },
+  );
 
   it.each<{
     name: string;

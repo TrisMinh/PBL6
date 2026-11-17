@@ -28,4 +28,23 @@ describe("safe existing mock session storage", () => {
     });
     expect(writeMockSession(session)).toBe(false);
   });
+  it("clears the rejected session and notifies its guards", () => {
+    writeMockSession(session);
+    const notify = vi.fn();
+    window.addEventListener("storage", notify);
+    try {
+      clearMockSession(session.token);
+      expect(sessionStorage.getItem(MOCK_SESSION_STORAGE_KEY)).toBeNull();
+      expect(notify).toHaveBeenCalledTimes(1);
+    } finally {
+      window.removeEventListener("storage", notify);
+    }
+  });
+  it("preserves a replacement session when an older request fails", () => {
+    writeMockSession(session);
+    clearMockSession(crypto.randomUUID());
+    expect(
+      JSON.parse(sessionStorage.getItem(MOCK_SESSION_STORAGE_KEY) ?? "null"),
+    ).toEqual(session);
+  });
 });

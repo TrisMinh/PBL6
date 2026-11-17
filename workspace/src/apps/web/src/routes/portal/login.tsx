@@ -136,28 +136,6 @@ export default function PortalLogin(): ReactElement {
             </Button>
           </fieldset>
         </form>
-        {isMockApi && (
-          <aside className="portal-login__demo">
-            <h3>Tài khoản trải nghiệm</h3>
-            <p>Dữ liệu và thao tác trong bản demo đều được mô phỏng.</p>
-            <dl>
-              <dt>Email</dt>
-              <dd>{demoEmail}</dd>
-              <dt>Mật khẩu</dt>
-              <dd>BlueDemo2026</dd>
-            </dl>
-            <Button
-              variant="secondary"
-              onClick={() => {
-                setEmail(demoEmail);
-                setPassword("BlueDemo2026");
-                setError("");
-              }}
-            >
-              Điền tài khoản demo
-            </Button>
-          </aside>
-        )}
         <Link to="/">Về trang đầu</Link>
       </section>
     </main>

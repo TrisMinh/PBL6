@@ -8,6 +8,7 @@ import type { z } from "zod";
 import { z as zod } from "zod";
 
 import { MOCK_SESSION_HEADER } from "@/features/auth/config/session";
+import { clearMockSession } from "@/features/auth/lib/sessionStorage";
 import { sessionTokenSchema } from "@/features/auth/schemas/session.schema";
 import type { AdminListParams } from "@/features/admin/schemas/adminListParams.schema";
 import { adminListParamsSchema } from "@/features/admin/schemas/adminListParams.schema";
@@ -84,7 +85,7 @@ async function sendAdmin(
   const token = sessionTokenSchema.safeParse(access.sessionToken);
   if (!token.success) throw invalidInput();
   try {
-    return await fetch(path, {
+    const response = await fetch(path, {
       method: options.method ?? "GET",
       signal: options.signal,
       headers: {
@@ -100,6 +101,8 @@ async function sendAdmin(
         ? {}
         : { body: JSON.stringify(options.body) }),
     });
+    if (response.status === 401) clearMockSession(token.data);
+    return response;
   } catch {
     throw new AdminRepositoryError(
       options.signal?.aborted ? "ABORTED" : "NETWORK_ERROR",

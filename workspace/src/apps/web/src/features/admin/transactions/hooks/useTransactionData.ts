@@ -34,6 +34,7 @@ export function useAdminBookings(
   const repository = useRepository();
   return useQuery({
     queryKey: adminKeys.bookings.list(params),
+    enabled: Boolean(repository),
     queryFn: ({ signal }) =>
       requireRepository(repository).listBookings(params, signal),
     gcTime: 0,
@@ -49,7 +50,7 @@ export function useAdminBooking(
     queryKey: adminKeys.bookings.detail(id),
     queryFn: ({ signal }) =>
       requireRepository(repository).getBooking(id, signal),
-    enabled: Boolean(id),
+    enabled: Boolean(repository && id),
     gcTime: 0,
     refetchOnWindowFocus: false,
   });
@@ -61,6 +62,7 @@ export function useAdminPayments(
   const repository = useRepository();
   return useQuery({
     queryKey: adminKeys.payments.list(params),
+    enabled: Boolean(repository),
     queryFn: ({ signal }) =>
       requireRepository(repository).listPayments(params, signal),
     gcTime: 0,
@@ -76,7 +78,7 @@ export function useAdminPayment(
     queryKey: adminKeys.payments.detail(id),
     queryFn: ({ signal }) =>
       requireRepository(repository).getPayment(id, signal),
-    enabled: Boolean(id),
+    enabled: Boolean(repository && id),
     gcTime: 0,
     refetchOnWindowFocus: false,
   });
@@ -88,6 +90,7 @@ export function useAdminRefunds(
   const repository = useRepository();
   return useQuery({
     queryKey: adminKeys.refunds.list(params),
+    enabled: Boolean(repository),
     queryFn: ({ signal }) =>
       requireRepository(repository).listRefunds(params, signal),
     gcTime: 0,
@@ -101,7 +104,7 @@ export function useAdminRefund(id: string): UseQueryResult<AdminRefund, Error> {
     queryKey: adminKeys.refunds.detail(id),
     queryFn: ({ signal }) =>
       requireRepository(repository).getRefund(id, signal),
-    enabled: Boolean(id),
+    enabled: Boolean(repository && id),
     gcTime: 0,
     refetchOnWindowFocus: false,
   });

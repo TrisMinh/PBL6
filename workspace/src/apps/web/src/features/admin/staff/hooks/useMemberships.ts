@@ -28,6 +28,7 @@ export function useMemberships(filters: {
   const repository = useRepository();
   return useQuery({
     queryKey: ["admin", "memberships", filters],
+    enabled: Boolean(repository),
     queryFn: ({ signal }) => {
       if (!repository) throw new AdminRepositoryError("HTTP_ERROR", 401);
       return repository.list(filters, signal);

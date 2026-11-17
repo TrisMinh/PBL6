@@ -58,27 +58,6 @@
   gap: 10px;
   min-height: 44px;
 }
-.portal-login__demo {
-  padding: 20px;
-  background: #edf5ff;
-  border: 1px solid #c8d9ee;
-  border-radius: 16px;
-  margin-bottom: 24px;
-  font-size: 14px;
-}
-.portal-login__demo h3 {
-  font-size: 16px;
-  margin-top: 0;
-}
-.portal-login__demo dl {
-  display: grid;
-  gap: 8px;
-  overflow-wrap: anywhere;
-}
-.portal-login__demo dd {
-  margin: 0 0 8px;
-  font-weight: 600;
-}
 .portal-login__error {
   color: #b42318;
   line-height: 1.5;
