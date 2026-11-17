@@ -25,6 +25,7 @@ import createIcon from "@/assets/operator/schedule/imgIconCalendarPlus.svg";
 import "./SchedulePage.css";
 import { isMockApi } from "@/shared/api/config";
 import { paginationWindow } from "../components/paginationWindow";
+import { DatePicker } from "@/shared/ui/DatePicker/DatePicker";
 
 const CITIES = ["TP.HCM", "Đà Lạt", "Nha Trang", "Phan Thiết"];
 const STATUS = [
@@ -292,63 +293,72 @@ export function SchedulePage(): ReactElement {
       </a>
       <OperatorSidebar />
       <main id="operator-schedule-main" className="operator-schedule__main">
-        <header className="operator-schedule__header">
-          <h1>Lịch chuyến</h1>
-          <Button onClick={() => void navigate("/operator/trips/new")}>
-            <img src={createIcon} alt="" width={18} height={18} />
-            Tạo chuyến mới
-          </Button>
-        </header>
-        <form className="operator-schedule__query" onSubmit={search}>
-          <SelectField
-            label="Điểm đi"
-            value={origin}
-            onChange={setOrigin}
-            options={[
-              ["", "Tất cả"],
-              ...cities.map((city): [string, string] => [city, city]),
-            ]}
-          />
-          <button
-            className="operator-schedule__swap"
-            type="button"
-            aria-label="Đổi chiều hành trình"
-            onClick={() => {
-              setOrigin(destination);
-              setDestination(origin);
-            }}
-          >
-            <img src={swapIcon} alt="" width={16} height={16} />
-          </button>
-          <SelectField
-            label="Điểm đến"
-            value={destination}
-            onChange={setDestination}
-            options={[
-              ["", "Tất cả"],
-              ...cities.map((city): [string, string] => [city, city]),
-            ]}
-          />
-          <label className="operator-schedule__query-field">
-            <span>Ngày chạy</span>
-            <input
-              aria-label="Ngày chạy"
-              type="date"
-              value={date}
-              onChange={(event) => setDate(event.target.value)}
+        <section
+          className="operator-schedule__search-panel"
+          aria-label="Tìm kiếm lịch chuyến"
+        >
+          <header className="operator-schedule__header">
+            <div>
+              <h1>Lịch chuyến</h1>
+              <p className="operator-schedule__description">
+                Tìm theo hành trình, ngày chạy và trạng thái chuyến.
+              </p>
+            </div>
+            <Button onClick={() => void navigate("/operator/trips/new")}>
+              <img src={createIcon} alt="" width={18} height={18} />
+              Tạo chuyến mới
+            </Button>
+          </header>
+          <form className="operator-schedule__query" onSubmit={search}>
+            <SelectField
+              label="Điểm đi"
+              value={origin}
+              onChange={setOrigin}
+              options={[
+                ["", "Tất cả"],
+                ...cities.map((city): [string, string] => [city, city]),
+              ]}
             />
-          </label>
-          <SelectField
-            label="Trạng thái"
-            value={status}
-            onChange={setStatus}
-            options={STATUS}
-          />
-          <Button type="submit">
-            <img src={searchIcon} alt="" width={18} height={18} />
-            Tìm chuyến
-          </Button>
-        </form>
+            <button
+              className="operator-schedule__swap"
+              type="button"
+              aria-label="Đổi chiều hành trình"
+              onClick={() => {
+                setOrigin(destination);
+                setDestination(origin);
+              }}
+            >
+              <img src={swapIcon} alt="" width={16} height={16} />
+            </button>
+            <SelectField
+              label="Điểm đến"
+              value={destination}
+              onChange={setDestination}
+              options={[
+                ["", "Tất cả"],
+                ...cities.map((city): [string, string] => [city, city]),
+              ]}
+            />
+            <label className="operator-schedule__query-field">
+              <span>Ngày chạy</span>
+              <DatePicker
+                aria-label="Ngày chạy"
+                value={date}
+                onChange={(event) => setDate(event.target.value)}
+              />
+            </label>
+            <SelectField
+              label="Trạng thái"
+              value={status}
+              onChange={setStatus}
+              options={STATUS}
+            />
+            <Button type="submit">
+              <img src={searchIcon} alt="" width={18} height={18} />
+              Tìm chuyến
+            </Button>
+          </form>
+        </section>
         <div className="operator-schedule__body">
           <aside
             className="operator-schedule__filters"

@@ -5,7 +5,7 @@ import { Link, useSearchParams } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 import { OperatorSidebar } from "../components/OperatorSidebar";
 import { Button } from "@/shared/ui/Button/Button";
-import { Input } from "@/shared/ui/Input/Input";
+import { OperatorInput as Input } from "../components/OperatorInput";
 import { PageState } from "@/shared/ui/PageState/PageState";
 import { getOperatorReport } from "./reportsRepository";
 import { operatorDefaultRange } from "../operatorDates";

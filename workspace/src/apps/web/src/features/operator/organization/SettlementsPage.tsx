@@ -4,7 +4,7 @@ import { Link } from "react-router";
 import { OperatorSidebar } from "../components/OperatorSidebar";
 import { WorkspaceDialogHeading } from "./WorkspaceDialogHeading";
 import { Button } from "@/shared/ui/Button/Button";
-import { Input } from "@/shared/ui/Input/Input";
+import { OperatorInput as Input } from "../components/OperatorInput";
 import { StatusBadge } from "@/shared/ui/StatusBadge/StatusBadge";
 import {
   getSettlements,

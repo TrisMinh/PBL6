@@ -26,6 +26,7 @@ import reportsIcon from "@/assets/operator/schedule/imgFrame6.svg";
 import membersIcon from "@/assets/operator/schedule/imgFrame7.svg";
 import refundsIcon from "@/assets/operator/schedule/imgFrame8.svg";
 import "./OperatorLayout.css";
+import "./OperatorTheme.css";
 import { workspaceAccess } from "@/features/auth/lib/workspaceAccess";
 import { OperatorWorkspaceContext } from "./OperatorWorkspaceContext";
 
@@ -249,7 +250,7 @@ function LiveOperatorLayout(): ReactElement {
           </div>
           <div className="operator-workspace__top-actions">
             <NotificationBell />
-            <Link to="/account/tickets">Tài khoản của tôi</Link>
+            <Link to="/operator/organization">Nhà xe của tôi</Link>
           </div>
         </header>
         <main
