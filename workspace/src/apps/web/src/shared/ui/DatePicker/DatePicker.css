@@ -158,3 +158,18 @@
   color: #8b99ad;
   cursor: not-allowed;
 }
+
+.date-picker__heading > .date-picker__month-year {
+  align-items: center;
+  gap: 8px;
+}
+.date-picker__heading .date-picker__year:not([multiple]):not([size]) {
+  min-height: 29px;
+  gap: 5px;
+  padding: 2px 7px;
+  border: 1px solid #d5e3f7;
+  border-radius: 7px;
+  background: #f3f7ff;
+  color: inherit;
+  font: inherit;
+}

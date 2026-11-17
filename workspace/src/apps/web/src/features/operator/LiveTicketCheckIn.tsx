@@ -1,3 +1,4 @@
+import { Toast } from "@/shared/ui/Toast/Toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent, type ReactElement } from "react";
 import { z } from "zod";
@@ -21,7 +22,11 @@ const validationSchema = z.object({
 type Ticket = z.infer<typeof ticketSchema>;
 
 /** Two-step scan: POST /tickets/validate, then POST /tickets/{id}/check-in with the ticket version. */
-export function LiveTicketCheckIn({ tripId }: { tripId: string }): ReactElement {
+export function LiveTicketCheckIn({
+  tripId,
+}: {
+  tripId: string;
+}): ReactElement {
   const client = useQueryClient();
   const [token, setToken] = useState("");
   const [ticket, setTicket] = useState<Ticket | null>(null);
@@ -33,7 +38,8 @@ export function LiveTicketCheckIn({ tripId }: { tripId: string }): ReactElement 
         method: "POST",
         body: { tripId, scannedToken: scanned, expectedVersion: 0 },
       }),
-    onSuccess: (result) => setTicket(result.valid ? (result.ticket ?? null) : null),
+    onSuccess: (result) =>
+      setTicket(result.valid ? (result.ticket ?? null) : null),
     retry: false,
   });
   const checkIn = useMutation({
@@ -87,7 +93,8 @@ export function LiveTicketCheckIn({ tripId }: { tripId: string }): ReactElement 
       </form>
       {rejected ? (
         <p role="alert">
-          Vé không hợp lệ{validate.data.reasonCode ? `: ${validate.data.reasonCode}` : ""}.
+          Vé không hợp lệ
+          {validate.data.reasonCode ? `: ${validate.data.reasonCode}` : ""}.
         </p>
       ) : null}
       {ticket ? (
@@ -105,7 +112,12 @@ export function LiveTicketCheckIn({ tripId }: { tripId: string }): ReactElement 
           </Button>
         </div>
       ) : null}
-      {checkIn.isSuccess ? <p role="status">Đã soát vé thành công.</p> : null}
+      {checkIn.isSuccess ? (
+        <Toast
+          message="Đã soát vé thành công."
+          onClose={() => checkIn.reset()}
+        />
+      ) : null}
       {validate.isError ? <ApiFailure error={validate.error} /> : null}
       {checkIn.isError ? <ApiFailure error={checkIn.error} /> : null}
     </section>

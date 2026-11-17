@@ -31,10 +31,13 @@ public static class TransportEndpoints
         op.MapPatch("/buses/{busId:guid}", UpdateBusAsync);
         op.MapPost("/buses/{busId:guid}/deactivate", DeactivateBusAsync);
         op.MapPut("/buses/{busId:guid}/seats", ReplaceSeatsAsync);
+        op.MapPatch("/buses/{busId:guid}/seats/{code}/permission", SetSeatPermissionAsync);
         op.MapGet("/drivers", ListDriversAsync);
+        op.MapDelete("/drivers/{driverId:guid}", DeleteDriverAsync);
         op.MapPost("/drivers", CreateDriverAsync);
         op.MapPatch("/drivers/{driverId:guid}", UpdateDriverAsync);
         op.MapPost("/drivers/{driverId:guid}/deactivate", DeactivateDriverAsync);
+        op.MapPost("/drivers/{driverId:guid}/activate", ActivateDriverAsync);
         op.MapGet("/routes", ListRoutesAsync);
         op.MapPost("/routes", CreateRouteAsync);
         op.MapPatch("/routes/{routeId:guid}", UpdateRouteAsync);
@@ -42,6 +45,7 @@ public static class TransportEndpoints
         op.MapPost("/routes/{routeId:guid}/deactivate", DeactivateRouteAsync);
         op.MapGet("/trips", ListTripsAsync);
         op.MapPost("/trips", CreateTripAsync);
+        op.MapPost("/trips/recurring", CreateRecurringTripsAsync);
         op.MapPatch("/trips/{tripId:guid}", UpdateTripAsync);
         op.MapPost("/trips/{tripId:guid}/publish", PublishTripAsync);
         op.MapPost("/trips/{tripId:guid}/cancel", CancelTripAsync);
@@ -170,6 +174,13 @@ public static class TransportEndpoints
         return await Mutate(context, store, "deactivate-bus", busId, () => service.DeactivateBusAsync(actor, busId, context.RequestAborted), 200);
     }
 
+    private static async Task<IResult> SetSeatPermissionAsync(HttpContext context, TransportService service, IIdempotencyStore store, Guid busId, string code, SeatPermissionInput body)
+    {
+        var actor = ActorOf(context);
+        if (actor is null) return NeedUser(context.CorrelationId());
+        return await Mutate(context, store, "seat-permission", new { busId, code, body }, () => service.SetSeatPermissionAsync(actor, busId, code, body, context.RequestAborted), 200);
+    }
+
     private static async Task<IResult> ReplaceSeatsAsync(HttpContext context, TransportService service, IIdempotencyStore store, Guid busId, List<SeatInput> body)
     {
         var actor = ActorOf(context);
@@ -213,6 +224,24 @@ public static class TransportEndpoints
         }
 
         return await Mutate(context, store, "deactivate-driver", driverId, () => service.DeactivateDriverAsync(actor, driverId, context.RequestAborted), 200);
+    }
+
+    private static async Task<IResult> DeleteDriverAsync(HttpContext context, TransportService service, IIdempotencyStore store, Guid driverId)
+    {
+        var actor = ActorOf(context);
+        if (actor is null) return NeedUser(context.CorrelationId());
+        return await Mutate(context, store, "delete-driver", driverId, () => service.DeleteDriverAsync(actor, driverId, context.RequestAborted), 200);
+    }
+
+    private static async Task<IResult> ActivateDriverAsync(HttpContext context, TransportService service, IIdempotencyStore store, Guid driverId)
+    {
+        var actor = ActorOf(context);
+        if (actor is null)
+        {
+            return NeedUser(context.CorrelationId());
+        }
+
+        return await Mutate(context, store, "activate-driver", driverId, () => service.ActivateDriverAsync(actor, driverId, context.RequestAborted), 200);
     }
 
     private static async Task<IResult> ListRoutesAsync(HttpContext context, TransportService service)
@@ -259,6 +288,13 @@ public static class TransportEndpoints
     {
         var actor = ActorOf(context);
         return actor is null ? NeedUser(context.CorrelationId()) : (await service.ListOperatorTripsAsync(actor, page, size, context.RequestAborted)).ToHttp(context.CorrelationId());
+    }
+
+    private static async Task<IResult> CreateRecurringTripsAsync(HttpContext context, TransportService service, IIdempotencyStore store, RecurringTripInput body)
+    {
+        var actor = ActorOf(context);
+        if (actor is null) return NeedUser(context.CorrelationId());
+        return await Mutate(context, store, "create-recurring-trips", body, () => service.CreateRecurringTripsAsync(actor, body, context.RequestAborted), 201);
     }
 
     private static async Task<IResult> CreateTripAsync(HttpContext context, TransportService service, IIdempotencyStore store, TripInput body)

@@ -9,8 +9,9 @@ export function OperatorInput({
   id,
   className,
   trailingControl,
+  showYearPicker,
   ...props
-}: InputProps): ReactElement {
+}: InputProps & { showYearPicker?: boolean }): ReactElement {
   const generated = useId();
   if (props.type !== "date")
     return (
@@ -33,6 +34,7 @@ export function OperatorInput({
       </label>
       <DatePicker
         {...dateProps}
+        showYearPicker={showYearPicker}
         id={inputId}
         className={`field__control ${className ?? ""}`}
         aria-invalid={Boolean(error)}

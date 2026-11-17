@@ -127,10 +127,8 @@
   padding: 0;
 }
 .operator-create__field select {
-  appearance: none;
   padding-right: 18px;
-  background: url("../../../assets/operator/create/imgIconChevron.svg") right
-    center/16px no-repeat;
+
 }
 .operator-create__two,
 .operator-create__three {

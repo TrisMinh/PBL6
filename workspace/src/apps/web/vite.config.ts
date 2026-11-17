@@ -16,6 +16,15 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       proxy: {
+        ...(env.API_TRANSPORT_PROXY_TARGET
+          ? {
+              "^/api/v1/operator/(drivers|driver-files|resource-metadata|buses|trips)(/|[?]|$)":
+                {
+                  target: env.API_TRANSPORT_PROXY_TARGET,
+                  changeOrigin: true,
+                },
+            }
+          : {}),
         "/api/v1": {
           target:
             process.env.API_PROXY_TARGET ||

@@ -1,3 +1,5 @@
+import { OperatorStatusBadge } from "../components/OperatorStatusBadge";
+import { Toast } from "@/shared/ui/Toast/Toast";
 import { useState, type ReactElement } from "react";
 import { Link, useSearchParams } from "react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -336,16 +338,17 @@ function VehicleDetail({ vehicle }: { vehicle: Bus }): ReactElement {
       {vehicle.seats.length === 0 && (
         <p className="operator-vehicles__empty">Xe chưa có sơ đồ ghế.</p>
       )}
-      <p className="live-vehicles__feedback" role="status">
-        {mutation.isPending ? "Đang lưu…" : notice}
-      </p>
+      {mutation.isPending && (
+        <p className="live-vehicles__feedback" role="status">
+          Đang lưu…
+        </p>
+      )}
+      {notice && <Toast message={notice} onClose={() => setNotice("")} />}
       {mutation.isError && <ApiFailure error={mutation.error} />}
       <footer className="live-vehicles__footer">
-        <span
-          className={`live-vehicles__status ${vehicle.status === "ACTIVE" ? "is-active" : ""}`}
-        >
+        <OperatorStatusBadge state={vehicle.status}>
           {stateLabel(vehicle.status)}
-        </span>
+        </OperatorStatusBadge>
         <Link to={`/operator/vehicles?edit=${vehicle.id}`}>Chỉnh sửa xe</Link>
         {vehicle.status === "ACTIVE" && (
           <LiveDeactivate

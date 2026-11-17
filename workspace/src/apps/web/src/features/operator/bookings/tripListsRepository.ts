@@ -7,6 +7,7 @@ import {
   tripListsResponseSchema,
   tripPassengersResponseSchema,
   type TripListFilters,
+  type ManifestPassenger,
   type TripPassengersResponse,
 } from "./tripLists.schema";
 function tripRow(
@@ -59,26 +60,33 @@ export async function getPassengerTrips(
     routes,
   });
 }
+export async function getPassengerTrip(
+  id: string,
+  signal?: AbortSignal,
+): Promise<TripPassengersResponse["trip"]> {
+  const { trips, buses, drivers } = await scheduleResources(signal);
+  const trip = trips.find((item) => item.id === id);
+  if (!trip) throw Error("Không tìm thấy chuyến này.");
+
+  const driver = drivers.find((item) => item.id === trip.driverId);
+  return tripPassengersResponseSchema.shape.trip.parse({
+    ...tripRow(trip, buses, drivers),
+    driver: driver?.fullName ?? driver?.licenseNumber ?? "Chưa phân công",
+  });
+}
+
 export async function getTripPassengers(
   id: string,
   signal?: AbortSignal,
-): Promise<TripPassengersResponse> {
-  const { trips, buses, drivers } = await scheduleResources(signal);
-  const t = trips.find((v) => v.id === id);
-  if (!t) throw Error("Không tìm thấy chuyến này.");
+): Promise<ManifestPassenger[]> {
   const manifest = await request(
     `/api/v1/operator/trips/${id}/manifest`,
     "GET",
     undefined,
     signal,
   );
-  const driver = drivers.find((d) => d.id === t.driverId);
-  return tripPassengersResponseSchema.parse({
-    trip: {
-      ...tripRow(t, buses, drivers, manifest.passengers),
-      driver: driver?.fullName ?? driver?.licenseNumber ?? "Chưa phân công",
-    },
-    passengers: manifest.passengers.map((p: Row) => ({
+  return tripPassengersResponseSchema.shape.passengers.parse(
+    manifest.passengers.map((p: Row) => ({
       name: p.passengerName,
       phone: "",
       seat: p.seatCode,
@@ -93,5 +101,5 @@ export async function getTripPassengers(
             ? "confirmed"
             : "waiting",
     })),
-  });
+  );
 }

@@ -1,11 +1,13 @@
+import { displayCode } from "../components/displayCode";
 import { useState, type FormEvent, type ReactElement } from "react";
 import { useNavigate } from "react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { OperatorSidebar } from "../components/OperatorSidebar";
 import { Button } from "@/shared/ui/Button/Button";
-import { Input } from "@/shared/ui/Input/Input";
+import { OperatorInput as Input } from "../components/OperatorInput";
 import {
   createDriverSchema,
+  driverInputSchema,
   updateDriverSchema,
   type DriverStatus,
   LICENSE_CLASSES,
@@ -14,6 +16,7 @@ import {
 } from "./drivers.schema";
 import { createDriver, updateDriverProfile } from "./driversRepository";
 import { storeDriverFile, deleteDriverFile } from "./driverFiles";
+import { driverRouteLabel, useDriverRoutes } from "./driverRoutes";
 import { DriverUpload } from "./DriverUpload";
 import navTrips from "@/assets/operator/drivers/add/imgFrame.svg";
 import navBookings from "@/assets/operator/drivers/add/imgFrame1.svg";
@@ -23,7 +26,6 @@ import navDrivers from "@/assets/operator/drivers/add/imgFrame4.svg";
 import navReports from "@/assets/operator/drivers/add/imgFrame5.svg";
 import navMembers from "@/assets/operator/drivers/add/imgFrame6.svg";
 import navCancel from "@/assets/operator/drivers/add/imgFrame7.svg";
-import chevron from "@/assets/operator/drivers/add/imgIconChevronDown.svg";
 import "../schedule/SchedulePage.css";
 import "./DriversPage.css";
 import "./AddDriverPage.css";
@@ -79,6 +81,11 @@ export function DriverEditor({
         : initial,
     ),
     [touched, setTouched] = useState<Partial<Record<FormKey, boolean>>>({});
+  const routes = useDriverRoutes();
+  const [assignedRouteId, setAssignedRouteId] = useState(
+    driver?.assignedRouteId ?? "",
+  );
+  const [submitted, setSubmitted] = useState(false);
   const [notes, setNotes] = useState(driver?.notes ?? ""),
     [status, setStatus] = useState<DriverStatus>(driver?.status ?? "available");
   const [files, setFiles] = useState<Partial<Record<FileSlot, File | null>>>(
@@ -93,6 +100,7 @@ export function DriverEditor({
     issuedAt: driverDateInput(values.issuedAt),
     expiresAt: driverDateInput(values.expiresAt),
     notes,
+    assignedRouteId,
     status,
   });
   const errors: Record<string, string> = parsed.success
@@ -102,6 +110,15 @@ export function DriverEditor({
           .reverse()
           .map((e) => [String(e.path[0]), e.message]),
       );
+  if (driver) {
+    for (const key of ["phone", "licenseNumber"] as const) {
+      if (values[key].replace(/\s/g, "") === driver[key].replace(/\s/g, ""))
+        continue;
+      const result = driverInputSchema.shape[key].safeParse(values[key]);
+      if (!result.success) errors[key] = result.error.issues[0].message;
+    }
+  }
+  const hasErrors = Object.keys(errors).length > 0;
   const mutation = useMutation({
     mutationFn: async () => {
       if (!parsed.success) throw Error("Vui lòng kiểm tra thông tin bắt buộc.");
@@ -153,22 +170,29 @@ export function DriverEditor({
       inputMode?: "numeric" | "tel";
     } = {},
   ): ReactElement {
+    const dateField = ["birthDate", "issuedAt", "expiresAt"].includes(key);
     return (
       <Input
         label={label}
         placeholder={placeholder}
         name={key}
-        value={values[key]}
+        value={dateField ? driverDateInput(values[key]) : values[key]}
         required={label.endsWith("*")}
-        type={extra.type ?? "text"}
+        showYearPicker={dateField}
+        type={dateField ? "date" : (extra.type ?? "text")}
         inputMode={extra.inputMode}
         maxLength={extra.maxLength ?? 100}
         onChange={(e) => {
-          setValues((previous) => ({ ...previous, [key]: e.target.value }));
+          setValues((previous) => ({
+            ...previous,
+            [key]: dateField
+              ? e.target.value.split("-").reverse().join(" / ")
+              : e.target.value,
+          }));
           mutation.reset();
         }}
         onBlur={() => setTouched((previous) => ({ ...previous, [key]: true }))}
-        error={touched[key] ? errors[key] : undefined}
+        error={submitted || touched[key] ? errors[key] : undefined}
       />
     );
   }
@@ -198,9 +222,17 @@ export function DriverEditor({
       />
     );
   }
-  function submit(event: FormEvent): void {
+  function submit(event: FormEvent<HTMLFormElement>): void {
     event.preventDefault();
-    if (parsed.success && !Object.values(busyFiles).some(Boolean))
+    setSubmitted(true);
+    if (hasErrors) {
+      const form = event.currentTarget;
+      window.requestAnimationFrame(() =>
+        form.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus(),
+      );
+      return;
+    }
+    if (!mutation.isPending && !Object.values(busyFiles).some(Boolean))
       mutation.mutate();
   }
   const back = (): void => {
@@ -232,7 +264,7 @@ export function DriverEditor({
           </Button>
           <p>
             {driver
-              ? `${driver.id} / Cập nhật thông tin và hồ sơ tài xế.`
+              ? `${displayCode(driver.id, "TX")} / Cập nhật thông tin và hồ sơ tài xế.`
               : "Tạo hồ sơ tài xế mới. Các trường có * là bắt buộc."}
           </p>
         </div>
@@ -254,11 +286,18 @@ export function DriverEditor({
                   {field("name", "Họ và tên *", "Nhập họ và tên", {
                     maxLength: 80,
                   })}
-                  {field("phone", "Số điện thoại *", "Nhập số điện thoại", {
-                    type: "tel",
-                    inputMode: "tel",
-                    maxLength: 16,
-                  })}
+                  {field(
+                    "phone",
+                    driver && !driver.phone
+                      ? "Số điện thoại"
+                      : "Số điện thoại *",
+                    "Nhập số điện thoại",
+                    {
+                      type: "tel",
+                      inputMode: "tel",
+                      maxLength: 16,
+                    },
+                  )}
                   {field("birthDate", "Ngày sinh", "DD / MM / YYYY", {
                     inputMode: "numeric",
                     maxLength: 14,
@@ -311,12 +350,13 @@ export function DriverEditor({
                           licenseClass: true,
                         }))
                       }
-                      style={{ backgroundImage: `url("${chevron}")` }}
                       aria-invalid={Boolean(
-                        touched.licenseClass && errors.licenseClass,
+                        (submitted || touched.licenseClass) &&
+                        errors.licenseClass,
                       )}
                       aria-describedby={
-                        touched.licenseClass && errors.licenseClass
+                        (submitted || touched.licenseClass) &&
+                        errors.licenseClass
                           ? "license-class-error"
                           : undefined
                       }
@@ -328,15 +368,16 @@ export function DriverEditor({
                         </option>
                       ))}
                     </select>
-                    {touched.licenseClass && errors.licenseClass && (
-                      <p
-                        id="license-class-error"
-                        className="field__error"
-                        role="alert"
-                      >
-                        {errors.licenseClass}
-                      </p>
-                    )}
+                    {(submitted || touched.licenseClass) &&
+                      errors.licenseClass && (
+                        <p
+                          id="license-class-error"
+                          className="field__error"
+                          role="alert"
+                        >
+                          {errors.licenseClass}
+                        </p>
+                      )}
                   </div>
                   {field("issuedAt", "Ngày cấp *", "DD / MM / YYYY", {
                     inputMode: "numeric",
@@ -349,6 +390,43 @@ export function DriverEditor({
                 </div>
               </section>
               <section className="driver-add__notes">
+                <label className="operator-drivers__select">
+                  <span>Tuyến phụ trách</span>
+                  <select
+                    value={assignedRouteId}
+                    onChange={(event) => setAssignedRouteId(event.target.value)}
+                    disabled={!routes.data}
+                  >
+                    <option value="">Chưa phân tuyến</option>
+                    {assignedRouteId &&
+                      !routes.data?.some(
+                        (route) => route.id === assignedRouteId,
+                      ) && (
+                        <option value={assignedRouteId}>
+                          {driverRouteLabel(assignedRouteId, routes)}
+                        </option>
+                      )}
+                    {routes.data?.map((route) => (
+                      <option
+                        key={route.id}
+                        value={route.id}
+                        disabled={
+                          route.status !== "active" &&
+                          route.id !== assignedRouteId
+                        }
+                      >
+                        {driverRouteLabel(route.id, routes)}
+                      </option>
+                    ))}
+                  </select>
+                  {!routes.data && (
+                    <small role="status">
+                      {routes.isError
+                        ? "Không tải được danh sách tuyến."
+                        : "Đang tải danh sách tuyến…"}
+                    </small>
+                  )}
+                </label>
                 <label htmlFor="driver-notes">Ghi chú nội bộ</label>
                 <textarea
                   id="driver-notes"
@@ -389,7 +467,6 @@ export function DriverEditor({
                         e.target.value === "paused" ? "paused" : "available",
                       )
                     }
-                    style={{ backgroundImage: `url("${chevron}")` }}
                   >
                     {driver?.status === "running" && (
                       <option value="running">Đang chạy chuyến</option>
@@ -406,6 +483,11 @@ export function DriverEditor({
               </section>
             </aside>
           </fieldset>
+          {submitted && hasErrors && (
+            <p className="driver-add__save-error" role="alert">
+              Vui lòng kiểm tra các trường được đánh dấu đỏ.
+            </p>
+          )}
           {mutation.error && (
             <p className="driver-add__save-error" role="alert">
               {mutation.error.message}
@@ -422,9 +504,7 @@ export function DriverEditor({
             </Button>
             <Button
               type="submit"
-              disabled={
-                !parsed.success || Object.values(busyFiles).some(Boolean)
-              }
+              disabled={Object.values(busyFiles).some(Boolean)}
               isLoading={mutation.isPending}
             >
               {driver ? "Lưu thay đổi" : "Lưu tài xế"}

@@ -1,3 +1,5 @@
+import { OperatorStatusBadge } from "../components/OperatorStatusBadge";
+import { displayCode } from "../components/displayCode";
 import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import { BookingTabs } from "./BookingTabs";
 import * as Dialog from "@radix-ui/react-dialog";
@@ -68,7 +70,7 @@ export function RecentBookingsPage(): ReactElement {
     <div className="operator-schedule operator-bookings">
       <OperatorSidebar />
       <main className="operator-schedule__main">
-        <header className="operator-schedule__header">
+        <header className="operator-bookings__page-heading">
           <h1>Đặt chỗ &amp; giao dịch</h1>
         </header>
         <BookingTabs />
@@ -233,12 +235,13 @@ export function RecentBookingsPage(): ReactElement {
                             }
                           />
                         </td>
-                        <td>{item.id}</td>
+                        <td>{displayCode(item.id, "BK")}</td>
                         <td>
                           <strong>{item.name}</strong>
                         </td>
                         <td>
-                          {item.tripId} · {item.origin} → {item.destination}
+                          {displayCode(item.tripId)} · {item.origin} →{" "}
+                          {item.destination}
                         </td>
                         <td>
                           {dateLabel(item.departureDate).slice(0, 5)} ·{" "}
@@ -249,13 +252,17 @@ export function RecentBookingsPage(): ReactElement {
                         </td>
                         <td>{number(item.amount)}đ</td>
                         <td>
-                          <span
-                            className={`operator-bookings__badge operator-bookings__badge--${item.status === "cancelled" ? "cancelled" : item.payment}`}
+                          <OperatorStatusBadge
+                            state={
+                              item.status === "cancelled"
+                                ? "cancelled"
+                                : item.payment
+                            }
                           >
                             {item.status === "cancelled"
                               ? BOOKING_STATUS.cancelled
                               : PAYMENT_STATUS[item.payment]}
-                          </span>
+                          </OperatorStatusBadge>
                         </td>
                         <td>
                           <button
@@ -371,7 +378,7 @@ export function RecentBookingsPage(): ReactElement {
             <Dialog.Content className="operator-bookings__dialog">
               <Dialog.Title>Chi tiết {detail?.id}</Dialog.Title>
               <Dialog.Description>
-                Thông tin đặt chỗ trong dữ liệu mô phỏng Operator.
+                Thông tin đơn đặt chỗ và trạng thái giao dịch.
               </Dialog.Description>
               {detail && (
                 <dl>
@@ -382,14 +389,28 @@ export function RecentBookingsPage(): ReactElement {
                     "Khởi hành": `${dateLabel(detail.departureDate)} · ${detail.departureTime}`,
                     Ghế: detail.seat,
                     "Số tiền": `${number(detail.amount)}đ`,
-                    "Trạng thái": BOOKING_STATUS[detail.status],
-                    "Thanh toán": PAYMENT_STATUS[detail.payment],
                   }).map(([label, value]) => (
                     <div key={label}>
                       <dt>{label}</dt>
                       <dd>{value}</dd>
                     </div>
                   ))}
+                  <div>
+                    <dt>Trạng thái</dt>
+                    <dd>
+                      <OperatorStatusBadge state={detail.status}>
+                        {BOOKING_STATUS[detail.status]}
+                      </OperatorStatusBadge>
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Thanh toán</dt>
+                    <dd>
+                      <OperatorStatusBadge state={detail.payment}>
+                        {PAYMENT_STATUS[detail.payment]}
+                      </OperatorStatusBadge>
+                    </dd>
+                  </div>
                 </dl>
               )}
               <Dialog.Close asChild>

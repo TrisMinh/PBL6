@@ -18,6 +18,7 @@ export async function validateDriverFile(
     throw Error(
       `Tệp phải có dung lượng lớn hơn 0 và tối đa ${avatar ? 5 : 10} MB.`,
     );
+  if (file.name.length > 255) throw Error("Tên tệp tối đa 255 ký tự.");
   const bytes = new Uint8Array(await file.slice(0, 8).arrayBuffer());
   const valid =
     file.type === "image/png"
@@ -33,13 +34,21 @@ export async function storeDriverFile(
   avatar = false,
 ): Promise<DriverAttachment> {
   await validateDriverFile(file, avatar);
+  // The upload header uses ASCII. Profile metadata retains the original name.
+  const extension =
+    file.type === "image/jpeg" ? "jpg" : file.type.split("/")[1];
+  const headerName =
+    /^[ -~]+$/.test(file.name) && file.name.trim()
+      ? file.name
+      : `tep-dinh-kem.${extension}`;
   const response = await apiFetch("/api/v1/operator/driver-files/", {
     method: "POST",
-    headers: { "Content-Type": file.type, "X-File-Name": file.name },
+    headers: { "Content-Type": file.type, "X-File-Name": headerName },
     body: file,
   });
   if (!response.ok) throw Error("Không tải được tệp lên máy chủ.");
-  return response.json() as Promise<DriverAttachment>;
+  const stored = (await response.json()) as DriverAttachment;
+  return { ...stored, name: file.name || stored.name };
 }
 export async function deleteDriverFile(id: string): Promise<void> {
   const response = await apiFetch(

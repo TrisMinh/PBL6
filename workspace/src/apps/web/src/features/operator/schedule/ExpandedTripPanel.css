@@ -107,6 +107,43 @@
 .operator-trip-expanded__editor {
   min-width: 0;
 }
+.operator-trip-expanded__technical {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  margin: 12px 0;
+}
+.operator-trip-expanded__technical summary {
+  cursor: pointer;
+}
+.operator-trip-expanded__technical code {
+  display: block;
+  overflow-wrap: anywhere;
+  padding-top: 8px;
+}
+.operator-trip-expanded
+  .operator-create__route-fields
+  > .operator-create__field {
+  border: 0;
+  padding: 0;
+  gap: 8px;
+  min-height: 0;
+  background: transparent;
+}
+.operator-trip-expanded .operator-create__route-fields select {
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border-shell);
+  border-radius: 10px;
+  background-color: var(--color-bg-surface);
+  font-size: 13px;
+}
+.operator-trip-expanded .operator-trip-workflow__datetime .date-picker__input {
+  padding-right: 38px;
+}
+.operator-trip-expanded .date-picker__trigger {
+  min-height: 32px;
+  width: 32px;
+}
 .operator-trip-expanded .operator-trip-workflow__header,
 .operator-trip-expanded .operator-create__steps {
   display: none;

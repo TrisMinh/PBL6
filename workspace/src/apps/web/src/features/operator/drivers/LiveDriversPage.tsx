@@ -1,3 +1,5 @@
+import { OperatorStatusBadge } from "../components/OperatorStatusBadge";
+import { Toast } from "@/shared/ui/Toast/Toast";
 import { useState, type ReactElement } from "react";
 import { Link, useSearchParams, useLocation } from "react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -21,29 +23,22 @@ import {
   type LiveDriver,
 } from "./liveDrivers";
 import addIcon from "@/assets/operator/drivers/imgIconUserPlus.svg";
-import availableDot from "@/assets/operator/drivers/imgStatusDot.svg";
-import runningDot from "@/assets/operator/drivers/imgStatusDot1.svg";
-import pausedDot from "@/assets/operator/drivers/imgStatusDot2.svg";
 import "./DriversPage.css";
 import "./LiveDrivers.css";
 
 function DriverBadge({ state }: { state: string }): ReactElement {
   return (
-    <span className="operator-drivers__badge">
-      <img
-        src={
-          state === "Đang chạy"
-            ? runningDot
-            : state === "Đang hoạt động"
-              ? availableDot
-              : pausedDot
-        }
-        width={8}
-        height={8}
-        alt=""
-      />
+    <OperatorStatusBadge
+      state={
+        state === "Đang chạy"
+          ? "running"
+          : state === "Đang hoạt động"
+            ? "active"
+            : "inactive"
+      }
+    >
       {state}
-    </span>
+    </OperatorStatusBadge>
   );
 }
 function Value({
@@ -266,11 +261,7 @@ export function LiveDriversPage(): ReactElement {
           Thêm tài xế
         </Link>
       </div>
-      {notice && (
-        <p className="live-drivers__notice" role="status">
-          {notice}
-        </p>
-      )}
+      {notice && <Toast message={notice} onClose={() => setNotice("")} />}
       {drivers.isPending ? (
         <p className="live-drivers__loading" role="status">
           Đang tải tài xế…

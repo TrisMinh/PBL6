@@ -1,4 +1,8 @@
-import { useQuery, type UseQueryResult } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useQuery,
+  type UseQueryResult,
+} from "@tanstack/react-query";
 import { z } from "zod";
 import { getLiveRows, liveQueryKey } from "@/shared/api/liveRequest";
 import { vietnamIso, type Trip } from "./tripWorkflow";
@@ -95,18 +99,24 @@ export function scheduleConflicts(
 
 export function useOperatorSchedule(
   enabled: boolean,
+  selectionKey?: string,
 ): UseQueryResult<ScheduleTrip[], Error> {
   return useQuery({
-    queryKey: liveQueryKey("operator-schedule-availability"),
+    queryKey:
+      selectionKey === undefined
+        ? liveQueryKey("operator-schedule-availability")
+        : liveQueryKey("operator-schedule-availability", selectionKey),
     queryFn: async ({ signal }) =>
       z
         .array(scheduleSchema)
         .parse(await getLiveRows("/api/v1/operator/trips", signal)),
     enabled,
-    staleTime: 15000,
+    placeholderData: selectionKey === undefined ? undefined : keepPreviousData,
+    staleTime: selectionKey === undefined ? 15000 : 0,
     refetchInterval: 30000,
     refetchOnWindowFocus: "always",
-    retry: false,
+    retry: selectionKey === undefined ? false : 2,
+    retryDelay: 1000,
   });
 }
 

@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from "react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { Button } from "@/shared/ui/Button/Button";
-import { Input } from "@/shared/ui/Input/Input";
+import { OperatorInput as Input } from "../components/OperatorInput";
 import { ApiFailure } from "@/shared/api/ResourcePage";
 import { liveApiJson, liveQueryKey } from "@/shared/api/liveRequest";
 import { shortId } from "@/shared/api/livePresentation";

@@ -12,8 +12,8 @@
 .operator-trip-lists .operator-bookings__panel td:nth-last-child(2) strong {
   font-size: 11px;
 }
-.operator-trip-lists .operator-bookings__pagination {
-  min-height: 74px;
+.operator-trip-lists .operator-pagination {
+  padding-block: 16px;
 }
 .operator-trip-lists__unassigned {
   color: #c9475a;

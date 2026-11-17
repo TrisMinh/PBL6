@@ -1,3 +1,5 @@
+import { OperatorStatusBadge } from "../components/OperatorStatusBadge";
+import { displayCode } from "../components/displayCode";
 import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useRef, useState, type FormEvent, type ReactElement } from "react";
@@ -6,6 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import { OperatorSidebar } from "../components/OperatorSidebar";
 import { Button } from "@/shared/ui/Button/Button";
 import { Input } from "@/shared/ui/Input/Input";
+import { DatePicker } from "@/shared/ui/DatePicker/DatePicker";
 import { PageState } from "@/shared/ui/PageState/PageState";
 import {
   REFUND_LEVELS,
@@ -107,7 +110,11 @@ function RequestDetails({ item }: { item: RefundRequest }): ReactElement {
         </div>
         <div>
           <dt>Tiến độ hoàn tiền</dt>
-          <dd>{REFUND_STATUSES[item.status]}</dd>
+          <dd>
+            <OperatorStatusBadge state={item.status}>
+              {REFUND_STATUSES[item.status]}
+            </OperatorStatusBadge>
+          </dd>
         </div>
       </dl>
       {refundLevel(minutes) === "exception" && (
@@ -223,15 +230,19 @@ export function RefundRequestsPage(): ReactElement {
               ))}
             </select>
           </div>
-          <Input
-            label="Ngày yêu cầu"
-            placeholder="DD/MM/YYYY"
-            inputMode="numeric"
-            maxLength={10}
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            error={error || undefined}
-          />
+          <div className="field">
+            <label className="field__label" htmlFor="refund-request-date">
+              Ngày yêu cầu
+            </label>
+            <DatePicker
+              id="refund-request-date"
+              className="field__control"
+              value={dateInput(date)}
+              onChange={(event) => setDate(dateLabel(event.target.value))}
+              aria-invalid={!!error}
+            />
+            {error && <p role="alert">{error}</p>}
+          </div>
           <Button type="submit">Lọc kết quả</Button>
         </form>
         <section
@@ -341,7 +352,7 @@ export function RefundRequestsPage(): ReactElement {
                             <small>{item.vehicleType}</small>
                           </td>
                           <td>
-                            <strong>{item.tripCode}</strong>
+                            <strong>{displayCode(item.tripCode)}</strong>
                             <small>{item.route}</small>
                           </td>
                           <td>

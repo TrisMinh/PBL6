@@ -191,6 +191,17 @@ public sealed class TransportService(ITransportRepository store, ITransportEvent
         return Result<BusDto>.Success(Map(updated));
     }
 
+    public async Task<Result<BusDto>> SetSeatPermissionAsync(Actor actor, Guid busId, string code, SeatPermissionInput input, CancellationToken cancellationToken)
+    {
+        if (!TryTenant(actor, FleetRoles, out var orgId, out var error)) return Fail<BusDto>(error);
+        var bus = await store.GetBusAsync(orgId, busId, cancellationToken);
+        if (bus is null || !bus.Seats.Any(seat => seat.Code == code)) return Fail<BusDto>(PlatformErrors.NotFound());
+        if (!await store.SetSeatPermissionAsync(orgId, busId, code, input.Enabled, input.ExpectedVersion, cancellationToken))
+            return Fail<BusDto>(PlatformErrors.VersionConflict());
+        var saved = await store.GetBusAsync(orgId, busId, cancellationToken);
+        return Result<BusDto>.Success(Map(saved!));
+    }
+
     public async Task<Result<BusDto>> ReplaceSeatsAsync(Actor actor, Guid busId, IReadOnlyList<SeatInput> seats, CancellationToken cancellationToken)
     {
         if (!TryTenant(actor, FleetRoles, out var orgId, out var error))
@@ -287,7 +298,24 @@ public sealed class TransportService(ITransportRepository store, ITransportEvent
         return Result<DriverProfileDto>.Success(Map(updated));
     }
 
-    public async Task<Result<DriverProfileDto>> DeactivateDriverAsync(Actor actor, Guid driverId, CancellationToken cancellationToken)
+    public async Task<Result<DriverProfileDto>> DeleteDriverAsync(Actor actor, Guid driverId, CancellationToken cancellationToken)
+    {
+        if (!TryTenant(actor, FleetRoles, out var orgId, out var error))
+            return Fail<DriverProfileDto>(error);
+        var driver = await store.GetDriverAsync(orgId, driverId, cancellationToken);
+        if (driver is null) return Fail<DriverProfileDto>(PlatformErrors.NotFound());
+        if (!await store.DeleteDriverAsync(orgId, driverId, cancellationToken))
+            return Fail<DriverProfileDto>(PlatformErrors.ResourceConflict("Tài xế đang được phân công cho chuyến chưa kết thúc. Hãy đổi tài xế của chuyến trước khi xóa."));
+        return Result<DriverProfileDto>.Success(Map(driver));
+    }
+
+    public Task<Result<DriverProfileDto>> DeactivateDriverAsync(Actor actor, Guid driverId, CancellationToken cancellationToken) =>
+        SetDriverStatusAsync(actor, driverId, active: false, cancellationToken);
+
+    public Task<Result<DriverProfileDto>> ActivateDriverAsync(Actor actor, Guid driverId, CancellationToken cancellationToken) =>
+        SetDriverStatusAsync(actor, driverId, active: true, cancellationToken);
+
+    private async Task<Result<DriverProfileDto>> SetDriverStatusAsync(Actor actor, Guid driverId, bool active, CancellationToken cancellationToken)
     {
         if (!TryTenant(actor, FleetRoles, out var orgId, out var error))
         {
@@ -300,7 +328,18 @@ public sealed class TransportService(ITransportRepository store, ITransportEvent
             return Fail<DriverProfileDto>(PlatformErrors.NotFound());
         }
 
-        var updated = driver with { Status = "INACTIVE", RowVersion = driver.RowVersion + 1 };
+        if (active && driver.LicenseExpiresOn < DateOnly.FromDateTime(DateTime.UtcNow))
+        {
+            return Fail<DriverProfileDto>(PlatformErrors.ResourceConflict("Giấy phép lái xe đã hết hạn. Cập nhật ngày hết hạn trước khi khôi phục."));
+        }
+
+        var status = active ? "ACTIVE" : "INACTIVE";
+        if (driver.Status == status)
+        {
+            return Result<DriverProfileDto>.Success(Map(driver));
+        }
+
+        var updated = driver with { Status = status, RowVersion = driver.RowVersion + 1 };
         await store.UpdateDriverAsync(updated, cancellationToken);
         return Result<DriverProfileDto>.Success(Map(updated));
     }
@@ -480,14 +519,104 @@ public sealed class TransportService(ITransportRepository store, ITransportEvent
 
     public async Task<Result<TripDto>> CreateTripDraftAsync(Actor actor, TripInput input, CancellationToken cancellationToken)
     {
+        var prepared = await PrepareTripDraftAsync(actor, input, cancellationToken);
+        if (!prepared.IsSuccess) return Fail<TripDto>(prepared.Error!);
+        var plan = prepared.Value!;
+        await store.InsertTripAsync(plan.Trip, plan.Assignment, cancellationToken);
+        return Result<TripDto>.Success(await MapTripAsync(plan.Trip, cancellationToken));
+    }
+
+    public async Task<Result<IReadOnlyList<TripDto>>> CreateRecurringTripsAsync(Actor actor, RecurringTripInput input, CancellationToken cancellationToken)
+    {
+        if (!TryTenant(actor, FleetRoles, out _, out var error)) return Fail<IReadOnlyList<TripDto>>(error);
+        if (input.Template is null || input.Weekdays is null)
+            return Fail<IReadOnlyList<TripDto>>(PlatformErrors.Validation("Thiếu thông tin chuyến hoặc ngày chạy trong tuần."));
+        var template = input.Template;
+        var localDeparture = template.DepartureAt.ToOffset(TimeSpan.FromHours(7));
+        var start = DateOnly.FromDateTime(localDeparture.DateTime);
+        if (input.EndDate < start || input.EndDate > start.AddMonths(3) || input.Weekdays.Count == 0 || input.Weekdays.Any(day => day < 0 || day > 6))
+            return Fail<IReadOnlyList<TripDto>>(PlatformErrors.Validation("Chọn ngày kết thúc trong vòng 3 tháng và ít nhất một ngày chạy trong tuần."));
+        if (template.DepartureAt <= DateTimeOffset.UtcNow || template.ArrivalAt <= template.DepartureAt)
+            return Fail<IReadOnlyList<TripDto>>(PlatformErrors.Validation("Giờ khởi hành phải ở tương lai và giờ đến phải sau giờ khởi hành."));
+        TripDraftPlan? source = null;
+        if (input.SourceTripId is { } sourceId)
+        {
+            var existing = await store.GetTripAsync(sourceId, cancellationToken);
+            if (existing is null || existing.OrganizationId != actor.OrganizationId)
+                return Fail<IReadOnlyList<TripDto>>(PlatformErrors.NotFound());
+            if (existing.Status != TripStatuses.Draft)
+                return Fail<IReadOnlyList<TripDto>>(PlatformErrors.Validation("Chỉ có thể thiết lập lịch lặp từ bản nháp."));
+            if (existing.RowVersion != template.ExpectedVersion)
+                return Fail<IReadOnlyList<TripDto>>(PlatformErrors.VersionConflict());
+            var preparedSource = await PrepareTripDraftAsync(actor, template, cancellationToken);
+            if (!preparedSource.IsSuccess) return Fail<IReadOnlyList<TripDto>>(preparedSource.Error!);
+            var plan = preparedSource.Value!;
+            source = new TripDraftPlan(plan.Trip with { Id = existing.Id, RowVersion = existing.RowVersion + 1 }, plan.Assignment with { TripId = existing.Id });
+        }
+        var plans = new List<TripDraftPlan>();
+        for (var date = start; date <= input.EndDate; date = date.AddDays(1))
+        {
+            if (!input.Weekdays.Contains((int)date.DayOfWeek)) continue;
+            var offset = date.DayNumber - start.DayNumber;
+            var occurrence = template with { DepartureAt = template.DepartureAt.AddDays(offset), ArrivalAt = template.ArrivalAt.AddDays(offset) };
+            TripDraftPlan plan;
+            if (plans.Count == 0)
+            {
+                var prepared = await PrepareTripDraftAsync(actor, occurrence, cancellationToken);
+                if (!prepared.IsSuccess) return Fail<IReadOnlyList<TripDto>>(prepared.Error!);
+                plan = prepared.Value!;
+            }
+            else
+            {
+                var first = plans[0];
+                var trip = first.Trip with { Id = ids.NewUuidV7(), RowVersion = 0, DepartureAt = occurrence.DepartureAt, ArrivalAt = occurrence.ArrivalAt };
+                var assignment = first.Assignment with { Id = ids.NewUuidV7(), TripId = trip.Id, Start = trip.DepartureAt.AddHours(-1), End = trip.ArrivalAt.AddHours(1) };
+                plan = new TripDraftPlan(trip, assignment);
+            }
+            if (offset == 0 && source is not null) plan = source;
+            if (plans.Count > 0 && plan.Assignment.Start < plans[^1].Assignment.End)
+                return Fail<IReadOnlyList<TripDto>>(PlatformErrors.Validation("Các ngày chạy bị trùng lịch xe hoặc tài xế, gồm khoảng đệm một giờ trước và sau chuyến. Chọn các ngày cách nhau xa hơn."));
+            plans.Add(plan);
+        }
+        if (plans.Count == 0) return Fail<IReadOnlyList<TripDto>>(PlatformErrors.Validation("Không có ngày chạy phù hợp trong khoảng đã chọn."));
+        // The latest arrival determines licence validity for every occurrence.
+        if (plans.Count > 1)
+        {
+            var last = plans[^1].Trip;
+            var checkedLast = await PrepareTripDraftAsync(actor, template with { DepartureAt = last.DepartureAt, ArrivalAt = last.ArrivalAt }, cancellationToken);
+            if (!checkedLast.IsSuccess) return Fail<IReadOnlyList<TripDto>>(checkedLast.Error!);
+        }
+        try
+        {
+            await store.InsertTripsAsync(plans.Where(plan => plan.Trip.Id != input.SourceTripId).ToArray(), cancellationToken, source);
+        }
+        catch (InvalidOperationException exception) when (exception.Message == "VERSION_CONFLICT")
+        {
+            return Fail<IReadOnlyList<TripDto>>(PlatformErrors.VersionConflict());
+        }
+        var firstTrip = await MapTripAsync(plans[0].Trip, cancellationToken);
+        var trips = plans.Select(plan => firstTrip with {
+            Id = plan.Trip.Id,
+            RowVersion = plan.Trip.RowVersion,
+            DepartureAt = plan.Trip.DepartureAt,
+            ArrivalAt = plan.Trip.ArrivalAt,
+            RouteId = plan.Trip.RouteId,
+            BusId = plan.Trip.BusId,
+            DriverId = plan.Trip.DriverId
+        }).ToArray();
+        return Result<IReadOnlyList<TripDto>>.Success(trips);
+    }
+
+    private async Task<Result<TripDraftPlan>> PrepareTripDraftAsync(Actor actor, TripInput input, CancellationToken cancellationToken)
+    {
         if (!TryTenant(actor, FleetRoles, out var orgId, out var error))
         {
-            return Fail<TripDto>(error);
+            return Fail<TripDraftPlan>(error);
         }
 
         if (input.Fare.Currency != "VND" || input.PolicyVersion != "cancel-mvp-v1" || input.ArrivalAt <= input.DepartureAt)
         {
-            return Fail<TripDto>(PlatformErrors.Validation("Trip input is invalid."));
+            return Fail<TripDraftPlan>(PlatformErrors.Validation("Trip input is invalid."));
         }
 
         var route = await store.GetRouteAsync(orgId, input.RouteId, cancellationToken);
@@ -502,7 +631,7 @@ public sealed class TransportService(ITransportRepository store, ITransportEvent
             || driver.Status != "ACTIVE"
             || driver.LicenseExpiresOn < tripServiceDate)
         {
-            return Fail<TripDto>(PlatformErrors.Validation("Route, bus or driver is not usable."));
+            return Fail<TripDraftPlan>(PlatformErrors.Validation("Route, bus or driver is not usable."));
         }
 
         var tripId = ids.NewUuidV7();
@@ -540,8 +669,7 @@ public sealed class TransportService(ITransportRepository store, ITransportEvent
             input.DepartureAt.AddHours(-1),
             input.ArrivalAt.AddHours(1),
             actor.UserId);
-        await store.InsertTripAsync(trip, assignment, cancellationToken);
-        return Result<TripDto>.Success(await MapTripAsync(trip, cancellationToken));
+        return Result<TripDraftPlan>.Success(new TripDraftPlan(trip, assignment));
     }
 
     public async Task<Result<TripDto>> UpdateTripDraftAsync(Actor actor, Guid tripId, TripInput input, CancellationToken cancellationToken)

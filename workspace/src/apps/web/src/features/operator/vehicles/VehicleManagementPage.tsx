@@ -1,3 +1,4 @@
+import { Toast } from "@/shared/ui/Toast/Toast";
 import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import { VipSeatedSeatMap } from "./VipSeatedSeatMap";
 import limousineRoutesIcon from "@/assets/operator/vehicles/limousine/imgFrame2.svg";
@@ -304,6 +305,14 @@ export function VehicleManagementPage(): ReactElement {
   const [type, setType] = useState(params.get("type") ?? "all");
   const [addOpen, setAddOpen] = useState(false);
   const [notice, setNotice] = useState("");
+  const [noticeTone, setNoticeTone] = useState<"success" | "error">("success");
+  const showNotice = (
+    message: string,
+    tone: "success" | "error" = "success",
+  ): void => {
+    setNoticeTone(tone);
+    setNotice(message);
+  };
   const lock = useRef(false);
   const client = useQueryClient();
   const query = useQuery({
@@ -317,7 +326,7 @@ export function VehicleManagementPage(): ReactElement {
         p.set("vehicle", id);
         return p;
       },
-      { replace: true },
+      { replace: true, preventScrollReset: true },
     );
   };
   const permission = useMutation({
@@ -334,11 +343,11 @@ export function VehicleManagementPage(): ReactElement {
       client.setQueryData<OperatorVehicle[]>(QUERY, (current) =>
         current?.map((v) => (v.id === saved.id ? saved : v)),
       );
-      setNotice(
+      showNotice(
         `${saved.plate} · ${input.code}: ${input.enabled ? "Đã bật" : "Đã tắt"} quyền đặt.`,
       );
     },
-    onError: (error: Error) => setNotice(error.message),
+    onError: (error: Error) => showNotice(error.message, "error"),
     onSettled: () => {
       lock.current = false;
     },
@@ -350,11 +359,11 @@ export function VehicleManagementPage(): ReactElement {
       client.setQueryData<OperatorVehicle[]>(QUERY, (current) =>
         current?.map((v) => (v.id === saved.id ? saved : v)),
       );
-      setNotice(
+      showNotice(
         `Đã lưu cấu hình hàng cuối ${saved.rearSeats} ${saved.type === 5 || saved.type === 6 || saved.type === 7 ? "giường / tầng" : "ghế"} · ${vehicleCapacity(saved)} chỗ.`,
       );
     },
-    onError: (error: Error) => setNotice(error.message),
+    onError: (error: Error) => showNotice(error.message, "error"),
     onSettled: () => {
       lock.current = false;
     },
@@ -366,9 +375,9 @@ export function VehicleManagementPage(): ReactElement {
       client.setQueryData<OperatorVehicle[]>(QUERY, (current) =>
         current?.map((v) => (v.id === saved.id ? saved : v)),
       );
-      setNotice(`Đã lưu cấu hình ${saved.cabinCapacity} phòng.`);
+      showNotice(`Đã lưu cấu hình ${saved.cabinCapacity} phòng.`);
     },
-    onError: (error: Error) => setNotice(error.message),
+    onError: (error: Error) => showNotice(error.message, "error"),
     onSettled: () => {
       lock.current = false;
     },
@@ -380,11 +389,11 @@ export function VehicleManagementPage(): ReactElement {
       client.setQueryData<OperatorVehicle[]>(QUERY, (current) =>
         current?.map((v) => (v.id === saved.id ? saved : v)),
       );
-      setNotice(
+      showNotice(
         `Đã lưu ${saved.lowerRooms} dưới / ${21 - (saved.lowerRooms ?? 10)} trên.`,
       );
     },
-    onError: (error: Error) => setNotice(error.message),
+    onError: (error: Error) => showNotice(error.message, "error"),
     onSettled: () => {
       lock.current = false;
     },
@@ -400,7 +409,7 @@ export function VehicleManagementPage(): ReactElement {
       setTerm("");
       setType("all");
       setParams({ vehicle: saved.id });
-      setNotice(`Đã thêm xe ${saved.plate}.`);
+      showNotice(`Đã thêm xe ${saved.plate}.`);
     },
     onSettled: () => {
       lock.current = false;
@@ -518,53 +527,31 @@ export function VehicleManagementPage(): ReactElement {
                 </p>
               </header>
               <div className="operator-vehicles__scroll">
-                {[...filtered]
-                  .sort((a, b) =>
-                    vehicle?.type === 1 ||
-                    vehicle?.type === 2 ||
-                    vehicle?.type === 3 ||
-                    vehicle?.type === 6 ||
-                    vehicle?.type === 8 ||
-                    vehicle?.type === 9 ||
-                    vehicle?.type === 14 ||
-                    vehicle?.type === 10 ||
-                    vehicle?.type === 11 ||
-                    vehicle?.type === 12 ||
-                    vehicle?.type === 13 ||
-                    vehicle?.type === 4 ||
-                    vehicle?.type === 7 ||
-                    vehicle?.type === 5
-                      ? Number(b.id === vehicle.id) -
-                        Number(a.id === vehicle.id)
-                      : 0,
-                  )
-                  .map((v) => (
-                    <button
-                      key={v.id}
-                      type="button"
-                      className="operator-vehicles__row"
-                      aria-pressed={vehicle?.id === v.id}
-                      onClick={() => selectVehicle(v.id)}
-                    >
-                      <span className="operator-vehicles__illustration">
-                        <img src={bus} alt="" width={64} height={42} />
-                      </span>
-                      <span className="operator-vehicles__row-copy">
-                        <strong>{v.plate}</strong>
-                        <span>
-                          {v.layoutLabel ?? VEHICLE_TYPES[v.type].name}
-                        </span>
-                      </span>
-                      <small>
-                        {vehicleCapacity(v)}{" "}
-                        {v.type >= 10 && v.type <= 13
-                          ? "phòng"
-                          : v.type === 14
-                            ? "cabin"
-                            : "chỗ"}
-                      </small>
-                    </button>
-                  ))}
+                {filtered.map((v) => (
+                  <button
+                    key={v.id}
+                    type="button"
+                    className="operator-vehicles__row"
+                    aria-pressed={vehicle?.id === v.id}
+                    onClick={() => selectVehicle(v.id)}
+                  >
+                    <span className="operator-vehicles__illustration">
+                      <img src={bus} alt="" width={64} height={42} />
+                    </span>
+                    <span className="operator-vehicles__row-copy">
+                      <strong>{v.plate}</strong>
+                      <span>{v.layoutLabel ?? VEHICLE_TYPES[v.type].name}</span>
+                    </span>
+                    <small>
+                      {vehicleCapacity(v)}{" "}
+                      {v.type >= 10 && v.type <= 13
+                        ? "phòng"
+                        : v.type === 14
+                          ? "cabin"
+                          : "chỗ"}
+                    </small>
+                  </button>
+                ))}
                 {!filtered.length && (
                   <p className="operator-vehicles__empty">
                     Không tìm thấy xe phù hợp.
@@ -778,9 +765,13 @@ export function VehicleManagementPage(): ReactElement {
                       theo thiết kế từng loại xe.
                     </p>
                   )}
-                <p role="status" className="operator-vehicles__notice">
-                  {notice}
-                </p>
+                {notice && (
+                  <Toast
+                    message={notice}
+                    tone={noticeTone}
+                    onClose={() => setNotice("")}
+                  />
+                )}
               </section>
             ) : (
               <PageState

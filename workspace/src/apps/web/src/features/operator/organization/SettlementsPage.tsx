@@ -1,3 +1,6 @@
+import { OperatorStatusBadge } from "../components/OperatorStatusBadge";
+import { Toast } from "@/shared/ui/Toast/Toast";
+import { displayCode } from "../components/displayCode";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useState, useEffect, type ReactElement } from "react";
 import { Link } from "react-router";
@@ -5,7 +8,6 @@ import { OperatorSidebar } from "../components/OperatorSidebar";
 import { WorkspaceDialogHeading } from "./WorkspaceDialogHeading";
 import { Button } from "@/shared/ui/Button/Button";
 import { OperatorInput as Input } from "../components/OperatorInput";
-import { StatusBadge } from "@/shared/ui/StatusBadge/StatusBadge";
 import {
   getSettlements,
   settlementCsv,
@@ -33,6 +35,7 @@ export function SettlementsPage(): ReactElement {
     [detail, setDetail] = useState<Settlement | null>(null),
     [notice, setNotice] = useState(""),
     [page, setPage] = useState(1);
+  const [loadError, setLoadError] = useState("");
   useEffect(() => {
     let active = true;
     void getSettlements()
@@ -41,7 +44,7 @@ export function SettlementsPage(): ReactElement {
       })
       .catch((error) => {
         if (active)
-          setNotice(
+          setLoadError(
             error instanceof Error ? error.message : "Không tải được đối soát.",
           );
       });
@@ -103,11 +106,12 @@ export function SettlementsPage(): ReactElement {
             Xuất CSV
           </Button>
         </header>
-        {notice && (
-          <p role="status" className="operator-workspace-demo__notice">
-            {notice}
+        {loadError && (
+          <p role="alert" className="operator-workspace-demo__error">
+            {loadError}
           </p>
         )}
+        {notice && <Toast message={notice} onClose={() => setNotice("")} />}
         <section
           className="operator-workspace-demo__metrics"
           aria-label="Tổng hợp đối soát"
@@ -202,18 +206,16 @@ export function SettlementsPage(): ReactElement {
               .map((row) => (
                 <article key={row.code}>
                   <div>
-                    <strong>{row.code}</strong>
+                    <strong>{displayCode(row.code, "DS")}</strong>
                     <p>{row.route}</p>
                     <p className="operator-workspace-demo__muted">
-                      {row.bookingCode} · {date(row.date)}
+                      {displayCode(row.bookingCode, "BK")} · {date(row.date)}
                     </p>
                   </div>
                   <div>
-                    <StatusBadge
-                      tone={row.status === "paid" ? "success" : "warning"}
-                    >
+                    <OperatorStatusBadge state={row.status}>
                       {labels[row.status]}
-                    </StatusBadge>
+                    </OperatorStatusBadge>
                     <p>
                       Thực nhận{" "}
                       <strong>
@@ -273,16 +275,16 @@ export function SettlementsPage(): ReactElement {
           <Dialog.Overlay className="operator-schedule__overlay" />
           <Dialog.Content className="operator-schedule__dialog operator-workspace-demo__dialog">
             <WorkspaceDialogHeading>
-              Chi tiết {detail?.code}
+              Chi tiết {detail ? displayCode(detail.code, "DS") : "đối soát"}
             </WorkspaceDialogHeading>
             <Dialog.Description>
-              Tiền thực nhận bằng doanh thu trừ khoản hoàn và hoa hồng. Đây là
-              dữ liệu demo.
+              Tiền thực nhận bằng doanh thu trừ khoản hoàn và hoa hồng.
             </Dialog.Description>
             {detail && (
               <>
                 <dl className="operator-workspace-demo__facts">
                   {[
+                    ["Mã định danh đối soát", detail.code],
                     ["Mã đơn", detail.bookingCode],
                     ["Tuyến", detail.route],
                     ["Ngày đối soát", date(detail.date)],
@@ -291,7 +293,10 @@ export function SettlementsPage(): ReactElement {
                     ["Hoa hồng", money(detail.commission)],
                     [
                       "Nhà xe nhận",
-                      money(detail.gross - detail.refunds - detail.commission),
+                      money(
+                        detail.net ??
+                          detail.gross - detail.refunds - detail.commission,
+                      ),
                     ],
                     ["Trạng thái", labels[detail.status]],
                     [

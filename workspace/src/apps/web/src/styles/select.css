@@ -96,9 +96,16 @@ select:not([multiple]):not([size])[aria-invalid="true"] {
     white-space: normal;
     cursor: pointer;
   }
+  select:not([multiple]):not([size]) option + option {
+    margin-block-start: 4px;
+  }
   select:not([multiple]):not([size]) option:is(:hover, :focus-visible) {
     background: #f0f6ff;
     color: var(--color-brand-shell-strong);
+  }
+  select:not([multiple]):not([size]) option:focus-visible {
+    outline: 0;
+    box-shadow: inset 0 0 0 2px var(--color-focus-ring);
   }
   select:not([multiple]):not([size]) option:checked {
     background: #e8f1ff;

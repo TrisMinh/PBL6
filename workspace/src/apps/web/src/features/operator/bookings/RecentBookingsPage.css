@@ -169,11 +169,13 @@
   font-weight: 600;
   white-space: nowrap;
 }
-.operator-bookings__badge--paid {
+.operator-bookings__badge--paid,
+.operator-bookings__badge--confirmed {
   background: #eaf8f1;
   color: #168a5b;
 }
-.operator-bookings__badge--unpaid {
+.operator-bookings__badge--unpaid,
+.operator-bookings__badge--pending {
   background: #fff6e7;
   color: #a96812;
 }

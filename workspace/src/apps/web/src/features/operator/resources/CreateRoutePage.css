@@ -169,9 +169,7 @@
 }
 .operator-new-route__operations .operator-new-route__field select {
   font-size: 12px;
-  appearance: none;
-  background: url("../../../assets/operator/routes/createChevron.svg") right
-    center / 14px 8px no-repeat;
+
   padding-right: 24px;
 }
 .operator-new-route__note {

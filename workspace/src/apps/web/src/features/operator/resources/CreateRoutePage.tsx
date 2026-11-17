@@ -1,3 +1,5 @@
+import { Toast } from "@/shared/ui/Toast/Toast";
+import { displayCode } from "../components/displayCode";
 import { AddRouteStopModal } from "./AddRouteStopModal";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useRef, useState, type ReactElement, type FormEvent } from "react";
@@ -143,6 +145,7 @@ export function CreateRoutePage({
       route ? draftFromExistingRoute(route) : loadCreateRouteDraft(),
     ),
     [message, setMessage] = useState(""),
+    [draftSaved, setDraftSaved] = useState<boolean | null>(null),
     [errors, setErrors] = useState<string[]>([]);
   const [stopEditor, setStopEditor] = useState<{ stop?: RouteStop } | null>(
     null,
@@ -217,7 +220,11 @@ export function CreateRoutePage({
       <OperatorSidebar />
       <main className="operator-schedule__main">
         <header className="operator-schedule__header">
-          <h1>{route ? `Chỉnh sửa tuyến ${route.id}` : "Tạo tuyến mới"}</h1>
+          <h1>
+            {route
+              ? `Chỉnh sửa tuyến ${displayCode(route.id, "TU")}`
+              : "Tạo tuyến mới"}
+          </h1>
           <Link to={returnTo} className="operator-new-route__back">
             ← Quản lý tuyến
           </Link>
@@ -378,6 +385,17 @@ export function CreateRoutePage({
               {message}
             </p>
           )}
+          {draftSaved !== null && (
+            <Toast
+              tone={draftSaved ? "success" : "error"}
+              message={
+                draftSaved
+                  ? "Đã lưu nháp trong tab này."
+                  : "Không lưu được nháp. Kiểm tra quyền lưu trữ trình duyệt."
+              }
+              onClose={() => setDraftSaved(null)}
+            />
+          )}
           <footer className="operator-new-route__actions">
             <Link to={returnTo}>Hủy</Link>
             {!route && (
@@ -385,13 +403,7 @@ export function CreateRoutePage({
                 type="button"
                 variant="secondary"
                 disabled={mutation.isPending}
-                onClick={() =>
-                  setMessage(
-                    saveCreateRouteDraft(draft)
-                      ? "Đã lưu nháp trong tab này."
-                      : "Không lưu được nháp. Kiểm tra quyền lưu trữ trình duyệt.",
-                  )
-                }
+                onClick={() => setDraftSaved(saveCreateRouteDraft(draft))}
               >
                 Lưu nháp
               </Button>

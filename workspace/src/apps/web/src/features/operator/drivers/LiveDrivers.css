@@ -53,9 +53,6 @@
 .live-drivers__secondary:hover {
   background: #f0f6ff;
 }
-.live-drivers .operator-drivers__toolbar select {
-  background-image: url("../../../assets/operator/drivers/imgIconChevronDown.svg");
-}
 .live-drivers .operator-drivers__row {
   cursor: pointer;
 }
@@ -104,12 +101,7 @@
   cursor: not-allowed;
 }
 .live-driver-form .driver-add__status select {
-  appearance: none;
   padding-right: 40px;
-  background-image: url("../../../assets/operator/drivers/add/imgIconChevronDown.svg");
-  background-repeat: no-repeat;
-  background-position: right 16px center;
-  background-size: 16px 16px;
 }
 .live-driver-form .driver-add__footer > a {
   min-width: 120px;

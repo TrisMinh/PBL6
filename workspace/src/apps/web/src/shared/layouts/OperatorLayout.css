@@ -112,7 +112,7 @@
   color: #75879e;
   margin-bottom: 5px;
 }
-.operator-workspace__topbar strong {
+.operator-workspace__topbar > div > :is(strong, h1) {
   font-size: 14px;
 }
 .operator-workspace__top-actions {

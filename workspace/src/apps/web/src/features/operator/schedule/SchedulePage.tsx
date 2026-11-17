@@ -1,7 +1,9 @@
+import { OperatorStatusBadge } from "../components/OperatorStatusBadge";
+import { Toast } from "@/shared/ui/Toast/Toast";
 import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import { useQuery } from "@tanstack/react-query";
 import { useState, type ReactElement, type FormEvent } from "react";
-import { useNavigate, useSearchParams } from "react-router";
+import { Link, useNavigate, useSearchParams } from "react-router";
 import { OperatorSidebar } from "../components/OperatorSidebar";
 import { Button } from "@/shared/ui/Button/Button";
 import { PageState } from "@/shared/ui/PageState/PageState";
@@ -11,17 +13,13 @@ import {
   type ScheduleCriteria,
   type ScheduleTrip,
 } from "./schedule.schema";
-import thumbnail from "@/assets/operator/schedule/imgTripVehicleThumbnail.png";
+import { TripArtwork } from "../components/TripArtwork";
 import demoDriverAvatar from "@/assets/operator/schedule/driver-demo-avatar.svg";
 import searchIcon from "@/assets/operator/schedule/imgIconSearch.svg";
 import swapIcon from "@/assets/operator/schedule/imgIconSwap.svg";
-import filterIcon from "@/assets/operator/schedule/imgIconFilter.svg";
 import routeIcon from "@/assets/operator/schedule/imgFrame.svg";
 import vehicleIcon from "@/assets/operator/schedule/imgIconVehicle.svg";
 import passengerIcon from "@/assets/operator/schedule/imgIconPassenger.svg";
-import boardingDot from "@/assets/operator/schedule/imgStatusDot.svg";
-import scheduledDot from "@/assets/operator/schedule/imgStatusDot1.svg";
-import draftDot from "@/assets/operator/schedule/imgStatusDot2.svg";
 import createIcon from "@/assets/operator/schedule/imgIconCalendarPlus.svg";
 import "./SchedulePage.css";
 import { isMockApi } from "@/shared/api/config";
@@ -29,7 +27,11 @@ import { paginationWindow } from "../components/paginationWindow";
 import { ExpandedTripPanel } from "./ExpandedTripPanel";
 import { DatePicker } from "@/shared/ui/DatePicker/DatePicker";
 import * as Dialog from "@radix-ui/react-dialog";
-import { SteeringWheel } from "@phosphor-icons/react/dist/csr/SteeringWheel";
+import { ArrowRight } from "@phosphor-icons/react/dist/csr/ArrowRight";
+import { DriverPhoto } from "../drivers/DriverAttachments";
+import { driverRouteLabel, useDriverRoutes } from "../drivers/driverRoutes";
+import { getDrivers } from "../drivers/driversRepository";
+import { DRIVER_STATUSES } from "../drivers/drivers.schema";
 import { WorkspaceDialogHeading } from "../organization/WorkspaceDialogHeading";
 
 const CITIES = ["TP.HCM", "Đà Lạt", "Nha Trang", "Phan Thiết"];
@@ -113,26 +115,28 @@ function FilterGroup({
   options: readonly (readonly [string, string])[];
   onChange: (value: string) => void;
 }): ReactElement {
+  const selected = value.split(",").filter(Boolean);
   return (
     <fieldset className="operator-schedule__filter-group">
       <legend>{label}</legend>
-      {options.map(([id, text]) => (
-        <label
-          key={id}
-          className={
-            value === id
-              ? "operator-schedule__choice operator-schedule__choice--selected"
-              : "operator-schedule__choice"
-          }
-        >
-          <input
-            type="checkbox"
-            checked={value === id}
-            onChange={() => onChange(value === id ? "" : id)}
-          />
-          <span>{text}</span>
-        </label>
-      ))}
+      {options.map(([id, text]) => {
+        const checked = id ? selected.includes(id) : selected.length === 0;
+        return (
+          <label key={id} className="operator-schedule__choice">
+            <input
+              type="checkbox"
+              checked={checked}
+              onChange={() => {
+                if (!id) onChange("");
+                else if (checked)
+                  onChange(selected.filter((item) => item !== id).join(","));
+                else onChange([...selected, id].join(","));
+              }}
+            />
+            <span>{text}</span>
+          </label>
+        );
+      })}
     </fieldset>
   );
 }
@@ -151,24 +155,54 @@ export function ScheduleCard({
   showPassengerCount?: boolean;
 }): ReactElement {
   const [driverOpen, setDriverOpen] = useState(false);
-  const status =
-    trip.status === "boarding"
-      ? ["ĐÓN KHÁCH", boardingDot]
-      : trip.status === "draft"
-        ? ["NHÁP CÓ LỖI", draftDot]
-        : ["ĐÃ LÊN LỊCH", scheduledDot];
+  const driverId = trip.driver?.id;
+  const profiles = useQuery({
+    queryKey: ["operator-drivers"],
+    queryFn: ({ signal }) => getDrivers(signal),
+    enabled: driverOpen && !!driverId,
+  });
+  const profile = profiles.data?.find((driver) => driver.id === driverId);
+  const driverRoutes = useDriverRoutes(
+    driverOpen && Boolean(profile?.assignedRouteId),
+  );
+  const driverName = profile?.name || trip.driver?.name || "Tài xế";
+  const initials = driverName
+    .trim()
+    .split(/\s+/)
+    .slice(-2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
+  const isDemo = trip.id === "DEMO-TAI-XE";
+  let assignedRouteLabel = "Chưa có thông tin tuyến";
+  if (profile) {
+    assignedRouteLabel = driverRouteLabel(
+      profile.assignedRouteId,
+      driverRoutes,
+    );
+  } else if (isDemo) {
+    assignedRouteLabel = "Chưa phân tuyến (minh họa)";
+  } else if (driverId && profiles.isPending) {
+    assignedRouteLabel = "Đang tải hồ sơ tài xế…";
+  } else if (profiles.isError) {
+    assignedRouteLabel = "Không tải được hồ sơ tài xế";
+  }
+  const driverLink = driverId
+    ? `/operator/drivers?driver=${encodeURIComponent(driverId)}`
+    : "/operator/drivers";
+  const avatarUrl =
+    trip.driver?.avatarUrl || (isDemo ? demoDriverAvatar : undefined);
+  const expires = profile?.expiresAt || trip.driver?.expires;
   return (
     <article
       className="operator-schedule__card"
       aria-label={`Chuyến ${trip.id}`}
     >
       <div className="operator-schedule__identity">
-        <img
+        <TripArtwork
           className="operator-schedule__thumbnail"
-          src={thumbnail}
+          photo={trip.photo}
           alt="Xe BLUE minh họa"
-          width={120}
-          height={84}
         />
         <div>
           <span>MÃ CHUYẾN</span>
@@ -192,15 +226,10 @@ export function ScheduleCard({
         </div>
         <div className="operator-schedule__rail">
           <span className="operator-schedule__status">
-            <img src={status[1]} alt="" />
-            {statusLabel ??
-              (trip.status === "cancelled"
-                ? "ĐÃ HỦY"
-                : trip.status === "completed"
-                  ? "HOÀN THÀNH"
-                  : trip.status === "departed"
-                    ? "ĐÃ KHỞI HÀNH"
-                    : status[0])}
+            <OperatorStatusBadge state={trip.status}>
+              {statusLabel ??
+                STATUS.find(([value]) => value === trip.status)?.[1]}
+            </OperatorStatusBadge>
           </span>
           <img
             className="operator-schedule__route-art"
@@ -254,18 +283,23 @@ export function ScheduleCard({
             : "Xem danh sách hành khách"}
         </p>
       </div>
-      <Button
-        className={[
-          "operator-schedule__detail",
-          trip.status === "draft" && "operator-schedule__detail--draft",
-        ]
-          .filter(Boolean)
-          .join(" ")}
-        variant={trip.status === "draft" ? "primary" : "secondary"}
-        onClick={onOpen}
-      >
-        {trip.status === "draft" ? "Tiếp tục" : "Chi tiết"}
-      </Button>
+      <div className="operator-schedule__card-actions">
+        {trip.status === "draft" && (
+          <Link
+            className="button button--primary operator-schedule__publish-draft"
+            to={`/operator/trips/review?tripId=${encodeURIComponent(trip.id)}`}
+          >
+            Phát hành
+          </Link>
+        )}
+        <Button
+          className="operator-schedule__detail"
+          variant="secondary"
+          onClick={onOpen}
+        >
+          Chi tiết
+        </Button>
+      </div>
       <Dialog.Root open={driverOpen} onOpenChange={setDriverOpen}>
         <Dialog.Portal>
           <Dialog.Overlay className="operator-schedule__overlay" />
@@ -277,36 +311,86 @@ export function ScheduleCard({
                 : "Tài xế được phân công cho chuyến này."}
             </Dialog.Description>
             <div className="operator-schedule__driver-heading">
-              <SteeringWheel size={32} weight="duotone" />
-              <strong>{trip.driver?.name}</strong>
+              <span
+                className="operator-schedule__profile-avatar"
+                aria-hidden="true"
+              >
+                {profile?.avatar ? (
+                  <DriverPhoto
+                    attachment={profile.avatar}
+                    fallback={initials}
+                  />
+                ) : avatarUrl ? (
+                  <img src={avatarUrl} alt="" />
+                ) : (
+                  initials
+                )}
+              </span>
+              <div>
+                <strong>{driverName}</strong>
+                {profile && (
+                  <OperatorStatusBadge state={profile.status}>
+                    {DRIVER_STATUSES[profile.status]}
+                  </OperatorStatusBadge>
+                )}
+                {isDemo && (
+                  <OperatorStatusBadge state="draft">
+                    Minh họa
+                  </OperatorStatusBadge>
+                )}
+              </div>
             </div>
             <dl>
               <div>
                 <dt>Giấy phép lái xe</dt>
-                <dd>{trip.driver?.license || "Chưa cập nhật"}</dd>
+                <dd>
+                  {profile?.licenseNumber ||
+                    trip.driver?.license ||
+                    "Chưa cập nhật"}
+                </dd>
               </div>
               <div>
                 <dt>Điện thoại</dt>
-                <dd>{trip.driver?.phone || "Chưa cập nhật"}</dd>
+                <dd>
+                  {profile?.phone || trip.driver?.phone || "Chưa cập nhật"}
+                </dd>
               </div>
               <div>
                 <dt>Hạn giấy phép</dt>
                 <dd>
-                  {trip.driver?.expires
-                    ? trip.driver.expires.split("-").reverse().join("/")
+                  {expires
+                    ? expires.split("-").reverse().join("/")
                     : "Chưa cập nhật"}
                 </dd>
               </div>
               <div>
-                <dt>Hành trình</dt>
-                <dd>
-                  {trip.origin} → {trip.destination}
-                </dd>
+                <dt>Tuyến phụ trách</dt>
+                <dd>{assignedRouteLabel}</dd>
               </div>
+              {profile?.licenseClass && (
+                <div>
+                  <dt>Hạng giấy phép</dt>
+                  <dd>{profile.licenseClass}</dd>
+                </div>
+              )}
+              {profile?.email && (
+                <div>
+                  <dt>Email</dt>
+                  <dd>{profile.email}</dd>
+                </div>
+              )}
             </dl>
-            <Dialog.Close asChild>
-              <Button variant="secondary">Đóng</Button>
-            </Dialog.Close>
+            <footer className="operator-schedule__driver-actions">
+              <Dialog.Close asChild>
+                <Button variant="secondary">Đóng</Button>
+              </Dialog.Close>
+              <Dialog.Close asChild>
+                <Link className="button button--primary" to={driverLink}>
+                  {driverId ? "Xem hồ sơ tài xế" : "Xem danh sách tài xế"}
+                  <ArrowRight size={16} aria-hidden="true" />
+                </Link>
+              </Dialog.Close>
+            </footer>
           </Dialog.Content>
         </Dialog.Portal>
       </Dialog.Root>
@@ -332,13 +416,10 @@ export function SchedulePage(): ReactElement {
   const [date, setDate] = useState(
     params.get("date") ?? (isMockApi ? "2026-08-28" : ""),
   );
-  const [status, setStatus] = useState(params.get("status") ?? "");
-  const [period, setPeriod] = useState(
-    params.get("period") ?? (isMockApi ? "morning" : ""),
-  );
-  const [assignment, setAssignment] = useState(
-    params.get("assignment") ?? (isMockApi ? "complete" : ""),
-  );
+  const status = params.get("status") ?? "";
+  const period = params.get("period") ?? "";
+  const assignment = params.get("assignment") ?? "";
+  const statusCount = status.split(",").filter(Boolean).length;
   const query = useQuery({
     queryKey: ["operator", "schedule-preview"],
     queryFn: ({ signal }) => getSchedule(signal),
@@ -359,27 +440,27 @@ export function SchedulePage(): ReactElement {
       ? Math.min(pages, requestedPage)
       : 1;
   const update = (patch: Record<string, string>): void => {
-    setParams((previous) => {
-      const next = new URLSearchParams(previous);
-      next.delete("page");
-      for (const [key, value] of Object.entries(patch)) {
-        next.delete(key);
-        if (value) next.set(key, value);
-      }
-      return next;
-    });
+    setParams(
+      (previous) => {
+        const next = new URLSearchParams(previous);
+        next.delete("page");
+        for (const [key, value] of Object.entries(patch)) {
+          next.delete(key);
+          if (value) next.set(key, value);
+        }
+        return next;
+      },
+      { preventScrollReset: true },
+    );
   };
   const search = (event: FormEvent): void => {
     event.preventDefault();
-    update({ origin, destination, date, status });
+    update({ origin, destination, date });
   };
   const reset = (): void => {
     setOrigin(isMockApi ? "TP.HCM" : "");
     setDestination(isMockApi ? "Đà Lạt" : "");
     setDate(isMockApi ? "2026-08-28" : "");
-    setStatus("");
-    setPeriod(isMockApi ? "morning" : "");
-    setAssignment(isMockApi ? "complete" : "");
     setParams({});
   };
   const changePage = (value: number): void => {
@@ -454,8 +535,12 @@ export function SchedulePage(): ReactElement {
             <SelectField
               label="Trạng thái"
               value={status}
-              onChange={setStatus}
-              options={STATUS}
+              onChange={(value) => update({ status: value })}
+              options={
+                statusCount > 1
+                  ? [[status, `${statusCount} trạng thái đã chọn`], ...STATUS]
+                  : STATUS
+              }
             />
             <Button type="submit">
               <img src={searchIcon} alt="" width={18} height={18} />
@@ -477,28 +562,21 @@ export function SchedulePage(): ReactElement {
             <FilterGroup
               label="Trạng thái"
               value={status}
-              onChange={setStatus}
+              onChange={(value) => update({ status: value })}
               options={STATUS}
             />
             <FilterGroup
               label="Khung giờ"
               value={period}
-              onChange={setPeriod}
+              onChange={(value) => update({ period: value })}
               options={PERIODS}
             />
             <FilterGroup
               label="Phân công"
               value={assignment}
-              onChange={setAssignment}
+              onChange={(value) => update({ assignment: value })}
               options={ASSIGNMENTS}
             />
-            <Button
-              className="operator-schedule__apply"
-              onClick={() => update({ status, period, assignment })}
-            >
-              <img src={filterIcon} alt="" width={16} height={16} />
-              Áp dụng bộ lọc
-            </Button>
           </aside>
           <section
             className="operator-schedule__results"
@@ -555,9 +633,7 @@ export function SchedulePage(): ReactElement {
               </Dialog.Portal>
             </Dialog.Root>
             {demoNotice && (
-              <p className="operator-schedule__demo-notice" role="status">
-                {demoNotice}
-              </p>
+              <Toast message={demoNotice} onClose={() => setDemoNotice("")} />
             )}
             {query.isPending ? (
               <BrandLoading compact title="Đang tải lịch chuyến…" />

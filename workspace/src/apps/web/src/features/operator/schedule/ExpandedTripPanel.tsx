@@ -10,7 +10,7 @@ import {
   type Driver,
 } from "../tripWorkflow";
 import type { ScheduleTrip } from "./schedule.schema";
-import thumbnail from "@/assets/operator/schedule/imgTripVehicleThumbnail.png";
+import { TripArtwork } from "../components/TripArtwork";
 import demoAvatar from "@/assets/operator/schedule/driver-demo-avatar.svg";
 import "./ExpandedTripPanel.css";
 
@@ -121,6 +121,15 @@ export function ExpandedTripPanel({
   return (
     <Dialog.Content
       className="operator-trip-expanded"
+      onEscapeKeyDown={(event) => {
+        const calendar = document.querySelector<HTMLElement>(
+          ".date-picker__popup:popover-open",
+        );
+        if (calendar) {
+          event.preventDefault();
+          calendar.hidePopover();
+        }
+      }}
       aria-describedby="expanded-trip-description"
     >
       <header className="operator-trip-expanded__header">
@@ -142,9 +151,9 @@ export function ExpandedTripPanel({
       </header>
       <div className="operator-trip-expanded__body">
         <aside className="operator-trip-expanded__identity">
-          <img
+          <TripArtwork
             className="operator-trip-expanded__photo"
-            src={thumbnail}
+            photo={trip.photo}
             alt="Xe của chuyến"
           />
           <span className="operator-trip-expanded__code">
@@ -157,6 +166,12 @@ export function ExpandedTripPanel({
             {trip.departure} · {trip.date.split("-").reverse().join("/")}
           </p>
           <p>{trip.vehicleLabel}</p>
+          {!demo && (
+            <details className="operator-trip-expanded__technical">
+              <summary>Mã định danh hệ thống</summary>
+              <code>{trip.id}</code>
+            </details>
+          )}
           {trip.driver && (
             <div className="operator-trip-expanded__driver">
               <span className="operator-schedule__driver-avatar">

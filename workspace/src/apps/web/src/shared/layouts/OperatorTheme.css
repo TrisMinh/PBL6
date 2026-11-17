@@ -16,7 +16,7 @@
 .operator-workspace__topbar {
   box-shadow: var(--shadow-customer-header);
 }
-.operator-workspace__topbar strong {
+.operator-workspace__topbar > div > :is(strong, h1) {
   font-size: 15px;
   color: var(--color-text-editorial-heading);
 }
@@ -205,7 +205,7 @@
   .operator-schedule
   :is(
     input:not([type="checkbox"]):not([type="radio"]),
-    select:not([multiple]):not([size])
+    select:not([multiple]):not([size]):where(:not(.date-picker__year))
   ) {
   min-width: 0;
   min-height: 46px;
@@ -269,11 +269,14 @@
   color: var(--color-text-editorial-heading);
 }
 .operator-workspace .operator-schedule__filter-group {
-  padding: 16px 0;
+  padding: 0;
+  margin: 0 0 18px;
   border: 0;
-  border-top: 1px solid var(--color-border);
   border-radius: 0;
   background: transparent;
+}
+.operator-workspace .operator-schedule__filter-group:last-child {
+  margin-bottom: 0;
 }
 .operator-workspace .operator-schedule__filter-group legend {
   position: static;

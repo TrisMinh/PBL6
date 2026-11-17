@@ -79,8 +79,12 @@ async function save(
     },
   );
   const status = "status" in input ? input.status : "available";
-  if (status === "paused" && saved.status === "ACTIVE")
+  if (status === "paused" && saved.status !== "INACTIVE")
     saved = await request(`${endpoint}/${saved.id}/deactivate`, "POST", {
+      expectedVersion: saved.expectedVersion,
+    });
+  if (status === "available" && saved.status === "INACTIVE")
+    saved = await request(`${endpoint}/${saved.id}/activate`, "POST", {
       expectedVersion: saved.expectedVersion,
     });
   const extra = {
@@ -110,17 +114,25 @@ export async function changeDriverStatus(
 ): Promise<OperatorDriver> {
   const current = (await rows(endpoint)).find((d) => d.id === id);
   if (!current) throw Error("Không tìm thấy tài xế.");
-  if (status !== "paused" && current.status !== "ACTIVE")
-    throw Error(
-      "Tài xế đã ngừng hoạt động. Liên hệ quản trị viên để kích hoạt lại.",
-    );
-  const saved =
-    status === "paused"
-      ? await request(`${endpoint}/${id}/deactivate`, "POST", {
-          expectedVersion: current.expectedVersion,
-        })
-      : current;
-  const extra = { ...(await metadata("drivers"))[id], status };
-  await saveMetadata("drivers", id, extra);
-  return adapt(saved, extra);
+  const action = status === "paused" ? "deactivate" : "activate";
+  const saved = await request(`${endpoint}/${id}/${action}`, "POST", {
+    expectedVersion: current.expectedVersion,
+  });
+  const [extras, users] = await Promise.all([
+    metadata("drivers"),
+    rows("/api/v1/operator/staff"),
+  ]);
+  // Availability comes from the driver record; clear an older running override.
+  const extra =
+    extras[id]?.status === "running" ? { ...extras[id], status } : extras[id];
+  if (extra && extra !== extras[id]) await saveMetadata("drivers", id, extra);
+  return adapt(
+    saved,
+    extra,
+    users.find((user) => user.userId === saved.userId),
+  );
+}
+
+export async function deleteDriver(id: string): Promise<void> {
+  await request(`${endpoint}/${encodeURIComponent(id)}`, "DELETE");
 }

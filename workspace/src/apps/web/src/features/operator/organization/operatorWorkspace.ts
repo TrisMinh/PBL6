@@ -33,18 +33,57 @@ export type WorkspaceMember = MemberInput & {
   id: string;
   status: keyof typeof memberStates;
 };
-export const organizationSchema = z.object({
-  name: z.string().trim().min(2).max(100),
-  code: z.string(),
-  email: z.email(),
-  phone: z.string().regex(/^0\d{9}$/),
-  address: z.string().trim().min(5).max(250),
-  taxCode: z
-    .string()
-    .regex(/^\d{10}(?:\d{3})?$/, "Mã số thuế gồm 10 hoặc 13 chữ số"),
-  allowPayLater: z.boolean(),
-  logoUrl: z.string().optional(),
-});
+const organizationPhoneSchema = z
+  .string()
+  .trim()
+  .regex(
+    /^(?:0|\+84)\d{9}$/,
+    "Nhập 10 chữ số bắt đầu bằng 0 hoặc +84 theo sau bởi 9 chữ số.",
+  );
+export const organizationSchema = z
+  .object({
+    name: z
+      .string()
+      .trim()
+      .min(2, "Nhập tên nhà xe ít nhất 2 ký tự.")
+      .max(100, "Tên nhà xe tối đa 100 ký tự."),
+    code: z.string(),
+    email: z
+      .string()
+      .trim()
+      .pipe(z.email("Nhập email hợp lệ, ví dụ lienhe@nhaxe.vn.")),
+    phone: organizationPhoneSchema,
+    additionalPhones: z.array(organizationPhoneSchema).optional(),
+    address: z
+      .string()
+      .trim()
+      .min(5, "Nhập địa chỉ ít nhất 5 ký tự.")
+      .max(250, "Địa chỉ tối đa 250 ký tự."),
+    taxCode: z
+      .string()
+      .trim()
+      .regex(
+        /^\d{10}(?:\d{3})?$/,
+        "Nhập mã số thuế gồm đúng 10 hoặc 13 chữ số.",
+      ),
+    allowPayLater: z.boolean(),
+    logoUrl: z.string().optional(),
+  })
+  .superRefine(({ phone, additionalPhones = [] }, context) => {
+    const phoneKey = (number: string): string => number.replace(/^\+84/, "0");
+    const seen = new Set([phoneKey(phone)]);
+    additionalPhones.forEach((number, index) => {
+      const key = phoneKey(number);
+      if (seen.has(key)) {
+        context.addIssue({
+          code: "custom",
+          path: ["additionalPhones", index],
+          message: "Số này đã có trong hồ sơ.",
+        });
+      }
+      seen.add(key);
+    });
+  });
 export type Settlement = {
   code: string;
   bookingCode: string;
@@ -95,6 +134,11 @@ export async function readWorkspace(): Promise<Workspace> {
       code: org.code,
       email: org.contactEmail ?? "",
       phone: org.contactPhone ?? "",
+      additionalPhones: Array.isArray(m.additionalPhones)
+        ? m.additionalPhones.filter(
+            (number: unknown): number is string => typeof number === "string",
+          )
+        : [],
       address: m.address ?? "",
       taxCode: m.taxCode ?? m.taxId ?? "",
       allowPayLater: org.allowPayLater,
@@ -162,6 +206,7 @@ export async function saveOrganization(
     ...(await metadata("organization"))[org.id],
     address: value.address,
     taxCode: value.taxCode,
+    additionalPhones: value.additionalPhones ?? [],
     logoUrl: value.logoUrl ?? "",
   });
 }

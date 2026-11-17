@@ -1,8 +1,10 @@
+import { Toast } from "@/shared/ui/Toast/Toast";
 import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import { useState, type ReactElement, type FormEvent } from "react";
 import { Link, useParams } from "react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/shared/ui/Button/Button";
+import { DatePicker } from "@/shared/ui/DatePicker/DatePicker";
 import { PageState } from "@/shared/ui/PageState/PageState";
 import { OperatorSidebar } from "../components/OperatorSidebar";
 import { readTrip, updateTrip, cancelTrip } from "./detailRepository";
@@ -42,6 +44,12 @@ function DetailField({
             <option key={v}>{v}</option>
           ))}
         </select>
+      ) : type === "date" ? (
+        <DatePicker
+          aria-label={label}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+        />
       ) : (
         <input
           aria-label={label}
@@ -60,6 +68,7 @@ function DetailContent({ trip }: { trip: TripDetail }): ReactElement {
   const [waiting, setWaiting] = useState(false);
   const [full, setFull] = useState(false);
   const [message, setMessage] = useState("");
+  const [savedNotice, setSavedNotice] = useState("");
   const [cancelOpen, setCancelOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
   const client = useQueryClient();
@@ -68,7 +77,7 @@ function DetailContent({ trip }: { trip: TripDetail }): ReactElement {
       cancelTrip(trip.id, trip.rowVersion ?? 0, cancelReason.trim()),
     onSuccess: async () => {
       setCancelOpen(false);
-      setMessage(
+      setSavedNotice(
         "Đã gửi yêu cầu hủy chuyến. Thông tin vé và hoàn tiền được xử lý theo trạng thái đơn.",
       );
       await client.invalidateQueries({ queryKey: ["operator"] });
@@ -82,7 +91,8 @@ function DetailContent({ trip }: { trip: TripDetail }): ReactElement {
       void client.invalidateQueries({
         queryKey: ["operator", "schedule-preview"],
       });
-      setMessage("Đã lưu thay đổi.");
+      setMessage("");
+      setSavedNotice("Đã lưu thay đổi.");
     },
     onError: () =>
       setMessage("Không lưu được thay đổi. Dữ liệu nhập được giữ lại."),
@@ -322,6 +332,9 @@ function DetailContent({ trip }: { trip: TripDetail }): ReactElement {
               </Link>
             ) : null}
           </footer>
+          {savedNotice && (
+            <Toast message={savedNotice} onClose={() => setSavedNotice("")} />
+          )}
           <p className="operator-detail__message" role="status">
             {message}
           </p>

@@ -1,3 +1,7 @@
+import { OperatorStatusBadge } from "../components/OperatorStatusBadge";
+import { Toast } from "@/shared/ui/Toast/Toast";
+import { driverRouteLabel, useDriverRoutes } from "./driverRoutes";
+import { displayCode } from "../components/displayCode";
 import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import { DriverPhoto, DriverDocument } from "./DriverAttachments";
 import * as Dialog from "@radix-ui/react-dialog";
@@ -17,6 +21,7 @@ import {
 } from "./drivers.schema";
 import {
   changeDriverStatus,
+  deleteDriver,
   getDrivers,
   saveDriver,
 } from "./driversRepository";
@@ -29,10 +34,6 @@ import navReports from "@/assets/operator/drivers/imgFrame5.svg";
 import navMembers from "@/assets/operator/drivers/imgFrame6.svg";
 import navCancel from "@/assets/operator/drivers/imgFrame7.svg";
 import addIcon from "@/assets/operator/drivers/imgIconUserPlus.svg";
-import chevron from "@/assets/operator/drivers/imgIconChevronDown.svg";
-import availableDot from "@/assets/operator/drivers/imgStatusDot.svg";
-import runningDot from "@/assets/operator/drivers/imgStatusDot1.svg";
-import pausedDot from "@/assets/operator/drivers/imgStatusDot2.svg";
 import "../schedule/SchedulePage.css";
 import "./DriversPage.css";
 
@@ -66,20 +67,15 @@ const normalize = (value: string): string =>
     .replace(/\s+/g, "");
 function StatusBadge({ status }: { status: DriverStatus }): ReactElement {
   return (
-    <span className="operator-drivers__badge">
-      <img
-        src={
-          status === "running"
-            ? runningDot
-            : status === "paused"
-              ? pausedDot
-              : availableDot
-        }
-        width={8}
-        height={8}
-        alt=""
-      />
+    <OperatorStatusBadge state={status}>
       {DRIVER_STATUSES[status]}
+    </OperatorStatusBadge>
+  );
+}
+function LicenseTag({ grade }: { grade: OperatorDriver["licenseClass"] }) {
+  return (
+    <span className="operator-drivers__license-tag" data-grade={grade}>
+      Hạng {grade}
     </span>
   );
 }
@@ -88,7 +84,7 @@ function Field({
   value,
 }: {
   label: string;
-  value: string;
+  value: string | ReactElement;
 }): ReactElement {
   return (
     <div className="operator-drivers__value">
@@ -226,7 +222,10 @@ function DriverForm({
 }
 type Modal =
   | { kind: "add" }
-  | { kind: "edit" | "status" | "front" | "back"; driver: OperatorDriver };
+  | {
+      kind: "edit" | "status" | "delete" | "front" | "back";
+      driver: OperatorDriver;
+    };
 export function DriversPage(): ReactElement {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
@@ -247,8 +246,11 @@ export function DriversPage(): ReactElement {
       (!license || d.licenseClass === license) &&
       normalize(`${d.name}${d.id}${d.phone}`).includes(normalize(search)),
   );
-  const selected =
-    filtered.find((d) => d.id === params.get("driver")) ?? filtered[0];
+  const requestedDriver = params.get("driver");
+  const selected = requestedDriver
+    ? filtered.find((driver) => driver.id === requestedDriver)
+    : filtered[0];
+  const routes = useDriverRoutes(Boolean(selected?.assignedRouteId));
   function updateParam(key: string, value: string): void {
     setParams(
       (previous) => {
@@ -268,7 +270,7 @@ export function DriversPage(): ReactElement {
         : [...(previous ?? []), driver],
     );
     setParams({ driver: driver.id }, { replace: true });
-    setNotice("Đã lưu thay đổi trong dữ liệu mock của phiên này.");
+    setNotice("Đã cập nhật hồ sơ tài xế.");
     setModal(null);
   }
   const statusMutation = useMutation({
@@ -276,7 +278,20 @@ export function DriversPage(): ReactElement {
       changeDriverStatus(d.id, d.status === "paused" ? "available" : "paused"),
     onSuccess: saved,
   });
+  const deleteMutation = useMutation({
+    mutationFn: (driver: OperatorDriver) => deleteDriver(driver.id),
+    onSuccess: (_, driver) => {
+      client.setQueryData<OperatorDriver[]>(["operator-drivers"], (previous) =>
+        previous?.filter((item) => item.id !== driver.id),
+      );
+      void client.invalidateQueries({ queryKey: ["operator-drivers"] });
+      setParams({}, { replace: true });
+      setModal(null);
+      setNotice("Đã xóa tài xế.");
+    },
+  });
   function open(value: Modal): void {
+    deleteMutation.reset();
     statusMutation.reset();
     setModal(value);
   }
@@ -287,9 +302,6 @@ export function DriversPage(): ReactElement {
       </a>
       <OperatorSidebar iconsOverride={NAV_ICONS} />
       <main className="operator-schedule__main" id="drivers-main">
-        <header className="operator-schedule__header">
-          <h1>Quản lý tài xế</h1>
-        </header>
         <section className="operator-drivers__toolbar" aria-label="Lọc tài xế">
           <Input
             label="Tìm kiếm"
@@ -303,7 +315,6 @@ export function DriversPage(): ReactElement {
               aria-label="Trạng thái"
               value={status}
               onChange={(e) => updateParam("status", e.target.value)}
-              style={{ backgroundImage: `url("${chevron}")` }}
             >
               <option value="">Tất cả trạng thái</option>
               {Object.entries(DRIVER_STATUSES).map(([value, label]) => (
@@ -319,7 +330,6 @@ export function DriversPage(): ReactElement {
               aria-label="Giấy phép lái xe"
               value={license}
               onChange={(e) => updateParam("license", e.target.value)}
-              style={{ backgroundImage: `url("${chevron}")` }}
             >
               <option value="">Tất cả hạng</option>
               {LICENSE_CLASSES.map((c) => (
@@ -339,11 +349,7 @@ export function DriversPage(): ReactElement {
             Thêm tài xế
           </Button>
         </section>
-        {notice && (
-          <p className="operator-drivers__notice" role="status">
-            {notice}
-          </p>
-        )}
+        {notice && <Toast message={notice} onClose={() => setNotice("")} />}
         {query.isPending ? (
           <BrandLoading compact title="Đang tải tài xế" />
         ) : query.isError ? (
@@ -355,14 +361,14 @@ export function DriversPage(): ReactElement {
             }
           />
         ) : (
-          <div className="operator-drivers__workspace">
+          <div className="operator-drivers__workspace operator-drivers__workspace--directory">
             <section
               className="operator-drivers__list"
               aria-labelledby="drivers-list-title"
             >
               <header>
                 <h2 id="drivers-list-title">Danh sách tài xế</h2>
-                <span>{String(filtered.length).padStart(2, "0")} tài xế</span>
+                <span>{filtered.length} tài xế</span>
               </header>
               <p>Chọn tài xế để xem và cập nhật hồ sơ.</p>
               {filtered.map((d) => (
@@ -372,7 +378,6 @@ export function DriversPage(): ReactElement {
                   key={d.id}
                   aria-pressed={d.id === selected?.id}
                   onClick={() => updateParam("driver", d.id)}
-                  aria-label={`${d.name}, ${d.id}`}
                 >
                   <span className="operator-drivers__avatar">
                     {d.avatar ? (
@@ -387,11 +392,14 @@ export function DriversPage(): ReactElement {
                   <span className="operator-drivers__identity">
                     <strong>{d.name}</strong>
                     <small>
-                      {d.id} / {phoneLabel(d.phone)}
+                      {displayCode(d.id, "TX")}
+                      {d.phone && ` · ${phoneLabel(d.phone)}`}
                     </small>
-                    <small>Giấy phép hạng {d.licenseClass}</small>
                   </span>
-                  <StatusBadge status={d.status} />
+                  <span className="operator-drivers__row-tags">
+                    <LicenseTag grade={d.licenseClass} />
+                    <StatusBadge status={d.status} />
+                  </span>
                 </button>
               ))}
               {!filtered.length && (
@@ -422,13 +430,40 @@ export function DriversPage(): ReactElement {
                       initials(selected.name)
                     )}
                   </span>
-                  <div>
+                  <div className="operator-drivers__profile-identity">
                     <h2>{selected.name}</h2>
                     <p>
-                      {selected.id} / Tham gia {dateLabel(selected.joinedAt)}
+                      {displayCode(selected.id, "TX")} / Tham gia{" "}
+                      {dateLabel(selected.joinedAt)}
                     </p>
+                    <StatusBadge status={selected.status} />
                   </div>
-                  <StatusBadge status={selected.status} />
+                  <div className="operator-drivers__profile-actions">
+                    <Button
+                      variant="secondary"
+                      className="operator-drivers__delete"
+                      onClick={() => open({ kind: "delete", driver: selected })}
+                    >
+                      Xóa tài xế
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      onClick={() => open({ kind: "status", driver: selected })}
+                    >
+                      {selected.status === "paused"
+                        ? "Khôi phục hoạt động"
+                        : "Tạm ngưng hoạt động"}
+                    </Button>
+                    <Button
+                      onClick={() =>
+                        navigate(
+                          `/operator/drivers/${encodeURIComponent(selected.id)}/edit`,
+                        )
+                      }
+                    >
+                      Chỉnh sửa hồ sơ
+                    </Button>
+                  </div>
                 </header>
                 <section className="operator-drivers__personal">
                   <h3>Thông tin cá nhân</h3>
@@ -445,6 +480,10 @@ export function DriversPage(): ReactElement {
                       }
                     />
                     <Field label="Địa chỉ" value={selected.address || "—"} />
+                    <Field
+                      label="Tuyến phụ trách"
+                      value={driverRouteLabel(selected.assignedRouteId, routes)}
+                    />
                   </dl>
                 </section>
                 <section className="operator-drivers__license">
@@ -456,7 +495,7 @@ export function DriversPage(): ReactElement {
                     />
                     <Field
                       label="Hạng giấy phép"
-                      value={selected.licenseClass}
+                      value={<LicenseTag grade={selected.licenseClass} />}
                     />
                     <Field
                       label="Ngày cấp"
@@ -500,30 +539,15 @@ export function DriversPage(): ReactElement {
                     </p>
                   </section>
                 )}
-                <footer className="operator-drivers__actions">
-                  <Button
-                    variant="secondary"
-                    onClick={() => open({ kind: "status", driver: selected })}
-                  >
-                    {selected.status === "paused"
-                      ? "Khôi phục hoạt động"
-                      : "Tạm ngưng hoạt động"}
-                  </Button>
-                  <Button
-                    onClick={() =>
-                      navigate(
-                        `/operator/drivers/${encodeURIComponent(selected.id)}/edit`,
-                      )
-                    }
-                  >
-                    Chỉnh sửa hồ sơ
-                  </Button>
-                </footer>
               </article>
             ) : (
               <section className="operator-drivers__profile">
                 <PageState
-                  title="Chưa chọn tài xế"
+                  title={
+                    requestedDriver
+                      ? "Không tìm thấy hồ sơ tài xế"
+                      : "Chưa chọn tài xế"
+                  }
                   description="Chọn tài xế trong danh sách để xem hồ sơ."
                 />
               </section>
@@ -534,7 +558,8 @@ export function DriversPage(): ReactElement {
       <Dialog.Root
         open={Boolean(modal)}
         onOpenChange={(value) => {
-          if (!value && !statusMutation.isPending) setModal(null);
+          if (!value && !statusMutation.isPending && !deleteMutation.isPending)
+            setModal(null);
         }}
       >
         <Dialog.Portal>
@@ -553,21 +578,23 @@ export function DriversPage(): ReactElement {
             }}
           >
             <Dialog.Title>
-              {modal?.kind === "add"
-                ? "Thêm tài xế"
-                : modal?.kind === "edit"
-                  ? "Chỉnh sửa hồ sơ"
-                  : modal?.kind === "status"
-                    ? modal.driver.status === "paused"
-                      ? "Khôi phục hoạt động"
-                      : "Tạm ngưng hoạt động"
-                    : `GPLX · Mặt ${modal?.kind === "front" ? "trước" : "sau"}`}
+              {modal?.kind === "delete"
+                ? "Xóa tài xế"
+                : modal?.kind === "add"
+                  ? "Thêm tài xế"
+                  : modal?.kind === "edit"
+                    ? "Chỉnh sửa hồ sơ"
+                    : modal?.kind === "status"
+                      ? modal.driver.status === "paused"
+                        ? "Khôi phục hoạt động"
+                        : "Tạm ngưng hoạt động"
+                      : `GPLX · Mặt ${modal?.kind === "front" ? "trước" : "sau"}`}
             </Dialog.Title>
             <Dialog.Description>
               {modal?.kind === "add" || modal?.kind === "edit"
                 ? "Thông tin được lưu trong dữ liệu mock của phiên hiện tại."
-                : modal?.kind === "status"
-                  ? `${modal.driver.name} · ${modal.driver.id}`
+                : modal?.kind === "status" || modal?.kind === "delete"
+                  ? `${modal.driver.name} · ${displayCode(modal.driver.id, "TX")}`
                   : "Tài liệu đính kèm của tài xế."}
             </Dialog.Description>
             {modal?.kind === "add" || modal?.kind === "edit" ? (
@@ -576,6 +603,32 @@ export function DriversPage(): ReactElement {
                 saved={saved}
                 cancel={() => setModal(null)}
               />
+            ) : modal?.kind === "delete" ? (
+              <>
+                <p>
+                  Bạn muốn xóa tài xế {modal.driver.name}? Hồ sơ sẽ được gỡ khỏi
+                  danh sách. Lịch sử chuyến đã chạy vẫn được lưu.
+                </p>
+                {deleteMutation.error && (
+                  <p role="alert">{deleteMutation.error.message}</p>
+                )}
+                <footer>
+                  <Button
+                    variant="secondary"
+                    disabled={deleteMutation.isPending}
+                    onClick={() => setModal(null)}
+                  >
+                    Hủy
+                  </Button>
+                  <Button
+                    className="operator-drivers__delete-confirm"
+                    isLoading={deleteMutation.isPending}
+                    onClick={() => deleteMutation.mutate(modal.driver)}
+                  >
+                    Xóa tài xế
+                  </Button>
+                </footer>
+              </>
             ) : modal?.kind === "status" ? (
               <>
                 <p>
@@ -627,7 +680,7 @@ export function DriversPage(): ReactElement {
                 variant="ghost"
                 className="operator-drivers__close"
                 aria-label="Đóng"
-                disabled={statusMutation.isPending}
+                disabled={statusMutation.isPending || deleteMutation.isPending}
               >
                 ×
               </Button>

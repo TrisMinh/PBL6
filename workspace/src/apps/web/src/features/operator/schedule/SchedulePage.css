@@ -57,12 +57,14 @@
 .operator-schedule__skip {
   position: fixed;
   top: -80px;
+  clip-path: inset(50%);
   z-index: 80;
   padding: 12px;
   background: var(--op-white);
 }
 .operator-schedule__skip:focus {
   top: 8px;
+  clip-path: none;
 }
 .operator-schedule__sidebar {
   display: flex;
@@ -211,12 +213,7 @@
   line-height: 20px;
 }
 .operator-schedule__query-field select {
-  appearance: none;
   padding-right: 18px;
-  background-image: url("../../../assets/operator/schedule/imgIconChevronDown.svg");
-  background-repeat: no-repeat;
-  background-position: right center;
-  background-size: 16px;
 }
 .operator-schedule__query > .button {
   height: 56px;
@@ -250,6 +247,8 @@
 .operator-schedule__filters {
   display: flex;
   flex-direction: column;
+  align-self: start;
+  min-height: 0;
   padding: 11px;
 }
 .operator-schedule__filter-heading {
@@ -301,8 +300,16 @@
   font-size: 11px;
   cursor: pointer;
 }
-.operator-schedule__choice--selected {
+.operator-schedule__choice:hover,
+.operator-schedule__choice:has(input:checked) {
   background: var(--op-selection);
+}
+.operator-schedule__choice + .operator-schedule__choice {
+  margin-top: 4px;
+}
+.operator-schedule__choice input:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
 }
 .operator-schedule__choice input {
   appearance: none;
@@ -320,12 +327,6 @@
   background: var(--color-bg-brand)
     url("../../../assets/operator/schedule/imgIconCheck.svg") center / 12px
     no-repeat;
-}
-.operator-schedule__apply {
-  width: 100%;
-  margin-top: auto;
-  margin-bottom: 10px;
-  height: 48px;
 }
 .operator-schedule__results {
   display: flex;
@@ -366,6 +367,7 @@
 .operator-schedule__cards {
   display: grid;
   gap: 10px;
+  margin-bottom: 16px;
 }
 .operator-schedule__driver-demo {
   margin: 0 0 16px;
@@ -663,7 +665,7 @@
   justify-content: space-between;
   gap: 8px;
   margin-top: auto;
-  padding-top: 12px;
+  padding-top: 16px;
   border-top: 1px solid var(--op-divider);
 }
 .operator-schedule__footer p {
@@ -852,9 +854,6 @@
   .operator-schedule__choice {
     min-height: 44px;
   }
-  .operator-schedule__apply {
-    margin: 0;
-  }
   .operator-schedule__results {
     min-height: 600px;
     padding: 12px;
@@ -882,5 +881,85 @@
   .operator-schedule__footer button {
     min-width: 44px;
     height: 44px;
+  }
+}
+
+.operator-schedule__driver-dialog {
+  width: min(480px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+}
+.operator-schedule__driver-heading {
+  padding: 14px;
+  border-radius: 12px;
+  background: var(--color-bg-subtle);
+}
+.operator-schedule__driver-heading > div {
+  display: grid;
+  justify-items: start;
+  gap: 6px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.operator-schedule__profile-avatar {
+  display: grid;
+  place-items: center;
+  flex: 0 0 56px;
+  height: 56px;
+  overflow: hidden;
+  border-radius: 50%;
+  border: 1px solid var(--color-border-shell);
+  background: var(--color-bg-surface);
+  font-size: 18px;
+  font-weight: 700;
+}
+.operator-schedule__profile-avatar img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.operator-schedule__driver-dialog dd {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.operator-schedule__driver-actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.operator-schedule__card-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+.operator-schedule .operator-schedule__card-actions > .button {
+  width: 100%;
+  min-height: 36px;
+  padding: 6px 10px;
+  font: 600 12px/1.4 var(--font-body);
+  white-space: nowrap;
+}
+.operator-schedule .operator-schedule__publish-draft {
+  background: var(--color-bg-brand);
+  color: white;
+}
+@media (max-width: 1000px) {
+  .operator-schedule__card-actions {
+    grid-column: 2;
+    justify-self: end;
+  }
+}
+@media (max-width: 600px) {
+  .operator-schedule__card-actions {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    justify-self: stretch;
+  }
+  .operator-schedule .operator-schedule__card-actions > .button {
+    min-height: 44px;
   }
 }

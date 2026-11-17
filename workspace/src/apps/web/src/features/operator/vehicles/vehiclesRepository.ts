@@ -79,10 +79,7 @@ async function replace(id: string, extra: Row): Promise<OperatorVehicle> {
     type: vehicleTypes[type],
     enabled: !meta.disabledSeats?.includes(code),
   }));
-  const saved = await request(`${endpoint}/${id}/seats`, "PUT", {
-    expectedVersion: current.expectedVersion,
-    seats,
-  });
+  const saved = await request(`${endpoint}/${id}/seats`, "PUT", seats);
   await saveMetadata("buses", id, meta);
   return adapt(saved, meta);
 }
@@ -103,27 +100,18 @@ export async function setVehicleSeatPermission(
   code: string,
   enabled: boolean,
 ): Promise<OperatorVehicle> {
-  const current = (await getOperatorVehicles()).find((v) => v.id === id);
-  if (!current) throw Error("Không tìm thấy xe.");
-  if (current.actualSeats) {
-    if (!current.actualSeats.some((s) => s.code === code))
-      throw Error("Không tìm thấy ghế trên xe.");
-    const original = await bus(id);
-    const seats = current.actualSeats.map((s) => ({
-      ...s,
-      enabled: s.code === code ? enabled : s.enabled,
-    }));
-    const saved = await request(`${endpoint}/${id}/seats`, "PUT", {
-      expectedVersion: original.expectedVersion,
-      seats,
-    });
-    return adapt(saved, (await metadata("buses"))[id]);
-  }
-  return replace(id, {
-    disabledSeats: enabled
-      ? current.disabledSeats.filter((s) => s !== code)
-      : [...new Set([...current.disabledSeats, code])],
-  });
+  const current = await bus(id);
+  if (!current.seats?.some((seat: Row) => seat.code === code))
+    throw Error("Không tìm thấy ghế trên xe.");
+  const saved = await request(
+    `${endpoint}/${encodeURIComponent(id)}/seats/${encodeURIComponent(code)}/permission`,
+    "PATCH",
+    {
+      enabled,
+      expectedVersion: current.expectedVersion,
+    },
+  );
+  return adapt(saved, (await metadata("buses"))[id]);
 }
 export const setVehicleRearConfiguration = (
   id: string,

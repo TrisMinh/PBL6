@@ -170,6 +170,24 @@ public sealed class TransportRepository(TransportDatabaseOptions options, IIdGen
         await command.ExecuteNonQueryAsync(cancellationToken);
     }
 
+    public async Task<bool> SetSeatPermissionAsync(Guid organizationId, Guid busId, string code, bool enabled, long expectedVersion, CancellationToken cancellationToken)
+    {
+        await using var connection = await OpenAsync(cancellationToken);
+        await using var tx = await connection.BeginTransactionAsync(cancellationToken);
+        await using var version = new NpgsqlCommand("UPDATE buses SET row_version = row_version + 1, updated_at = NOW() WHERE id = @id AND organization_id = @org AND row_version = @version AND deleted_at IS NULL", connection, tx);
+        version.Parameters.AddWithValue("id", busId);
+        version.Parameters.AddWithValue("org", organizationId);
+        version.Parameters.AddWithValue("version", expectedVersion);
+        if (await version.ExecuteNonQueryAsync(cancellationToken) != 1) return false;
+        await using var seat = new NpgsqlCommand("UPDATE seats SET active = @enabled, updated_at = NOW(), row_version = row_version + 1 WHERE bus_id = @id AND code = @code", connection, tx);
+        seat.Parameters.AddWithValue("id", busId);
+        seat.Parameters.AddWithValue("code", code);
+        seat.Parameters.AddWithValue("enabled", enabled);
+        if (await seat.ExecuteNonQueryAsync(cancellationToken) != 1) return false;
+        await tx.CommitAsync(cancellationToken);
+        return true;
+    }
+
     public async Task ReplaceSeatsAsync(Guid busId, IReadOnlyList<SeatRecord> seats, int seatCount, long rowVersion, CancellationToken cancellationToken)
     {
         await using var connection = await OpenAsync(cancellationToken);
@@ -215,7 +233,7 @@ public sealed class TransportRepository(TransportDatabaseOptions options, IIdGen
         {
             cmd.CommandText = """
                 SELECT id, organization_id, user_id_external, employee_code, license_number, license_expires_on, status, row_version
-                FROM driver_profiles WHERE organization_id = @org AND deleted_at IS NULL
+                FROM driver_profiles WHERE organization_id = @org AND (deleted_at IS NULL OR status = 'INACTIVE')
                 ORDER BY employee_code;
                 """;
             cmd.Parameters.AddWithValue("org", organizationId);
@@ -226,11 +244,32 @@ public sealed class TransportRepository(TransportDatabaseOptions options, IIdGen
         {
             cmd.CommandText = """
                 SELECT id, organization_id, user_id_external, employee_code, license_number, license_expires_on, status, row_version
-                FROM driver_profiles WHERE id = @id AND organization_id = @org AND deleted_at IS NULL;
+                FROM driver_profiles WHERE id = @id AND organization_id = @org AND (deleted_at IS NULL OR status = 'INACTIVE');
                 """;
             cmd.Parameters.AddWithValue("id", driverId);
             cmd.Parameters.AddWithValue("org", organizationId);
         }, ReadDriver, cancellationToken);
+
+    public async Task<bool> DeleteDriverAsync(Guid organizationId, Guid driverId, CancellationToken cancellationToken)
+    {
+        await using var connection = await OpenAsync(cancellationToken);
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+        await using var command = new NpgsqlCommand("""
+            UPDATE driver_profiles d SET status = 'SUSPENDED', deleted_at = NOW(), updated_at = NOW(), row_version = row_version + 1
+            WHERE d.id = @id AND d.organization_id = @org
+              AND (d.deleted_at IS NULL OR d.status = 'INACTIVE')
+              AND NOT EXISTS (
+                SELECT 1 FROM driver_assignments a JOIN trips t ON t.id = a.trip_id
+                WHERE a.driver_profile_id = d.id
+                  AND t.status NOT IN ('COMPLETED', 'CANCELLED')
+              );
+            """, connection, transaction);
+        command.Parameters.AddWithValue("id", driverId);
+        command.Parameters.AddWithValue("org", organizationId);
+        var changed = await command.ExecuteNonQueryAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+        return changed == 1;
+    }
 
     public async Task InsertDriverAsync(DriverRecord driver, CancellationToken cancellationToken)
     {
@@ -252,7 +291,7 @@ public sealed class TransportRepository(TransportDatabaseOptions options, IIdGen
             UPDATE driver_profiles
             SET user_id_external = @user, license_number = @license, license_expires_on = @expires, status = @status,
                 row_version = @version, updated_at = NOW(),
-                deleted_at = CASE WHEN @status = 'INACTIVE' THEN NOW() ELSE deleted_at END
+                deleted_at = NULL
             WHERE id = @id;
             """, connection);
         BindDriver(command, driver);
@@ -380,39 +419,83 @@ public sealed class TransportRepository(TransportDatabaseOptions options, IIdGen
         return stop;
     }
 
-    public async Task InsertTripAsync(TripRecord trip, DriverAssignmentRecord assignment, CancellationToken cancellationToken)
+    public Task InsertTripAsync(TripRecord trip, DriverAssignmentRecord assignment, CancellationToken cancellationToken) =>
+        InsertTripsAsync([new TripDraftPlan(trip, assignment)], cancellationToken);
+
+    public async Task InsertTripsAsync(IReadOnlyList<TripDraftPlan> plans, CancellationToken cancellationToken, TripDraftPlan? source = null)
     {
         await using var connection = await OpenAsync(cancellationToken);
         await using var tx = await connection.BeginTransactionAsync(cancellationToken);
-        await using (var command = new NpgsqlCommand("""
-            INSERT INTO trips (
-              id, organization_id, route_id, bus_id, origin_stop_id, destination_stop_id, departure_at, arrival_at,
-              operating_window, base_fare, currency, status, sellable, created_at, updated_at)
-            VALUES (
-              @id, @org, @route, @bus, @origin, @dest, @dep, @arr,
-              tstzrange(@winStart, @winEnd, '[)'), @fare, @currency, @status, @sellable, NOW(), NOW());
-            """, connection, tx))
+        if (source is not null)
         {
-            BindTripCore(command, trip);
-            await command.ExecuteNonQueryAsync(cancellationToken);
-        }
+            var trip = source.Trip;
+            var assignment = source.Assignment;
+            await using (var command = new NpgsqlCommand("""
+                UPDATE trips
+                SET route_id = @route, bus_id = @bus, origin_stop_id = @origin, destination_stop_id = @dest,
+                    departure_at = @dep, arrival_at = @arr, operating_window = tstzrange(@winStart, @winEnd, '[)'),
+                    base_fare = @fare, status = @status, sellable = @sellable, row_version = @version, updated_at = NOW()
+                WHERE id = @id AND status = 'DRAFT' AND row_version = @expected;
+                """, connection, tx))
+            {
+                BindTripCore(command, trip);
+                command.Parameters.AddWithValue("version", trip.RowVersion);
+                command.Parameters.AddWithValue("expected", trip.RowVersion - 1);
+                if (await command.ExecuteNonQueryAsync(cancellationToken) != 1) throw new InvalidOperationException("VERSION_CONFLICT");
+            }
 
-        await using (var assign = new NpgsqlCommand("""
-            INSERT INTO driver_assignments (
-              id, trip_id, driver_profile_id, assignment_role, assignment_window, active, assigned_by_external, created_at)
-            VALUES (@id, @trip, @driver, @role, tstzrange(@start, @end, '[)'), false, @by, NOW());
-            """, connection, tx))
+            await using (var updateAssignment = new NpgsqlCommand("""
+                UPDATE driver_assignments
+                SET driver_profile_id = @driver,
+                    assignment_window = tstzrange(@start, @end, '[)'),
+                    assigned_by_external = @by,
+                    row_version = row_version + 1
+                WHERE trip_id = @trip AND assignment_role = 'PRIMARY' AND active = false;
+                """, connection, tx))
+            {
+                updateAssignment.Parameters.AddWithValue("driver", assignment.DriverProfileId);
+                updateAssignment.Parameters.AddWithValue("start", assignment.Start.UtcDateTime);
+                updateAssignment.Parameters.AddWithValue("end", assignment.End.UtcDateTime);
+                updateAssignment.Parameters.AddWithValue("by", assignment.AssignedBy);
+                updateAssignment.Parameters.AddWithValue("trip", trip.Id);
+                await updateAssignment.ExecuteNonQueryAsync(cancellationToken);
+            }
+
+        }
+        foreach (var plan in plans)
         {
-            assign.Parameters.AddWithValue("id", assignment.Id);
-            assign.Parameters.AddWithValue("trip", assignment.TripId);
-            assign.Parameters.AddWithValue("driver", assignment.DriverProfileId);
-            assign.Parameters.AddWithValue("role", assignment.Role);
-            assign.Parameters.AddWithValue("start", assignment.Start.UtcDateTime);
-            assign.Parameters.AddWithValue("end", assignment.End.UtcDateTime);
-            assign.Parameters.AddWithValue("by", assignment.AssignedBy);
-            await assign.ExecuteNonQueryAsync(cancellationToken);
-        }
+            var trip = plan.Trip;
+            var assignment = plan.Assignment;
+            await using (var command = new NpgsqlCommand("""
+                INSERT INTO trips (
+                  id, organization_id, route_id, bus_id, origin_stop_id, destination_stop_id, departure_at, arrival_at,
+                  operating_window, base_fare, currency, status, sellable, created_at, updated_at)
+                VALUES (
+                  @id, @org, @route, @bus, @origin, @dest, @dep, @arr,
+                  tstzrange(@winStart, @winEnd, '[)'), @fare, @currency, @status, @sellable, NOW(), NOW());
+                """, connection, tx))
+            {
+                BindTripCore(command, trip);
+                await command.ExecuteNonQueryAsync(cancellationToken);
+            }
 
+            await using (var assign = new NpgsqlCommand("""
+                INSERT INTO driver_assignments (
+                  id, trip_id, driver_profile_id, assignment_role, assignment_window, active, assigned_by_external, created_at)
+                VALUES (@id, @trip, @driver, @role, tstzrange(@start, @end, '[)'), false, @by, NOW());
+                """, connection, tx))
+            {
+                assign.Parameters.AddWithValue("id", assignment.Id);
+                assign.Parameters.AddWithValue("trip", assignment.TripId);
+                assign.Parameters.AddWithValue("driver", assignment.DriverProfileId);
+                assign.Parameters.AddWithValue("role", assignment.Role);
+                assign.Parameters.AddWithValue("start", assignment.Start.UtcDateTime);
+                assign.Parameters.AddWithValue("end", assignment.End.UtcDateTime);
+                assign.Parameters.AddWithValue("by", assignment.AssignedBy);
+                await assign.ExecuteNonQueryAsync(cancellationToken);
+            }
+
+        }
         await tx.CommitAsync(cancellationToken);
     }
 
@@ -728,7 +811,11 @@ public sealed class TransportRepository(TransportDatabaseOptions options, IIdGen
         JOIN buses b ON b.id = t.bus_id
         JOIN stops os ON os.id = t.origin_stop_id
         JOIN stops ds ON ds.id = t.destination_stop_id
-        LEFT JOIN driver_assignments da ON da.trip_id = t.id AND da.assignment_role = 'PRIMARY' AND da.active
+        LEFT JOIN LATERAL (
+            SELECT a.driver_profile_id FROM driver_assignments a
+            WHERE a.trip_id = t.id AND a.assignment_role = 'PRIMARY' AND (a.active OR t.status = 'DRAFT')
+            ORDER BY a.active DESC, a.created_at DESC, a.id DESC LIMIT 1
+        ) da ON TRUE
         """;
 
     private static void BindSearch(NpgsqlCommand command, TripSearchQuery query)

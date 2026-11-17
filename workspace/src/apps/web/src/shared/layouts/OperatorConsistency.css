@@ -1,0 +1,589 @@
+/* Customer BLUE surfaces and controls across every operator workflow. */
+.operator-workspace
+  .operator-bookings
+  .operator-bookings__toolbar
+  :is(.field__control, select, .operator-bookings__filter > button) {
+  height: 40px;
+  min-height: 40px;
+  box-sizing: border-box;
+}
+.operator-workspace .operator-bookings .operator-bookings__toolbar {
+  grid-template-columns:
+    minmax(230px, 320px) minmax(190px, 240px)
+    170px 170px 120px;
+  justify-content: start;
+  align-items: end;
+  gap: 12px;
+  padding: 12px 16px;
+  min-height: 0;
+  width: fit-content;
+  max-width: 100%;
+}
+.operator-workspace .operator-bookings__toolbar .field,
+.operator-workspace .operator-bookings__toolbar .operator-bookings__filter {
+  gap: 6px;
+}
+.operator-workspace
+  .operator-bookings__toolbar
+  :is(.field__control, select, .operator-bookings__filter > button) {
+  height: 40px;
+  min-height: 40px;
+  padding: 8px 12px;
+  font-size: 13px;
+}
+.operator-workspace .operator-bookings .operator-bookings__toolbar > .button {
+  width: 120px;
+  height: 40px;
+  min-height: 40px;
+  padding: 8px 12px;
+  margin-top: 0;
+  font-size: 13px;
+}
+@container operator-frame (max-width: 1150px) {
+  .operator-workspace .operator-bookings .operator-bookings__toolbar {
+    width: 100%;
+    grid-template-columns: minmax(180px, 1.4fr) minmax(160px, 1.2fr) repeat(
+        2,
+        minmax(130px, 1fr)
+      );
+  }
+  .operator-workspace .operator-bookings .operator-bookings__toolbar > .button {
+    grid-column: 4;
+    justify-self: end;
+  }
+}
+@container operator-frame (max-width: 700px) {
+  .operator-workspace .operator-bookings .operator-bookings__toolbar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .operator-workspace
+    .operator-bookings
+    .operator-bookings__toolbar
+    > .field:first-child {
+    grid-column: 1 / -1;
+  }
+  .operator-workspace .operator-bookings .operator-bookings__toolbar > .button {
+    grid-column: 2;
+  }
+}
+@media (width < 450px) {
+  .operator-workspace .operator-bookings .operator-bookings__toolbar {
+    gap: 10px;
+    padding: 12px;
+  }
+  .operator-workspace .operator-bookings .operator-bookings__toolbar > .button {
+    width: 100%;
+  }
+}
+.operator-workspace .operator-bookings__page-heading {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.operator-workspace .operator-bookings__page-heading + nav {
+  margin-top: 0;
+}
+.operator-workspace
+  .operator-new-route
+  .operator-new-route__operations
+  .operator-new-route__field {
+  background: transparent;
+  padding: 0;
+  border: 0;
+  gap: 8px;
+}
+.operator-workspace
+  .operator-new-route
+  .operator-new-route__operations
+  .operator-new-route__field
+  > span {
+  font-size: 12px;
+  line-height: 1.5;
+}
+.operator-refunds__dialog {
+  padding: 24px;
+}
+.operator-refunds__dialog > h2 {
+  font-size: 22px;
+  line-height: 1.4;
+  margin: 0 32px 10px 0;
+}
+.operator-refunds__dialog > p {
+  font-size: 13px;
+  line-height: 1.7;
+}
+.operator-refunds__facts > div {
+  padding: 12px 0;
+}
+.operator-refunds__facts dd {
+  font-size: 13px;
+  line-height: 1.6;
+}
+.operator-refunds__close {
+  top: 18px;
+  right: 18px;
+}
+.operator-workspace .operator-bookings__card {
+  min-height: 0;
+}
+.operator-workspace .operator-reports__recent {
+  min-height: 0;
+}
+.operator-workspace .operator-schedule__results {
+  min-height: 0;
+}
+.operator-workspace .operator-bookings__table-scroll thead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+@media (width < 700px) {
+  .operator-workspace .operator-schedule__filters {
+    min-height: 0;
+  }
+  .operator-workspace .operator-workspace-demo__settlements article {
+    gap: 12px;
+    padding: 14px;
+  }
+}
+:is(
+  .operator-refunds__dialog,
+  .operator-routes__dialog,
+  .operator-add-stop__dialog
+) {
+  font-family: var(--font-body);
+  border: 1px solid var(--color-border-shell);
+  border-radius: 16px;
+  background: var(--color-bg-surface);
+  box-shadow: var(--shadow-card);
+  color: var(--color-text-primary);
+  max-height: 88dvh;
+  overflow-y: auto;
+}
+:is(
+    .operator-refunds__dialog,
+    .operator-routes__dialog,
+    .operator-add-stop__dialog
+  )
+  h2 {
+  font: 700 22px/1.4 var(--font-body);
+}
+:is(
+    .operator-refunds__dialog,
+    .operator-routes__dialog,
+    .operator-add-stop__dialog
+  )
+  :is(input, select, textarea) {
+  font: 400 13px/1.5 var(--font-body);
+  border-color: var(--color-border-shell);
+  border-radius: 10px;
+}
+.operator-workspace .date-picker {
+  min-width: 0;
+}
+.operator-workspace .date-picker__input {
+  padding-right: 42px;
+}
+.operator-workspace :is(.operator-new-route__panel, .driver-add__card) {
+  border-color: var(--color-border-shell);
+  border-radius: 16px;
+  padding: 20px;
+}
+.operator-workspace .operator-new-route__panel > p {
+  font-size: 13px;
+  line-height: 1.6;
+  margin-top: 6px;
+}
+.operator-workspace .operator-new-route__panel h2 {
+  font: 700 18px/1.4 var(--font-body);
+}
+.operator-workspace .operator-new-route__field {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  gap: 8px;
+  min-height: 0;
+}
+.operator-workspace .operator-new-route__field > span {
+  font-size: 12px;
+  line-height: 1.5;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+.operator-workspace .operator-new-route__field :is(input, select, textarea) {
+  border: 1px solid var(--color-border-shell);
+  border-radius: 10px;
+  background: var(--color-bg-surface);
+  min-height: 46px;
+  padding: 10px 12px;
+  font: 400 13px/1.5 var(--font-body);
+}
+.operator-workspace .operator-new-route__basic-fields {
+  gap: 16px;
+}
+.operator-workspace
+  :is(.operator-new-route__back, .operator-new-route__actions > a) {
+  font-size: 13px;
+  min-height: 44px;
+  border-radius: 10px;
+}
+.operator-workspace
+  :is(
+    .operator-new-route__basic,
+    .operator-new-route__stop-editor,
+    .driver-add__personal,
+    .driver-add__license
+  ) {
+  min-height: 0;
+}
+.operator-workspace .operator-new-route__stops li {
+  background: var(--color-bg-surface);
+}
+.operator-workspace .operator-new-route__stop-info strong {
+  font-size: 13px;
+  line-height: 1.5;
+}
+.operator-workspace .operator-new-route__stop-info small {
+  font-size: 11px;
+  line-height: 1.6;
+}
+.operator-workspace .operator-new-route__stops {
+  margin-bottom: 20px;
+}
+.operator-workspace .operator-new-route__note textarea {
+  min-height: 100px;
+}
+.operator-workspace
+  :is(
+    .operator-trip-workflow__header,
+    .operator-create__steps,
+    .operator-create__panel,
+    .operator-route-form__panel,
+    .driver-add__card,
+    .operator-refunds__card,
+    .operator-refunds__filters,
+    .operator-bookings__toolbar,
+    .operator-bookings__card,
+    .operator-reports__recent,
+    .operator-reports__chart,
+    .operator-reports__map
+  ) {
+  border-color: var(--color-border-shell);
+  border-radius: 16px;
+  background: var(--color-results-surface);
+}
+.operator-workspace .operator-trip-workflow__header {
+  padding: 18px 22px;
+}
+.operator-workspace .operator-trip-workflow__header h1 {
+  font: 700 28px/1.3 var(--font-body);
+}
+:is(.operator-workspace, .operator-trip-expanded) .operator-create__panel h2 {
+  font: 700 18px/1.4 var(--font-body);
+}
+:is(.operator-workspace, .operator-trip-expanded) .operator-create__panel > p {
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 6px 0 16px;
+}
+:is(.operator-workspace, .operator-trip-expanded)
+  .operator-create__route-fields
+  > .operator-create__field {
+  min-height: 0;
+  border: 0;
+  padding: 0;
+  gap: 8px;
+  background: transparent;
+}
+:is(.operator-workspace, .operator-trip-expanded)
+  .operator-create__route-fields
+  select {
+  min-height: 46px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border-shell);
+  border-radius: 10px;
+  background: var(--color-bg-surface);
+  font: 500 13px var(--font-body);
+}
+:is(.operator-workspace, .operator-trip-expanded)
+  .operator-create__route-fields {
+  gap: 16px;
+}
+:is(.operator-workspace, .operator-trip-expanded)
+  .operator-create__field
+  > span {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+:is(.operator-workspace, .operator-trip-expanded)
+  :is(
+    .operator-create__route,
+    .operator-create__crew,
+    .operator-create__fare,
+    .operator-create__validation
+  ) {
+  min-height: 0;
+}
+.operator-workspace :is(.operator-routes__list, .operator-drivers__list) {
+  max-height: 680px;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.operator-workspace :is(.operator-routes__detail, .operator-drivers__detail) {
+  min-height: 0;
+  align-self: start;
+}
+.operator-workspace .operator-reports__table-scroll {
+  max-height: 480px;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.operator-workspace .operator-reports__recent table {
+  width: 100%;
+}
+.operator-workspace .operator-reports__recent {
+  align-self: start;
+}
+.operator-workspace .operator-refunds__card {
+  min-height: 0;
+  padding: 20px;
+}
+.operator-workspace .operator-refunds__filters {
+  align-items: end;
+  min-height: 0;
+  padding: 18px 20px;
+  gap: 16px;
+}
+.operator-workspace .operator-refunds .operator-refunds__filters > .button {
+  margin-top: 0;
+  min-height: 46px;
+  height: 46px;
+}
+.operator-workspace .operator-refunds__policy {
+  border: 1px solid var(--color-border-shell);
+  gap: 20px;
+  background: var(--color-bg-subtle);
+}
+.operator-workspace .operator-refunds__policy > .button {
+  width: auto;
+  min-width: 210px;
+  white-space: nowrap;
+}
+.operator-workspace .operator-refunds__card > h2 {
+  height: auto;
+  margin-bottom: 16px;
+}
+.operator-workspace .operator-refunds table {
+  min-width: 1130px;
+}
+.operator-workspace
+  :is(
+    .operator-refunds table,
+    .operator-bookings table,
+    .operator-reports table
+  )
+  th {
+  background: var(--color-bg-subtle);
+  color: var(--color-text-secondary);
+  font: 600 12px/1.5 var(--font-body);
+  padding: 12px;
+}
+.operator-workspace
+  :is(
+    .operator-refunds table,
+    .operator-bookings table,
+    .operator-reports table
+  )
+  td {
+  font: 400 13px/1.5 var(--font-body);
+  padding: 12px;
+  border-bottom-color: var(--color-border-shell);
+  vertical-align: middle;
+}
+.operator-workspace
+  :is(.operator-refunds table, .operator-bookings table)
+  td
+  strong {
+  font-weight: 600;
+}
+.operator-workspace
+  :is(.operator-refunds table, .operator-bookings table)
+  small {
+  line-height: 1.6;
+  font-size: 11px;
+}
+.operator-workspace
+  :is(.operator-refunds table, .operator-bookings table)
+  tbody
+  tr:hover {
+  background: var(--color-bg-subtle);
+}
+.operator-workspace .operator-refunds__filters .date-picker__input {
+  padding-right: 42px;
+}
+.operator-workspace .date-picker__trigger {
+  width: 32px;
+  min-height: 32px;
+}
+.operator-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 0 0;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+.operator-pagination nav {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.operator-pagination button {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--color-border-shell);
+  border-radius: 8px;
+  background: white;
+  color: var(--color-brand-shell-strong);
+}
+.operator-pagination button[aria-current="page"] {
+  background: var(--color-bg-brand);
+  color: white;
+  border-color: var(--color-bg-brand);
+}
+.operator-pagination button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.operator-technical-id {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+}
+.operator-technical-id summary {
+  cursor: pointer;
+}
+.operator-technical-id code {
+  display: block;
+  overflow-wrap: anywhere;
+  padding: 8px 0;
+}
+.operator-workspace
+  :is(.operator-refunds__facts, .operator-workspace-demo__facts)
+  dd {
+  overflow-wrap: anywhere;
+}
+@media (width < 800px) {
+  .operator-workspace .operator-refunds__filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .operator-workspace .operator-refunds__policy {
+    flex-wrap: wrap;
+  }
+  .operator-pagination {
+    flex-wrap: wrap;
+  }
+}
+@media (width < 500px) {
+  .operator-workspace .operator-refunds__filters {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .operator-workspace .operator-trip-workflow__header h1 {
+    font-size: 24px;
+  }
+  .operator-workspace .operator-refunds__policy > .button {
+    width: 100%;
+  }
+}
+.operator-workspace .operator-bookings__tabs {
+  width: fit-content;
+  max-width: 100%;
+  min-height: 40px;
+  margin: 0;
+  padding: 0;
+  gap: 24px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.operator-workspace .operator-bookings__tabs > a {
+  flex: 0 1 auto;
+  width: auto;
+  min-width: 0;
+  min-height: 40px;
+  padding: 8px 2px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font: 600 13px/1.5 var(--font-body);
+  text-align: center;
+}
+.operator-workspace .operator-bookings__tabs > a[aria-current="page"] {
+  color: var(--color-brand-shell-strong);
+  border-bottom-color: var(--color-bg-brand);
+  background: transparent;
+}
+.operator-workspace .operator-bookings__tabs > a:hover {
+  color: var(--color-brand-shell-strong);
+}
+.operator-workspace .operator-bookings__tabs > a:first-child {
+  width: auto;
+}
+.operator-workspace .operator-bookings__tabs + .operator-bookings__toolbar {
+  margin-top: 10px;
+}
+@media (width < 500px) {
+  .operator-workspace .operator-bookings__tabs {
+    gap: 16px;
+  }
+  .operator-workspace .operator-bookings__tabs > a {
+    min-height: 44px;
+    font-size: 12px;
+  }
+}
+
+.operator-workspace
+  .operator-bookings.operator-manifest
+  .operator-bookings__toolbar
+  > .button {
+  width: auto;
+  min-width: 136px;
+  white-space: nowrap;
+}
+@container operator-frame (min-width: 760px) {
+  .operator-workspace
+    .operator-bookings.operator-manifest
+    .operator-bookings__toolbar {
+    width: 100%;
+    max-width: 1104px;
+    grid-template-columns:
+      minmax(0, 1.6fr) minmax(0, 1.2fr) repeat(2, minmax(0, 1fr))
+      auto;
+  }
+  .operator-workspace
+    .operator-bookings.operator-manifest
+    .operator-bookings__toolbar
+    > .button {
+    grid-column: auto;
+  }
+}
+@media (width < 450px) {
+  .operator-workspace
+    .operator-bookings.operator-manifest
+    .operator-bookings__toolbar
+    > .button {
+    width: 100%;
+    min-width: 0;
+    grid-column: 2;
+  }
+}

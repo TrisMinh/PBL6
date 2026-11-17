@@ -2,6 +2,7 @@ import { http, HttpResponse } from "msw";
 import { z } from "zod";
 import {
   updateDriverSchema,
+  driverInputSchema,
   driverSchema,
   createDriverSchema,
   driversSchema,
@@ -90,6 +91,15 @@ async function save(request: Request, id?: string): Promise<Response> {
   const drivers = readMockOperatorDrivers();
   const existing = drivers.find((d) => d.id === id);
   if (id && !existing) return error("Không tìm thấy tài xế.", 404);
+  if (existing) {
+    for (const field of ["phone", "licenseNumber"] as const) {
+      if (parsed.data[field] === existing[field]) continue;
+      const checked = driverInputSchema.shape[field].safeParse(
+        parsed.data[field],
+      );
+      if (!checked.success) return error(checked.error.issues[0].message, 400);
+    }
+  }
   if (
     drivers.some(
       (d) =>

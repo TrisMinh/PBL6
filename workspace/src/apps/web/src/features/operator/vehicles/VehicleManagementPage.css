@@ -55,12 +55,9 @@
   gap: 12px;
 }
 .operator-vehicles__type {
-  background: #f6f8fb
-    url("../../../assets/operator/vehicles/imgIconChevronDown.svg") right 12px
-    center / 12px 7px no-repeat;
+  background: #f6f8fb;
 }
 .operator-vehicles__type select {
-  appearance: none;
   font-weight: 600;
   padding-right: 20px;
 }
@@ -645,24 +642,12 @@
   }
 }
 
-.operator-vehicles__detail--sleeper34 .operator-vehicles__rear {
-  background-image: url("../../../assets/operator/vehicles/imgIconChevronDown.svg");
-}
-
 .operator-vehicles__deck--22 {
   height: 405px;
   min-height: 405px;
 }
 .operator-vehicles__deck--22 .operator-vehicles__steering {
   left: 37px;
-}
-
-.operator-vehicles--sleeper22 .operator-vehicles__type {
-  background-image: url("../../../assets/operator/vehicles/sleeper22/imgIconChevronDown.svg");
-}
-
-.operator-vehicles--sleeper22 .operator-vehicles__rear {
-  background-image: url("../../../assets/operator/vehicles/sleeper22/imgIconChevronDown.svg");
 }
 
 .operator-vehicles__detail--cabin2122 .operator-vehicles__rear {
@@ -701,9 +686,6 @@
   }
 }
 
-.operator-vehicles__detail--sleeper36 .operator-vehicles__rear {
-  background-image: url("../../../assets/operator/vehicles/imgIconChevronDown.svg");
-}
 .operator-vehicles__server-map {
   display: flex;
   flex-wrap: wrap;
@@ -734,4 +716,53 @@
 .operator-vehicles__server-seats button[aria-pressed="false"] {
   opacity: 0.6;
   text-decoration: line-through;
+}
+/* Align actions with the input row and keep vehicle details readable. */
+.operator-vehicles .operator-vehicles__toolbar {
+  align-items: end;
+}
+.operator-vehicles .operator-vehicles__toolbar > .button {
+  align-self: end;
+  height: 46px;
+  font: 600 14px/1.4 var(--font-body);
+  white-space: nowrap;
+}
+.operator-vehicles .operator-vehicles__toolbar label > span {
+  color: var(--color-text-primary);
+}
+.operator-vehicles .operator-vehicles__row-copy strong {
+  font: 600 15px/1.4 var(--font-body);
+}
+.operator-vehicles .operator-vehicles__row-copy > span {
+  color: var(--color-text-secondary);
+  font: 500 13px/1.5 var(--font-body);
+}
+.operator-vehicles .operator-vehicles__row > small,
+.operator-vehicles .operator-vehicles__list header p,
+.operator-vehicles .operator-vehicles__detail > header p {
+  color: var(--color-text-secondary);
+  font: 500 12px/1.5 var(--font-body);
+}
+.operator-vehicles .operator-vehicles__detail > h3 {
+  font-size: 16px;
+  font-weight: 600;
+}
+.operator-vehicles .operator-vehicles__facts > div {
+  height: auto;
+  min-height: 64px;
+  gap: 4px;
+  padding: 10px 12px;
+}
+.operator-vehicles .operator-vehicles__facts span {
+  color: var(--color-text-secondary);
+  font: 500 12px/1.5 var(--font-body);
+}
+.operator-vehicles .operator-vehicles__facts strong {
+  color: var(--color-text-primary);
+  font: 600 14px/1.5 var(--font-body);
+}
+.operator-vehicles .operator-vehicles__assignment--empty,
+.operator-vehicles .operator-vehicles__legend {
+  color: var(--color-text-secondary);
+  font: 500 12px/1.5 var(--font-body);
 }

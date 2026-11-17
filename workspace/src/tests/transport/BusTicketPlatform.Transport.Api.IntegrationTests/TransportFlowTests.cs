@@ -230,6 +230,191 @@ public sealed class TransportFlowTests
     }
 
     [Fact]
+    public async Task Recurring_trips_from_existing_draft_update_source_without_duplicate()
+    {
+        var client = _fixture.CreateClient();
+        var fixture = await CreateResourcesAsync(client);
+        var original = await CreateTripAsync(client, fixture, fixture.BusId, fixture.Departure);
+        var id = original.Body.GetProperty("id").GetGuid();
+        var start = DateOnly.FromDateTime(fixture.Departure.ToOffset(TimeSpan.FromHours(7)).DateTime);
+        var body = new {
+            sourceTripId = id,
+            template = new { routeId = fixture.RouteId, busId = fixture.BusId, driverId = fixture.DriverId, departureAt = fixture.Departure, arrivalAt = fixture.Departure.AddHours(2), fare = new { amount = 200000, currency = "VND" }, policyVersion = "cancel-mvp-v1", expectedVersion = 0 },
+            endDate = start.AddDays(2).ToString("yyyy-MM-dd"), weekdays = new[] { 0, 1, 2, 3, 4, 5, 6 }
+        };
+        var result = await SendAsync(client, HttpMethod.Post, "/api/v1/operator/trips/recurring", body, fixture.OperatorToken, Idempotency());
+        Assert.Equal(HttpStatusCode.Created, result.Response.StatusCode);
+        var trips = result.Body.EnumerateArray().ToArray();
+        Assert.Equal(3, trips.Length);
+        Assert.Equal(id, trips[0].GetProperty("id").GetGuid());
+        Assert.Equal(1, trips[0].GetProperty("rowVersion").GetInt64());
+        Assert.Equal(0, trips[1].GetProperty("rowVersion").GetInt64());
+        var list = await SendAsync(client, HttpMethod.Get, "/api/v1/operator/trips?size=100", null, fixture.OperatorToken);
+        Assert.Equal(3, list.Body.GetProperty("items").GetArrayLength());
+        var source = list.Body.GetProperty("items").EnumerateArray().Single(trip => trip.GetProperty("id").GetGuid() == id);
+        Assert.Equal(200000, source.GetProperty("fare").GetProperty("amount").GetInt64());
+        var stale = await SendAsync(client, HttpMethod.Post, "/api/v1/operator/trips/recurring", body, fixture.OperatorToken, Idempotency());
+        Assert.Equal(HttpStatusCode.Conflict, stale.Response.StatusCode);
+        var foreign = await CreateResourcesAsync(client);
+        var denied = await SendAsync(client, HttpMethod.Post, "/api/v1/operator/trips/recurring", body, foreign.OperatorToken, Idempotency());
+        Assert.Equal(HttpStatusCode.NotFound, denied.Response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Recurring_trips_allow_three_months_and_reject_longer_range()
+    {
+        var client = _fixture.CreateClient();
+        var fixture = await CreateResourcesAsync(client);
+        var start = DateOnly.FromDateTime(fixture.Departure.ToOffset(TimeSpan.FromHours(7)).DateTime);
+        var body = new {
+            template = new { routeId = fixture.RouteId, busId = fixture.BusId, driverId = fixture.DriverId, departureAt = fixture.Departure, arrivalAt = fixture.Departure.AddHours(2), fare = new { amount = 150000, currency = "VND" }, policyVersion = "cancel-mvp-v1", expectedVersion = 0 },
+            endDate = start.AddMonths(3).ToString("yyyy-MM-dd"), weekdays = new[] { 0, 1, 2, 3, 4, 5, 6 }
+        };
+        var result = await SendAsync(client, HttpMethod.Post, "/api/v1/operator/trips/recurring", body, fixture.OperatorToken, Idempotency());
+        Assert.Equal(HttpStatusCode.Created, result.Response.StatusCode);
+        var trips = result.Body.EnumerateArray().ToArray();
+        var count = start.AddMonths(3).DayNumber - start.DayNumber + 1;
+        Assert.Equal(count, trips.Length);
+        Assert.Equal(count, trips.Select(trip => trip.GetProperty("id").GetGuid()).Distinct().Count());
+        Assert.Equal(fixture.Departure.AddDays(count - 1), trips[^1].GetProperty("departureAt").GetDateTimeOffset());
+        var tooLong = await SendAsync(client, HttpMethod.Post, "/api/v1/operator/trips/recurring", new { body.template, endDate = start.AddMonths(3).AddDays(1).ToString("yyyy-MM-dd"), body.weekdays }, fixture.OperatorToken, Idempotency());
+        Assert.Equal(HttpStatusCode.BadRequest, tooLong.Response.StatusCode);
+        var listed = await SendAsync(client, HttpMethod.Get, "/api/v1/operator/trips?size=100", null, fixture.OperatorToken);
+        Assert.Equal(count, listed.Body.GetProperty("items").GetArrayLength());
+    }
+
+    [Fact]
+    public async Task Recurring_trips_keep_local_times_and_retry_without_duplicates()
+    {
+        var client = _fixture.CreateClient();
+        var fixture = await CreateResourcesAsync(client);
+        var start = DateOnly.FromDateTime(fixture.Departure.ToOffset(TimeSpan.FromHours(7)).DateTime);
+        var departure = new DateTimeOffset(start.ToDateTime(new TimeOnly(23, 30)), TimeSpan.FromHours(7));
+        var body = new {
+            template = new { routeId = fixture.RouteId, busId = fixture.BusId, driverId = fixture.DriverId, departureAt = departure, arrivalAt = departure.AddHours(2), fare = new { amount = 150000, currency = "VND" }, policyVersion = "cancel-mvp-v1", expectedVersion = 0 },
+            endDate = start.AddDays(2).ToString("yyyy-MM-dd"), weekdays = new[] { 0, 1, 2, 3, 4, 5, 6 }
+        };
+        var key = Idempotency();
+        var created = await SendAsync(client, HttpMethod.Post, "/api/v1/operator/trips/recurring", body, fixture.OperatorToken, key);
+        Assert.Equal(HttpStatusCode.Created, created.Response.StatusCode);
+        var trips = created.Body.EnumerateArray().ToArray();
+        Assert.Equal(3, trips.Length);
+        for (var index = 0; index < trips.Length; index++)
+        {
+            Assert.Equal(departure.AddDays(index), trips[index].GetProperty("departureAt").GetDateTimeOffset());
+            Assert.Equal(departure.AddDays(index).AddHours(2), trips[index].GetProperty("arrivalAt").GetDateTimeOffset());
+            Assert.Equal("DRAFT", trips[index].GetProperty("status").GetString());
+        }
+        var replay = await SendAsync(client, HttpMethod.Post, "/api/v1/operator/trips/recurring", body, fixture.OperatorToken, key);
+        Assert.Equal(trips.Select(trip => trip.GetProperty("id").GetGuid()), replay.Body.EnumerateArray().Select(trip => trip.GetProperty("id").GetGuid()));
+        var list = await SendAsync(client, HttpMethod.Get, "/api/v1/operator/trips?size=100", null, fixture.OperatorToken);
+        Assert.Equal(3, list.Body.GetProperty("items").GetArrayLength());
+        foreach (var trip in list.Body.GetProperty("items").EnumerateArray())
+            Assert.Equal(fixture.DriverId, trip.GetProperty("driverId").GetGuid());
+        var publish = await SendAsync(client, HttpMethod.Post, $"/api/v1/operator/trips/{trips[0].GetProperty("id").GetGuid()}/publish", new { expectedVersion = 0 }, fixture.OperatorToken, Idempotency());
+        Assert.Equal(HttpStatusCode.Accepted, publish.Response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Recurring_trips_validate_entire_range_before_creating_drafts()
+    {
+        var client = _fixture.CreateClient();
+        var start = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(30));
+        var fixture = await CreateResourcesAsync(client, start.AddDays(1));
+        var departure = new DateTimeOffset(start.ToDateTime(new TimeOnly(8, 0)), TimeSpan.FromHours(7));
+        var template = new { routeId = fixture.RouteId, busId = fixture.BusId, driverId = fixture.DriverId, departureAt = departure, arrivalAt = departure.AddHours(2), fare = new { amount = 150000, currency = "VND" }, policyVersion = "cancel-mvp-v1", expectedVersion = 0 };
+        var invalid = await SendAsync(client, HttpMethod.Post, "/api/v1/operator/trips/recurring", new { template, endDate = start.AddDays(3).ToString("yyyy-MM-dd"), weekdays = new[] { 0, 1, 2, 3, 4, 5, 6 } }, fixture.OperatorToken, Idempotency());
+        Assert.Equal(HttpStatusCode.BadRequest, invalid.Response.StatusCode);
+        var list = await SendAsync(client, HttpMethod.Get, "/api/v1/operator/trips?size=100", null, fixture.OperatorToken);
+        Assert.Equal(0, list.Body.GetProperty("items").GetArrayLength());
+        var valid = await SendAsync(client, HttpMethod.Post, "/api/v1/operator/trips/recurring", new { template, endDate = start.AddDays(1).ToString("yyyy-MM-dd"), weekdays = new[] { (int)start.DayOfWeek } }, fixture.OperatorToken, Idempotency());
+        Assert.Equal(HttpStatusCode.Created, valid.Response.StatusCode);
+        Assert.Equal(1, valid.Body.GetArrayLength());
+    }
+
+    [Fact]
+    public async Task Seat_permission_changes_one_seat_and_rejects_stale_version()
+    {
+        var client = _fixture.CreateClient();
+        var fixture = await CreateResourcesAsync(client);
+        var buses = await SendAsync(client, HttpMethod.Get, "/api/v1/operator/buses", null, fixture.OperatorToken);
+        var bus = buses.Body.EnumerateArray().Single(item => item.GetProperty("id").GetGuid() == fixture.BusId);
+        var seats = bus.GetProperty("seats").EnumerateArray().ToArray();
+        var code = seats[0].GetProperty("code").GetString();
+        var path = $"/api/v1/operator/buses/{fixture.BusId}/seats/{code}/permission";
+        var body = new { enabled = false, expectedVersion = bus.GetProperty("expectedVersion").GetInt64() };
+        var changed = await SendAsync(client, HttpMethod.Patch, path, body, fixture.OperatorToken, Idempotency());
+        Assert.Equal(HttpStatusCode.OK, changed.Response.StatusCode);
+        var updated = changed.Body.GetProperty("seats").EnumerateArray().ToArray();
+        Assert.Equal(seats.Length, updated.Length);
+        Assert.False(updated.Single(seat => seat.GetProperty("code").GetString() == code).GetProperty("enabled").GetBoolean());
+        foreach (var seat in updated.Where(seat => seat.GetProperty("code").GetString() != code))
+            Assert.Equal(seats.Single(original => original.GetProperty("code").GetString() == seat.GetProperty("code").GetString()).GetRawText(), seat.GetRawText());
+        var stale = await SendAsync(client, HttpMethod.Patch, path, body, fixture.OperatorToken, Idempotency());
+        Assert.Equal(HttpStatusCode.Conflict, stale.Response.StatusCode);
+        var foreign = await CreateResourcesAsync(client);
+        var denied = await SendAsync(client, HttpMethod.Patch, path, body, foreign.OperatorToken, Idempotency());
+        Assert.Equal(HttpStatusCode.NotFound, denied.Response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Delete_driver_hides_profile_and_rejects_assigned_driver()
+    {
+        var client = _fixture.CreateClient();
+        var fixture = await CreateResourcesAsync(client);
+        var path = $"/api/v1/operator/drivers/{fixture.DriverId}";
+        var deleted = await SendAsync(client, HttpMethod.Delete, path, null, fixture.OperatorToken, Idempotency());
+        Assert.Equal(HttpStatusCode.OK, deleted.Response.StatusCode);
+        var listed = await SendAsync(client, HttpMethod.Get, "/api/v1/operator/drivers", null, fixture.OperatorToken);
+        Assert.DoesNotContain(listed.Body.EnumerateArray(), item => item.GetProperty("id").GetGuid() == fixture.DriverId);
+        var restore = await SendAsync(client, HttpMethod.Post, path + "/activate", new { }, fixture.OperatorToken, Idempotency());
+        Assert.Equal(HttpStatusCode.NotFound, restore.Response.StatusCode);
+
+        var assigned = await CreateResourcesAsync(client);
+        var trip = await CreateTripAsync(client, assigned, assigned.BusId, assigned.Departure);
+        Assert.Equal(HttpStatusCode.Created, trip.Response.StatusCode);
+        var blocked = await SendAsync(client, HttpMethod.Delete, $"/api/v1/operator/drivers/{assigned.DriverId}", null, assigned.OperatorToken, Idempotency());
+        Assert.Equal(HttpStatusCode.Conflict, blocked.Response.StatusCode);
+        var foreign = await SendAsync(client, HttpMethod.Delete, $"/api/v1/operator/drivers/{assigned.DriverId}", null, fixture.OperatorToken, Idempotency());
+        Assert.Equal(HttpStatusCode.NotFound, foreign.Response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Paused_driver_remains_listed_and_can_be_restored()
+    {
+        var client = _fixture.CreateClient();
+        var fixture = await CreateResourcesAsync(client);
+        var path = $"/api/v1/operator/drivers/{fixture.DriverId}";
+        var paused = await SendAsync(client, HttpMethod.Post, path + "/deactivate", new { }, fixture.OperatorToken, Idempotency());
+        Assert.Equal(HttpStatusCode.OK, paused.Response.StatusCode);
+        Assert.Equal("INACTIVE", paused.Body.GetProperty("status").GetString());
+        var listed = await SendAsync(client, HttpMethod.Get, "/api/v1/operator/drivers", null, fixture.OperatorToken);
+        Assert.Contains(listed.Body.EnumerateArray(), item => item.GetProperty("id").GetGuid() == fixture.DriverId);
+
+        // Simulate profiles paused before the fix, when pausing also set deleted_at.
+        await using (var db = new Npgsql.NpgsqlConnection(_fixture.Container.GetConnectionString()))
+        {
+            await db.OpenAsync();
+            await using var command = new Npgsql.NpgsqlCommand("UPDATE driver_profiles SET deleted_at = now() WHERE id = @id", db);
+            command.Parameters.AddWithValue("id", fixture.DriverId);
+            await command.ExecuteNonQueryAsync();
+        }
+        var historical = await SendAsync(client, HttpMethod.Get, "/api/v1/operator/drivers", null, fixture.OperatorToken);
+        Assert.Contains(historical.Body.EnumerateArray(), item => item.GetProperty("id").GetGuid() == fixture.DriverId);
+
+        var restored = await SendAsync(client, HttpMethod.Post, path + "/activate", new { }, fixture.OperatorToken, Idempotency());
+        Assert.Equal(HttpStatusCode.OK, restored.Response.StatusCode);
+        Assert.Equal("ACTIVE", restored.Body.GetProperty("status").GetString());
+        var repeated = await SendAsync(client, HttpMethod.Post, path + "/activate", new { }, fixture.OperatorToken, Idempotency());
+        Assert.Equal(HttpStatusCode.OK, repeated.Response.StatusCode);
+        Assert.Equal(restored.Body.GetProperty("expectedVersion").GetInt64(), repeated.Body.GetProperty("expectedVersion").GetInt64());
+
+        var foreign = await CreateResourcesAsync(client);
+        var forbidden = await SendAsync(client, HttpMethod.Post, path + "/activate", new { }, foreign.OperatorToken, Idempotency());
+        Assert.Equal(HttpStatusCode.NotFound, forbidden.Response.StatusCode);
+    }
+
+    [Fact]
     public async Task Expired_driver_profile_is_saved_as_unavailable_and_cannot_be_assigned()
     {
         var client = _fixture.CreateClient();

@@ -1,9 +1,9 @@
 .operator-manifest__summary {
   display: grid;
   grid-template-columns:
-    198px minmax(150px, 1.5fr) minmax(90px, 1fr) minmax(110px, 1.1fr)
+    220px minmax(150px, 1.5fr) minmax(90px, 1fr) minmax(110px, 1.1fr)
     minmax(100px, 1fr) minmax(90px, 0.9fr) 104px;
-  gap: 24px;
+  gap: 18px;
   align-items: center;
   min-height: 112px;
   margin-top: 8px;
@@ -37,10 +37,6 @@
 .operator-manifest__summary .operator-manifest__count {
   font-size: 15px;
 }
-.operator-manifest__summary h2 {
-  font-size: 18px;
-  color: #10233e;
-}
 .operator-manifest__summary .operator-manifest__back {
   border-right: 1px solid #d5e1ef;
   padding-right: 16px;
@@ -48,16 +44,29 @@
   justify-content: center;
 }
 .operator-manifest__back a {
-  display: grid;
-  place-items: center;
-  border: 1px solid #d5e1ef;
-  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: start;
+  gap: 8px;
   min-height: 40px;
-  padding: 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border-shell);
+  border-radius: 8px;
+  color: var(--color-brand-shell-strong);
+  font: 600 13px/1.4 var(--font-body);
   text-decoration: none;
-  color: #1f67e8;
-  font-size: 10px;
-  font-weight: 600;
+  white-space: nowrap;
+}
+.operator-manifest__back a svg {
+  flex-shrink: 0;
+}
+.operator-manifest__back a:hover {
+  background: var(--color-bg-subtle);
+}
+.operator-manifest__back a:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
 }
 .operator-manifest__summary .operator-manifest__status {
   font-size: 9px;
@@ -126,12 +135,68 @@
 .operator-manifest__summary > div {
   gap: 8px;
 }
-.operator-manifest__summary h2 {
-  line-height: 22px;
-}
 .operator-manifest__summary strong {
   line-height: 18px;
 }
 .operator-manifest__summary small {
   line-height: 12px;
+}
+
+.operator-bookings.operator-manifest
+  .operator-bookings__panel.operator-manifest__panel--empty {
+  min-height: 0;
+}
+.operator-manifest__empty {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 32px 16px 36px;
+  text-align: center;
+}
+.operator-manifest__empty-icon {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  margin-bottom: 4px;
+  border-radius: 14px;
+  background: var(--color-bg-subtle);
+  color: var(--color-brand-shell-strong);
+}
+.operator-manifest__empty h3,
+.operator-manifest__empty p {
+  margin: 0;
+}
+.operator-manifest__empty h3 {
+  font: 600 16px/1.4 var(--font-body);
+}
+.operator-manifest__empty p {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+.operator-manifest__empty .button {
+  margin-top: 8px;
+}
+
+.operator-manifest__summary-error {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+.operator-manifest__spinner {
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--color-border-shell);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: operator-manifest-spin 800ms linear infinite;
+}
+@keyframes operator-manifest-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .operator-manifest__spinner {
+    animation: none;
+  }
 }

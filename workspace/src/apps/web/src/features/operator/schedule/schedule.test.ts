@@ -60,4 +60,21 @@ describe("Operator schedule selection", () => {
       selectSchedule(trips, { sort: "latest" }).map((trip) => trip.id),
     ).toEqual(["BL-3", "BL-1", "BL-2"]);
   });
+
+  it("accepts any checked value within each group and combines groups", () => {
+    expect(
+      selectSchedule(trips, {
+        status: "draft,scheduled",
+        assignment: "conflict,complete",
+        period: "morning,evening",
+      }).map((trip) => trip.id),
+    ).toEqual(["BL-1", "BL-2", "BL-3"]);
+    expect(
+      selectSchedule(trips, {
+        status: "draft,scheduled",
+        assignment: "complete",
+        period: "morning,afternoon",
+      }).map((trip) => trip.id),
+    ).toEqual(["BL-1"]);
+  });
 });

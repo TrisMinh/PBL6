@@ -1,3 +1,4 @@
+import { displayCode } from "../components/displayCode";
 import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import type { ReactElement } from "react";
 import { Link, useLocation, useParams } from "react-router";
@@ -36,7 +37,7 @@ export function EditRoutePage(): ReactElement {
       <OperatorSidebar />
       <main className="operator-schedule__main">
         <header className="operator-schedule__header">
-          <h1>Chỉnh sửa tuyến {routeId}</h1>
+          <h1>Chỉnh sửa tuyến {displayCode(routeId ?? "", "TU")}</h1>
           <Link to="/operator/routes" className="operator-new-route__back">
             ← Quản lý tuyến
           </Link>

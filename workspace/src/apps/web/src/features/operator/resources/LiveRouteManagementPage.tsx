@@ -1,3 +1,4 @@
+import { OperatorStatusBadge } from "../components/OperatorStatusBadge";
 import { useState, type ReactElement } from "react";
 import { Link, useSearchParams } from "react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -105,13 +106,9 @@ export function LiveRouteManagementPage(): ReactElement {
                 <span>
                   {route.stops.length} điểm dừng · {route.distanceKm ?? "—"} km
                 </span>
-                <em
-                  className={
-                    route.status !== "ACTIVE" ? "operator-routes__paused" : ""
-                  }
-                >
+                <OperatorStatusBadge state={route.status}>
                   {routeStatus(route.status)}
-                </em>
+                </OperatorStatusBadge>
               </button>
             ))}
             {!rows.length && <p>Không tìm thấy tuyến phù hợp.</p>}
@@ -125,15 +122,9 @@ export function LiveRouteManagementPage(): ReactElement {
                 <p>
                   {selected.origin} → {selected.destination}
                 </p>
-                <span
-                  className={
-                    selected.status !== "ACTIVE"
-                      ? "operator-routes__paused"
-                      : ""
-                  }
-                >
+                <OperatorStatusBadge state={selected.status}>
                   {routeStatus(selected.status)}
-                </span>
+                </OperatorStatusBadge>
                 <Link
                   className="live-routes__edit"
                   to={`/operator/routes/${selected.id}/edit`}

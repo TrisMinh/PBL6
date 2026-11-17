@@ -1,4 +1,5 @@
 import { useId, type ReactElement } from "react";
+import { DatePicker } from "@/shared/ui/DatePicker/DatePicker";
 
 export function TripDateTimeField({
   label,
@@ -6,12 +7,14 @@ export function TripDateTimeField({
   onChange,
   disabled = false,
   error,
+  minDate,
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
   disabled?: boolean;
   error?: string;
+  minDate?: string;
 }): ReactElement {
   const [date = "", time = ""] = value.split("T");
   const errorId = useId();
@@ -25,8 +28,8 @@ export function TripDateTimeField({
     >
       <span>{label}</span>
       <div className="operator-trip-workflow__datetime">
-        <input
-          type="date"
+        <DatePicker
+          min={minDate}
           aria-label={`${label} - Ngày`}
           aria-invalid={!!error}
           aria-describedby={error ? errorId : undefined}

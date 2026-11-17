@@ -55,6 +55,7 @@ export const driverAttachmentSchema = z.object({
     .max(10 * 1024 * 1024),
 });
 const extras = {
+  assignedRouteId: z.string().max(128).optional(),
   notes: z.string().max(1000).optional(),
   avatar: driverAttachmentSchema
     .refine(
@@ -70,6 +71,13 @@ export const createDriverSchema = driverInputSchema.safeExtend({
   status: z.enum(["available", "paused"]).default("available"),
 });
 export const updateDriverSchema = driverInputSchema.safeExtend({
+  // Older profiles can have an empty phone number or a legacy licence code.
+  phone: z
+    .string()
+    .max(32)
+    .transform((value) => value.replace(/\s/g, "")),
+  licenseNumber: z.string().trim().min(1, "Vui lòng nhập số GPLX.").max(80),
+  assignedRouteId: extras.assignedRouteId,
   notes: z.string().max(1000).optional(),
   status: driverStatusSchema.optional(),
   avatar: extras.avatar.nullable(),

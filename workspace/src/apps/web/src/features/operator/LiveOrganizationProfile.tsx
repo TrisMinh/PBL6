@@ -92,7 +92,10 @@ function OrganizationForm({
         Lưu hồ sơ nhà xe
       </Button>
       {mutation.isSuccess ? (
-        <p role="status">Đã cập nhật hồ sơ nhà xe.</p>
+        <Toast
+          message="Đã cập nhật hồ sơ nhà xe."
+          onClose={() => mutation.reset()}
+        />
       ) : null}
       {mutation.isError ? <ApiFailure error={mutation.error} /> : null}
     </form>
@@ -117,3 +120,4 @@ export function LiveOrganizationProfile(): ReactElement | null {
     </details>
   );
 }
+import { Toast } from "@/shared/ui/Toast/Toast";

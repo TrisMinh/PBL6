@@ -1,3 +1,4 @@
+import { OperatorStatusBadge } from "../components/OperatorStatusBadge";
 import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import type { ReactElement } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router";
@@ -308,7 +309,9 @@ function TrackingContent({
               ) : (
                 <>
                   <span>{item.refundReference ?? "Chưa có mã hoàn tiền"}</span>
-                  <span>{progress(item.status)}</span>
+                  <OperatorStatusBadge state={item.status}>
+                    {progress(item.status)}
+                  </OperatorStatusBadge>
                 </>
               )}
             </p>

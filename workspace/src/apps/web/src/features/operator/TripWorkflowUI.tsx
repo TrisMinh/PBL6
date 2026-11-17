@@ -44,11 +44,13 @@ export function TripWorkflowShell({
   title,
   status,
   review = false,
+  step,
   children,
 }: {
   title: string;
   status: string;
   review?: boolean;
+  step?: number;
   children: ReactNode;
 }): ReactElement {
   const content = (
@@ -71,11 +73,14 @@ export function TripWorkflowShell({
         ].map(([name, desc], i) => (
           <li
             key={name}
-            aria-current={i === (review ? 2 : 0) ? "step" : undefined}
+            aria-current={i === (step ?? (review ? 2 : 0)) ? "step" : undefined}
+            data-complete={(step !== undefined && i < step) || undefined}
           >
             <span className="operator-create__step-number">
               <img
-                src={i === (review ? 2 : 0) ? activeStep : inactiveStep}
+                src={
+                  i <= (step ?? (review ? 2 : 0)) ? activeStep : inactiveStep
+                }
                 alt=""
                 width={32}
                 height={32}

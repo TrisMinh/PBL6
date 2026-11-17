@@ -61,11 +61,7 @@
   opacity: 1;
 }
 .operator-drivers__toolbar select {
-  appearance: none;
   padding-right: 36px;
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  background-size: 16px 16px;
 }
 .operator-drivers .button {
   border-radius: 10px;
@@ -476,4 +472,112 @@
 .operator-drivers__uploaded-document a {
   color: #1f66e5;
   text-decoration: underline;
+}
+
+.operator-drivers__workspace--directory {
+  grid-template-columns: minmax(300px, 380px) minmax(0, 1fr);
+  align-items: start;
+}
+.operator-drivers__workspace--directory
+  :is(.operator-drivers__list, .operator-drivers__profile) {
+  min-height: 0;
+}
+.operator-drivers__workspace--directory .operator-drivers__list {
+  gap: 8px;
+  padding: 16px;
+}
+.operator-drivers__workspace--directory .operator-drivers__row {
+  min-height: 68px;
+  padding: 8px 10px;
+  flex-wrap: nowrap;
+  gap: 10px;
+  border-color: #e3edf9;
+}
+.operator-drivers__workspace--directory
+  .operator-drivers__row[aria-pressed="true"] {
+  background: #edf5ff;
+  border-color: #89b3f1;
+  box-shadow: inset 3px 0 0 #2166dd;
+}
+.operator-drivers__workspace--directory
+  .operator-drivers__row
+  .operator-drivers__avatar {
+  width: 34px;
+  height: 34px;
+}
+.operator-drivers__row-tags {
+  display: grid;
+  justify-items: end;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.operator-drivers__license-tag {
+  display: inline-flex;
+  border-radius: 999px;
+  padding: 2px 9px;
+  background: #e8f2ff;
+  color: #174da6;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 17px;
+  white-space: nowrap;
+}
+.operator-drivers__license-tag[data-grade="C"] {
+  background: #e4f4f6;
+  color: #155e66;
+}
+.operator-drivers__license-tag[data-grade="D"] {
+  background: #eee9fd;
+  color: #563499;
+}
+.operator-drivers__license-tag[data-grade="E"] {
+  background: #fff0d8;
+  color: #834800;
+}
+.operator-drivers__workspace--directory .operator-drivers__personal,
+.operator-drivers__workspace--directory .operator-drivers__license,
+.operator-drivers__workspace--directory .operator-drivers__value {
+  min-height: 0;
+}
+.operator-drivers__workspace--directory .operator-drivers__profile dl {
+  row-gap: 16px;
+}
+@media (max-width: 1050px) {
+  .operator-drivers__workspace--directory {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.operator-drivers__workspace--directory .operator-drivers__profile-heading {
+  flex-wrap: wrap;
+}
+.operator-drivers__profile-heading > .operator-drivers__profile-identity {
+  flex: 1 1 180px;
+}
+.operator-drivers__profile-identity > .operator-status-badge {
+  margin-top: 6px;
+}
+.operator-drivers__profile-heading > .operator-drivers__profile-actions {
+  display: flex;
+  flex: 0 1 auto;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+@media (max-width: 600px) {
+  .operator-drivers__profile-heading > .operator-drivers__profile-actions {
+    flex-basis: 100%;
+  }
+  .operator-drivers__profile-actions > .button {
+    flex: 1 1 auto;
+  }
+}
+
+.operator-drivers .button.operator-drivers__delete {
+  color: #b42318;
+  border-color: #f2c6c2;
+}
+.operator-drivers__dialog .button.operator-drivers__delete-confirm {
+  background: #b42318;
+  border-color: #b42318;
+  color: white;
 }

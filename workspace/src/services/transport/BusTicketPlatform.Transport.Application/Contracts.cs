@@ -12,6 +12,7 @@ public sealed record MoneyDto(long Amount, string Currency);
 public sealed record OperationAccepted(Guid OperationId, string Status, string? StatusUrl = null);
 public sealed record OrganizationDto(Guid Id, string Code, string Name, string? ContactEmail, string? ContactPhone, string Status, bool AllowPayLater, decimal CommissionRate, long RowVersion);
 public sealed record OrganizationInput(string? Code, string Name, string ContactEmail, string ContactPhone, bool? AllowPayLater, long ExpectedVersion);
+public sealed record SeatPermissionInput(bool Enabled, long ExpectedVersion);
 public sealed record SeatInput(string Code, int Deck, int Row, int Column, string Type, bool Enabled);
 public sealed record BusInput(string PlateNumber, string Type, IReadOnlyList<string> Amenities, long ExpectedVersion);
 public sealed record BusDto(Guid Id, string PlateNumber, string Type, IReadOnlyList<string> Amenities, long ExpectedVersion, string Status, int SeatTemplateVersion, IReadOnlyList<SeatInput> Seats);
@@ -21,6 +22,8 @@ public sealed record RouteStopInput(string Name, string? Address, int Sequence, 
 public sealed record TripStopDto(Guid Id, string Name, string? Address, int Sequence, int OffsetMinutes, bool PickupAllowed, bool DropoffAllowed);
 public sealed record RouteInput(string Name, string Origin, string Destination, decimal? DistanceKm, int? DurationMinutes, long ExpectedVersion);
 public sealed record RouteDto(Guid Id, string Name, string Origin, string Destination, decimal? DistanceKm, int? DurationMinutes, long ExpectedVersion, string Status, IReadOnlyList<TripStopDto> Stops);
+public sealed record RecurringTripInput(TripInput Template, DateOnly EndDate, IReadOnlyList<int> Weekdays, Guid? SourceTripId = null);
+public sealed record TripDraftPlan(TripRecord Trip, DriverAssignmentRecord Assignment);
 public sealed record TripInput(Guid RouteId, Guid BusId, Guid DriverId, DateTimeOffset DepartureAt, DateTimeOffset ArrivalAt, MoneyDto Fare, string PolicyVersion, long ExpectedVersion);
 public sealed record TripDto(
     Guid Id,
@@ -86,10 +89,12 @@ public interface ITransportRepository
     Task<BusRecord?> GetBusAsync(Guid organizationId, Guid busId, CancellationToken cancellationToken);
     Task InsertBusAsync(BusRecord bus, IReadOnlyList<SeatRecord> seats, CancellationToken cancellationToken);
     Task UpdateBusAsync(BusRecord bus, CancellationToken cancellationToken);
+    Task<bool> SetSeatPermissionAsync(Guid organizationId, Guid busId, string code, bool enabled, long expectedVersion, CancellationToken cancellationToken);
     Task ReplaceSeatsAsync(Guid busId, IReadOnlyList<SeatRecord> seats, int seatCount, long rowVersion, CancellationToken cancellationToken);
     Task<bool> BusHasActiveTripsAsync(Guid busId, CancellationToken cancellationToken);
     Task<IReadOnlyList<DriverRecord>> ListDriversAsync(Guid organizationId, CancellationToken cancellationToken);
     Task<DriverRecord?> GetDriverAsync(Guid organizationId, Guid driverId, CancellationToken cancellationToken);
+    Task<bool> DeleteDriverAsync(Guid organizationId, Guid driverId, CancellationToken cancellationToken);
     Task InsertDriverAsync(DriverRecord driver, CancellationToken cancellationToken);
     Task UpdateDriverAsync(DriverRecord driver, CancellationToken cancellationToken);
     Task<IReadOnlyList<RouteRecord>> ListRoutesAsync(Guid organizationId, CancellationToken cancellationToken);
@@ -97,6 +102,7 @@ public interface ITransportRepository
     Task InsertRouteAsync(RouteRecord route, IReadOnlyList<RouteStopRecord> stops, CancellationToken cancellationToken);
     Task UpdateRouteAsync(RouteRecord route, IReadOnlyList<RouteStopRecord>? stops, CancellationToken cancellationToken);
     Task<StopRecord> UpsertStopAsync(Guid organizationId, string name, string? address, CancellationToken cancellationToken);
+    Task InsertTripsAsync(IReadOnlyList<TripDraftPlan> plans, CancellationToken cancellationToken, TripDraftPlan? source = null);
     Task InsertTripAsync(TripRecord trip, DriverAssignmentRecord assignment, CancellationToken cancellationToken);
     Task UpdateTripDraftAsync(TripRecord trip, DriverAssignmentRecord assignment, CancellationToken cancellationToken);
     Task PublishTripAsync(TripRecord trip, CancellationToken cancellationToken);

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { driverAttachmentSchema } from "../drivers/drivers.schema";
 
 export const scheduleTripSchema = z
   .object({
@@ -10,9 +11,11 @@ export const scheduleTripSchema = z
     arrival: z.string().regex(/^\d{2}:\d{2}$/),
     vehicleLabel: z.string(),
     crew: z.string(),
+    photo: driverAttachmentSchema.optional(),
     fare: z.number().positive().optional(),
     driver: z
       .object({
+        id: z.string().optional(),
         name: z.string(),
         license: z.string(),
         phone: z.string(),
@@ -50,21 +53,27 @@ export function selectSchedule(
   trips: readonly ScheduleTrip[],
   criteria: ScheduleCriteria,
 ): ScheduleTrip[] {
+  const statuses = criteria.status?.split(",").filter(Boolean) ?? [];
+  const assignments = criteria.assignment?.split(",").filter(Boolean) ?? [];
+  const periods = criteria.period?.split(",").filter(Boolean) ?? [];
   return trips
     .filter((trip) => {
       const hour = Number(trip.departure.split(":")[0]);
+      const period =
+        hour >= 18
+          ? "evening"
+          : hour >= 12
+            ? "afternoon"
+            : hour >= 6
+              ? "morning"
+              : "";
       return (
         (!criteria.origin || trip.origin === criteria.origin) &&
         (!criteria.destination || trip.destination === criteria.destination) &&
         (!criteria.date || trip.date === criteria.date) &&
-        (!criteria.status || trip.status === criteria.status) &&
-        (!criteria.assignment || trip.assignment === criteria.assignment) &&
-        (!criteria.period ||
-          (criteria.period === "morning"
-            ? hour >= 6 && hour < 12
-            : criteria.period === "afternoon"
-              ? hour >= 12 && hour < 18
-              : hour >= 18))
+        (!statuses.length || statuses.includes(trip.status)) &&
+        (!assignments.length || assignments.includes(trip.assignment)) &&
+        (!periods.length || periods.includes(period))
       );
     })
     .sort((left, right) =>

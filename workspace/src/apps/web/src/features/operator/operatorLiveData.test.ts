@@ -62,18 +62,18 @@ it("a permission change preserves every actual seat code and coordinate instead 
   api.rows.mockResolvedValue([bus]);
   api.request.mockImplementation(async (_path, _method, body) => ({
     ...bus,
-    seats: body.seats,
+    seats: seats.map((seat) =>
+      seat.code === "A02" ? { ...seat, enabled: body.enabled } : seat,
+    ),
     expectedVersion: 10,
   }));
   const saved = await setVehicleSeatPermission("bus", "A02", true);
   expect(api.request).toHaveBeenCalledWith(
-    "/api/v1/operator/buses/bus/seats",
-    "PUT",
-    {
-      expectedVersion: 9,
-      seats: [seats[0], { ...seats[1], enabled: true }],
-    },
+    "/api/v1/operator/buses/bus/seats/A02/permission",
+    "PATCH",
+    { enabled: true, expectedVersion: 9 },
   );
+  expect(saved.actualSeats).toEqual([seats[0], { ...seats[1], enabled: true }]);
   expect(vehicleCapacity(saved)).toBe(2);
   expect(saved.disabledSeats).toEqual([]);
   expect(api.saveMetadata).not.toHaveBeenCalled();

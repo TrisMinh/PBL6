@@ -1,5 +1,6 @@
 import { rows, localDateTime, type Row } from "../liveOriginalApi";
 import { scheduleTripSchema, type ScheduleTrip } from "./schedule.schema";
+import { tripPictures } from "../create/tripPresentation";
 export async function scheduleResources(
   signal?: AbortSignal,
 ): Promise<{ trips: Row[]; buses: Row[]; drivers: Row[] }> {
@@ -34,11 +35,13 @@ export function adaptSchedule(
     crew: driver?.fullName ?? driver?.licenseNumber ?? "Chưa phân công",
     driver: driver
       ? {
+          id: driver.id,
           name: driver.fullName ?? driver.licenseNumber,
           license: driver.licenseNumber ?? "",
           phone: driver.phone ?? "",
           expires: driver.licenseExpiresOn ?? "",
-          avatarUrl: typeof driver.avatarUrl === "string" ? driver.avatarUrl : undefined,
+          avatarUrl:
+            typeof driver.avatarUrl === "string" ? driver.avatarUrl : undefined,
         }
       : undefined,
     passengers: Math.max(0, capacity - (t.availableSeatCount ?? capacity)),
@@ -50,6 +53,12 @@ export function adaptSchedule(
 export async function getSchedule(
   signal?: AbortSignal,
 ): Promise<ScheduleTrip[]> {
-  const { trips, buses, drivers } = await scheduleResources(signal);
-  return trips.map((t) => adaptSchedule(t, buses, drivers));
+  const [{ trips, buses, drivers }, pictures] = await Promise.all([
+    scheduleResources(signal),
+    tripPictures(signal),
+  ]);
+  return trips.map((t) => ({
+    ...adaptSchedule(t, buses, drivers),
+    photo: pictures[t.id],
+  }));
 }

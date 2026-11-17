@@ -1,3 +1,4 @@
+import { Toast } from "@/shared/ui/Toast/Toast";
 import { useRef, useState, type ReactElement } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -408,11 +409,7 @@ function RouteForm({ route }: { route?: LiveRoute }): ReactElement {
             )}
           </>
         )}
-        {notice && (
-          <p role="status" className="operator-new-route__message">
-            {notice}
-          </p>
-        )}
+        {notice && <Toast message={notice} onClose={() => setNotice("")} />}
         <footer className="operator-new-route__actions">
           <Link to="/operator/routes">Hủy</Link>
           {!route && (

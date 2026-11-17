@@ -27,6 +27,7 @@ import membersIcon from "@/assets/operator/schedule/imgFrame7.svg";
 import refundsIcon from "@/assets/operator/schedule/imgFrame8.svg";
 import "./OperatorLayout.css";
 import "./OperatorTheme.css";
+import "./OperatorConsistency.css";
 import { workspaceAccess } from "@/features/auth/lib/workspaceAccess";
 import { OperatorWorkspaceContext } from "./OperatorWorkspaceContext";
 import { OperatorAccountAvatar } from "@/features/operator/components/OperatorAccountAvatar";
@@ -247,7 +248,11 @@ function LiveOperatorLayout(): ReactElement {
           </Dialog.Root>
           <div>
             <span>Không gian làm việc</span>
-            <strong>{section?.label ?? "Quản lý nhà xe"}</strong>
+            {location.pathname.replace(/\/$/, "") === "/operator/drivers" ? (
+              <h1>Quản lý tài xế</h1>
+            ) : (
+              <strong>{section?.label ?? "Quản lý nhà xe"}</strong>
+            )}
           </div>
           <div className="operator-workspace__top-actions">
             <NotificationBell />

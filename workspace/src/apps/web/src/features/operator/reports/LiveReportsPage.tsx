@@ -9,7 +9,7 @@ import { normalizeSearch, stateLabel } from "@/shared/api/livePresentation";
 import { getVietnamTodayDate } from "@/shared/lib/getVietnamTodayDate";
 import { NotificationBell } from "@/features/notifications/NotificationBell";
 import { Button } from "@/shared/ui/Button/Button";
-import { Input } from "@/shared/ui/Input/Input";
+import { OperatorInput as Input } from "../components/OperatorInput";
 import { reportFiltersSchema } from "./reports.schema";
 import {
   getLiveReport,

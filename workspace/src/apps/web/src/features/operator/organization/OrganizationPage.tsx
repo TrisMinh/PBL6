@@ -1,3 +1,5 @@
+import { OperatorStatusBadge } from "../components/OperatorStatusBadge";
+import { Toast } from "@/shared/ui/Toast/Toast";
 import * as Dialog from "@radix-ui/react-dialog";
 import {
   useState,
@@ -20,8 +22,6 @@ import { SteeringWheel } from "@phosphor-icons/react/dist/csr/SteeringWheel";
 import { Calculator } from "@phosphor-icons/react/dist/csr/Calculator";
 import { ArrowsLeftRight } from "@phosphor-icons/react/dist/csr/ArrowsLeftRight";
 import { CheckCircle } from "@phosphor-icons/react/dist/csr/CheckCircle";
-import { Clock } from "@phosphor-icons/react/dist/csr/Clock";
-import { PauseCircle } from "@phosphor-icons/react/dist/csr/PauseCircle";
 import {
   memberInputSchema,
   memberRoles,
@@ -45,11 +45,6 @@ const roleIcons = {
   accountant: Calculator,
   support: Headset,
   driver: SteeringWheel,
-};
-const stateIcons = {
-  active: CheckCircle,
-  invited: Clock,
-  suspended: PauseCircle,
 };
 
 const roleDetails = {
@@ -240,25 +235,55 @@ export function OrganizationPage(): ReactElement {
         .toLocaleLowerCase("vi")
         .includes(search.toLocaleLowerCase("vi")),
   );
-  const saveProfile = async (event: FormEvent): Promise<void> => {
+  const [profileSaveError, setProfileSaveError] = useState("");
+  const [profileSubmitted, setProfileSubmitted] = useState(false);
+  const profileValidation = organizationSchema.safeParse(organization);
+  const profileErrors =
+    profileSubmitted && !profileValidation.success
+      ? profileValidation.error.flatten().fieldErrors
+      : {};
+  const additionalPhones = organization.additionalPhones ?? [];
+  const phoneErrors = new Map<number, string>();
+  if (profileSubmitted && !profileValidation.success) {
+    for (const issue of profileValidation.error.issues) {
+      const [field, index] = issue.path;
+      if (
+        field === "additionalPhones" &&
+        typeof index === "number" &&
+        !phoneErrors.has(index)
+      ) {
+        phoneErrors.set(index, issue.message);
+      }
+    }
+  }
+  const updateAdditionalPhones = (phones: string[]): void => {
+    setOrganization((current) => ({ ...current, additionalPhones: phones }));
+  };
+  const saveProfile = async (
+    event: FormEvent<HTMLFormElement>,
+  ): Promise<void> => {
     event.preventDefault();
     setError("");
-    const parsed = organizationSchema.safeParse(organization);
-    if (!parsed.success) {
-      setError(
-        "Kiểm tra tên, email, số điện thoại 10 chữ số, địa chỉ và mã số thuế.",
+    setNotice("");
+    setProfileSaveError("");
+    setProfileSubmitted(true);
+    if (!profileValidation.success) {
+      const form = event.currentTarget;
+      requestAnimationFrame(() =>
+        form.querySelector<HTMLInputElement>('[aria-invalid="true"]')?.focus(),
       );
       return;
     }
     try {
-      await saveOrganization(parsed.data);
+      await saveOrganization(profileValidation.data);
+      setProfileSubmitted(false);
       void queryClient.invalidateQueries({
         queryKey: liveQueryKey("operator", "organization-brand"),
       });
       setWorkspace(await readWorkspace());
-      setNotice("Đã lưu thông tin nhà xe ");
+      setNotice("Đã lưu thông tin nhà xe.");
     } catch {
-      setError("Không lưu được dữ liệu. Vui lòng thử lại.");
+      setProfileSaveError("Không lưu được hồ sơ. Vui lòng thử lại.");
     }
   };
   const changeState = async (): Promise<void> => {
@@ -302,11 +327,14 @@ export function OrganizationPage(): ReactElement {
             </p>
           </div>
         </header>
-        {notice && (
-          <p role="status" className="operator-workspace-demo__notice">
-            {notice}
-          </p>
+        {profileSaveError && (
+          <Toast
+            tone="error"
+            message={profileSaveError}
+            onClose={() => setProfileSaveError("")}
+          />
         )}
+        {notice && <Toast message={notice} onClose={() => setNotice("")} />}
         {error && (
           <p role="alert" className="operator-workspace-demo__error">
             {error}
@@ -318,9 +346,9 @@ export function OrganizationPage(): ReactElement {
         >
           <div className="operator-workspace-demo__section-heading">
             <h2 id="organization-profile">Hồ sơ nhà xe</h2>
-            <span className="operator-organization__member-state operator-organization__member-state--active">
-              <CheckCircle size={15} weight="fill" /> Đang hoạt động
-            </span>
+            <OperatorStatusBadge state={"active"}>
+              Đang hoạt động
+            </OperatorStatusBadge>
           </div>
           <div className="operator-organization__profile-body">
             <div className="operator-organization__identity">
@@ -400,6 +428,7 @@ export function OrganizationPage(): ReactElement {
                 <Input
                   label="Tên nhà xe"
                   required
+                  error={profileErrors.name?.[0]}
                   value={organization.name}
                   onChange={(e) =>
                     setOrganization({ ...organization, name: e.target.value })
@@ -410,15 +439,17 @@ export function OrganizationPage(): ReactElement {
                   label="Email liên hệ"
                   required
                   type="email"
+                  error={profileErrors.email?.[0]}
                   value={organization.email}
                   onChange={(e) =>
                     setOrganization({ ...organization, email: e.target.value })
                   }
                 />
                 <Input
-                  label="Điện thoại liên hệ"
+                  label="Điện thoại liên hệ chính"
                   required
                   type="tel"
+                  error={profileErrors.phone?.[0]}
                   value={organization.phone}
                   onChange={(e) =>
                     setOrganization({ ...organization, phone: e.target.value })
@@ -428,6 +459,7 @@ export function OrganizationPage(): ReactElement {
                   label="Mã số thuế"
                   required
                   inputMode="numeric"
+                  error={profileErrors.taxCode?.[0]}
                   value={organization.taxCode}
                   onChange={(e) =>
                     setOrganization({
@@ -439,6 +471,7 @@ export function OrganizationPage(): ReactElement {
                 <Input
                   label="Địa chỉ"
                   required
+                  error={profileErrors.address?.[0]}
                   value={organization.address}
                   onChange={(e) =>
                     setOrganization({
@@ -448,6 +481,52 @@ export function OrganizationPage(): ReactElement {
                   }
                 />
               </div>
+              <fieldset className="operator-organization__contact-phones">
+                <legend>Số liên hệ khác</legend>
+                {additionalPhones.map((phone, index) => (
+                  <div
+                    className="operator-organization__contact-phone"
+                    key={index}
+                  >
+                    <Input
+                      label={`Số liên hệ phụ ${index + 1}`}
+                      type="tel"
+                      value={phone}
+                      error={phoneErrors.get(index)}
+                      onChange={(event) =>
+                        updateAdditionalPhones(
+                          additionalPhones.map((number, position) =>
+                            position === index ? event.target.value : number,
+                          ),
+                        )
+                      }
+                    />
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      aria-label={`Xóa số liên hệ phụ ${index + 1}`}
+                      onClick={() =>
+                        updateAdditionalPhones(
+                          additionalPhones.filter(
+                            (_, position) => position !== index,
+                          ),
+                        )
+                      }
+                    >
+                      Xóa
+                    </Button>
+                  </div>
+                ))}
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() =>
+                    updateAdditionalPhones([...additionalPhones, ""])
+                  }
+                >
+                  Thêm số điện thoại
+                </Button>
+              </fieldset>
               <div className="operator-organization__profile-footer">
                 <label className="operator-workspace-demo__checkbox">
                   <input
@@ -466,7 +545,10 @@ export function OrganizationPage(): ReactElement {
                   <Button
                     type="button"
                     variant="secondary"
-                    onClick={() => setOrganization(workspace.organization)}
+                    onClick={() => {
+                      setOrganization(workspace.organization);
+                      setProfileSubmitted(false);
+                    }}
                   >
                     Khôi phục
                   </Button>
@@ -553,7 +635,6 @@ export function OrganizationPage(): ReactElement {
               <tbody>
                 {members.map((member) => {
                   const RoleIcon = roleIcons[member.role];
-                  const StateIcon = stateIcons[member.status];
                   return (
                     <tr key={member.id}>
                       <th scope="row">{member.name}</th>
@@ -574,12 +655,9 @@ export function OrganizationPage(): ReactElement {
                         </button>
                       </td>
                       <td>
-                        <span
-                          className={`operator-organization__member-state operator-organization__member-state--${member.status}`}
-                        >
-                          <StateIcon size={15} weight="fill" />
+                        <OperatorStatusBadge state={member.status}>
                           {memberStates[member.status]}
-                        </span>
+                        </OperatorStatusBadge>
                       </td>
                       <td>
                         <div className="operator-workspace-demo__actions">
@@ -675,7 +753,7 @@ export function OrganizationPage(): ReactElement {
               {editor === "new" ? "Thêm thành viên" : "Chỉnh sửa thành viên"}
             </WorkspaceDialogHeading>
             <Dialog.Description>
-              Phân quyền phù hợp với công việc của thành viên trong BlueLine Co.
+              Phân quyền phù hợp với công việc của thành viên trong nhà xe.
             </Dialog.Description>
             {editor !== null && (
               <MemberEditor

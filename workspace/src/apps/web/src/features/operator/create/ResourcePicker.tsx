@@ -116,7 +116,7 @@ export function ResourcePicker({
   useEffect(() => {
     if (expanded && active)
       document
-        .getElementById(`${id}-${active}`)
+        .getElementById(`${id}-${encodeURIComponent(active)}`)
         ?.scrollIntoView({ block: "nearest" });
   }, [active, expanded, id]);
   return (
@@ -153,7 +153,22 @@ export function ResourcePicker({
         {selected?.disabled && (
           <small>{selected.disabledReason ?? "Không khả dụng"}</small>
         )}
-        <span aria-hidden="true">⌄</span>
+        <svg
+          aria-hidden="true"
+          width="16"
+          height="16"
+          viewBox="0 0 16 16"
+          fill="none"
+          style={{ flexShrink: 0 }}
+        >
+          <path
+            d="m4 6 4 4 4-4"
+            stroke="currentColor"
+            strokeWidth="1.4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
       </button>
       {expanded && (
         <div className="resource-picker__popup">
@@ -177,12 +192,18 @@ export function ResourcePicker({
               placeholder={
                 label === "Xe"
                   ? "Tìm biển số, loại xe…"
-                  : "Nhập số GPLX để tìm…"
+                  : label === "Tài xế"
+                    ? "Tìm tên hoặc số GPLX…"
+                    : ["Điểm đón", "Điểm trả"].includes(label)
+                      ? "Tìm tên hoặc địa chỉ…"
+                      : "Tìm tỉnh, thành phố…"
               }
               autoComplete="off"
               value={query}
               aria-controls={`${id}-list`}
-              aria-activedescendant={active ? `${id}-${active}` : undefined}
+              aria-activedescendant={
+                active ? `${id}-${encodeURIComponent(active)}` : undefined
+              }
               onKeyDown={keyDown}
               onChange={(e) => {
                 setQuery(e.target.value);
@@ -194,7 +215,7 @@ export function ResourcePicker({
             {filtered.map((o) => (
               <li
                 key={o.id}
-                id={`${id}-${o.id}`}
+                id={`${id}-${encodeURIComponent(o.id)}`}
                 role="option"
                 data-resource-id={o.id}
                 aria-selected={o.id === value}

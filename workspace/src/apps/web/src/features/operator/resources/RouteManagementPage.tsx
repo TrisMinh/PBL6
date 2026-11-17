@@ -1,3 +1,6 @@
+import { OperatorStatusBadge } from "../components/OperatorStatusBadge";
+import { Toast } from "@/shared/ui/Toast/Toast";
+import { displayCode } from "../components/displayCode";
 import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as Menu from "@radix-ui/react-dropdown-menu";
@@ -360,9 +363,7 @@ export function RouteManagementPage(): ReactElement {
           <Button type="submit">Lọc tuyến</Button>
         </form>
         {notice && !editor && (
-          <p className="operator-routes__notice" role="status">
-            {notice}
-          </p>
+          <Toast message={notice} onClose={() => setNotice("")} />
         )}
         {query.isPending ? (
           <BrandLoading compact title="Đang tải tuyến…" />
@@ -390,24 +391,18 @@ export function RouteManagementPage(): ReactElement {
                     onClick={() => select(item.id)}
                     className="operator-routes__card"
                   >
-                    <small>{item.id}</small>
+                    <small>{displayCode(item.id, "TU")}</small>
                     <strong>
                       {item.name ?? `${item.origin} → ${item.destination}`}
                     </strong>
                     <span>
                       {item.stops.length} điểm dừng · {item.distance} km
                     </span>
-                    <em
-                      className={
-                        item.status === "paused"
-                          ? "operator-routes__paused"
-                          : undefined
-                      }
-                    >
+                    <OperatorStatusBadge state={item.status}>
                       {item.status === "active"
                         ? "Đang khai thác"
                         : "Tạm ngừng"}
-                    </em>
+                    </OperatorStatusBadge>
                   </button>
                 ))
               ) : (
@@ -436,22 +431,19 @@ export function RouteManagementPage(): ReactElement {
               {route ? (
                 <>
                   <header className="operator-routes__route-header">
-                    <small>{route.id}</small>
+                    <details className="operator-technical-id">
+                      <summary>{displayCode(route.id, "TU")}</summary>
+                      <code>{route.id}</code>
+                    </details>
                     <h2>
                       {route.name ?? `${route.origin} → ${route.destination}`}
                     </h2>
                     <p>Tuyến đường dài · {route.region}</p>
-                    <span
-                      className={
-                        route.status === "paused"
-                          ? "operator-routes__paused"
-                          : undefined
-                      }
-                    >
+                    <OperatorStatusBadge state={route.status}>
                       {route.status === "active"
                         ? "Đang khai thác"
                         : "Tạm ngừng"}
-                    </span>
+                    </OperatorStatusBadge>
                     <Button
                       variant="secondary"
                       onClick={() =>

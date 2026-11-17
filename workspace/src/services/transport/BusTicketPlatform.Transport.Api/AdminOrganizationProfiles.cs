@@ -1,3 +1,6 @@
+using BusTicketPlatform.BuildingBlocks.AspNetCore.Http;
+using BusTicketPlatform.BuildingBlocks.Errors;
+using BusTicketPlatform.BuildingBlocks.Http;
 using System.Text.Json;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -26,7 +29,7 @@ public static class AdminOrganizationProfiles
             await using var transaction = await db.BeginTransactionAsync(context.RequestAborted);
             await using (var update = new NpgsqlCommand("UPDATE organizations SET name=@name,support_email=@email,support_phone=@phone,status=@status,row_version=row_version+1,updated_at=now() WHERE id=@id AND row_version=@version",db,transaction)) {
                 update.Parameters.AddWithValue("id",id); update.Parameters.AddWithValue("version",body.ExpectedVersion); update.Parameters.AddWithValue("name",body.Name.Trim()); update.Parameters.AddWithValue("email",body.ContactEmail); update.Parameters.AddWithValue("phone",body.ContactPhone); update.Parameters.AddWithValue("status",body.Status.ToUpperInvariant());
-                if (await update.ExecuteNonQueryAsync(context.RequestAborted) != 1) return Results.Conflict();
+                if (await update.ExecuteNonQueryAsync(context.RequestAborted) != 1) return Results.Json(ErrorEnvelope.From(PlatformErrors.VersionConflict(), context.CorrelationId()), statusCode: Microsoft.AspNetCore.Http.StatusCodes.Status409Conflict);
             }
             await using (var metadata = new NpgsqlCommand("INSERT INTO operator_resource_metadata(organization_id,resource_kind,resource_id,data) VALUES(@id,'organization',@id,@data) ON CONFLICT(organization_id,resource_kind,resource_id) DO UPDATE SET data=operator_resource_metadata.data || EXCLUDED.data,updated_at=now()",db,transaction)) {
                 metadata.Parameters.AddWithValue("id",id); metadata.Parameters.AddWithValue("data",NpgsqlDbType.Jsonb,JsonSerializer.Serialize(new { legalName=body.LegalName,taxId=body.TaxId,address=body.Address,contactName=body.ContactName })); await metadata.ExecuteNonQueryAsync(context.RequestAborted);

@@ -1,3 +1,4 @@
+import { displayCode } from "./components/displayCode";
 import { useState, type FormEvent, type ReactElement } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
@@ -40,7 +41,7 @@ export function LiveBookingRefunds({
         query.data.map((payment) => (
           <div key={payment.id}>
             <p>
-              {payment.id} · {payment.status} ·{" "}
+              {displayCode(payment.id, "GD")} · {payment.status} ·{" "}
               {payment.amount.toLocaleString("vi-VN")} VND
             </p>
             <LiveRefundCreate paymentId={payment.id} />

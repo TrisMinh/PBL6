@@ -1,3 +1,7 @@
+import { OperatorStatusBadge } from "../components/OperatorStatusBadge";
+import { OperatorPagination } from "../components/OperatorPagination";
+import { DatePicker } from "@/shared/ui/DatePicker/DatePicker";
+import { displayCode } from "../components/displayCode";
 import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import { useState, type ReactElement, type FormEvent } from "react";
 import { useSearchParams, useNavigate, useLocation } from "react-router";
@@ -38,6 +42,9 @@ export function TripPassengerListsPage(): ReactElement {
     queryKey: ["operator", "passenger-trips", applied],
     queryFn: ({ signal }) => getPassengerTrips(applied, signal),
   });
+  const [page, setPage] = useState(1);
+  const total = query.data?.items.length ?? 0;
+  const currentPage = Math.min(page, Math.max(1, Math.ceil(total / 10)));
   const apply = (event: FormEvent): void => {
     event.preventDefault();
     const result = tripListFiltersSchema.safeParse({
@@ -48,6 +55,7 @@ export function TripPassengerListsPage(): ReactElement {
       setNotice("Nhập ngày hợp lệ theo định dạng DD/MM/YYYY.");
       return;
     }
+    setPage(1);
     setNotice("");
     setSelected([]);
     setParams(new URLSearchParams(result.data));
@@ -56,7 +64,7 @@ export function TripPassengerListsPage(): ReactElement {
     <div className="operator-schedule operator-bookings operator-trip-lists">
       <OperatorSidebar />
       <main className="operator-schedule__main">
-        <header className="operator-schedule__header">
+        <header className="operator-bookings__page-heading">
           <h1>Đặt chỗ &amp; giao dịch</h1>
         </header>
         <BookingTabs />
@@ -70,15 +78,18 @@ export function TripPassengerListsPage(): ReactElement {
               setFilters({ ...filters, search: event.target.value })
             }
           />
-          <Input
-            label="Ngày chạy"
-            title="Hiển thị các chuyến từ ngày này trở đi"
-            placeholder="DD/MM/YYYY"
-            value={dateText}
-            inputMode="numeric"
-            required
-            onChange={(event) => setDateText(event.target.value)}
-          />
+          <div className="field">
+            <label className="field__label" htmlFor="passenger-trip-date">
+              Ngày chạy
+            </label>
+            <DatePicker
+              id="passenger-trip-date"
+              className="field__control"
+              title="Hiển thị các chuyến từ ngày này trở đi"
+              value={dateText.split("/").reverse().join("-")}
+              onChange={(event) => setDateText(dateLabel(event.target.value))}
+            />
+          </div>
           <label className="operator-bookings__filter">
             <span>Tuyến</span>
             <select
@@ -200,101 +211,98 @@ export function TripPassengerListsPage(): ReactElement {
                     </tr>
                   </thead>
                   <tbody>
-                    {query.data.items.map((item) => (
-                      <tr key={item.id}>
-                        <td>
-                          <input
-                            type="checkbox"
-                            aria-label={`Chọn ${item.id}`}
-                            checked={selected.includes(item.id)}
-                            onChange={(event) =>
-                              setSelected((old) =>
-                                event.target.checked
-                                  ? [...old, item.id]
-                                  : old.filter((id) => id !== item.id),
-                              )
-                            }
-                          />
-                        </td>
-                        <td>
-                          <strong>{item.id}</strong>
-                        </td>
-                        <td>
-                          {item.origin} → {item.destination}
-                        </td>
-                        <td>
-                          {dateLabel(item.date).slice(0, 5)} · {item.departure}
-                        </td>
-                        <td>
-                          <span
-                            title={
-                              item.arrival <= item.departure
-                                ? "Đến vào ngày hôm sau"
-                                : undefined
-                            }
-                          >
-                            {item.arrival}
-                          </span>
-                        </td>
-                        <td
-                          className={
-                            item.vehicle === "Chưa phân công"
-                              ? "operator-trip-lists__unassigned"
-                              : undefined
-                          }
-                        >
-                          {item.vehicle}
-                        </td>
-                        <td>
-                          <strong>
-                            {item.booked}/{item.capacity}
-                          </strong>
-                        </td>
-                        <td>
-                          {item.checkedIn}/{item.booked}
-                        </td>
-                        <td>
-                          <strong
+                    {query.data.items
+                      .slice((currentPage - 1) * 10, currentPage * 10)
+                      .map((item) => (
+                        <tr key={item.id}>
+                          <td>
+                            <input
+                              type="checkbox"
+                              aria-label={`Chọn ${item.id}`}
+                              checked={selected.includes(item.id)}
+                              onChange={(event) =>
+                                setSelected((old) =>
+                                  event.target.checked
+                                    ? [...old, item.id]
+                                    : old.filter((id) => id !== item.id),
+                                )
+                              }
+                            />
+                          </td>
+                          <td>
+                            <strong>{displayCode(item.id)}</strong>
+                          </td>
+                          <td>
+                            {item.origin} → {item.destination}
+                          </td>
+                          <td>
+                            {dateLabel(item.date).slice(0, 5)} ·{" "}
+                            {item.departure}
+                          </td>
+                          <td>
+                            <span
+                              title={
+                                item.arrival <= item.departure
+                                  ? "Đến vào ngày hôm sau"
+                                  : undefined
+                              }
+                            >
+                              {item.arrival}
+                            </span>
+                          </td>
+                          <td
                             className={
-                              item.status === "conflict"
-                                ? "operator-trip-lists__conflict"
+                              item.vehicle === "Chưa phân công"
+                                ? "operator-trip-lists__unassigned"
                                 : undefined
                             }
                           >
-                            {TRIP_LIST_STATUS[item.status]}
-                          </strong>
-                        </td>
-                        <td>
-                          <button
-                            type="button"
-                            className="operator-bookings__detail"
-                            aria-label={`Xem danh sách ${item.id}`}
-                            onClick={() =>
-                              void navigate(
-                                `/operator/bookings/trips/${item.id}/passengers`,
-                                {
-                                  state: {
-                                    returnTo:
-                                      location.pathname + location.search,
+                            {item.vehicle}
+                          </td>
+                          <td>
+                            <strong>
+                              {item.booked}/{item.capacity}
+                            </strong>
+                          </td>
+                          <td>
+                            {item.checkedIn}/{item.booked}
+                          </td>
+                          <td>
+                            <OperatorStatusBadge state={item.status}>
+                              {TRIP_LIST_STATUS[item.status]}
+                            </OperatorStatusBadge>
+                          </td>
+                          <td>
+                            <button
+                              type="button"
+                              className="operator-bookings__detail"
+                              aria-label={`Xem danh sách ${item.id}`}
+                              onClick={() =>
+                                void navigate(
+                                  `/operator/bookings/trips/${item.id}/passengers`,
+                                  {
+                                    state: {
+                                      returnTo:
+                                        location.pathname + location.search,
+                                    },
                                   },
-                                },
-                              )
-                            }
-                          >
-                            Xem danh sách
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
+                                )
+                              }
+                            >
+                              Xem danh sách
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
                   </tbody>
                 </table>
               </div>
-              <footer className="operator-bookings__pagination">
-                <p>
-                  Hiển thị 1–{query.data.items.length} trong{" "}
-                  {query.data.items.length} chuyến
-                </p>
-              </footer>
+              <OperatorPagination
+                page={currentPage}
+                total={total}
+                pageSize={10}
+                onChange={setPage}
+              />
             </>
           )}
         </section>

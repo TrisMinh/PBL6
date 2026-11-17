@@ -87,11 +87,7 @@
   opacity: 1;
 }
 .driver-add select.field__control {
-  appearance: none;
   padding-right: 40px;
-  background-repeat: no-repeat;
-  background-position: right 16px center;
-  background-size: 16px 16px;
 }
 .driver-add .field__error {
   color: #b42318;

@@ -21,7 +21,10 @@ import { CaretRight } from "@phosphor-icons/react/dist/csr/CaretRight";
 import { getVietnamTodayDate } from "@/shared/lib/getVietnamTodayDate";
 import "./DatePicker.css";
 
-type Props = Omit<ComponentProps<"input">, "type"> & { disablePast?: boolean };
+type Props = Omit<ComponentProps<"input">, "type"> & {
+  disablePast?: boolean;
+  showYearPicker?: boolean;
+};
 export function DatePicker({
   ref: forwardedRef,
   className = "",
@@ -31,6 +34,7 @@ export function DatePicker({
   min,
   max,
   disablePast = false,
+  showYearPicker = false,
   ...props
 }: Props): ReactElement {
   const generated = useId();
@@ -186,7 +190,40 @@ export function DatePicker({
         {open && (
           <>
             <header className="date-picker__heading">
-              <strong aria-live="polite">{title}</strong>
+              {showYearPicker ? (
+                <div className="date-picker__month-year">
+                  <strong>Tháng {month.getMonth() + 1}</strong>
+                  <select
+                    className="date-picker__year"
+                    aria-label="Chọn năm"
+                    value={month.getFullYear()}
+                    onChange={(event) => {
+                      const next = new Date(month);
+                      next.setFullYear(Number(event.target.value));
+                      setMonth(next);
+                    }}
+                  >
+                    {Array.from(
+                      {
+                        length:
+                          Math.max(
+                            Number(today.slice(0, 4)) + 30,
+                            month.getFullYear(),
+                          ) -
+                          Math.min(1900, month.getFullYear()) +
+                          1,
+                      },
+                      (_, index) => Math.min(1900, month.getFullYear()) + index,
+                    ).map((year) => (
+                      <option key={year} value={year}>
+                        {year}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              ) : (
+                <strong aria-live="polite">{title}</strong>
+              )}
               <div>
                 <button
                   type="button"
