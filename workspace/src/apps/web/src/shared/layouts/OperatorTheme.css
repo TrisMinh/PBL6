@@ -39,6 +39,36 @@
 .operator-workspace__top-actions > a:hover {
   background: var(--color-bg-subtle);
 }
+.operator-workspace__top-actions > a.operator-workspace__header-avatar {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 3px;
+  border: 2px solid var(--color-account-avatar-border);
+  border-radius: 50%;
+  background: white;
+  box-shadow: var(--shadow-account-avatar);
+  color: var(--color-brand-shell-strong);
+}
+.operator-workspace__header-avatar > span {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--color-account-avatar-surface);
+}
+.operator-workspace__header-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.operator-workspace__top-actions > a.operator-workspace__header-avatar:hover {
+  border-color: var(--color-account-avatar-border-active);
+  box-shadow: var(--shadow-account-avatar-active);
+}
 .operator-workspace__main {
   padding: 24px 0;
 }
@@ -264,6 +294,115 @@
 .operator-workspace .operator-schedule__card {
   border-radius: var(--radius-card);
   padding: 18px;
+  grid-template-columns: 270px minmax(300px, 1fr) 96px;
+  gap: 24px;
+  min-height: 124px;
+}
+.operator-workspace .operator-schedule__results {
+  container: schedule-results / inline-size;
+}
+.operator-workspace .operator-schedule__identity {
+  padding-right: 24px;
+  gap: 14px;
+}
+.operator-workspace .operator-schedule__thumbnail {
+  width: 96px;
+  height: 72px;
+}
+.operator-workspace .operator-schedule__identity > div {
+  flex: 1;
+}
+.operator-workspace .operator-schedule__journey {
+  align-self: stretch;
+  align-items: start;
+  grid-template-columns: minmax(80px, 1fr) minmax(70px, 150px) minmax(80px, 1fr);
+  column-gap: 18px;
+  row-gap: 18px;
+  min-height: 0;
+  width: 100%;
+}
+.operator-workspace .operator-schedule__rail {
+  grid-column: 2;
+  grid-row: 1 / 3;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  padding-top: 0;
+  align-self: stretch;
+}
+.operator-workspace .operator-schedule__rail .operator-schedule__status {
+  position: absolute;
+  top: calc(50% + 18px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: auto;
+  min-height: 12px;
+  font-size: 9px;
+}
+.operator-workspace .operator-schedule__route-art {
+  width: 100%;
+  height: 27px;
+}
+.operator-workspace .operator-schedule__arrival {
+  grid-column: 3;
+  grid-row: 1;
+}
+.operator-workspace .operator-schedule__crew {
+  grid-column: 1 / 3;
+  grid-row: 2;
+}
+.operator-workspace .operator-schedule__passengers {
+  grid-row: 2;
+}
+.operator-workspace .operator-schedule__crew,
+.operator-workspace .operator-schedule__passengers {
+  margin: 0;
+  white-space: normal;
+}
+.operator-workspace .operator-schedule__arrival {
+  text-align: right;
+}
+.operator-workspace .operator-schedule__passengers {
+  justify-content: flex-end;
+}
+@container schedule-results (max-width: 760px) {
+  .operator-workspace .operator-schedule__card {
+    grid-template-columns: minmax(0, 1fr) 96px;
+    gap: 16px;
+  }
+  .operator-workspace .operator-schedule__identity {
+    grid-column: 1 / -1;
+    border-right: 0;
+    border-bottom: 1px solid var(--color-border-shell);
+    padding: 0 0 14px;
+    min-height: 0;
+  }
+  .operator-workspace .operator-schedule__journey {
+    grid-column: 1;
+  }
+  .operator-workspace .operator-schedule .operator-schedule__detail {
+    grid-column: 2;
+    align-self: center;
+  }
+}
+@container schedule-results (max-width: 440px) {
+  .operator-workspace .operator-schedule__card {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+    padding: 16px;
+  }
+  .operator-workspace .operator-schedule__journey {
+    grid-template-columns: minmax(65px, 1fr) minmax(40px, 80px) minmax(
+        65px,
+        1fr
+      );
+    column-gap: 10px;
+  }
+  .operator-workspace .operator-schedule .operator-schedule__detail {
+    grid-column: 1;
+    width: 100%;
+  }
 }
 .operator-workspace .operator-schedule__identity h3 {
   font-size: 13px;

@@ -12,6 +12,7 @@ import {
   type ScheduleTrip,
 } from "./schedule.schema";
 import thumbnail from "@/assets/operator/schedule/imgTripVehicleThumbnail.png";
+import demoDriverAvatar from "@/assets/operator/schedule/driver-demo-avatar.svg";
 import searchIcon from "@/assets/operator/schedule/imgIconSearch.svg";
 import swapIcon from "@/assets/operator/schedule/imgIconSwap.svg";
 import filterIcon from "@/assets/operator/schedule/imgIconFilter.svg";
@@ -25,9 +26,33 @@ import createIcon from "@/assets/operator/schedule/imgIconCalendarPlus.svg";
 import "./SchedulePage.css";
 import { isMockApi } from "@/shared/api/config";
 import { paginationWindow } from "../components/paginationWindow";
+import { ExpandedTripPanel } from "./ExpandedTripPanel";
 import { DatePicker } from "@/shared/ui/DatePicker/DatePicker";
+import * as Dialog from "@radix-ui/react-dialog";
+import { SteeringWheel } from "@phosphor-icons/react/dist/csr/SteeringWheel";
+import { WorkspaceDialogHeading } from "../organization/WorkspaceDialogHeading";
 
 const CITIES = ["TP.HCM", "Đà Lạt", "Nha Trang", "Phan Thiết"];
+const demoDriverTrip: ScheduleTrip = {
+  id: "DEMO-TAI-XE",
+  origin: "Đà Nẵng",
+  destination: "Đà Lạt",
+  date: "2026-11-23",
+  departure: "21:00",
+  arrival: "09:00",
+  vehicleLabel: "Xe mẫu · Limousine 22 cabin",
+  crew: "Nguyễn Minh Hoàng",
+  passengers: 12,
+  capacity: 22,
+  status: "scheduled",
+  assignment: "complete",
+  driver: {
+    name: "Nguyễn Minh Hoàng",
+    license: "GPLX minh họa · Hạng E",
+    phone: "Chưa cung cấp · dữ liệu demo",
+    expires: "2029-12-31",
+  },
+};
 const STATUS = [
   ["", "Tất cả"],
   ["draft", "Nháp"],
@@ -125,6 +150,7 @@ export function ScheduleCard({
   statusLabel?: string;
   showPassengerCount?: boolean;
 }): ReactElement {
+  const [driverOpen, setDriverOpen] = useState(false);
   const status =
     trip.status === "boarding"
       ? ["ĐÓN KHÁCH", boardingDot]
@@ -189,10 +215,38 @@ export function ScheduleCard({
           <strong>{trip.arrival}</strong>
           <small>{trip.destination}</small>
         </div>
-        <p className="operator-schedule__crew">
-          <img src={vehicleIcon} alt="" width={14} height={14} />
-          {trip.crew}
-        </p>
+        <div className="operator-schedule__crew">
+          {trip.driver ? (
+            <button
+              type="button"
+              className="operator-schedule__driver-trigger"
+              aria-haspopup="dialog"
+              onClick={() => setDriverOpen(true)}
+            >
+              <span
+                className="operator-schedule__driver-avatar"
+                aria-hidden="true"
+              >
+                {trip.id === "DEMO-TAI-XE" || trip.driver.avatarUrl ? (
+                  <img src={trip.driver.avatarUrl || demoDriverAvatar} alt="" />
+                ) : (
+                  trip.driver.name
+                    .split(" ")
+                    .filter(Boolean)
+                    .slice(-2)
+                    .map((part) => part[0])
+                    .join("")
+                )}
+              </span>
+              <span>{trip.driver.name}</span>
+            </button>
+          ) : (
+            <>
+              <img src={vehicleIcon} alt="" width={14} height={14} />
+              {trip.crew}
+            </>
+          )}
+        </div>
         <p className="operator-schedule__passengers">
           <img src={passengerIcon} alt="" width={14} height={14} />
           {showPassengerCount
@@ -212,11 +266,61 @@ export function ScheduleCard({
       >
         {trip.status === "draft" ? "Tiếp tục" : "Chi tiết"}
       </Button>
+      <Dialog.Root open={driverOpen} onOpenChange={setDriverOpen}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="operator-schedule__overlay" />
+          <Dialog.Content className="operator-schedule__dialog operator-schedule__driver-dialog">
+            <WorkspaceDialogHeading>Thông tin tài xế</WorkspaceDialogHeading>
+            <Dialog.Description>
+              {trip.id === "DEMO-TAI-XE"
+                ? "Dữ liệu minh họa, chưa phân công vào chuyến thực tế."
+                : "Tài xế được phân công cho chuyến này."}
+            </Dialog.Description>
+            <div className="operator-schedule__driver-heading">
+              <SteeringWheel size={32} weight="duotone" />
+              <strong>{trip.driver?.name}</strong>
+            </div>
+            <dl>
+              <div>
+                <dt>Giấy phép lái xe</dt>
+                <dd>{trip.driver?.license || "Chưa cập nhật"}</dd>
+              </div>
+              <div>
+                <dt>Điện thoại</dt>
+                <dd>{trip.driver?.phone || "Chưa cập nhật"}</dd>
+              </div>
+              <div>
+                <dt>Hạn giấy phép</dt>
+                <dd>
+                  {trip.driver?.expires
+                    ? trip.driver.expires.split("-").reverse().join("/")
+                    : "Chưa cập nhật"}
+                </dd>
+              </div>
+              <div>
+                <dt>Hành trình</dt>
+                <dd>
+                  {trip.origin} → {trip.destination}
+                </dd>
+              </div>
+            </dl>
+            <Dialog.Close asChild>
+              <Button variant="secondary">Đóng</Button>
+            </Dialog.Close>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
     </article>
   );
 }
 
 export function SchedulePage(): ReactElement {
+  const [expandedTrip, setExpandedTrip] = useState<ScheduleTrip | null>(null);
+  const [demoTrip, setDemoTrip] = useState(demoDriverTrip);
+  const openDetails = (trip: ScheduleTrip): void => setExpandedTrip(trip);
+  const closeDetails = (): void => setExpandedTrip(null);
+
+  const [demoNotice, setDemoNotice] = useState("");
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const [origin, setOrigin] = useState(
@@ -413,6 +517,48 @@ export function SchedulePage(): ReactElement {
                 <option value="latest">Giờ khởi hành giảm dần</option>
               </select>
             </div>
+            <details className="operator-schedule__driver-demo" open>
+              <summary>
+                Ví dụ chuyến có tài xế <span>DEMO</span>
+              </summary>
+              <ScheduleCard
+                trip={demoTrip}
+                displayCode="CHUYẾN MINH HỌA"
+                onOpen={() => openDetails(demoTrip)}
+              />
+            </details>
+            <Dialog.Root
+              open={expandedTrip !== null}
+              onOpenChange={(open) => {
+                if (!open) closeDetails();
+              }}
+            >
+              <Dialog.Portal>
+                <Dialog.Overlay className="operator-schedule__overlay" />
+                {expandedTrip && (
+                  <ExpandedTripPanel
+                    trip={expandedTrip}
+                    onClose={closeDetails}
+                    onSaved={() => {
+                      void query.refetch();
+                      closeDetails();
+                    }}
+                    onSaveDemo={(value) => {
+                      setDemoTrip(value);
+                      closeDetails();
+                      setDemoNotice(
+                        "Đã cập nhật chuyến minh họa. Dữ liệu chuyến thật không thay đổi.",
+                      );
+                    }}
+                  />
+                )}
+              </Dialog.Portal>
+            </Dialog.Root>
+            {demoNotice && (
+              <p className="operator-schedule__demo-notice" role="status">
+                {demoNotice}
+              </p>
+            )}
             {query.isPending ? (
               <BrandLoading compact title="Đang tải lịch chuyến…" />
             ) : query.isError ? (
@@ -435,11 +581,7 @@ export function SchedulePage(): ReactElement {
                   <ScheduleCard
                     key={trip.id}
                     trip={trip}
-                    onOpen={() =>
-                      void navigate(
-                        `/operator/trips/${encodeURIComponent(trip.id)}`,
-                      )
-                    }
+                    onOpen={() => openDetails(trip)}
                   />
                 ))}
               </div>

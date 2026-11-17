@@ -32,6 +32,15 @@ export function adaptSchedule(
     arrival: arrival.slice(11),
     vehicleLabel: bus?.plateNumber ?? t.busType,
     crew: driver?.fullName ?? driver?.licenseNumber ?? "Chưa phân công",
+    driver: driver
+      ? {
+          name: driver.fullName ?? driver.licenseNumber,
+          license: driver.licenseNumber ?? "",
+          phone: driver.phone ?? "",
+          expires: driver.licenseExpiresOn ?? "",
+          avatarUrl: typeof driver.avatarUrl === "string" ? driver.avatarUrl : undefined,
+        }
+      : undefined,
     passengers: Math.max(0, capacity - (t.availableSeatCount ?? capacity)),
     capacity: Math.max(1, capacity),
     status: String(t.status).toLowerCase(),

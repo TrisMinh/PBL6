@@ -4,6 +4,7 @@ import {
   refundLevel,
   refundListSchema,
   refundLeadLabel,
+  refundFiltersSchema,
 } from "./refunds.schema";
 const endpoint = new URL(
   "/api/v1/operator/refund-requests-preview",
@@ -13,6 +14,17 @@ async function request(query = ""): Promise<Response> {
   return fetch(`${endpoint}${query}`);
 }
 describe("Operator cancellation/refund preview", () => {
+  it("opens with all requests and no date restriction, preserving an explicitly chosen date", () => {
+    expect(refundFiltersSchema.parse({})).toEqual({
+      search: "",
+      status: "all",
+      level: "all",
+      date: "",
+    });
+    expect(refundFiltersSchema.parse({ date: "2026-11-17" }).date).toBe(
+      "2026-11-17",
+    );
+  });
   it("returns the six designed requests with derived lead times and levels", async () => {
     const data = refundListSchema.parse(await (await request()).json());
     expect(data.total).toBe(6);

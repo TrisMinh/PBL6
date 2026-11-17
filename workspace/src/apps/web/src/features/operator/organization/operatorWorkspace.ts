@@ -43,6 +43,7 @@ export const organizationSchema = z.object({
     .string()
     .regex(/^\d{10}(?:\d{3})?$/, "Mã số thuế gồm 10 hoặc 13 chữ số"),
   allowPayLater: z.boolean(),
+  logoUrl: z.string().optional(),
 });
 export type Settlement = {
   code: string;
@@ -97,16 +98,21 @@ export async function readWorkspace(): Promise<Workspace> {
       address: m.address ?? "",
       taxCode: m.taxCode ?? m.taxId ?? "",
       allowPayLater: org.allowPayLater,
+      logoUrl: m.logoUrl ?? "",
     },
-    members: staff.map((v) => ({
-      id: v.id,
-      name: m.members?.[v.id]?.name ?? v.fullName,
-      email: m.members?.[v.id]?.email ?? v.email,
-      phone: m.members?.[v.id]?.phone ?? v.phone,
-      role: (Object.keys(roles).find((r) => v.roleCodes.includes(roles[r])) ??
-        "support") as WorkspaceMember["role"],
-      status: v.status === "ACTIVE" ? "active" : "suspended",
-    })),
+    members: staff
+      .filter((v) =>
+        Object.values(roles).some((role) => v.roleCodes.includes(role)),
+      )
+      .map((v) => ({
+        id: v.id,
+        name: m.members?.[v.id]?.name ?? v.fullName,
+        email: m.members?.[v.id]?.email ?? v.email,
+        phone: m.members?.[v.id]?.phone ?? v.phone,
+        role: (Object.keys(roles).find((r) => v.roleCodes.includes(roles[r])) ??
+          "support") as WorkspaceMember["role"],
+        status: v.status === "ACTIVE" ? "active" : "suspended",
+      })),
     settlements: [],
   };
 }
@@ -156,6 +162,7 @@ export async function saveOrganization(
     ...(await metadata("organization"))[org.id],
     address: value.address,
     taxCode: value.taxCode,
+    logoUrl: value.logoUrl ?? "",
   });
 }
 export async function saveMember(
@@ -195,12 +202,27 @@ export async function setMemberStatus(
   id: string,
   state: WorkspaceMember["status"],
 ): Promise<void> {
-  const member = (await rows("/api/v1/operator/staff")).find(
-    (v) => v.id === id,
-  );
+  const members = await rows("/api/v1/operator/staff");
+  const member = members.find((v) => v.id === id);
   if (!member) throw Error("Không tìm thấy thành viên.");
+  const operatorRole = Object.values(roles).find((role) =>
+    member.roleCodes.includes(role),
+  );
+  if (!operatorRole)
+    throw Error("Tài khoản này chưa được phân vai trò nhân sự nhà xe.");
+  if (
+    state !== "active" &&
+    member.roleCodes.includes("OPERATOR_ADMIN") &&
+    members.filter(
+      (v) => v.status === "ACTIVE" && v.roleCodes.includes("OPERATOR_ADMIN"),
+    ).length <= 1
+  ) {
+    throw Error(
+      "Không thể tạm ngưng quản trị viên cuối cùng. Cần giữ ít nhất một quản trị viên đang hoạt động.",
+    );
+  }
   await request(`/api/v1/operator/staff/${id}`, "PATCH", {
-    role: member.roleCodes[0],
+    role: operatorRole,
     status: state === "active" ? "ACTIVE" : "SUSPENDED",
     expectedVersion: member.rowVersion,
   });

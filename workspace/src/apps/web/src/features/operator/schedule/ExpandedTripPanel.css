@@ -1,0 +1,173 @@
+.operator-trip-expanded {
+  --op-canvas: var(--color-results-canvas);
+  --op-white: var(--color-results-surface);
+  --op-border: var(--color-border-shell);
+  --op-control-border: var(--color-border-shell);
+  --op-muted: var(--color-text-secondary);
+  --op-soft: var(--color-bg-surface);
+  --op-selection: var(--color-bg-subtle);
+  --op-copy: var(--color-text-secondary);
+  --op-faint: var(--color-text-muted);
+  --op-accent: var(--color-bg-brand);
+  --op-action-soft: var(--color-bg-subtle);
+  --op-divider: var(--color-border-shell);
+  font-family: var(--font-body);
+  color: var(--color-text-primary);
+  position: fixed;
+  inset: 5vh max(24px, calc((100vw - 1440px) / 2));
+  z-index: 61;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-results-canvas);
+  border: 1px solid var(--color-border-shell);
+  border-radius: 20px;
+  box-shadow: var(--shadow-results-view);
+}
+.operator-trip-expanded__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--color-border-shell);
+  background: white;
+  border-radius: 20px 20px 0 0;
+}
+.operator-trip-expanded__header h2 {
+  margin: 0 0 6px;
+  font: 700 22px/1.3 var(--font-body);
+  color: var(--color-text-primary);
+}
+.operator-trip-expanded__header p {
+  margin: 0;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+.operator-trip-expanded__body {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 24px;
+  padding: 24px;
+  overflow-y: auto;
+  min-height: 0;
+}
+.operator-trip-expanded__identity {
+  align-self: start;
+  position: sticky;
+  top: 0;
+  padding: 16px;
+  background: white;
+  border: 1px solid var(--color-border-shell);
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgb(16 36 62 / 9%);
+}
+.operator-trip-expanded__photo {
+  width: 100%;
+  aspect-ratio: 1.6;
+  object-fit: cover;
+  border-radius: 10px;
+  margin-bottom: 16px;
+}
+.operator-trip-expanded__code {
+  font-size: 10px;
+  color: var(--color-brand-shell-strong);
+  font-weight: 700;
+}
+.operator-trip-expanded__identity h3 {
+  font-size: 17px;
+  margin: 8px 0;
+}
+.operator-trip-expanded__identity p {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  line-height: 1.7;
+}
+.operator-trip-expanded__driver {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 0;
+  margin-top: 14px;
+  border-top: 1px solid var(--color-border-shell);
+}
+.operator-trip-expanded__driver strong {
+  display: block;
+  font-size: 12px;
+}
+.operator-trip-expanded__driver small {
+  display: block;
+  font-size: 10px;
+  color: var(--color-text-secondary);
+  margin-bottom: 4px;
+}
+.operator-trip-expanded__scope {
+  padding-top: 12px;
+  border-top: 1px solid var(--color-border-shell);
+}
+.operator-trip-expanded__editor {
+  min-width: 0;
+}
+.operator-trip-expanded .operator-trip-workflow__header,
+.operator-trip-expanded .operator-create__steps {
+  display: none;
+}
+.operator-trip-expanded .operator-create__columns {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+}
+.operator-trip-expanded .operator-create__columns > aside {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.operator-trip-editor__fields {
+  margin: 0;
+  border: 0;
+  padding: 0;
+  min-width: 0;
+}
+.operator-trip-expanded .operator-create__actions {
+  position: sticky;
+  bottom: -24px;
+  background: white;
+  padding: 16px;
+  border: 1px solid var(--color-border-shell);
+  border-radius: 12px;
+  margin-top: 16px;
+}
+@media (width < 850px) {
+  .operator-trip-expanded,
+  .operator-trip-expanded__editor {
+    inset: 16px;
+  }
+  .operator-trip-expanded__body {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 16px;
+    gap: 16px;
+  }
+  .operator-trip-expanded__identity {
+    position: static;
+    display: grid;
+    grid-template-columns: 100px minmax(0, 1fr);
+    gap: 6px 16px;
+  }
+  .operator-trip-expanded__photo {
+    grid-row: 1 / 5;
+    margin: 0;
+  }
+  .operator-trip-expanded__driver,
+  .operator-trip-expanded__scope {
+    grid-column: 1 / -1;
+    margin: 0;
+  }
+  .operator-trip-expanded__identity h3,
+  .operator-trip-expanded__identity p {
+    margin: 0;
+  }
+  .operator-trip-expanded .operator-create__columns > aside {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .operator-trip-expanded__header {
+    padding: 16px;
+  }
+}

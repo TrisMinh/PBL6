@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { expect, it, vi } from "vitest";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 vi.mock("./operatorWorkspace", async () => {
   const actual = await vi.importActual<typeof import("./operatorWorkspace")>(
     "./operatorWorkspace",
@@ -18,7 +19,9 @@ import { SettlementsPage } from "./SettlementsPage";
 it("keeps the organization layout and shows a real API failure", async () => {
   render(
     <MemoryRouter>
-      <OrganizationPage />
+      <QueryClientProvider client={new QueryClient()}>
+        <OrganizationPage />
+      </QueryClientProvider>
     </MemoryRouter>,
   );
   expect(

@@ -29,6 +29,7 @@ import "./OperatorLayout.css";
 import "./OperatorTheme.css";
 import { workspaceAccess } from "@/features/auth/lib/workspaceAccess";
 import { OperatorWorkspaceContext } from "./OperatorWorkspaceContext";
+import { OperatorAccountAvatar } from "@/features/operator/components/OperatorAccountAvatar";
 
 const groups = [
   {
@@ -250,7 +251,7 @@ function LiveOperatorLayout(): ReactElement {
           </div>
           <div className="operator-workspace__top-actions">
             <NotificationBell />
-            <Link to="/operator/organization">Nhà xe của tôi</Link>
+            <OperatorAccountAvatar />
           </div>
         </header>
         <main

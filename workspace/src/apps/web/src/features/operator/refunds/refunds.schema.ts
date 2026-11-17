@@ -69,7 +69,7 @@ export const refundFiltersSchema = z.object({
   level: z
     .enum(["all", "level1", "level2", "level3", "exception"])
     .default("all"),
-  date: z.union([z.iso.date(), z.literal("")]).default("2026-09-05"),
+  date: z.union([z.iso.date(), z.literal("")]).default(""),
 });
 export const refundListSchema = z.object({
   items: z.array(refundRequestSchema),

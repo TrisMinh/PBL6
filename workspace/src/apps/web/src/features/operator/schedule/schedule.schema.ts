@@ -10,6 +10,16 @@ export const scheduleTripSchema = z
     arrival: z.string().regex(/^\d{2}:\d{2}$/),
     vehicleLabel: z.string(),
     crew: z.string(),
+    fare: z.number().positive().optional(),
+    driver: z
+      .object({
+        name: z.string(),
+        license: z.string(),
+        phone: z.string(),
+        expires: z.string(),
+        avatarUrl: z.string().optional(),
+      })
+      .optional(),
     passengers: z.number().int().nonnegative(),
     capacity: z.number().int().positive(),
     status: z.enum([

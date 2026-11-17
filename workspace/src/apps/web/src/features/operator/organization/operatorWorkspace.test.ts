@@ -30,14 +30,32 @@ beforeEach(() => {
   });
 });
 it("loads the organization from the server without browser fixture seeds", async () => {
+  api.metadata.mockResolvedValue({
+    org: { logoUrl: "data:image/webp;base64,bG9nbw==" },
+  });
   sessionStorage.setItem(
     "blue-operator-workspace-v1",
     JSON.stringify({ organization: { name: "Fake" } }),
   );
   const value = await readWorkspace();
   expect(value.organization.name).toBe("Real operator");
+  expect(value.organization.logoUrl).toBe("data:image/webp;base64,bG9nbw==");
   expect(value.members).toEqual([]);
   expect(value.settlements).toEqual([]);
+});
+it("excludes customer memberships instead of inventing a staff role", async () => {
+  api.rows.mockResolvedValue([
+    { id: "customer", fullName: "Customer", roleCodes: [], status: "ACTIVE" },
+    {
+      id: "driver",
+      fullName: "Driver",
+      roleCodes: ["DRIVER"],
+      status: "ACTIVE",
+    },
+  ]);
+  expect(
+    (await readWorkspace()).members.map((member) => [member.id, member.role]),
+  ).toEqual([["driver", "driver"]]);
 });
 it("persists primary organization fields with the current server version before metadata", async () => {
   await saveOrganization({
@@ -48,6 +66,7 @@ it("persists primary organization fields with the current server version before 
     address: "Address",
     taxCode: "0312345678",
     allowPayLater: true,
+    logoUrl: "data:image/webp;base64,bG9nbw==",
   });
   expect(api.request).toHaveBeenCalledWith(
     "/api/v1/operator/organization",
@@ -57,7 +76,10 @@ it("persists primary organization fields with the current server version before 
   expect(api.saveMetadata).toHaveBeenCalledWith(
     "organization",
     "org",
-    expect.objectContaining({ address: "Address" }),
+    expect.objectContaining({
+      address: "Address",
+      logoUrl: "data:image/webp;base64,bG9nbw==",
+    }),
   );
 });
 it("propagates server errors without reporting a successful local save", async () => {
@@ -77,7 +99,7 @@ it("uses real membership id and version for status changes", async () => {
     {
       id: "member",
       status: "ACTIVE",
-      roleCodes: ["OPERATOR_ADMIN"],
+      roleCodes: ["CUSTOMER", "DRIVER"],
       rowVersion: 8,
     },
   ]);
@@ -85,8 +107,31 @@ it("uses real membership id and version for status changes", async () => {
   expect(api.request).toHaveBeenCalledWith(
     "/api/v1/operator/staff/member",
     "PATCH",
-    { role: "OPERATOR_ADMIN", status: "SUSPENDED", expectedVersion: 8 },
+    { role: "DRIVER", status: "SUSPENDED", expectedVersion: 8 },
   );
+});
+it("rejects a roleless membership without sending an invalid update", async () => {
+  api.rows.mockResolvedValue([
+    { id: "member", status: "ACTIVE", roleCodes: [], rowVersion: 0 },
+  ]);
+  await expect(setMemberStatus("member", "suspended")).rejects.toThrow(
+    "chưa được phân vai trò",
+  );
+  expect(api.request).not.toHaveBeenCalled();
+});
+it("protects the last active operator administrator", async () => {
+  api.rows.mockResolvedValue([
+    {
+      id: "admin",
+      status: "ACTIVE",
+      roleCodes: ["OPERATOR_ADMIN"],
+      rowVersion: 0,
+    },
+  ]);
+  await expect(setMemberStatus("admin", "suspended")).rejects.toThrow(
+    "quản trị viên cuối cùng",
+  );
+  expect(api.request).not.toHaveBeenCalled();
 });
 it("calculates amounts and escapes CSV values", () => {
   const items = [

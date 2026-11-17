@@ -27,6 +27,9 @@ import {
   useTripResources,
   vietnamLocal,
   type TripForm,
+  type Route,
+  type Bus,
+  type Driver,
 } from "../tripWorkflow";
 import {
   CancellationPolicy,
@@ -112,17 +115,50 @@ function hasInvalidTimeOrder(form: TripForm): boolean {
   );
 }
 
+export interface TripEditorPreview {
+  initialForm: TripForm;
+  routes: Route[];
+  buses: Bus[];
+  drivers: Driver[];
+  onSave: (form: TripForm) => void;
+}
 export function CreateTripPage({
   mode = "create",
-}: { mode?: "create" | "edit" } = {}): ReactElement {
+  preview,
+  embedded = false,
+  tripIdOverride,
+  onSaved,
+  onCancel,
+}: {
+  mode?: "create" | "edit";
+  preview?: TripEditorPreview;
+  embedded?: boolean;
+  tripIdOverride?: string;
+  onSaved?: () => void;
+  onCancel?: () => void;
+} = {}): ReactElement {
   const [params] = useSearchParams();
   const tripId =
-    mode === "edit" ? (params.get("tripId") ?? rememberedTripId()) : "";
+    mode === "edit"
+      ? (tripIdOverride ?? params.get("tripId") ?? rememberedTripId())
+      : "";
   const existing = useOperatorTrip(tripId),
-    resources = useTripResources();
+    liveResources = useTripResources();
+  const resources = preview
+    ? {
+        ...liveResources,
+        routes: { ...liveResources.routes, data: preview.routes },
+        buses: { ...liveResources.buses, data: preview.buses },
+        drivers: { ...liveResources.drivers, data: preview.drivers },
+        pending: false,
+        error: null,
+      }
+    : liveResources;
   const navigate = useNavigate(),
     client = useQueryClient();
-  const [form, setForm] = useState<TripForm>(emptyTripForm);
+  const [form, setForm] = useState<TripForm>(
+    preview?.initialForm ?? emptyTripForm,
+  );
   const [loadedId, setLoadedId] = useState("");
   const [version, setVersion] = useState(0);
   const [changed, setChanged] = useState(false);
@@ -154,9 +190,9 @@ export function CreateTripPage({
     : "";
   const driverExpired =
     !!driver && !!serviceDate && driver.licenseExpiresOn < serviceDate;
-  const schedule = useOperatorSchedule(!!window);
+  const schedule = useOperatorSchedule(!!window && !preview);
   const conflicts =
-    window && schedule.data
+    window && schedule.data && !preview
       ? scheduleConflicts(schedule.data, window, tripId)
       : null;
   const busConflicts = conflicts?.buses.get(form.busId) ?? [];
@@ -212,6 +248,22 @@ export function CreateTripPage({
       const input = tripInput(form);
       const issues = resourceIssues(bus, driver, input.arrivalAt, route);
       if (issues.length) throw Error(issues.join(" "));
+      if (preview) {
+        return {
+          trip: tripSchema.parse({
+            id: "DEMO-TAI-XE",
+            organizationId: "demo",
+            ...input,
+            origin: route?.origin,
+            destination: route?.destination,
+            status: "DRAFT",
+            sellable: false,
+            rowVersion: 0,
+            stops: route?.stops ?? [],
+          }),
+          action,
+        };
+      }
       if (mode === "edit" && !changed && existing.data)
         return { trip: existing.data, action };
       const trip = await liveApiJson(
@@ -227,6 +279,10 @@ export function CreateTripPage({
       return { trip, action };
     },
     onSuccess: ({ trip, action }) => {
+      if (preview) {
+        preview.onSave(form);
+        return;
+      }
       client.setQueryData(liveQueryKey("operator-trip-workflow", trip.id), {
         ...trip,
         routeId: form.routeId,
@@ -239,6 +295,10 @@ export function CreateTripPage({
       });
       setVersion(trip.rowVersion);
       setChanged(false);
+      if (embedded) {
+        onSaved?.();
+        return;
+      }
       void navigate(
         action === "review"
           ? `/operator/trips/review?tripId=${trip.id}`
@@ -282,7 +342,12 @@ export function CreateTripPage({
   };
   const pending =
     resources.pending || (mode === "edit" && !!tripId && existing.isPending);
-  const error = resources.error ?? existing.error;
+  const error = resources.error ?? (preview ? null : existing.error);
+  const readOnly =
+    embedded &&
+    !preview &&
+    mode === "edit" &&
+    existing.data?.status !== "DRAFT";
   const retry = (): void => {
     void resources.routes.refetch();
     void resources.buses.refetch();
@@ -318,7 +383,9 @@ export function CreateTripPage({
         <BrandLoading compact title="Đang tải tuyến, xe và tài xế…" />
       ) : error ? (
         <WorkflowError error={error} retry={retry} />
-      ) : mode === "edit" && (!tripId || existing.data?.status !== "DRAFT") ? (
+      ) : !embedded &&
+        mode === "edit" &&
+        (!tripId || existing.data?.status !== "DRAFT") ? (
         <div className="operator-create__panel">
           <h2>{!tripId ? "Chưa chọn bản nháp" : "Chuyến đã được phát hành"}</h2>
           <p>Chọn một bản nháp trong lịch chuyến để chỉnh sửa.</p>
@@ -326,6 +393,12 @@ export function CreateTripPage({
         </div>
       ) : (
         <form onSubmit={submit}>
+          {readOnly && (
+            <p className="operator-trip-workflow__warning">
+              Chuyến đã phát hành hoặc kết thúc: thông tin được khóa chỉnh sửa
+              theo trạng thái hiện tại.
+            </p>
+          )}
           <WorkflowError
             error={mutation.error}
             retry={mutation.error ? retry : undefined}
@@ -335,305 +408,333 @@ export function CreateTripPage({
               Bạn không có quyền tạo hoặc phát hành chuyến.
             </p>
           )}
-          <div className="operator-create__columns">
-            <div>
-              <section className="operator-create__panel operator-create__route">
-                <h2>Tuyến &amp; thời gian</h2>
-                <p>Chọn hành trình và thời điểm xuất bến.</p>
-                <div className="operator-create__route-fields">
-                  <Field
-                    label="Điểm đi"
-                    value={route?.origin ?? ""}
-                    onChange={(origin) =>
-                      change(
-                        "routeId",
-                        resources.routes.data?.find(
-                          (r) => r.origin === origin && r.status === "ACTIVE",
-                        )?.id ?? "",
-                      )
-                    }
-                  >
-                    <option value="">Chọn điểm đi</option>
-                    {[
-                      ...new Set(
-                        resources.routes.data
-                          ?.filter(
-                            (r) =>
-                              r.status === "ACTIVE" || r.id === form.routeId,
-                          )
-                          .map((r) => r.origin),
-                      ),
-                    ].map((origin) => (
-                      <option key={origin} value={origin}>
-                        {origin}
-                      </option>
-                    ))}
-                  </Field>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="operator-create__swap"
-                    aria-label="Đổi điểm đi và điểm đến"
-                    disabled={
-                      !resources.routes.data?.some(
-                        (r) =>
-                          r.status === "ACTIVE" &&
-                          r.origin === route?.destination &&
-                          r.destination === route?.origin,
-                      )
-                    }
-                    onClick={() =>
-                      change(
-                        "routeId",
-                        resources.routes.data?.find(
+          <fieldset
+            className="operator-trip-editor__fields"
+            disabled={readOnly}
+          >
+            <div className="operator-create__columns">
+              <div>
+                <section className="operator-create__panel operator-create__route">
+                  <h2>Tuyến &amp; thời gian</h2>
+                  <p>Chọn hành trình và thời điểm xuất bến.</p>
+                  <div className="operator-create__route-fields">
+                    <Field
+                      label="Điểm đi"
+                      value={route?.origin ?? ""}
+                      onChange={(origin) =>
+                        change(
+                          "routeId",
+                          resources.routes.data?.find(
+                            (r) => r.origin === origin && r.status === "ACTIVE",
+                          )?.id ?? "",
+                        )
+                      }
+                    >
+                      <option value="">Chọn điểm đi</option>
+                      {[
+                        ...new Set(
+                          resources.routes.data
+                            ?.filter(
+                              (r) =>
+                                r.status === "ACTIVE" || r.id === form.routeId,
+                            )
+                            .map((r) => r.origin),
+                        ),
+                      ].map((origin) => (
+                        <option key={origin} value={origin}>
+                          {origin}
+                        </option>
+                      ))}
+                    </Field>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="operator-create__swap"
+                      aria-label="Đổi điểm đi và điểm đến"
+                      disabled={
+                        !resources.routes.data?.some(
                           (r) =>
                             r.status === "ACTIVE" &&
                             r.origin === route?.destination &&
                             r.destination === route?.origin,
-                        )?.id ?? form.routeId,
-                      )
-                    }
-                  >
-                    <img src={swapIcon} alt="" width={16} height={16} />
-                  </Button>
-                  <Field
-                    label="Điểm đến"
-                    value={form.routeId}
-                    disabled={!route}
-                    onChange={(id) => change("routeId", id)}
-                  >
-                    <option value="">Chọn điểm đến</option>
-                    {resources.routes.data
-                      ?.filter(
-                        (r) =>
-                          r.origin === route?.origin &&
-                          (r.status === "ACTIVE" || r.id === form.routeId),
-                      )
-                      .map((r) => (
-                        <option key={r.id} value={r.id}>
-                          {r.destination}
-                          {r.status !== "ACTIVE" ? " · Ngừng hoạt động" : ""}
-                        </option>
-                      ))}
-                  </Field>
-                </div>
-                <div className="operator-trip-workflow__times">
-                  <Field
-                    label="Khởi hành (giờ Việt Nam)"
-                    type="datetime-local"
-                    value={form.departureAt}
-                    onChange={(v) => change("departureAt", v)}
-                  />
-                  <Field
-                    label="Đến nơi (giờ Việt Nam)"
-                    type="datetime-local"
-                    value={form.arrivalAt}
-                    error={
-                      invalidTimeOrder ? "Giờ đến phải sau giờ đi." : undefined
-                    }
-                    onChange={(v) => change("arrivalAt", v)}
-                  />
-                  <TripFact label="Thời gian dự kiến">
-                    {Number.isFinite(duration) && duration > 0
-                      ? `${Math.floor(duration)} giờ ${Math.round((duration % 1) * 60)} phút`
-                      : "Chưa xác định"}
-                  </TripFact>
-                </div>
-                <TripStops route={route} />
-              </section>
-              <section className="operator-create__panel operator-create__crew">
-                <h2>Xe &amp; nhân sự</h2>
-                <p>Phân công xe và tài xế cho chuyến đi.</p>
-                <div
-                  className="operator-trip-workflow__schedule"
-                  aria-live="polite"
-                >
-                  {!window ? (
-                    <p>
-                      Nhập giờ đi và giờ đến hợp lệ để kiểm tra lịch xe, tài xế.
-                    </p>
-                  ) : schedule.isPending ? (
-                    <BrandLoading compact title="Đang tải lịch phân công…" />
-                  ) : schedule.isError ? (
-                    <p role="alert">
-                      Chưa tải được lịch phân công. Danh sách chưa được lọc; hệ
-                      thống sẽ kiểm tra khi phát hành.
-                    </p>
-                  ) : (
-                    <p>
-                      Đã đối chiếu lịch, có tính khoảng đệm 1 giờ trước và sau
-                      mỗi chuyến. Cập nhật lúc{" "}
-                      {new Date(schedule.dataUpdatedAt).toLocaleTimeString(
-                        "vi-VN",
-                        {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                          timeZone: "Asia/Ho_Chi_Minh",
-                        },
-                      )}
-                      .
-                    </p>
-                  )}
-                  {window && (
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      isLoading={schedule.isFetching}
-                      onClick={() => void schedule.refetch()}
+                        )
+                      }
+                      onClick={() =>
+                        change(
+                          "routeId",
+                          resources.routes.data?.find(
+                            (r) =>
+                              r.status === "ACTIVE" &&
+                              r.origin === route?.destination &&
+                              r.destination === route?.origin,
+                          )?.id ?? form.routeId,
+                        )
+                      }
                     >
-                      Cập nhật lịch
+                      <img src={swapIcon} alt="" width={16} height={16} />
                     </Button>
-                  )}
-                </div>
-                {conflicts?.incompleteDrivers && schedule.isSuccess && (
-                  <p className="operator-trip-workflow__warning">
-                    Một số chuyến chưa có đủ thông tin tài xế. Kết quả đối chiếu
-                    tài xế có thể chưa đầy đủ.
-                  </p>
-                )}
-                <div className="operator-create__two">
-                  <ResourcePicker
-                    label="Xe"
-                    placeholder="Chọn phương tiện"
-                    value={form.busId}
-                    selectedLabel={bus?.plateNumber}
-                    options={busOptions}
-                    disabled={!window || schedule.isPending}
-                    onChange={(v) => change("busId", v)}
-                  />
-                  <ResourcePicker
-                    label="Tài xế"
-                    placeholder="Chọn tài xế"
-                    value={form.driverId}
-                    selectedLabel={driver ? driverLabel(driver) : undefined}
-                    options={driverOptions}
-                    disabled={!window || schedule.isPending}
-                    onChange={(v) => change("driverId", v)}
-                  />
-                </div>
-                {driverExpired && (
-                  <p className="operator-trip-workflow__warning" role="alert">
-                    GPLX của tài xế đang chọn không còn đủ hạn cho chuyến này.
-                    Vui lòng chọn tài xế khác.
-                  </p>
-                )}
-                {hasConflict && (
-                  <div className="operator-trip-workflow__warning" role="alert">
-                    {busConflicts.length > 0 && (
+                    <Field
+                      label="Điểm đến"
+                      value={form.routeId}
+                      disabled={!route}
+                      onChange={(id) => change("routeId", id)}
+                    >
+                      <option value="">Chọn điểm đến</option>
+                      {resources.routes.data
+                        ?.filter(
+                          (r) =>
+                            r.origin === route?.origin &&
+                            (r.status === "ACTIVE" || r.id === form.routeId),
+                        )
+                        .map((r) => (
+                          <option key={r.id} value={r.id}>
+                            {r.destination}
+                            {r.status !== "ACTIVE" ? " · Ngừng hoạt động" : ""}
+                          </option>
+                        ))}
+                    </Field>
+                  </div>
+                  <div className="operator-trip-workflow__times">
+                    <Field
+                      label="Khởi hành (giờ Việt Nam)"
+                      type="datetime-local"
+                      value={form.departureAt}
+                      onChange={(v) => change("departureAt", v)}
+                    />
+                    <Field
+                      label="Đến nơi (giờ Việt Nam)"
+                      type="datetime-local"
+                      value={form.arrivalAt}
+                      error={
+                        invalidTimeOrder
+                          ? "Giờ đến phải sau giờ đi."
+                          : undefined
+                      }
+                      onChange={(v) => change("arrivalAt", v)}
+                    />
+                    <TripFact label="Thời gian dự kiến">
+                      {Number.isFinite(duration) && duration > 0
+                        ? `${Math.floor(duration)} giờ ${Math.round((duration % 1) * 60)} phút`
+                        : "Chưa xác định"}
+                    </TripFact>
+                  </div>
+                  <TripStops route={route} />
+                </section>
+                <section className="operator-create__panel operator-create__crew">
+                  <h2>Xe &amp; nhân sự</h2>
+                  <p>Phân công xe và tài xế cho chuyến đi.</p>
+                  <div
+                    className="operator-trip-workflow__schedule"
+                    aria-live="polite"
+                  >
+                    {preview ? (
                       <p>
-                        Xe {bus?.plateNumber}:{" "}
-                        {conflictReason(busConflicts, window)} ·{" "}
-                        {conflictLabel(busConflicts)}.
+                        DEMO · Chọn xe và tài xế để thử phân công. Không
+                        cập nhật lịch vận hành thật.
+                      </p>
+                    ) : !window ? (
+                      <p>
+                        Nhập giờ đi và giờ đến hợp lệ để kiểm tra lịch xe, tài
+                        xế.
+                      </p>
+                    ) : schedule.isPending ? (
+                      <BrandLoading compact title="Đang tải lịch phân công…" />
+                    ) : schedule.isError ? (
+                      <p role="alert">
+                        Chưa tải được lịch phân công. Danh sách chưa được lọc;
+                        hệ thống sẽ kiểm tra khi phát hành.
+                      </p>
+                    ) : (
+                      <p>
+                        Đã đối chiếu lịch, có tính khoảng đệm 1 giờ trước và sau
+                        mỗi chuyến. Cập nhật lúc{" "}
+                        {new Date(schedule.dataUpdatedAt).toLocaleTimeString(
+                          "vi-VN",
+                          {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            timeZone: "Asia/Ho_Chi_Minh",
+                          },
+                        )}
+                        .
                       </p>
                     )}
-                    {driverConflicts.length > 0 && (
-                      <p>
-                        Tài xế {driver ? driverLabel(driver) : ""}:{" "}
-                        {conflictReason(driverConflicts, window)} ·{" "}
-                        {conflictLabel(driverConflicts)}.
-                      </p>
+                    {window && !preview && (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        isLoading={schedule.isFetching}
+                        onClick={() => void schedule.refetch()}
+                      >
+                        Cập nhật lịch
+                      </Button>
                     )}
-                    <p>
-                      Vui lòng chọn lại nguồn lực hoặc đổi thời gian. Thông tin
-                      đang chọn được giữ để bạn kiểm tra; vẫn có thể lưu nháp.
+                  </div>
+                  {conflicts?.incompleteDrivers && schedule.isSuccess && (
+                    <p className="operator-trip-workflow__warning">
+                      Một số chuyến chưa có đủ thông tin tài xế. Kết quả đối
+                      chiếu tài xế có thể chưa đầy đủ.
                     </p>
+                  )}
+                  <div className="operator-create__two">
+                    <ResourcePicker
+                      label="Xe"
+                      placeholder="Chọn phương tiện"
+                      value={form.busId}
+                      selectedLabel={bus?.plateNumber}
+                      options={busOptions}
+                      disabled={!window || (!preview && schedule.isPending)}
+                      onChange={(v) => change("busId", v)}
+                    />
+                    <ResourcePicker
+                      label="Tài xế"
+                      placeholder="Chọn tài xế"
+                      value={form.driverId}
+                      selectedLabel={driver ? driverLabel(driver) : undefined}
+                      options={driverOptions}
+                      disabled={!window || (!preview && schedule.isPending)}
+                      onChange={(v) => change("driverId", v)}
+                    />
                   </div>
-                )}
-                <div className="operator-create__three">
-                  <TripFact label="Loại xe">{busLabel(bus)}</TripFact>
-                  <TripFact label="Sức chứa">
-                    {bus ? `${bus.seats.length} chỗ` : "Chưa chọn xe"}
-                  </TripFact>
-                  <TripFact label="GPLX có hiệu lực đến">
-                    {driver
-                      ? driver.licenseExpiresOn.split("-").reverse().join("/")
-                      : "Chưa chọn tài xế"}
-                  </TripFact>
-                </div>
-                <div className="operator-create__note">
-                  <img src={checkIcon} alt="" width={20} height={20} />
-                  <div>
-                    <strong>Thông tin phân công</strong>
-                    <small>
-                      Lưu bản nháp trước khi kiểm tra và xác nhận phát hành.
-                    </small>
+                  {driverExpired && (
+                    <p className="operator-trip-workflow__warning" role="alert">
+                      GPLX của tài xế đang chọn không còn đủ hạn cho chuyến này.
+                      Vui lòng chọn tài xế khác.
+                    </p>
+                  )}
+                  {hasConflict && (
+                    <div
+                      className="operator-trip-workflow__warning"
+                      role="alert"
+                    >
+                      {busConflicts.length > 0 && (
+                        <p>
+                          Xe {bus?.plateNumber}:{" "}
+                          {conflictReason(busConflicts, window)} ·{" "}
+                          {conflictLabel(busConflicts)}.
+                        </p>
+                      )}
+                      {driverConflicts.length > 0 && (
+                        <p>
+                          Tài xế {driver ? driverLabel(driver) : ""}:{" "}
+                          {conflictReason(driverConflicts, window)} ·{" "}
+                          {conflictLabel(driverConflicts)}.
+                        </p>
+                      )}
+                      <p>
+                        Vui lòng chọn lại nguồn lực hoặc đổi thời gian. Thông
+                        tin đang chọn được giữ để bạn kiểm tra; vẫn có thể lưu
+                        nháp.
+                      </p>
+                    </div>
+                  )}
+                  <div className="operator-create__three">
+                    <TripFact label="Loại xe">{busLabel(bus)}</TripFact>
+                    <TripFact label="Sức chứa">
+                      {bus ? `${bus.seats.length} chỗ` : "Chưa chọn xe"}
+                    </TripFact>
+                    <TripFact label="GPLX có hiệu lực đến">
+                      {driver
+                        ? driver.licenseExpiresOn.split("-").reverse().join("/")
+                        : "Chưa chọn tài xế"}
+                    </TripFact>
                   </div>
-                </div>
-                {mode === "edit" && !form.driverId && (
-                  <p className="operator-trip-workflow__warning">
-                    Vui lòng chọn lại tài xế trước khi lưu bản nháp này.
+                  <div className="operator-create__note">
+                    <img src={checkIcon} alt="" width={20} height={20} />
+                    <div>
+                      <strong>Thông tin phân công</strong>
+                      <small>
+                        Lưu bản nháp trước khi kiểm tra và xác nhận phát hành.
+                      </small>
+                    </div>
+                  </div>
+                  {mode === "edit" && !form.driverId && (
+                    <p className="operator-trip-workflow__warning">
+                      Vui lòng chọn lại tài xế trước khi lưu bản nháp này.
+                    </p>
+                  )}
+                </section>
+              </div>
+              <aside>
+                <section className="operator-create__panel operator-create__fare">
+                  <h2>Giá vé &amp; chính sách hủy</h2>
+                  <p>
+                    {route
+                      ? `Áp dụng cho tuyến ${route.name}.`
+                      : "Chọn tuyến để thiết lập giá vé."}
                   </p>
-                )}
-              </section>
+                  <Field
+                    label="Giá vé (VND)"
+                    type="number"
+                    value={form.fare}
+                    onChange={(v) => change("fare", v)}
+                  />
+                  <CancellationPolicy />
+                </section>
+                <section className="operator-create__panel operator-create__validation">
+                  <h2>Kiểm tra nguồn lực</h2>
+                  <ul className="operator-trip-workflow__checks">
+                    <li>
+                      Xe:{" "}
+                      {bus
+                        ? bus.status === "ACTIVE"
+                          ? "Đang hoạt động"
+                          : "Không hoạt động"
+                        : "Chưa chọn"}
+                    </li>
+                    <li>
+                      Tài xế:{" "}
+                      {driver
+                        ? driver.status === "ACTIVE"
+                          ? "Đang hoạt động"
+                          : "Không hoạt động"
+                        : "Chưa chọn"}
+                    </li>
+                    <li>
+                      Sơ đồ ghế:{" "}
+                      {bus
+                        ? `${bus.seats.filter((s) => s.enabled).length} vị trí được bán`
+                        : "Chưa chọn xe"}
+                    </li>
+                  </ul>
+                  <p>
+                    Lịch xe và tài xế được hệ thống xác nhận khi phát hành
+                    chuyến.
+                  </p>
+                </section>
+              </aside>
             </div>
-            <aside>
-              <section className="operator-create__panel operator-create__fare">
-                <h2>Giá vé &amp; chính sách hủy</h2>
-                <p>
-                  {route
-                    ? `Áp dụng cho tuyến ${route.name}.`
-                    : "Chọn tuyến để thiết lập giá vé."}
-                </p>
-                <Field
-                  label="Giá vé (VND)"
-                  type="number"
-                  value={form.fare}
-                  onChange={(v) => change("fare", v)}
-                />
-                <CancellationPolicy />
-              </section>
-              <section className="operator-create__panel operator-create__validation">
-                <h2>Kiểm tra nguồn lực</h2>
-                <ul className="operator-trip-workflow__checks">
-                  <li>
-                    Xe:{" "}
-                    {bus
-                      ? bus.status === "ACTIVE"
-                        ? "Đang hoạt động"
-                        : "Không hoạt động"
-                      : "Chưa chọn"}
-                  </li>
-                  <li>
-                    Tài xế:{" "}
-                    {driver
-                      ? driver.status === "ACTIVE"
-                        ? "Đang hoạt động"
-                        : "Không hoạt động"
-                      : "Chưa chọn"}
-                  </li>
-                  <li>
-                    Sơ đồ ghế:{" "}
-                    {bus
-                      ? `${bus.seats.filter((s) => s.enabled).length} vị trí được bán`
-                      : "Chưa chọn xe"}
-                  </li>
-                </ul>
-                <p>
-                  Lịch xe và tài xế được hệ thống xác nhận khi phát hành chuyến.
-                </p>
-              </section>
-            </aside>
-          </div>
-          <footer className="operator-create__actions">
-            <Link to="/operator/trips">Hủy</Link>
-            <Button
-              type="submit"
-              value="save"
-              variant="secondary"
-              disabled={!canPublishTrip() || mutation.isPending}
-            >
-              Lưu bản nháp
-            </Button>
-            <Button
-              type="submit"
-              value="review"
-              disabled={!canPublishTrip() || hasConflict}
-              isLoading={mutation.isPending}
-            >
-              <img src={reviewIcon} alt="" width={17} height={17} />
-              Kiểm tra chuyến
-            </Button>
-          </footer>
+          </fieldset>
+          {!readOnly && (
+            <footer className="operator-create__actions">
+              {onCancel ? (
+                <Button type="button" variant="ghost" onClick={onCancel}>
+                  Hủy thay đổi
+                </Button>
+              ) : (
+                <Link to="/operator/trips">Hủy</Link>
+              )}
+              <Button
+                type="submit"
+                value="save"
+                variant={preview ? "primary" : "secondary"}
+                disabled={!canPublishTrip() || mutation.isPending}
+              >
+                {preview ? "Lưu thay đổi demo" : "Lưu bản nháp"}
+              </Button>
+              {!preview && (
+                <Button
+                  type="submit"
+                  value="review"
+                  disabled={!canPublishTrip() || hasConflict}
+                  isLoading={mutation.isPending}
+                >
+                  <img src={reviewIcon} alt="" width={17} height={17} />
+                  Kiểm tra chuyến
+                </Button>
+              )}
+            </footer>
+          )}
         </form>
       )}
     </TripWorkflowShell>
