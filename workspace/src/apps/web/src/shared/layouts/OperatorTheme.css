@@ -48,6 +48,9 @@
   border-radius: var(--radius-control);
   color: var(--color-text-secondary);
 }
+.operator-workspace__nav-link + .operator-workspace__nav-link {
+  margin-top: 6px;
+}
 .operator-workspace__nav-link.is-active {
   background: var(--color-bg-subtle);
   color: var(--color-bg-brand);
