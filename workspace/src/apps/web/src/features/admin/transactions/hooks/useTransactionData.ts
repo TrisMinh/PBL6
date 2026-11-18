@@ -1,5 +1,9 @@
 import { useMemo } from "react";
-import { useQuery, type UseQueryResult } from "@tanstack/react-query";
+import {
+  useQuery,
+  keepPreviousData,
+  type UseQueryResult,
+} from "@tanstack/react-query";
 
 import { adminKeys } from "@/features/admin/api/adminQueryKeys";
 import { useMockSession } from "@/features/auth/hooks/useMockSession";
@@ -34,6 +38,7 @@ export function useAdminBookings(
   const repository = useRepository();
   return useQuery({
     queryKey: adminKeys.bookings.list(params),
+    placeholderData: keepPreviousData,
     enabled: Boolean(repository),
     queryFn: ({ signal }) =>
       requireRepository(repository).listBookings(params, signal),
@@ -62,6 +67,7 @@ export function useAdminPayments(
   const repository = useRepository();
   return useQuery({
     queryKey: adminKeys.payments.list(params),
+    placeholderData: keepPreviousData,
     enabled: Boolean(repository),
     queryFn: ({ signal }) =>
       requireRepository(repository).listPayments(params, signal),
@@ -90,6 +96,7 @@ export function useAdminRefunds(
   const repository = useRepository();
   return useQuery({
     queryKey: adminKeys.refunds.list(params),
+    placeholderData: keepPreviousData,
     enabled: Boolean(repository),
     queryFn: ({ signal }) =>
       requireRepository(repository).listRefunds(params, signal),

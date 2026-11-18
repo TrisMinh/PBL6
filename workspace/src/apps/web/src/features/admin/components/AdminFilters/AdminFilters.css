@@ -49,19 +49,74 @@
 .admin-filters__pagination {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-inline-gap);
+  gap: 4px;
   align-items: center;
   justify-content: flex-end;
+}
+
+.admin-filters__page-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 4px 10px;
+  border: 1px solid var(--color-admin-border);
+  border-radius: 6px;
+  background: var(--color-admin-surface);
+  color: var(--color-text-secondary);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 20px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.admin-filters__page-button:hover:not(:disabled) {
+  border-color: var(--color-bg-brand);
+  background: var(--color-bg-page);
+  color: var(--color-bg-brand);
+}
+.admin-filters__page-button:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+.admin-filters__page-button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.admin-list-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-admin-border);
+}
+.admin-list-footer:empty {
+  display: none;
+}
+.admin-list-viewport,
+.admin-list-viewport > div {
+  min-width: 0;
+}
+.admin-list-footer > p {
+  margin: 0;
+}
+.admin-list-footer .admin-filters__pagination {
+  margin-left: auto;
 }
 
 .admin-filters__page-status {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: var(--size-control-min);
-  padding-inline: var(--space-control-inset);
+  min-height: 32px;
+  padding-inline: 8px;
   color: var(--color-text-secondary);
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 500;
   white-space: nowrap;
 }
 
@@ -83,16 +138,19 @@
   .admin-filters__pagination {
     justify-content: center;
   }
-}
-
-@media (width < 400px) {
-  .admin-filters__pagination .button {
-    flex: 1 1 calc(50% - var(--space-inline-gap));
+  .admin-filters__page-button {
+    min-height: 40px;
+    padding-inline: 9px;
   }
-
-  .admin-filters__page-status {
-    order: -1;
-    width: 100%;
+  .admin-list-footer {
+    justify-content: center;
+  }
+  .admin-list-footer > p {
+    flex-basis: 100%;
+    text-align: center;
+  }
+  .admin-list-footer .admin-filters__pagination {
+    margin-left: 0;
   }
 }
 

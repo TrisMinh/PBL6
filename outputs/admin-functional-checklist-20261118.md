@@ -206,3 +206,19 @@ khi thiếu nhà xe hiện thông báo thay vì UUID. Payload gửi API vẫn gi
 18 kiểm thử liên quan đạt. Kiểm tra headless đúng popup trong ảnh ở 1440px/390px
 đạt; script organization-code xác minh thêm popup tạo từ tổ chức, sửa từ tổ chức
 và sửa từ hồ sơ nhân viên. TypeScript/ESLint đạt, Docker admin đã cập nhật.
+
+### Phân trang dưới bảng và giữ vị trí cuộn
+
+Đưa phân trang tổ chức/nhân viên xuống footer dưới bảng, dùng chung kiểu nút gọn
+với 3 trang giao dịch. Điều hướng tham số danh sách giữ vị trí cuộn; giữ bảng cũ
+trong lúc tải trang mới và khóa nút phân trang khi chờ để tránh nhảy do mất chiều cao.
+
+Script `verify-admin-pagination.mjs` đạt 10 lượt kiểm tra trên cả 5 trang, ở 1440px
+và 390px. Có cố ý trì hoãn API: bảng vẫn hiện, trang 2 có dữ liệu khác trang 1,
+chuyển tới/lùi không cuộn về đầu. Kiểm tra footer nằm sau bảng, nút 32px desktop /
+40px mobile và không tràn ngang. Đã xem ảnh trình duyệt headless, cập nhật Docker.
+
+Đã kiểm tra thêm nút Đầu/Cuối và trang cuối ít dòng ở cả 5 khu, desktop/mobile:
+giữ chiều cao vùng danh sách khi phân trang để trình duyệt không ép cuộn về đầu.
+Chiều cao được đặt lại khi đổi bộ lọc, cỡ trang hoặc chiều rộng màn hình. Sau bổ
+sung này, 30 kiểm thử của các trang danh sách đạt; 10 lượt trình duyệt đều đạt.

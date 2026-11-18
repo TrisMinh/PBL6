@@ -2,6 +2,7 @@ import {
   useMutation,
   useQuery,
   useQueryClient,
+  keepPreviousData,
   type UseMutationResult,
   type UseQueryResult,
 } from "@tanstack/react-query";
@@ -41,6 +42,7 @@ export function useOrganizations(
   const repository = useAdminRepository();
   return useQuery({
     queryKey: adminKeys.organizations.list(params),
+    placeholderData: keepPreviousData,
     enabled: Boolean(repository),
     queryFn: ({ signal }) =>
       requireRepository(repository).listOrganizations(params, signal),

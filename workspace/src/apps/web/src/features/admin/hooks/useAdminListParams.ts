@@ -84,7 +84,10 @@ export function useAdminListParams(): UseAdminListParamsResult {
 
   useEffect(() => {
     if (canonicalSearch !== rawSearch)
-      setSearchParams(canonicalSearch, { replace: true });
+      setSearchParams(canonicalSearch, {
+        replace: true,
+        preventScrollReset: true,
+      });
   }, [canonicalSearch, rawSearch, setSearchParams]);
 
   const updateParams = useCallback(
@@ -93,7 +96,8 @@ export function useAdminListParams(): UseAdminListParamsResult {
         searchParams,
         mergeParams(params, patch),
       );
-      if (next.toString() !== rawSearch) setSearchParams(next);
+      if (next.toString() !== rawSearch)
+        setSearchParams(next, { preventScrollReset: true });
     },
     [params, rawSearch, searchParams, setSearchParams],
   );

@@ -9,7 +9,10 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { type ReactElement } from "react";
 import { MemoryRouter, useLocation } from "react-router";
 
-import { AdminFilters } from "@/features/admin/components/AdminFilters/AdminFilters";
+import {
+  AdminFilters,
+  AdminListPagination,
+} from "@/features/admin/components/AdminFilters/AdminFilters";
 import { useAdminListParams } from "@/features/admin/hooks/useAdminListParams";
 
 const ORGANIZATIONS = [
@@ -30,6 +33,10 @@ function FiltersHarness(): ReactElement {
         organizationOptions={ORGANIZATIONS}
         params={params}
         statusOptions={STATUSES}
+        updateParams={updateParams}
+      />
+      <AdminListPagination
+        params={params}
         totalPages={5}
         updateParams={updateParams}
       />

@@ -1,7 +1,8 @@
 import { transactionErrorState } from "../transactionErrorState";
-import { useEffect, type ReactElement } from "react";
-import { AdminPagination } from "@/features/admin/components/AdminFilters/AdminFilters";
+import { type ReactElement } from "react";
+import { AdminListPagination } from "@/features/admin/components/AdminFilters/AdminFilters";
 import { useAdminListParams } from "@/features/admin/hooks/useAdminListParams";
+import { AdminListViewport } from "@/features/admin/components/AdminDataTable/AdminListViewport";
 import { Link, useSearchParams } from "react-router";
 import {
   AdminDataTable,
@@ -36,6 +37,7 @@ interface TransactionResult {
   data?: PagedResult<Transaction>;
   isPending: boolean;
   isError: boolean;
+  isPlaceholderData?: boolean;
   error: Error | null;
   refetch: () => unknown;
 }
@@ -157,24 +159,23 @@ function columns(
 }
 function TransactionPagination({
   data,
+  disabled,
 }: {
   data: PagedResult<Transaction> | undefined;
+  disabled?: boolean;
 }): ReactElement | null {
   const { params, updateParams } = useAdminListParams();
   const totalPages = data
     ? Math.max(1, Math.ceil(data.total / data.pageSize))
     : undefined;
-  useEffect(() => {
-    if (totalPages !== undefined && params.page > totalPages)
-      updateParams({ page: totalPages });
-  }, [params.page, totalPages, updateParams]);
-  return totalPages !== undefined && totalPages > 1 ? (
-    <AdminPagination
-      currentPage={Math.min(params.page, totalPages)}
+  return (
+    <AdminListPagination
+      params={params}
       totalPages={totalPages}
-      onPageChange={(page) => updateParams({ page })}
+      updateParams={updateParams}
+      disabled={disabled}
     />
-  ) : null;
+  );
 }
 export function TransactionList({
   resource,
@@ -184,6 +185,7 @@ export function TransactionList({
   result: TransactionResult;
 }): ReactElement {
   const [params, setParams] = useSearchParams();
+  const { params: listParams } = useAdminListParams();
   const config = TRANSACTION_CONFIG[resource];
   const viewStatus = Object.entries(config.statuses).find(
     ([key]) => key === params.get("viewStatus"),
@@ -219,6 +221,7 @@ export function TransactionList({
       <TransactionIntro resource={resource} />
       <section
         aria-labelledby={`${resource}-title`}
+        aria-busy={result.isPlaceholderData || undefined}
         className={`transaction-page__panel${state ? "transaction-page__panel--state" : ""}`}
       >
         <h2 id={`${resource}-title`}>
@@ -233,24 +236,30 @@ export function TransactionList({
             }}
           />
         )}
-        {state ? (
-          <TransactionState
-            state={state}
-            resource={resource}
-            onRetry={() => {
-              void result.refetch();
-            }}
-            onClear={clear}
-          />
-        ) : (
-          <AdminDataTable
-            caption={config.panel}
-            columns={columns(resource)}
-            getRowKey={(item) => item.id}
-            items={items}
-            variant="figma"
-          />
-        )}
+        <AdminListViewport
+          params={listParams}
+          measure={Boolean(result.data) && !result.isPlaceholderData}
+          enabled={!result.isError}
+        >
+          {state ? (
+            <TransactionState
+              state={state}
+              resource={resource}
+              onRetry={() => {
+                void result.refetch();
+              }}
+              onClear={clear}
+            />
+          ) : (
+            <AdminDataTable
+              caption={config.panel}
+              columns={columns(resource)}
+              getRowKey={(item) => item.id}
+              items={items}
+              variant="figma"
+            />
+          )}
+        </AdminListViewport>
         {!state && (
           <>
             {isMockApi && (
@@ -267,7 +276,14 @@ export function TransactionList({
             </button>
           </>
         )}
-        {!terminal && <TransactionPagination data={result.data} />}
+        {!terminal && (
+          <div className="admin-list-footer">
+            <TransactionPagination
+              data={result.data}
+              disabled={result.isPlaceholderData}
+            />
+          </div>
+        )}
       </section>
     </div>
   );

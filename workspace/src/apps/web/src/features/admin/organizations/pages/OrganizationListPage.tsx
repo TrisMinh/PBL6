@@ -8,7 +8,11 @@ import {
   type AdminDataColumn,
 } from "@/features/admin/components/AdminDataTable/AdminDataTable";
 import { AdminListState } from "@/features/admin/components/AdminDataTable/AdminListState";
-import { AdminFilters } from "@/features/admin/components/AdminFilters/AdminFilters";
+import { AdminListViewport } from "@/features/admin/components/AdminDataTable/AdminListViewport";
+import {
+  AdminFilters,
+  AdminListPagination,
+} from "@/features/admin/components/AdminFilters/AdminFilters";
 import { useAdminListParams } from "@/features/admin/hooks/useAdminListParams";
 import { OrganizationDialog } from "@/features/admin/organizations/components/OrganizationDialog";
 import { OrganizationPageHeader } from "@/features/admin/organizations/components/OrganizationPageHeader";
@@ -164,6 +168,7 @@ function OrganizationListPanel({
     <section
       className="organization-page__panel"
       aria-labelledby="organization-list-title"
+      aria-busy={list.isPlaceholderData || undefined}
     >
       <div className="organization-page__title-row">
         <h2 id="organization-list-title">Danh sách tổ chức</h2>
@@ -174,19 +179,34 @@ function OrganizationListPanel({
       <AdminFilters
         params={params}
         statusOptions={STATUS_OPTIONS}
-        totalPages={totalPages}
         updateParams={updateParams}
         variant="figma"
       />
-      <ListContent data={list} onRetry={() => void list.refetch()} />
-      {list.data && (
-        <p className="organization-page__list-count">
-          Hiển thị{" "}
-          {list.data.total ? (list.data.page - 1) * list.data.pageSize + 1 : 0}–
-          {Math.min(list.data.page * list.data.pageSize, list.data.total)} trong{" "}
-          {list.data.total} tổ chức
-        </p>
-      )}
+      <AdminListViewport
+        params={params}
+        measure={Boolean(list.data) && !list.isPlaceholderData}
+        enabled={!list.isError}
+      >
+        <ListContent data={list} onRetry={() => void list.refetch()} />
+      </AdminListViewport>
+      <div className="admin-list-footer">
+        {list.data && (
+          <p className="organization-page__list-count">
+            Hiển thị{" "}
+            {list.data.total
+              ? (list.data.page - 1) * list.data.pageSize + 1
+              : 0}
+            –{Math.min(list.data.page * list.data.pageSize, list.data.total)}{" "}
+            trong {list.data.total} tổ chức
+          </p>
+        )}
+        <AdminListPagination
+          params={params}
+          totalPages={totalPages}
+          updateParams={updateParams}
+          disabled={list.isPlaceholderData}
+        />
+      </div>
     </section>
   );
 }

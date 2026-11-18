@@ -2,6 +2,7 @@ import {
   useMutation,
   useQuery,
   useQueryClient,
+  keepPreviousData,
   type UseMutationResult,
   type UseQueryResult,
 } from "@tanstack/react-query";
@@ -47,6 +48,7 @@ export function useStaff(
   const repository = useAdminRepository();
   return useQuery({
     queryKey: adminKeys.staff.list(params),
+    placeholderData: keepPreviousData,
     enabled: Boolean(repository),
     queryFn: ({ signal }) =>
       requireRepository(repository).listStaff(params, signal),

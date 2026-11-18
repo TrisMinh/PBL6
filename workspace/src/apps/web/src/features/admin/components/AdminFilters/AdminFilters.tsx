@@ -24,7 +24,6 @@ export interface AdminFiltersProps {
   updateParams: (patch: AdminListParamsPatch) => void;
   organizationOptions?: readonly AdminFilterOption[];
   statusOptions: readonly AdminFilterOption<AdminListStatus>[];
-  totalPages?: number;
   variant?: "default" | "figma";
 }
 
@@ -84,6 +83,7 @@ interface PaginationProps {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
+  disabled?: boolean;
 }
 
 interface PaginationButtonProps {
@@ -91,7 +91,6 @@ interface PaginationButtonProps {
   text: string;
   disabled: boolean;
   onClick: () => void;
-  variant: "ghost" | "secondary";
 }
 
 function PaginationButton({
@@ -99,18 +98,17 @@ function PaginationButton({
   label,
   onClick,
   text,
-  variant,
 }: PaginationButtonProps): ReactElement {
   return (
-    <Button
+    <button
       aria-label={label}
       disabled={disabled}
       onClick={onClick}
       type="button"
-      variant={variant}
+      className="admin-filters__page-button"
     >
       {text}
-    </Button>
+    </button>
   );
 }
 
@@ -129,39 +127,36 @@ export function AdminPagination({
   currentPage,
   onPageChange,
   totalPages,
+  disabled = false,
 }: PaginationProps): ReactElement {
   const isFirstPage = currentPage <= 1;
   const isLastPage = currentPage >= totalPages;
   return (
     <nav aria-label="Phân trang" className="admin-filters__pagination">
       <PaginationButton
-        disabled={isFirstPage}
+        disabled={disabled || isFirstPage}
         label="Trang đầu"
         onClick={() => onPageChange(1)}
-        text="Đầu"
-        variant="ghost"
+        text="«"
       />
       <PaginationButton
-        disabled={isFirstPage}
+        disabled={disabled || isFirstPage}
         label="Trang trước"
         onClick={() => onPageChange(currentPage - 1)}
-        text="Trước"
-        variant="secondary"
+        text="‹ Trước"
       />
       <PageStatus currentPage={currentPage} totalPages={totalPages} />
       <PaginationButton
-        disabled={isLastPage}
+        disabled={disabled || isLastPage}
         label="Trang tiếp theo"
         onClick={() => onPageChange(currentPage + 1)}
-        text="Tiếp theo"
-        variant="secondary"
+        text="Tiếp ›"
       />
       <PaginationButton
-        disabled={isLastPage}
+        disabled={disabled || isLastPage}
         label="Trang cuối"
         onClick={() => onPageChange(totalPages)}
-        text="Cuối"
-        variant="ghost"
+        text="»"
       />
     </nav>
   );
@@ -332,11 +327,9 @@ export function AdminFilters({
   organizationOptions,
   params,
   statusOptions,
-  totalPages,
   updateParams,
   variant = "default",
 }: AdminFiltersProps): ReactElement {
-  const boundedPage = useBoundedPage(params.page, totalPages, updateParams);
   const [searchResetKey, setSearchResetKey] = useState(0);
 
   const clearFilters = (): void => {
@@ -363,13 +356,29 @@ export function AdminFilters({
         updateParams={updateParams}
         variant={variant}
       />
-      {(variant !== "figma" || boundedPage.totalPages > 1) && (
-        <AdminPagination
-          currentPage={boundedPage.currentPage}
-          onPageChange={(page) => updateParams({ page })}
-          totalPages={boundedPage.totalPages}
-        />
-      )}
     </section>
+  );
+}
+
+export function AdminListPagination({
+  params,
+  totalPages,
+  updateParams,
+  disabled = false,
+}: {
+  params: AdminListParams;
+  totalPages?: number;
+  updateParams: (patch: AdminListParamsPatch) => void;
+  disabled?: boolean;
+}): ReactElement | null {
+  const boundedPage = useBoundedPage(params.page, totalPages, updateParams);
+  if (totalPages === undefined || totalPages <= 1) return null;
+  return (
+    <AdminPagination
+      currentPage={boundedPage.currentPage}
+      totalPages={boundedPage.totalPages}
+      onPageChange={(page) => updateParams({ page })}
+      disabled={disabled}
+    />
   );
 }

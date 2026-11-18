@@ -7,7 +7,11 @@ import {
   type AdminDataColumn,
 } from "@/features/admin/components/AdminDataTable/AdminDataTable";
 import { AdminListState } from "@/features/admin/components/AdminDataTable/AdminListState";
-import { AdminFilters } from "@/features/admin/components/AdminFilters/AdminFilters";
+import { AdminListViewport } from "@/features/admin/components/AdminDataTable/AdminListViewport";
+import {
+  AdminFilters,
+  AdminListPagination,
+} from "@/features/admin/components/AdminFilters/AdminFilters";
 import { useAdminListParams } from "@/features/admin/hooks/useAdminListParams";
 import { MembershipDialog } from "@/features/admin/staff/components/MembershipDialog";
 import { StaffProfileAction } from "../components/StaffProfileAction";
@@ -271,7 +275,11 @@ type StaffListPanelProps = Pick<
 
 function StaffListPanel(props: StaffListPanelProps): ReactElement {
   return (
-    <section className="staff-page__panel" aria-labelledby="staff-list-title">
+    <section
+      className="staff-page__panel"
+      aria-labelledby="staff-list-title"
+      aria-busy={props.result.isPlaceholderData || undefined}
+    >
       <div className="staff-page__title-row">
         <h2 id="staff-list-title">Danh sách nhân viên</h2>
         <Button onClick={props.dialog.open} type="button">
@@ -287,28 +295,41 @@ function StaffListPanel(props: StaffListPanelProps): ReactElement {
         organizationOptions={props.options}
         params={props.params}
         statusOptions={STATUS_OPTIONS}
-        totalPages={props.totalPages}
         updateParams={props.updateParams}
         variant="figma"
       />
-      <StaffRows
-        data={props.result}
-        organizations={props.organizations.data?.items ?? []}
-      />
-      {props.result.data && (
-        <p className="staff-page__list-count">
-          Hiển thị{" "}
-          {props.result.data.total
-            ? (props.result.data.page - 1) * props.result.data.pageSize + 1
-            : 0}
-          –
-          {Math.min(
-            props.result.data.page * props.result.data.pageSize,
-            props.result.data.total,
-          )}{" "}
-          trong {props.result.data.total} nhân viên nhà xe
-        </p>
-      )}
+      <AdminListViewport
+        params={props.params}
+        measure={Boolean(props.result.data) && !props.result.isPlaceholderData}
+        enabled={!props.result.isError}
+      >
+        <StaffRows
+          data={props.result}
+          organizations={props.organizations.data?.items ?? []}
+        />
+      </AdminListViewport>
+      <div className="admin-list-footer">
+        {props.result.data && (
+          <p className="staff-page__list-count">
+            Hiển thị{" "}
+            {props.result.data.total
+              ? (props.result.data.page - 1) * props.result.data.pageSize + 1
+              : 0}
+            –
+            {Math.min(
+              props.result.data.page * props.result.data.pageSize,
+              props.result.data.total,
+            )}{" "}
+            trong {props.result.data.total} nhân viên nhà xe
+          </p>
+        )}
+        <AdminListPagination
+          params={props.params}
+          totalPages={props.totalPages}
+          updateParams={props.updateParams}
+          disabled={props.result.isPlaceholderData}
+        />
+      </div>
     </section>
   );
 }

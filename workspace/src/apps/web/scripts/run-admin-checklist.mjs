@@ -17,6 +17,7 @@ const suites = [
   ["transaction-codes", ["scripts/verify-admin-transaction-codes.mjs"]],
   ["organization-code", ["scripts/verify-admin-organization-code.mjs"]],
   ["filter-search", ["scripts/verify-admin-filter-search.mjs"]],
+  ["pagination", ["scripts/verify-admin-pagination.mjs"]],
   ["proxy", ["scripts/verify-admin-proxy.mjs"]],
   [
     "unit",
@@ -39,6 +40,7 @@ const suites = [
       "scripts/verify-admin-organization-code.mjs",
       "scripts/verify-admin-transaction-codes.mjs",
       "scripts/verify-admin-filter-search.mjs",
+      "scripts/verify-admin-pagination.mjs",
       "scripts/admin-filter-select.mjs",
       "scripts/verify-admin-proxy.mjs",
       "scripts/run-admin-checklist.mjs",
