@@ -185,3 +185,24 @@ giữa danh sách, chi tiết và hộp vai trò nền tảng; giá trị gửi 
 11 kiểm thử danh sách/chi tiết nhân viên đạt. Đã mở hồ sơ trong ảnh bằng trình
 duyệt headless tại 1440px và 390px: không hiện UUID/DRIVER trong nội dung, hiện
 “Tài xế”, không tràn ngang. Bản Docker admin đã cập nhật.
+
+### Dropdown bộ lọc có tìm kiếm
+
+Dropdown nhà xe/tổ chức từ 8 lựa chọn trở lên có ô tìm bên trong, áp dụng ở Nhân
+viên, Đặt vé, Thanh toán và Hoàn tiền. Tìm tên không dấu hoặc mã tổ chức; gõ tìm
+không đổi URL cho đến khi chọn. Danh sách ngắn và bộ lọc trạng thái giữ select.
+
+Đã kiểm tra chọn bằng chuột/Enter, phím mũi tên/Escape, không có kết quả, xóa lựa
+chọn, reset phân trang và giữ lựa chọn sau tải lại. Bộ kiểm thử admin đạt 177 test;
+`verify-admin-filter-search.mjs` đạt 6 kiểm tra trực tiếp, gồm 4 trang và 2 kích
+thước màn hình. Đã xem ảnh headless 1440px/390px, không tràn ngang; Docker đã cập nhật.
+
+### Popup thành viên: mã tổ chức cố định
+
+Đã thay phần UUID ghép sau tên nhà xe bằng mã tổ chức trong popup thêm/sửa thành
+viên, bỏ nhánh hiển thị ID riêng cho dữ liệu prototype. Khi thiếu mã chỉ hiện tên;
+khi thiếu nhà xe hiện thông báo thay vì UUID. Payload gửi API vẫn giữ ID đúng.
+
+18 kiểm thử liên quan đạt. Kiểm tra headless đúng popup trong ảnh ở 1440px/390px
+đạt; script organization-code xác minh thêm popup tạo từ tổ chức, sửa từ tổ chức
+và sửa từ hồ sơ nhân viên. TypeScript/ESLint đạt, Docker admin đã cập nhật.

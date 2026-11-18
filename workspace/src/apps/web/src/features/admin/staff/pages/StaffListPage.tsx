@@ -40,7 +40,8 @@ function organizationName(
   id: string,
 ): string {
   return (
-    organizations.find((organization) => organization.id === id)?.name ?? id
+    organizations.find((organization) => organization.id === id)?.name ??
+    "Chưa xác định nhà xe"
   );
 }
 
@@ -189,6 +190,7 @@ export function StaffListPage(): ReactElement {
     organizations.data?.items.map((item) => ({
       value: item.id,
       label: item.name,
+      searchText: item.code,
     })) ?? [];
   const totalPages = result.data
     ? Math.max(1, Math.ceil(result.data.total / result.data.pageSize))

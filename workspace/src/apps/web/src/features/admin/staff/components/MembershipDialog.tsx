@@ -81,6 +81,7 @@ export function MembershipDialog(props: MembershipDialogProps): ReactElement {
   const selectedOrganization = props.organizations.find(
     (item) => item.id === organizationId,
   );
+  const displayedOrganization = selectedOrganization ?? props.fixedOrganization;
   const submit = form.handleSubmit(async (values) => {
     const member =
       props.staff.find((item) => item.id === values.staffId) ??
@@ -158,12 +159,9 @@ export function MembershipDialog(props: MembershipDialogProps): ReactElement {
               Nhà xe{props.fixedOrganization || editing ? " · Cố định" : ""}
               {props.fixedOrganization || editing ? (
                 <span className="membership-dialog__fixed">
-                  {selectedOrganization?.name ??
-                    props.fixedOrganization?.name ??
-                    organizationId}
-                  {props.fixedOrganization ||
-                  props.fixedStaff?.id === "USR-0018"
-                    ? ` · ${props.fixedOrganization?.id ?? organizationId}`
+                  {displayedOrganization?.name ?? "Chưa xác định nhà xe"}
+                  {displayedOrganization?.code
+                    ? ` · ${displayedOrganization.code}`
                     : ""}
                 </span>
               ) : (

@@ -9,12 +9,14 @@ import {
 import type { AdminListStatus } from "@/features/admin/types/admin";
 import { Button } from "@/shared/ui/Button/Button";
 import { Input } from "@/shared/ui/Input/Input";
+import { SearchableFilterSelect } from "../SearchableFilterSelect/SearchableFilterSelect";
 
 import "./AdminFilters.css";
 
 export interface AdminFilterOption<T extends string = string> {
   value: T;
   label: string;
+  searchText?: string;
 }
 
 export interface AdminFiltersProps {
@@ -32,6 +34,7 @@ interface SelectFieldProps {
   value: string;
   options: readonly AdminFilterOption[];
   onChange: (value: string) => void;
+  searchable?: boolean;
 }
 
 function SelectField({
@@ -40,6 +43,7 @@ function SelectField({
   onChange,
   options,
   value,
+  searchable = false,
 }: SelectFieldProps): ReactElement {
   const id = useId();
   return (
@@ -47,19 +51,31 @@ function SelectField({
       <label className="admin-filters__label" htmlFor={id}>
         {label}
       </label>
-      <select
-        className="admin-filters__select"
-        id={id}
-        onChange={(event) => onChange(event.target.value)}
-        value={value}
-      >
-        <option value="">{allLabel}</option>
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
+      {searchable ? (
+        <SearchableFilterSelect
+          id={id}
+          label={label}
+          allLabel={allLabel}
+          className="admin-filters__select"
+          value={value}
+          options={options}
+          onChange={onChange}
+        />
+      ) : (
+        <select
+          className="admin-filters__select"
+          id={id}
+          onChange={(event) => onChange(event.target.value)}
+          value={value}
+        >
+          <option value="">{allLabel}</option>
+          {options.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      )}
     </div>
   );
 }
@@ -266,6 +282,7 @@ function FilterControls({
       )}
       {organizationOptions ? (
         <SelectField
+          searchable
           allLabel={variant === "figma" ? "Tất cả nhà xe" : "Tất cả"}
           label={variant === "figma" ? "Nhà xe" : "Tổ chức"}
           onChange={(value) =>

@@ -1,6 +1,7 @@
 /* global process, console, crypto, sessionStorage, URL */
 // Local Docker integration checks. Chromium stays headless; only owned test records are removed.
 import { chromium, expect } from "@playwright/test";
+import { chooseAdminFilter } from "./admin-filter-select.mjs";
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
@@ -318,9 +319,7 @@ function cleanup() {
       await page
         .getByRole("combobox", { name: "Trạng thái", exact: true })
         .selectOption(viewState);
-      await page
-        .getByRole("combobox", { name: "Nhà xe", exact: true })
-        .selectOption(organizationId);
+      await chooseAdminFilter(page, "Nhà xe", organizationId);
       await expect(page.locator("tbody tr")).toHaveCount(
         Math.min(20, expectedCount),
       );

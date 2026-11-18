@@ -3,7 +3,8 @@
   font-style: normal;
   font-weight: 600;
   font-display: swap;
-  src: url("../../../../assets/admin/transaction-display-600.ttf") format("truetype");
+  src: url("../../../../assets/admin/transaction-display-600.ttf")
+    format("truetype");
 }
 
 .transaction-page {
@@ -171,7 +172,8 @@
 }
 
 .transaction-filters input.transaction-filters__value,
-.transaction-filters select.transaction-filters__value {
+.transaction-filters select.transaction-filters__value,
+.transaction-filters button.searchable-filter__trigger {
   box-sizing: border-box;
   font-family: inherit;
 }

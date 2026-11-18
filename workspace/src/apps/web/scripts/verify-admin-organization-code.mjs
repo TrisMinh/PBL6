@@ -56,6 +56,42 @@ try {
   console.log(
     "PASS: profile API and detail use business code; UUID still routes to correct organization",
   );
+  const membershipOrganizations = await page.request.get(
+    base + "/api/v1/admin/organizations",
+    { headers: { Authorization: `Bearer ${token}` } },
+  );
+  expect(membershipOrganizations.status()).toBe(200);
+  const membershipOrg =
+    (await membershipOrganizations.json()).find(
+      (item) => item.code === "HAI-VAN-TRAVEL",
+    ) ?? org;
+  const membersResponse = await page.request.get(
+    base + `/api/v1/admin/organizations/${membershipOrg.id}/members`,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+    },
+  );
+  expect(membersResponse.status()).toBe(200);
+  const member = (await membersResponse.json())[0];
+  expect(member, "organization membership fixture").toBeTruthy();
+  for (const route of [
+    `/admin/organizations/${membershipOrg.id}?view=members&dialog=create-member`,
+    `/admin/organizations/${membershipOrg.id}?view=members&dialog=edit-member&staffId=${member.userId}`,
+    `/admin/staff/${member.userId}?dialog=edit&membershipOrganizationId=${membershipOrg.id}`,
+  ]) {
+    await page.goto(base + route, { waitUntil: "networkidle" });
+    const dialog = page.locator(".membership-dialog__content");
+    await expect(dialog).toBeVisible();
+    await expect(
+      dialog.locator(".membership-dialog__fixed").first(),
+    ).toHaveText(`${membershipOrg.name} · ${membershipOrg.code}`);
+    await expect(dialog).not.toContainText(membershipOrg.id);
+    await page.keyboard.press("Escape");
+    await expect(dialog).toHaveCount(0);
+  }
+  console.log(
+    "PASS: create/edit membership dialogs show organization business code, never the internal ID",
+  );
   await page.locator(".admin-layout__account").click();
   await page.locator(".admin-layout__account-actions button").click();
   await page.waitForURL("**/login");

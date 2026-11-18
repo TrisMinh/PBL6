@@ -1,0 +1,98 @@
+.searchable-filter {
+  position: relative;
+  min-width: 0;
+  width: 100%;
+}
+.searchable-filter__trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+.searchable-filter__trigger svg {
+  flex: 0 0 auto;
+}
+.searchable-filter__selection {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.searchable-filter__trigger:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+.searchable-filter__popup {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 30;
+  width: 100%;
+  min-width: 0;
+  padding: 8px;
+  border: 1px solid var(--color-admin-border);
+  border-radius: 10px;
+  background: var(--color-admin-surface, white);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 12%);
+}
+.searchable-filter__popup[data-above="true"] {
+  top: auto;
+  bottom: calc(100% + 6px);
+}
+.searchable-filter .searchable-filter__search {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  height: 40px;
+  padding: 8px 10px;
+  border: 1px solid var(--color-admin-border);
+  border-radius: 6px;
+  background: var(--color-admin-control);
+  color: var(--color-text-primary);
+  font: inherit;
+  font-size: 14px;
+}
+.searchable-filter__options {
+  margin-top: 6px;
+  max-height: min(260px, 40dvh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.searchable-filter__option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-text-primary);
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+.searchable-filter__option:hover,
+.searchable-filter__option:focus-visible,
+.searchable-filter__option[aria-selected="true"] {
+  background: var(--color-bg-page);
+  color: var(--color-bg-brand);
+}
+.searchable-filter__trigger:focus-visible,
+.searchable-filter__search:focus-visible,
+.searchable-filter__option:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 1px;
+}
+.searchable-filter__empty {
+  margin: 10px;
+  color: var(--color-text-muted);
+  font-size: 14px;
+}

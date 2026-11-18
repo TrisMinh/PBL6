@@ -140,7 +140,7 @@ function StaffCards({
                         (org) => org.id === row.organizationId,
                       )?.name ??
                       organization?.name ??
-                      row.organizationId)}
+                      "Chưa xác định nhà xe")}
                 </td>
                 <td>
                   <span className="staff-page__mobile-label" aria-hidden="true">

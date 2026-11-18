@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router";
 import { useStaffOrganizations } from "@/features/admin/staff/hooks/useStaffData";
 import { LIVE_TRANSACTION_STATUSES } from "../liveTransactionStatus";
 import type { TransactionResource } from "../transactionConfig";
+import { SearchableFilterSelect } from "../../components/SearchableFilterSelect/SearchableFilterSelect";
 
 const PLACEHOLDERS = {
   bookings: "Mã đơn, tên khách hoặc nhà xe",
@@ -74,22 +75,23 @@ export function LiveTransactionFilters({
           }
         />
       </label>
-      <label className="transaction-filters__field">
+      <div className="transaction-filters__field">
         <span className="transaction-filters__label">Nhà xe</span>
-        <select
-          aria-label="Nhà xe"
+        <SearchableFilterSelect
+          label="Nhà xe"
+          allLabel="Tất cả nhà xe"
           className="transaction-filters__value"
           value={params.get("organizationId") ?? ""}
-          onChange={(event) => update("organizationId", event.target.value)}
+          onChange={(value) => update("organizationId", value)}
           disabled={disabled || organizations.isPending}
-        >
-          <option value="">Tất cả nhà xe</option>
-          {organizations.data?.items.map((org) => (
-            <option key={org.id} value={org.id}>
-              {org.name}
-            </option>
-          ))}
-        </select>
+          options={
+            organizations.data?.items.map((org) => ({
+              value: org.id,
+              label: org.name,
+              searchText: org.code,
+            })) ?? []
+          }
+        />
         {organizations.isError && (
           <span role="alert">
             Không tải được nhà xe.{" "}
@@ -98,7 +100,7 @@ export function LiveTransactionFilters({
             </button>
           </span>
         )}
-      </label>
+      </div>
       <label className="transaction-filters__field">
         <span className="transaction-filters__label">Trạng thái</span>
         <select
