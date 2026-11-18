@@ -116,6 +116,15 @@ Trace: [repository structure](../docs/implementation/01-repository-structure.md)
 | `S4-MOB-03` | P0 | MOBILE | 2 | `S4-BE1-01` | Ticket detail/QR + screenshot/privacy behavior |
 | `S4-TEAM-01` | P0 | TEAM | 2 | Các card S4 P0 | Evidence `AC-PAY-001..006`, `AC-TICKET-001..002` |
 
+### `PAY-REC-01` — Khôi phục xác nhận SePay khi mất IPN
+
+**Trạng thái** Cần làm · **Ưu tiên** P1 · **Phụ trách** BE-2 và FE
+
+- Khi khách bấm **Kiểm tra giao dịch** trên đơn còn chờ, backend xác minh quyền sở hữu đơn rồi tra cứu hóa đơn qua [API chi tiết đơn hàng SePay](https://developer.sepay.vn/vi/cong-thanh-toan/API/don-hang/chi-tiet-don-hang). Giới hạn tần suất tra cứu và giữ nguyên trạng thái nếu SePay chưa xác nhận hoặc API bị lỗi.
+- Chỉ ghi nhận khi hóa đơn, mã giao dịch, số tiền và loại tiền khớp. Dùng chung luồng xử lý với IPN để tránh ghi nhận hoặc phát hành vé hai lần khi IPN đến muộn hay người dùng bấm nhiều lần.
+- Phát hành vé nếu đơn còn hiệu lực và ghế vẫn được giữ. Nếu đơn hết hạn hoặc ghế đã nhả, chuyển khoản đã thu sang quy trình xử lý hoàn tiền.
+- Nghiệm thu trên Sandbox với IPN bị mất, IPN đến đồng thời với tra cứu, giao dịch không khớp, API SePay tạm lỗi và đơn hết hạn. Sau đó bổ sung tra cứu tự động cho các đơn chờ quá lâu.
+
 ## EP-05 — Cancellation, Refund & Notification (`S5`)
 
 | ID | P | Owner | PD | Depends | Deliverable / trace |
