@@ -26,8 +26,10 @@ import {
   refundLabel,
   transactionDate,
   transactionMoney,
+  transactionCode,
 } from "../transactionProjection";
 import "./TransactionPages.css";
+import { isMockApi } from "@/shared/api/config";
 
 type Transaction = AdminBooking | AdminPayment | AdminRefund;
 interface TransactionResult {
@@ -63,7 +65,7 @@ function columns(
             className="transaction-page__record-link"
             to={`/admin/${resource}/${encodeURIComponent(item.id)}`}
           >
-            {item.id}
+            {transactionCode(item)}
           </Link>
           {resource === "bookings" && (
             <span className="transaction-page__created">
@@ -85,8 +87,12 @@ function columns(
         "bookingCode" in item
           ? item.customerName
           : "transactionCode" in item
-            ? item.bookingId
-            : item.paymentId,
+            ? item.live
+              ? item.live.bookingCode || "—"
+              : item.bookingId
+            : item.live
+              ? item.live.paymentCode || "—"
+              : item.paymentId,
     },
     ...(resource === "bookings"
       ? [
@@ -94,6 +100,7 @@ function columns(
             key: "organization",
             header: "Nhà xe",
             render: (item: Transaction) =>
+              item.live?.organizationName ??
               item.audit?.organizationName ??
               ("organizationId" in item ? item.organizationId : "—"),
           },
@@ -118,11 +125,13 @@ function columns(
             header: resource === "payments" ? "Cổng thanh toán" : "Lý do",
             render: (item: Transaction) =>
               "transactionCode" in item
-                ? (item.audit?.provider ?? "—")
+                ? (item.live?.provider ?? item.audit?.provider ?? "—")
                 : "paymentId" in item
-                  ? item.audit?.reason === "operator-cancellation"
-                    ? "Nhà xe hủy chuyến"
-                    : "Khách hủy vé"
+                  ? item.live
+                    ? item.live.reason || "—"
+                    : item.audit?.reason === "operator-cancellation"
+                      ? "Nhà xe hủy chuyến"
+                      : "Khách hủy vé"
                   : "—",
           },
         ]),
@@ -137,7 +146,7 @@ function columns(
       render: (item) => (
         <Link
           className="transaction-page__table-action"
-          aria-label={`${config.action} ${item.id}`}
+          aria-label={`${config.action} ${transactionCode(item)}`}
           to={`/admin/${resource}/${encodeURIComponent(item.id)}`}
         >
           {config.action}
@@ -244,9 +253,11 @@ export function TransactionList({
         )}
         {!state && (
           <>
-            <p className="transaction-page__footer">
-              Dữ liệu mẫu • Cập nhật 19/09/2026 lúc 10:36 (UTC+7)
-            </p>
+            {isMockApi && (
+              <p className="transaction-page__footer">
+                Dữ liệu mẫu • Cập nhật 19/09/2026 lúc 10:36 (UTC+7)
+              </p>
+            )}
             <button
               className="transaction-page__reset"
               onClick={clear}

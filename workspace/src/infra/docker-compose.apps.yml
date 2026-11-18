@@ -207,7 +207,10 @@ services:
       dockerfile: Dockerfile
       args:
         APP_TARGET: admin
-        API_MODE: mock
+        API_MODE: live
+    depends_on:
+      gateway:
+        condition: service_healthy
     ports:
       - "5175:8080"
     healthcheck:

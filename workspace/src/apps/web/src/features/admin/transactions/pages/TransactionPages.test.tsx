@@ -107,9 +107,25 @@ describe("admin transaction pages", () => {
     repository.getRefund.mockResolvedValue(refund);
   });
 
+  it("renders bookings when a live response omits the creation date", async () => {
+    repository.listBookings.mockResolvedValue({
+      items: [{ ...booking, createdAt: "" }],
+      page: 1,
+      pageSize: 20,
+      total: 1,
+    });
+    renderPage(<BookingListPage />);
+    expect(
+      await screen.findByRole("link", { name: booking.bookingCode }),
+    ).toBeInTheDocument();
+    expect(
+      document.querySelector(".transaction-page__created"),
+    ).toHaveTextContent("—");
+  });
+
   it.each([
-    [<BookingListPage />, "booking-1", "/admin/bookings/booking-1"],
-    [<PaymentListPage />, "payment-1", "/admin/payments/payment-1"],
+    [<BookingListPage />, "BK-DEMO-001", "/admin/bookings/booking-1"],
+    [<PaymentListPage />, "VNP-DEMO-001", "/admin/payments/payment-1"],
     [<RefundListPage />, "refund-1", "/admin/refunds/refund-1"],
   ])("renders list data and detail links", async (page, text, href) => {
     renderPage(page);
@@ -127,18 +143,105 @@ describe("admin transaction pages", () => {
   ])("renders detail relationships", async (page, heading) => {
     renderPage(page);
     expect(
-      await screen.findByText(heading, { exact: true }),
+      await screen.findByText(heading, { exact: true, selector: "dd" }),
     ).toBeInTheDocument();
   });
 
   it("updates canonical pagination URL while retaining filters", async () => {
     const user = userEvent.setup();
     renderPage(<BookingListPage />, "/admin/bookings?query=demo&status=paid");
-    await screen.findByText("booking-1");
+    await screen.findByText("BK-DEMO-001");
     await user.click(screen.getByRole("button", { name: "Trang tiếp theo" }));
     expect(screen.getByLabelText("Current URL")).toHaveTextContent(
       "query=demo&status=paid&page=2",
     );
+  });
+
+  it("displays the booking code while retaining the database ID in its route", async () => {
+    renderPage(<BookingListPage />);
+    const link = await screen.findByRole("link", { name: booking.bookingCode });
+    expect(link).toHaveAttribute("href", `/admin/bookings/${booking.id}`);
+    expect(
+      screen.queryByText(booking.id, { exact: true }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("uses the booking code in the detail heading", async () => {
+    renderPage(<BookingDetailPage bookingId={booking.id} />);
+    await screen.findByText(booking.bookingCode, { selector: "dd" });
+    expect(
+      document.querySelector(".transaction-page__description"),
+    ).toHaveTextContent(booking.bookingCode);
+    expect(
+      document.querySelector(".transaction-page__description"),
+    ).not.toHaveTextContent(booking.id);
+  });
+
+  it("shows payment and booking codes while keeping UUID routes", async () => {
+    repository.listPayments.mockResolvedValue({
+      items: [
+        {
+          ...payment,
+          live: {
+            state: "success",
+            label: "Thành công",
+            rawStatus: "SUCCEEDED",
+            history: [],
+            bookingCode: booking.bookingCode,
+          },
+        },
+      ],
+      page: 1,
+      pageSize: 20,
+      total: 1,
+    });
+    renderPage(<PaymentListPage />);
+    const link = await screen.findByRole("link", {
+      name: payment.transactionCode,
+    });
+    expect(link).toHaveAttribute("href", `/admin/payments/${payment.id}`);
+    expect(
+      screen.getByRole("cell", { name: booking.bookingCode }),
+    ).toBeVisible();
+    expect(
+      screen.queryByText(payment.id, { exact: true }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(booking.id, { exact: true }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows refund reference and original payment code", async () => {
+    repository.listRefunds.mockResolvedValue({
+      items: [
+        {
+          ...refund,
+          refundReference: "REF-REAL-1",
+          live: {
+            state: "processing",
+            label: "Đang xử lý",
+            rawStatus: "PROCESSING",
+            history: [],
+            paymentCode: payment.transactionCode,
+          },
+        },
+      ],
+      page: 1,
+      pageSize: 20,
+      total: 1,
+    });
+    renderPage(<RefundListPage />);
+    const link = await screen.findByRole("link", { name: "REF-REAL-1" });
+    expect(link).toHaveAttribute("href", `/admin/refunds/${refund.id}`);
+    expect(
+      screen.getByRole("cell", { name: payment.transactionCode }),
+    ).toBeVisible();
+    expect(
+      screen.queryByText(refund.id, { exact: true }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(payment.id, { exact: true }),
+    ).not.toBeInTheDocument();
   });
 
   it("renders empty, retryable error, forbidden and not-found as distinct states", async () => {
@@ -161,6 +264,9 @@ describe("admin transaction pages", () => {
     renderPage(<RefundListPage />);
     expect(
       screen.getByRole("status", { name: "Đang tải dữ liệu" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("region", { name: "Đang tải dữ liệu" }),
     ).toHaveAttribute("aria-busy", "true");
     expect(screen.queryByText("refund-1")).not.toBeInTheDocument();
   });

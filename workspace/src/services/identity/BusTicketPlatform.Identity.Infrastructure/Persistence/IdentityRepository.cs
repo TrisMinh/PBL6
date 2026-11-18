@@ -366,7 +366,7 @@ public sealed class IdentityRepository(IdentityDatabaseOptions options, IIdGener
     {
         await using var connection = await OpenAsync(cancellationToken);
         await using var command = new NpgsqlCommand("""
-            SELECT m.id, m.user_id, m.organization_id_external, m.status, m.row_version
+            SELECT m.id, m.user_id, m.organization_id_external, m.status, m.row_version, m.created_at
             FROM organization_memberships m
             WHERE m.user_id = @userId;
             """, connection);
@@ -378,7 +378,7 @@ public sealed class IdentityRepository(IdentityDatabaseOptions options, IIdGener
     {
         await using var connection = await OpenAsync(cancellationToken);
         await using var command = new NpgsqlCommand("""
-            SELECT m.id, m.user_id, m.organization_id_external, m.status, m.row_version
+            SELECT m.id, m.user_id, m.organization_id_external, m.status, m.row_version, m.created_at
             FROM organization_memberships m
             WHERE m.organization_id_external = @org;
             """, connection);
@@ -428,10 +428,10 @@ public sealed class IdentityRepository(IdentityDatabaseOptions options, IIdGener
         CancellationToken cancellationToken)
     {
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
-        var items = new List<(Guid Id, Guid UserId, Guid Org, string Status, long Version)>();
+        var items = new List<(Guid Id, Guid UserId, Guid Org, string Status, long Version, DateTimeOffset CreatedAt)>();
         while (await reader.ReadAsync(cancellationToken))
         {
-            items.Add((reader.GetGuid(0), reader.GetGuid(1), reader.GetGuid(2), reader.GetString(3), reader.GetInt64(4)));
+            items.Add((reader.GetGuid(0), reader.GetGuid(1), reader.GetGuid(2), reader.GetString(3), reader.GetInt64(4), reader.GetFieldValue<DateTimeOffset>(5)));
         }
 
         await reader.CloseAsync();
@@ -452,7 +452,7 @@ public sealed class IdentityRepository(IdentityDatabaseOptions options, IIdGener
                 codes.Add(roleReader.GetString(0));
             }
 
-            result.Add(new MembershipRecord(item.Id, item.UserId, item.Org, item.Status, item.Version, codes));
+            result.Add(new MembershipRecord(item.Id, item.UserId, item.Org, item.Status, item.Version, codes, item.CreatedAt));
         }
 
         return result;

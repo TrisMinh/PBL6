@@ -23,6 +23,7 @@ app.UseAuthorization();
 app.MapPlatformHealth();
 app.MapPlatformOpenApi();
 app.MapPaymentEndpoints();
+app.MapAdminPaymentAudit();
 app.Run();
 public partial class Program;
 

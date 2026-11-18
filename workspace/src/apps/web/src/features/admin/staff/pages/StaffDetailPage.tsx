@@ -11,6 +11,7 @@ import {
   useStaffOrganizations,
 } from "@/features/admin/staff/hooks/useStaffData";
 import { isStaffNotFound } from "@/features/admin/staff/lib/staffErrors";
+import { staffRoleLabel } from "../lib/staffRoleLabel";
 import {
   useMemberships,
   useSaveMembership,
@@ -22,30 +23,35 @@ import type {
 } from "@/features/admin/types/admin";
 import { ROUTES } from "@/shared/config/routes";
 import { Button } from "@/shared/ui/Button/Button";
+import { StaffProfileAction } from "../components/StaffProfileAction";
+import { isMockApi } from "@/shared/api/config";
 
 import "./StaffPages.css";
 
 function formatDate(value: string): string {
   const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return "—";
   return `${new Intl.DateTimeFormat("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" }).format(date)} lúc ${new Intl.DateTimeFormat("vi-VN", { hour: "2-digit", minute: "2-digit", hour12: false }).format(date)}`;
 }
 
 function useDetailDialog(): {
   close: () => void;
   isEditOpen: boolean;
-  open: () => void;
+  open: (organizationId?: string) => void;
 } {
   const [searchParams, setSearchParams] = useSearchParams();
-  const update = (isOpen: boolean): void => {
+  const update = (isOpen: boolean, organizationId?: string): void => {
     const next = new URLSearchParams(searchParams);
     if (isOpen) next.set("dialog", "edit");
     else next.delete("dialog");
+    if (organizationId) next.set("membershipOrganizationId", organizationId);
+    else next.delete("membershipOrganizationId");
     setSearchParams(next);
   };
   return {
     close: () => update(false),
     isEditOpen: searchParams.get("dialog") === "edit",
-    open: () => update(true),
+    open: (organizationId?: string) => update(true, organizationId),
   };
 }
 
@@ -56,10 +62,18 @@ function IdentityCard({ staff }: { staff: Staff }): ReactElement {
       <dl>
         <dt>Họ và tên</dt>
         <dd>{staff.fullName}</dd>
-        <dt>ID nhân viên</dt>
-        <dd>{staff.id}</dd>
         <dt>Trạng thái</dt>
-        <dd>{staff.status === "active" ? "Hoạt động" : "Đã khóa"}</dd>
+        <dd>
+          {(
+            {
+              ACTIVE: "Hoạt động",
+              LOCKED: "Đã khóa",
+              DISABLED: "Vô hiệu hóa",
+              PENDING_VERIFICATION: "Chờ xác minh",
+            } as Record<string, string>
+          )[staff.accountStatus ?? ""] ??
+            (staff.status === "active" ? "Hoạt động" : "Đã khóa")}
+        </dd>
         <dt>Email</dt>
         <dd>{staff.displayEmail ?? staff.email}</dd>
         <dt>Số điện thoại</dt>
@@ -73,15 +87,25 @@ function IdentityCard({ staff }: { staff: Staff }): ReactElement {
 
 function StaffCards({
   organization,
+  organizations = [],
   staff,
   onEdit,
-  isEditOpen,
 }: {
   organization?: Organization;
+  organizations?: readonly Organization[];
   staff: Staff;
-  onEdit: () => void;
+  onEdit: (organizationId?: string) => void;
   isEditOpen: boolean;
 }): ReactElement {
+  const rows = staff.memberships?.length
+    ? staff.memberships
+    : [
+        {
+          organizationId: staff.organizationId,
+          role: staff.role,
+          memberSince: staff.memberSince,
+        },
+      ];
   return (
     <section
       className="staff-page__detail-grid"
@@ -89,11 +113,7 @@ function StaffCards({
     >
       <IdentityCard staff={staff} />
       <article className="staff-page__detail-card">
-        <h2>
-          {staff.role === "PLATFORM_SUPPORT"
-            ? "Vai trò và phạm vi"
-            : "Vai trò và tổ chức"}
-        </h2>
+        <h2>Vai trò và tổ chức</h2>
         <table className="staff-page__membership-table">
           <thead>
             <tr>
@@ -104,66 +124,71 @@ function StaffCards({
                   ? "Được cấp từ"
                   : "Thành viên từ"}
               </th>
-              <th>
-                <span className="staff-page__visually-hidden">Hành động</span>
-              </th>
+              <th>Hành động</th>
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td>
-                <span className="staff-page__mobile-label" aria-hidden="true">
-                  Tổ chức
-                </span>
-                {staff.role === "PLATFORM_SUPPORT"
-                  ? "Nền tảng BLUE"
-                  : (organization?.name ?? staff.organizationId)}
-              </td>
-              <td>
-                <span className="staff-page__mobile-label" aria-hidden="true">
-                  Vai trò
-                </span>
-                {staff.role ?? "—"}
-              </td>
-              <td>
-                <span className="staff-page__mobile-label" aria-hidden="true">
-                  {staff.role === "PLATFORM_SUPPORT"
-                    ? "Được cấp từ"
-                    : "Thành viên từ"}
-                </span>
-                {staff.memberSince
-                  ? staff.memberSince.split("-").reverse().join("/")
-                  : "—"}
-              </td>
-              <td>
-                <Button type="button" variant="ghost" onClick={onEdit}>
-                  {staff.role === "PLATFORM_SUPPORT"
-                    ? "Thay đổi vai trò"
-                    : "Chỉnh sửa thông tin"}
-                </Button>
-              </td>
-            </tr>
+            {rows.map((row, index) => (
+              <tr key={row.organizationId || index}>
+                <td>
+                  <span className="staff-page__mobile-label" aria-hidden="true">
+                    Tổ chức
+                  </span>
+                  {row.role === "PLATFORM_SUPPORT"
+                    ? "Nền tảng BLUE"
+                    : (organizations.find(
+                        (org) => org.id === row.organizationId,
+                      )?.name ??
+                      organization?.name ??
+                      row.organizationId)}
+                </td>
+                <td>
+                  <span className="staff-page__mobile-label" aria-hidden="true">
+                    Vai trò
+                  </span>
+                  {staffRoleLabel(row.role)}
+                </td>
+                <td>
+                  <span className="staff-page__mobile-label" aria-hidden="true">
+                    {staff.role === "PLATFORM_SUPPORT"
+                      ? "Được cấp từ"
+                      : "Thành viên từ"}
+                  </span>
+                  {row.memberSince
+                    ? row.memberSince.split("-").reverse().join("/")
+                    : "—"}
+                </td>
+                <td>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => onEdit(row.organizationId)}
+                  >
+                    {row.role === "PLATFORM_SUPPORT"
+                      ? "Thay đổi vai trò"
+                      : "Chỉnh sửa thông tin"}
+                  </Button>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
         <div className="staff-page__membership-actions">
-          {staff.role !== "PLATFORM_SUPPORT" && (
+          {staff.organizationId && staff.role !== "PLATFORM_SUPPORT" && (
             <Link
               to={`${ROUTES.adminOrganizations}/${staff.organizationId}?view=members`}
             >
               Xem thành viên
             </Link>
           )}
-          <Button type="button" onClick={onEdit}>
-            {staff.role === "PLATFORM_SUPPORT" ||
-            (isEditOpen && staff.id === "USR-0018")
+          <Button type="button" onClick={() => onEdit()}>
+            {staff.role === "PLATFORM_SUPPORT"
               ? "Gán vai trò"
               : "Chỉnh sửa thông tin"}
           </Button>
         </div>
         <p className="staff-page__membership-note">
-          {staff.role === "PLATFORM_SUPPORT"
-            ? "Quyền hỗ trợ được áp dụng trong phạm vi nền tảng."
-            : "Quyền được áp dụng trong phạm vi tổ chức đã gán."}
+          Quyền được áp dụng trong phạm vi tổ chức đã gán.
         </p>
       </article>
     </section>
@@ -197,23 +222,29 @@ function StaffDetailContent({ staff }: { staff: Staff }): ReactElement {
   const memberships = useMemberships({ staffId: staff.id });
   const saveMembership = useSaveMembership();
   const dialog = useDetailDialog();
+  const [searchParams] = useSearchParams();
   const [notice, setNotice] = useState("");
   const organization = organizations.data?.items.find(
     (item) => item.id === staff.organizationId,
   );
   const toggleStatus = async (): Promise<void> => {
-    await save.mutateAsync({
-      id: staff.id,
-      input: {
-        organizationId: staff.organizationId,
-        fullName: staff.fullName,
-        email: staff.email,
-        phone: staff.phone,
-        role: staff.role,
-        status: staff.status === "active" ? "inactive" : "active",
-      },
-    });
-    setNotice("Đã cập nhật trạng thái tài khoản.");
+    try {
+      await save.mutateAsync({
+        id: staff.id,
+        statusOnly: true,
+        input: {
+          organizationId: staff.organizationId,
+          fullName: staff.fullName,
+          email: staff.email,
+          phone: staff.phone,
+          role: staff.role,
+          status: staff.status === "active" ? "inactive" : "active",
+        },
+      });
+      setNotice("Đã cập nhật trạng thái tài khoản.");
+    } catch {
+      setNotice("Không cập nhật được trạng thái tài khoản. Vui lòng thử lại.");
+    }
   };
   if (organizations.isPending || memberships.isPending)
     return <AdminListState label="Đang tải tổ chức" state="loading" />;
@@ -230,10 +261,17 @@ function StaffDetailContent({ staff }: { staff: Staff }): ReactElement {
       />
     );
   const membership = memberships.data?.find(
-    (item) => item.organizationId === staff.organizationId,
+    (item) =>
+      item.organizationId ===
+      (searchParams.get("membershipOrganizationId") ?? staff.organizationId),
   );
   const displayStaff = membership
-    ? { ...staff, role: membership.role, memberSince: membership.memberSince }
+    ? {
+        ...staff,
+        organizationId: membership.organizationId,
+        role: membership.role,
+        memberSince: membership.memberSince,
+      }
     : staff;
   return (
     <StaffDetailView
@@ -279,10 +317,17 @@ function StaffDetailView({
       />
       <StaffCards
         organization={organization}
+        organizations={organizations.data?.items ?? []}
         staff={staff}
         onEdit={dialog.open}
         isEditOpen={dialog.isEditOpen}
       />
+      {!isMockApi && (
+        <StaffProfileAction
+          staff={staff}
+          organizations={organizations.data?.items ?? []}
+        />
+      )}
       <p aria-live="polite" className="staff-page__notice" role="status">
         {notice}
       </p>
@@ -310,7 +355,7 @@ function StaffDetailHeader({
       <StaffPageHeader
         description={`Nhân viên / ${staff.fullName}`}
         eyebrow="HỒ SƠ NHÂN VIÊN"
-        meta={`${staff.id} / ${staff.status === "active" ? "Hoạt động" : "Tạm ngưng"}`}
+        meta={staff.status === "active" ? "Hoạt động" : "Tạm ngưng"}
         title="Chi tiết nhân viên"
       />
       <div className="staff-page__detail-actions">

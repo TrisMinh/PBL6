@@ -13,6 +13,12 @@ export const ADMIN_LIST_STATUSES = [
   "failed",
   "processing",
   "completed",
+  "awaiting-refund",
+  "refunded",
+  "expired",
+  "confirmed",
+  "partially-refunded",
+  "queued",
 ] as const satisfies readonly AdminListStatus[];
 
 const querySchema = z.string().trim().min(1).max(100);

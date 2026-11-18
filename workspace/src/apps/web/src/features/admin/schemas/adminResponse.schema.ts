@@ -51,7 +51,7 @@ export const organizationInputSchema = z
     contactPhone: z
       .string()
       .trim()
-      .regex(/^\d{10,15}$/),
+      .regex(/^\+?\d{10,15}$/),
     status: statusSchema,
   })
   .strict() satisfies z.ZodType<OrganizationInput>;
@@ -64,7 +64,7 @@ export const staffInputSchema = z
     phone: z
       .string()
       .trim()
-      .regex(/^\d{10,15}$/),
+      .regex(/^\+?\d{10,15}$/),
     status: statusSchema,
     role: z
       .enum([
@@ -81,6 +81,7 @@ export const staffInputSchema = z
 export const organizationSchema: z.ZodType<Organization> = z
   .object({
     id: adminIdSchema,
+    code: z.string().min(1).max(128).optional(),
     ...organizationInputSchema.shape,
     createdAt: timestampSchema,
     updatedAt: timestampSchema,
@@ -132,6 +133,7 @@ export const adminRefundSchema: z.ZodType<AdminRefund> = z
   .object({
     audit: refundAuditSchema.optional(),
     id: adminIdSchema,
+    refundReference: z.string().min(1).max(256).optional(),
     bookingId: adminIdSchema,
     paymentId: adminIdSchema,
     amountVnd: moneySchema,

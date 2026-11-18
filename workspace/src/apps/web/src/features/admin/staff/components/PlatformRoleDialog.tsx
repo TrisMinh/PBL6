@@ -7,6 +7,7 @@ import { useSaveStaff } from "@/features/admin/staff/hooks/useStaffData";
 import type { Staff } from "@/features/admin/types/admin";
 import { Button } from "@/shared/ui/Button/Button";
 import { Input } from "@/shared/ui/Input/Input";
+import { staffRoleLabel } from "../lib/staffRoleLabel";
 
 import "./MembershipDialog.css";
 
@@ -95,7 +96,9 @@ export function PlatformRoleDialog({
             noValidate
             className="membership-dialog__form"
           >
-            <p>{staff.fullName} · PLATFORM_SUPPORT</p>
+            <p>
+              {staff.fullName} · {staffRoleLabel("PLATFORM_SUPPORT")}
+            </p>
             <Input
               label="Lý do thay đổi"
               maxLength={500}

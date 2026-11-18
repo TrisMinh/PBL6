@@ -140,8 +140,10 @@ describe("AdminListState", () => {
     const status = screen.getByRole("status", {
       name: "Đang tải danh sách tổ chức",
     });
-    expect(status).toHaveAttribute("aria-busy", "true");
-    expect(status).toHaveTextContent("Đang tải dữ liệu");
+    expect(
+      screen.getByRole("region", { name: "Đang tải danh sách tổ chức" }),
+    ).toHaveAttribute("aria-busy", "true");
+    expect(status).toHaveTextContent("Đang tải danh sách tổ chức");
   });
 
   it("AdminListState renders empty content through PageState", () => {

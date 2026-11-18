@@ -37,6 +37,7 @@ function defaultValues(staff?: Staff): StaffFormValues {
         email: staff.email,
         phone: staff.phone,
         status: staff.status,
+        role: staff.role ?? "OPERATOR_SCHEDULER",
       }
     : {
         organizationId: "",
@@ -44,6 +45,7 @@ function defaultValues(staff?: Staff): StaffFormValues {
         email: "",
         phone: "",
         status: "active",
+        role: "OPERATOR_SCHEDULER",
       };
 }
 
@@ -185,6 +187,15 @@ function StaffForm({
         register={form.register}
       />
       <StatusField register={form.register} />
+      <label>
+        Vai trò
+        <select aria-label="Vai trò" {...form.register("role")}>
+          <option value="OPERATOR_ADMIN">Quản trị nhà xe</option>
+          <option value="OPERATOR_SCHEDULER">Lập lịch</option>
+          <option value="DRIVER">Tài xế</option>
+          <option value="PLATFORM_SUPPORT">Hỗ trợ nền tảng</option>
+        </select>
+      </label>
       <StaffFormActions
         isDisabled={isDisabled}
         onClose={onClose}

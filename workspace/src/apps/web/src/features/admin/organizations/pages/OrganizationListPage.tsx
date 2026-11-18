@@ -43,7 +43,7 @@ const COLUMNS: readonly AdminDataColumn<Organization>[] = [
       </span>
     ),
   },
-  { key: "id", header: "Mã tổ chức", render: (item) => item.id },
+  { key: "code", header: "Mã tổ chức", render: (item) => item.code || "—" },
   { key: "contact", header: "Liên hệ", render: (item) => item.contactEmail },
   {
     key: "status",
@@ -200,12 +200,16 @@ export function OrganizationListPage(): ReactElement {
   const totalPages = result.data
     ? Math.max(1, Math.ceil(result.data.total / result.data.pageSize))
     : undefined;
+  const counts = result.data?.statusCounts;
+  const summary = counts
+    ? `${counts.active ?? 0} đang hoạt động     /     ${counts.inactive ?? 0} tạm ngưng`
+    : `Trong trang: ${result.data?.items.filter((item) => item.status === "active").length ?? 0} đang hoạt động     /     ${result.data?.items.filter((item) => item.status === "inactive").length ?? 0} tạm ngưng`;
   return (
     <div className="organization-page">
       <OrganizationPageHeader
         description="Quản lý nhà xe và thông tin tổ chức trên nền tảng."
         eyebrow="QUẢN TRỊ NỀN TẢNG"
-        meta={`${result.data?.total ?? 0} tổ chức     /     ${result.data?.items.filter((item) => item.status === "active").length ?? 0} đang hoạt động     /     ${result.data?.items.filter((item) => item.status === "inactive").length ?? 0} tạm ngưng`}
+        meta={`${result.data?.total ?? 0} tổ chức     /     ${summary}`}
         title="Tổ chức"
       />
       <OrganizationListPanel

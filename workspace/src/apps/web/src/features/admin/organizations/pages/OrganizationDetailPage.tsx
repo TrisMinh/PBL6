@@ -15,7 +15,7 @@ import { OrganizationDialog } from "@/features/admin/organizations/components/Or
 import { OrganizationPageHeader } from "@/features/admin/organizations/components/OrganizationPageHeader";
 import { MembershipDialog } from "@/features/admin/staff/components/MembershipDialog";
 import {
-  useStaff,
+  useStaffCandidates,
   useStaffOrganizations,
 } from "@/features/admin/staff/hooks/useStaffData";
 import {
@@ -71,7 +71,7 @@ function IdentityCard({
       </h2>
       <dl>
         <dt>Mã tổ chức</dt>
-        <dd>{organization.id}</dd>
+        <dd>{organization.code || "—"}</dd>
         <dt>Tên pháp lý</dt>
         <dd>{organization.legalName ?? organization.name}</dd>
         <dt>Mã số thuế</dt>
@@ -175,16 +175,18 @@ function DetailFailure({
 function DetailHeader({
   organization,
   memberCount,
+  onEdit,
 }: {
   organization: Organization;
   memberCount: number;
+  onEdit: () => void;
 }): ReactElement {
   return (
     <>
       <OrganizationPageHeader
         description={organization.legalName ?? organization.contactName ?? ""}
         eyebrow="HỒ SƠ TỔ CHỨC"
-        meta={`${organization.id}     /     ${organization.status === "active" ? "Hoạt động" : "Tạm ngưng"}     /     ${memberCount} thành viên`}
+        meta={`${organization.code || "—"}     /     ${organization.status === "active" ? "Hoạt động" : "Tạm ngưng"}     /     ${memberCount} thành viên`}
         title={organization.name}
       />
       <div className="organization-page__detail-actions">
@@ -192,6 +194,9 @@ function DetailHeader({
           <img src={backIcon} alt="" width={18} height={18} />
           Quay lại danh sách
         </Link>
+        <Button type="button" onClick={onEdit}>
+          Chỉnh sửa tổ chức
+        </Button>
       </div>
     </>
   );
@@ -234,7 +239,7 @@ function OrganizationDetailContent({
   const dialog = useDetailDialog();
   const [notice, setNotice] = useState("");
   const [searchParams, setSearchParams] = useSearchParams();
-  const availableStaff = useStaff({ page: 1, pageSize: 100 });
+  const availableStaff = useStaffCandidates();
   const organizations = useStaffOrganizations();
   const memberships = useMemberships({ organizationId: organization.id });
   const saveMembership = useSaveMembership();
@@ -314,6 +319,7 @@ function OrganizationDetailContent({
           <DetailHeader
             organization={organization}
             memberCount={members.length}
+            onEdit={dialog.open}
           />
           <DetailCards organization={organization} />
         </>

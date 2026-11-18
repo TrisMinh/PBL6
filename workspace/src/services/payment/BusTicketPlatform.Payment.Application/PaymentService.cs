@@ -13,7 +13,7 @@ public sealed record Actor(Guid UserId, Guid? OrganizationId, IReadOnlyList<stri
 
 public sealed record OperationAccepted(Guid OperationId, string Status, string? StatusUrl = null);
 public sealed record CreatePaymentRequest(string Provider, string Method, string ReturnUri);
-public sealed record PaymentDto(Guid Id, Guid BookingId, string Status, long Amount, string Currency, string Provider, IReadOnlyDictionary<string, string>? ProviderAction, string? StatusUrl, long RowVersion, DateTimeOffset? CreatedAt = null, Guid? OrganizationId = null);
+public sealed record PaymentDto(Guid Id, Guid BookingId, string Status, long Amount, string Currency, string Provider, IReadOnlyDictionary<string, string>? ProviderAction, string? StatusUrl, long RowVersion, DateTimeOffset? CreatedAt = null, Guid? OrganizationId = null, string? PaymentReference = null);
 public sealed record PaymentPageDto(int Page, int Size, long TotalElements, int TotalPages, IReadOnlyList<PaymentDto> Items);
 public sealed record CreateRefundRequest(string RefundReference, Guid PaymentId, Guid BookingId, long Amount, string Currency, string Reason);
 public sealed record RefundDto(Guid Id, string RefundReference, Guid PaymentId, Guid BookingId, long Amount, string Currency, string Status, string Reason, DateTimeOffset? CreatedAt = null);
@@ -512,7 +512,8 @@ public sealed class PaymentService(IPaymentRepository store, IPaymentEvents even
             "/api/v1/payments/" + payment.Id,
             payment.RowVersion,
             payment.CreatedAt,
-            payment.OrganizationId);
+            payment.OrganizationId,
+            payment.LogicalReference);
     }
 
     private static RefundDto Map(RefundRecord refund) =>

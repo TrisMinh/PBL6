@@ -1,0 +1,12 @@
+
+ RUN  v5.0.5 D:/Project/PBL6/workspace/src/apps/web
+
+
+ Test Files  21 passed (21)
+      Tests  168 passed (168)
+   Start at  11:06:07
+   Duration  49.82s (environment 36%, tests 29%, setup 24%, import 5%, transform 5%)
+
+Environment  jsdom was created 21 times · 16.80s total, 36% of tracked time
+             create it once per worker with pool: 'vmThreads' (keeps per-file isolation) or isolate: false (shares it across files)
+             learn more: https://vitest.dev/guide/improving-performance#test-environments

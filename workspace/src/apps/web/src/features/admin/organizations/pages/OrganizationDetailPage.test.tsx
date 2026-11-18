@@ -129,6 +129,7 @@ describe("OrganizationDetailPage", () => {
   it("renders distinct detail groups", async () => {
     repository.getOrganization.mockResolvedValue({
       id: "org-blue-demo",
+      code: "BLUE-TRANSIT",
       name: "BLUE Demo Transit",
       contactName: "Điều phối mô phỏng A",
       contactEmail: "ops-a@blue.example.invalid",
@@ -141,6 +142,8 @@ describe("OrganizationDetailPage", () => {
     expect(
       await screen.findByRole("heading", { name: "BLUE Demo Transit" }),
     ).toBeInTheDocument();
+    expect(screen.getByText("BLUE-TRANSIT", { selector: "dd" })).toBeVisible();
+    expect(screen.queryByText("org-blue-demo")).not.toBeInTheDocument();
     expect(
       screen.getByRole("heading", { name: "Thông tin pháp lý" }),
     ).toBeInTheDocument();
@@ -177,11 +180,12 @@ describe("OrganizationDetailPage", () => {
       ...organization,
       name: "BLUE Updated",
     });
-    const client = renderPage(
-      "/admin/organizations/org-blue-demo?from=list&dialog=edit",
-    );
+    const client = renderPage("/admin/organizations/org-blue-demo?from=list");
     const invalidate = vi.spyOn(client, "invalidateQueries");
     const user = userEvent.setup();
+    await user.click(
+      await screen.findByRole("button", { name: "Chỉnh sửa tổ chức" }),
+    );
     expect(
       await screen.findByRole("dialog", { name: "Chỉnh sửa tổ chức" }),
     ).toBeInTheDocument();

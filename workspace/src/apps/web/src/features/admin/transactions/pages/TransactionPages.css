@@ -169,6 +169,12 @@
   font-family: var(--font-body);
   cursor: pointer;
 }
+
+.transaction-filters input.transaction-filters__value,
+.transaction-filters select.transaction-filters__value {
+  box-sizing: border-box;
+  font-family: inherit;
+}
 .transaction-filters__label {
   color: var(--color-admin-label);
   font-size: 12px;

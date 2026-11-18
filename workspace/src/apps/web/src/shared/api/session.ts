@@ -82,6 +82,7 @@ export function clearApiSession(): void {
     if (
       key.startsWith("blue-live-booking:") ||
       key.startsWith("blue-live-request:") ||
+      key.startsWith("blue-live-organization:") ||
       key.startsWith("blue-live-operator-")
     )
       window.sessionStorage.removeItem(key);

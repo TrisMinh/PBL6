@@ -1,0 +1,45 @@
+PASS: Anonymous direct admin URL redirects to login
+PASS: organizations: API 500 handled and retry recovers real data
+PASS: organizations: nonexistent record handled without page crash
+PASS: staff: API 500 handled and retry recovers real data
+PASS: staff: nonexistent record handled without page crash
+PASS: bookings: API 500 handled and retry recovers real data
+PASS: bookings: nonexistent record handled without page crash
+PASS: payments: API 500 handled and retry recovers real data
+PASS: payments: nonexistent record handled without page crash
+PASS: refunds: API 500 handled and retry recovers real data
+PASS: refunds: nonexistent record handled without page crash
+PASS: bookings: EXPIRED filter, count, detail and history
+PASS: bookings: CONFIRMED filter, count, detail and history
+PASS: bookings: PAID filter, count, detail and history
+PASS: bookings: REFUND_PENDING filter, count, detail and history
+PASS: bookings: COMPLETED filter, count, detail and history
+PASS: bookings: CANCELLED filter, count, detail and history
+PASS: bookings: REFUNDED filter, count, detail and history
+PASS: bookings: out-of-range pagination corrects itself
+PASS: bookings: empty search, page reset and clear filters
+PASS: bookings: distinct page two persists after reload
+PASS: bookings: detail survives hard reload with identical facts
+PASS: payments: SUCCEEDED filter, count, detail and history
+PASS: payments: REFUNDED filter, count, detail and history
+PASS: payments: PROCESSING filter, count, detail and history
+PASS: payments: FAILED filter, count, detail and history
+PASS: payments: CANCELLED filter, count, detail and history
+PASS: payments: PARTIALLY_REFUNDED filter, count, detail and history
+PASS: payments: REFUND_PENDING filter, count, detail and history
+PASS: payments: PENDING filter, count, detail and history
+PASS: payments: out-of-range pagination corrects itself
+PASS: payments: empty search, page reset and clear filters
+PASS: payments: distinct page two persists after reload
+PASS: payments: detail survives hard reload with identical facts
+PASS: refunds: SUCCEEDED filter, count, detail and history
+PASS: refunds: REQUESTED filter, count, detail and history
+PASS: refunds: PROCESSING filter, count, detail and history
+PASS: refunds: FAILED filter, count, detail and history
+PASS: refunds: out-of-range pagination corrects itself
+PASS: refunds: empty search, page reset and clear filters
+PASS: refunds: detail survives hard reload with identical facts
+PASS: Anonymous list and audit endpoints reject access
+PASS: Customer role denied list and audit endpoints
+PASS: Expired local session refreshes and rotates token
+Completed 44 checks with no browser crashes.

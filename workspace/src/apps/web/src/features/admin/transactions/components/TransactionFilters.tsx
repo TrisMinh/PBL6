@@ -2,6 +2,8 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { useEffect, useRef, type ReactElement } from "react";
 import { useSearchParams } from "react-router";
 import searchIcon from "@/assets/admin/transaction-search.svg";
+import { isMockApi } from "@/shared/api/config";
+import { LiveTransactionFilters } from "./LiveTransactionFilters";
 import {
   TRANSACTION_CONFIG,
   TRANSACTION_ORGANIZATIONS,
@@ -9,6 +11,30 @@ import {
 } from "../transactionConfig";
 
 export function TransactionFilters({
+  resource,
+  disabled = false,
+  onSearch,
+}: {
+  resource: TransactionResource;
+  disabled?: boolean;
+  onSearch: () => void;
+}): ReactElement {
+  return isMockApi ? (
+    <PrototypeTransactionFilters
+      resource={resource}
+      disabled={disabled}
+      onSearch={onSearch}
+    />
+  ) : (
+    <LiveTransactionFilters
+      resource={resource}
+      disabled={disabled}
+      onSearch={onSearch}
+    />
+  );
+}
+
+function PrototypeTransactionFilters({
   resource,
   disabled = false,
   onSearch,

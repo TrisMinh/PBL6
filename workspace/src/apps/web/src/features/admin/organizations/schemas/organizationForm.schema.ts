@@ -12,7 +12,10 @@ export const organizationFormSchema = z.object({
   contactPhone: z
     .string()
     .trim()
-    .regex(/^\d{10,15}$/, "Số điện thoại phải gồm 10–15 chữ số."),
+    .regex(
+      /^\+?\d{10,15}$/,
+      "Số điện thoại phải gồm 10–15 chữ số, có thể có dấu + ở đầu.",
+    ),
   status: z.enum(["active", "inactive"]),
 }) satisfies z.ZodType<OrganizationInput>;
 

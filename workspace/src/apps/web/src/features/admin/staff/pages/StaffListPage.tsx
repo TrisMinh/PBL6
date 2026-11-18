@@ -10,10 +10,14 @@ import { AdminListState } from "@/features/admin/components/AdminDataTable/Admin
 import { AdminFilters } from "@/features/admin/components/AdminFilters/AdminFilters";
 import { useAdminListParams } from "@/features/admin/hooks/useAdminListParams";
 import { MembershipDialog } from "@/features/admin/staff/components/MembershipDialog";
+import { StaffProfileAction } from "../components/StaffProfileAction";
+import { isMockApi } from "@/shared/api/config";
+import { staffRoleLabel } from "../lib/staffRoleLabel";
 import { StaffPageHeader } from "@/features/admin/staff/components/StaffPageHeader";
 import {
   useStaff,
   useStaffOrganizations,
+  useStaffCandidates,
 } from "@/features/admin/staff/hooks/useStaffData";
 import { useSaveMembership } from "@/features/admin/staff/hooks/useMemberships";
 import type {
@@ -53,19 +57,15 @@ function columns(
     {
       key: "organization",
       header: "Nhà xe",
-      render: (item) => organizationName(organizations, item.organizationId),
+      render: (item) =>
+        item.role === "PLATFORM_SUPPORT"
+          ? "Nền tảng BLUE"
+          : organizationName(organizations, item.organizationId),
     },
     {
       key: "role",
       header: "Vai trò",
-      render: (item) =>
-        item.role === "OPERATOR_ADMIN"
-          ? "Quản trị nhà xe"
-          : item.role === "DRIVER"
-            ? "Tài xế"
-            : item.role === "OPERATOR_SCHEDULER"
-              ? "Lập lịch"
-              : "—",
+      render: (item) => staffRoleLabel(item.role),
     },
     {
       key: "status",
@@ -180,7 +180,7 @@ function CreateDialog({
 export function StaffListPage(): ReactElement {
   const { params, updateParams } = useAdminListParams();
   const result = useStaff(params);
-  const availableStaff = useStaff({ page: 1, pageSize: 100 });
+  const availableStaff = useStaffCandidates();
   const organizations = useStaffOrganizations();
   const save = useSaveMembership();
   const dialog = useDialogUrl();
@@ -275,6 +275,11 @@ function StaffListPanel(props: StaffListPanelProps): ReactElement {
         <Button onClick={props.dialog.open} type="button">
           <img src={plusIcon} alt="" width={20} height={20} /> Thêm thành viên
         </Button>
+        {!isMockApi && (
+          <StaffProfileAction
+            organizations={props.organizations.data?.items ?? []}
+          />
+        )}
       </div>
       <AdminFilters
         organizationOptions={props.options}

@@ -60,7 +60,8 @@ public sealed record MembershipDto(
     Guid OrganizationId,
     string Status,
     IReadOnlyList<string> RoleCodes,
-    long RowVersion);
+    long RowVersion,
+    DateTimeOffset? CreatedAt = null);
 
 public sealed record UserPageDto(int Page, int Size, long TotalElements, int TotalPages, IReadOnlyList<UserProfileDto> Items);
 
@@ -105,4 +106,5 @@ public sealed record MembershipRecord(
     Guid OrganizationId,
     string Status,
     long RowVersion,
-    IReadOnlyList<string> RoleCodes);
+    IReadOnlyList<string> RoleCodes,
+    DateTimeOffset? CreatedAt = null);

@@ -1,0 +1,170 @@
+{
+  "startedAt": "2026-11-18T04:03:24.015Z",
+  "suites": [
+    {
+      "name": "live",
+      "exitCode": 0,
+      "checks": [
+        "Edit organization legal/contact data including international phone",
+        "Create staff profile and initial organization membership",
+        "Edit staff profile through live API",
+        "Display/filter both memberships and edit the selected organization",
+        "Lock/unlock account without overwriting organization permissions",
+        "bookings: real code search, organization/state filters, exact state, history and links",
+        "payments: real code search, organization/state filters, exact state, history and links",
+        "refunds: real code search, organization/state filters, exact state, history and links",
+        "Logout API and zero browser errors"
+      ],
+      "elapsedSeconds": 31,
+      "evidence": "live-rerun.txt",
+      "previousAttempt": {
+        "exitCode": 1,
+        "evidence": "live.txt"
+      }
+    },
+    {
+      "name": "resilience",
+      "exitCode": 0,
+      "checks": [
+        "Anonymous direct admin URL redirects to login",
+        "organizations: API 500 handled and retry recovers real data",
+        "organizations: nonexistent record handled without page crash",
+        "staff: API 500 handled and retry recovers real data",
+        "staff: nonexistent record handled without page crash",
+        "bookings: API 500 handled and retry recovers real data",
+        "bookings: nonexistent record handled without page crash",
+        "payments: API 500 handled and retry recovers real data",
+        "payments: nonexistent record handled without page crash",
+        "refunds: API 500 handled and retry recovers real data",
+        "refunds: nonexistent record handled without page crash",
+        "bookings: EXPIRED filter, count, detail and history",
+        "bookings: CONFIRMED filter, count, detail and history",
+        "bookings: PAID filter, count, detail and history",
+        "bookings: REFUND_PENDING filter, count, detail and history",
+        "bookings: COMPLETED filter, count, detail and history",
+        "bookings: CANCELLED filter, count, detail and history",
+        "bookings: REFUNDED filter, count, detail and history",
+        "bookings: out-of-range pagination corrects itself",
+        "bookings: empty search, page reset and clear filters",
+        "bookings: distinct page two persists after reload",
+        "bookings: detail survives hard reload with identical facts",
+        "payments: SUCCEEDED filter, count, detail and history",
+        "payments: REFUNDED filter, count, detail and history",
+        "payments: PROCESSING filter, count, detail and history",
+        "payments: FAILED filter, count, detail and history",
+        "payments: CANCELLED filter, count, detail and history",
+        "payments: PARTIALLY_REFUNDED filter, count, detail and history",
+        "payments: REFUND_PENDING filter, count, detail and history",
+        "payments: PENDING filter, count, detail and history",
+        "payments: out-of-range pagination corrects itself",
+        "payments: empty search, page reset and clear filters",
+        "payments: distinct page two persists after reload",
+        "payments: detail survives hard reload with identical facts",
+        "refunds: SUCCEEDED filter, count, detail and history",
+        "refunds: REQUESTED filter, count, detail and history",
+        "refunds: PROCESSING filter, count, detail and history",
+        "refunds: FAILED filter, count, detail and history",
+        "refunds: out-of-range pagination corrects itself",
+        "refunds: empty search, page reset and clear filters",
+        "refunds: detail survives hard reload with identical facts",
+        "Anonymous list and audit endpoints reject access",
+        "Customer role denied list and audit endpoints",
+        "Expired local session refreshes and rotates token"
+      ],
+      "elapsedSeconds": 73
+    },
+    {
+      "name": "forms",
+      "exitCode": 0,
+      "checks": [
+        "empty organization form validates without API write",
+        "invalid phone blocked before sending",
+        "create organization through UI persists complete profile exactly once",
+        "cancel edit does not persist changes",
+        "staff profile required fields and cancel",
+        "all five mobile lists render without horizontal page overflow"
+      ],
+      "elapsedSeconds": 12
+    },
+    {
+      "name": "gaps",
+      "exitCode": 0,
+      "checks": [
+        "Login required fields and malformed email blocked before API",
+        "Login show/hide password",
+        "Invalid credentials stay at login with error",
+        "Correct admin credentials log in",
+        "All five desktop navigation links, active state and logo",
+        "Account dialog closes and customer portal link responds",
+        "All five mobile navigation links and Escape close menu",
+        "New organization has no invented members",
+        "Membership requires employee, role and reason before API write",
+        "Organization members page adds real member and role",
+        "Organization edits role, suspends membership, filters statuses and survives reload",
+        "Organization member profile link opens correct employee",
+        "Assign platform support without organization and display after reload",
+        "Platform role dialog requires reason and saves through live API",
+        "Combined platform and organization roles retain their separate scopes",
+        "organizations: real text search, reload, no results and clear filters",
+        "organizations: inactive filter returns no active rows",
+        "staff: real text search, reload, no results and clear filters",
+        "staff: inactive filter returns no active rows",
+        "Staff organization filter includes correct assigned user",
+        "organizations: first, previous, next, last pagination buttons",
+        "staff: first, previous, next, last pagination buttons",
+        "bookings: first, previous, next, last pagination buttons",
+        "payments: first, previous, next, last pagination buttons",
+        "refunds: first, previous, next, last pagination buttons",
+        "bookings: amount, creation date and history compared directly with API",
+        "Booking seat codes match stored booking items, including unpaid/expired bookings",
+        "bookings: related record navigation, browser back and return to list",
+        "payments: amount, creation date and history compared directly with API",
+        "payments: related record navigation, browser back and return to list",
+        "refunds: amount, creation date and history compared directly with API",
+        "refunds: related record navigation, browser back and return to list",
+        "Organization summary counts the full filtered dataset on every page",
+        "Customer authenticated session cannot open admin UI",
+        "Logout clears local session and blocks direct admin reentry",
+        "No unhandled browser exceptions throughout additional flows"
+      ],
+      "elapsedSeconds": 41
+    },
+    {
+      "name": "proxy",
+      "exitCode": 0,
+      "checks": [
+        "nginx follows a changed gateway IP without restarting; request path and query preserved"
+      ],
+      "elapsedSeconds": 4
+    },
+    {
+      "name": "unit",
+      "exitCode": 0,
+      "checks": [],
+      "elapsedSeconds": 51
+    },
+    {
+      "name": "types",
+      "exitCode": 0,
+      "checks": [],
+      "elapsedSeconds": 40
+    },
+    {
+      "name": "lint",
+      "exitCode": 0,
+      "checks": [],
+      "elapsedSeconds": 8
+    }
+  ],
+  "finishedAt": "2026-11-18T04:07:44.572Z",
+  "verifiedAt": "2026-11-18T04:08:47.844Z",
+  "unitTestsPassed": 168,
+  "checklistItems": 53,
+  "loginFreshSessionsPassed": 5,
+  "cleanup": {
+    "organizationsRemaining": 0,
+    "usersRemaining": 0,
+    "temporaryNetworksRemaining": 0
+  },
+  "note": "One original live login timeout before a login request was observed. Full live rerun and five fresh login sessions passed. Original log retained."
+}

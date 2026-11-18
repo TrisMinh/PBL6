@@ -1,0 +1,6 @@
+PASS: empty organization form validates without API write
+PASS: invalid phone blocked before sending
+PASS: create organization through UI persists complete profile exactly once
+PASS: cancel edit does not persist changes
+PASS: staff profile required fields and cancel
+PASS: all five mobile lists render without horizontal page overflow

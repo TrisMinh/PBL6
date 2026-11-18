@@ -23,6 +23,28 @@ The desktop frontends are separate applications:
 
 They have independent routes, login and build artifacts. The old temporary backoffice has been removed. Source/design primitives are maintained in `workspace/src/apps/web`; app entry packages live in `customer-web`, `operator-web` and `admin-web`.
 
+The Docker admin app uses live APIs through the gateway, including organization
+lists, profiles and updates stored in PostgreSQL. Sign in with the local seed
+account `admin.seed@example.test` / `AdminPass1234`. Customer and operator build
+modes are configured separately in `docker-compose.apps.yml`.
+
+Admin lists, filters, staff profiles/memberships and transaction details use live
+services. Payment/refund dates and transaction histories come from the backend.
+For an existing local database, restart `db-bootstrap` before rebuilding services
+so that pending migrations are applied without resetting volumes.
+
+With the Docker stack running, verify the full admin flow in headless Chromium:
+
+```bash
+cd workspace/src/apps/web
+node scripts/verify-admin-live.mjs
+```
+
+This check creates isolated staff/organization records, exercises profile and
+membership changes, verifies transaction filters/history/links, then removes only
+the records it created. It does not use the interactive browser or initiate
+payments/refunds.
+
 The BLUE image installs the exact pnpm version and frozen lockfile. Build argument `APP_TARGET` selects customer/operator/admin, `API_MODE` defaults to mock for the standalone demo. Live API integration is an explicit opt-in and is not part of desktop mock acceptance.
 Nginx proxies `/api/` to `gateway:8080`, so the browser uses the same origin;
 no local `.env` or `localhost:5080` is baked into the image. Nested routes use

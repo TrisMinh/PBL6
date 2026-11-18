@@ -119,6 +119,14 @@ describe("StaffDetailPage", () => {
     expect(
       (await screen.findAllByText(organization.name)).length,
     ).toBeGreaterThan(0);
+    expect(screen.queryByText("ID nhân viên")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(staff.id, { exact: true }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole("cell", { name: "Lập lịch" })).toBeVisible();
+    expect(
+      screen.queryByText("OPERATOR_SCHEDULER", { exact: true }),
+    ).not.toBeInTheDocument();
   });
 
   it("distinguishes not-found errors", () => {

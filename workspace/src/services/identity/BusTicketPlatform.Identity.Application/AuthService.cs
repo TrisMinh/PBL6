@@ -457,7 +457,7 @@ public static class ProfileMapper
             user.Phone,
             user.Status,
             roles,
-            memberships.Select(m => new MembershipDto(m.Id, m.UserId, m.OrganizationId, m.Status, m.RoleCodes, m.RowVersion)).ToArray(),
+            memberships.Select(m => new MembershipDto(m.Id, m.UserId, m.OrganizationId, m.Status, m.RoleCodes, m.RowVersion, m.CreatedAt)).ToArray(),
             user.RowVersion,
             user.CreatedAt);
     }

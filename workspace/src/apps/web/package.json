@@ -16,6 +16,12 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
+    "test:admin-live": "node scripts/verify-admin-live.mjs",
+    "test:admin-resilience": "node scripts/verify-admin-resilience.mjs",
+    "test:admin-forms": "node scripts/verify-admin-forms.mjs",
+    "test:admin-proxy": "node scripts/verify-admin-proxy.mjs",
+    "test:admin-gaps": "node scripts/verify-admin-gaps.mjs",
+    "test:admin-checklist": "node scripts/run-admin-checklist.mjs",
     "typecheck": "react-router typegen && tsc --noEmit",
     "verify:build": "pnpm build && node scripts/verify-static-build.mjs"
   },

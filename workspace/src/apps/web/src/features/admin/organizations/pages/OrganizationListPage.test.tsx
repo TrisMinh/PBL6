@@ -12,6 +12,7 @@ import { OrganizationListPage } from "@/features/admin/organizations/pages/Organ
 const organizations: Organization[] = [
   {
     id: "org-blue-demo",
+    code: "BLUE-TRANSIT",
     name: "BLUE Demo Transit",
     contactName: "Điều phối mô phỏng A",
     contactEmail: "ops-a@blue.example.invalid",
@@ -92,6 +93,10 @@ describe("OrganizationListPage", () => {
   it("renders Figma list columns and a detail link", async () => {
     renderPage();
     expect(await screen.findByText("BLUE Demo Transit")).toBeInTheDocument();
+    expect(
+      screen.getByRole("cell", { name: "BLUE-TRANSIT" }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("org-blue-demo")).not.toBeInTheDocument();
     expect(
       screen.getByRole("columnheader", { name: "Tổ chức" }),
     ).toBeInTheDocument();

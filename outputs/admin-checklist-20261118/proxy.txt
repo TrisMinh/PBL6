@@ -1,0 +1,1 @@
+PASS: nginx follows a changed gateway IP without restarting; request path and query preserved

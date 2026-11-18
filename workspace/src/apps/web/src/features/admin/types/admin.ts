@@ -25,10 +25,43 @@ export type AdminListStatus =
   | StaffStatus
   | AdminBookingStatus
   | AdminPaymentStatus
-  | AdminRefundStatus;
+  | AdminRefundStatus
+  | "awaiting-refund"
+  | "refunded"
+  | "expired"
+  | "confirmed"
+  | "completed"
+  | "partially-refunded"
+  | "queued";
+
+export interface LiveTransactionDetails {
+  state: string;
+  label: string;
+  rawStatus: string;
+  organizationId?: string;
+  organizationName?: string;
+  provider?: string;
+  partnerCode?: string;
+  bookingCode?: string;
+  paymentCode?: string;
+  paymentCodes?: Record<string, string>;
+  refundCodes?: Record<string, string>;
+  reason?: string;
+  departureAt?: string;
+  seats?: string[];
+  ticketState?: string;
+  paymentIds?: string[];
+  refundIds?: string[];
+  collectedVnd?: number;
+  refundedVnd?: number;
+  cancellationFee?: number;
+  expectedRefundVnd?: number;
+  history: { occurredAt: string; description: string }[];
+}
 
 export interface Organization {
   id: string;
+  code?: string;
   name: string;
   contactName?: string;
   contactEmail: string;
@@ -56,6 +89,8 @@ export interface Membership {
 export type MembershipInput = Omit<Membership, "memberSince">;
 
 export interface Staff {
+  memberships?: Membership[];
+  accountStatus?: string;
   id: string;
   organizationId: string;
   fullName: string;
@@ -72,6 +107,7 @@ export interface Staff {
 }
 
 export interface AdminBooking {
+  live?: LiveTransactionDetails;
   audit?: BookingAudit;
   id: string;
   bookingCode: string;
@@ -86,6 +122,7 @@ export interface AdminBooking {
 }
 
 export interface AdminPayment {
+  live?: LiveTransactionDetails;
   audit?: PaymentAudit;
   id: string;
   bookingId: string;
@@ -97,8 +134,10 @@ export interface AdminPayment {
 }
 
 export interface AdminRefund {
+  live?: LiveTransactionDetails;
   audit?: RefundAudit;
   id: string;
+  refundReference?: string;
   bookingId: string;
   paymentId: string;
   amountVnd: VndAmount;

@@ -43,9 +43,13 @@ done
 
 apply identity /baseline/identity/001_initial.sql
 apply transport /baseline/transport/001_initial.sql
+apply transport /baseline/transport/002_operator_metadata.sql
 apply booking /baseline/booking/001_initial.sql
+apply booking /baseline/booking/002_coupons.sql
 apply booking /baseline/booking/012_rebook_after_cancel.sql
 apply payment /baseline/payment/001_initial.sql
+apply payment /baseline/payment/002_sepay.sql
+apply payment /baseline/payment/003_legacy_payment_organization.sql
 apply notification /baseline/notification/001_initial.sql
 apply reporting /baseline/reporting/001_initial.sql
 apply reporting /baseline/reporting/011_seed_occupancy.sql

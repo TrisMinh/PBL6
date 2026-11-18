@@ -6,6 +6,11 @@ import {
   type UseQueryResult,
 } from "@tanstack/react-query";
 import { useMemo } from "react";
+import { isMockApi } from "@/shared/api/config";
+import {
+  listBackendStaffCandidates,
+  updateBackendStaffStatus,
+} from "../../repositories/backendAdminRepository";
 
 import { adminKeys } from "@/features/admin/api/adminQueryKeys";
 import type { AdminRepository } from "@/features/admin/repositories/adminRepository";
@@ -88,6 +93,7 @@ export function useStaffOrganizations(): UseQueryResult<
 interface StaffMutationVariables {
   id?: string;
   input: StaffInput;
+  statusOnly?: boolean;
 }
 
 export function useSaveStaff(): UseMutationResult<
@@ -98,10 +104,12 @@ export function useSaveStaff(): UseMutationResult<
   const repository = useAdminRepository();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, input }) =>
-      id
-        ? requireRepository(repository).updateStaff(id, input)
-        : requireRepository(repository).createStaff(input),
+    mutationFn: ({ id, input, statusOnly }) =>
+      id && statusOnly && !isMockApi
+        ? updateBackendStaffStatus(id, input.status)
+        : id
+          ? requireRepository(repository).updateStaff(id, input)
+          : requireRepository(repository).createStaff(input),
     onSuccess: async (staff) => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: adminKeys.staff.all }),
@@ -110,5 +118,31 @@ export function useSaveStaff(): UseMutationResult<
         }),
       ]);
     },
+  });
+}
+
+export function useStaffCandidates(): UseQueryResult<
+  PagedResult<Staff>,
+  Error
+> {
+  const repository = useAdminRepository();
+  return useQuery({
+    queryKey: ["admin", "staff", "candidates"],
+    enabled: Boolean(repository),
+    queryFn: async ({ signal }) => {
+      if (isMockApi)
+        return requireRepository(repository).listStaff(
+          { page: 1, pageSize: 100 },
+          signal,
+        );
+      const items = await listBackendStaffCandidates(signal);
+      return {
+        items,
+        total: items.length,
+        page: 1,
+        pageSize: Math.max(1, items.length),
+      };
+    },
+    refetchOnWindowFocus: false,
   });
 }

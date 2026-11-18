@@ -1,5 +1,6 @@
 import type { ReactElement, ReactNode } from "react";
 import { Link } from "react-router";
+import { LiveTransactionFacts } from "./LiveTransactionFacts";
 import type {
   AdminBooking,
   AdminPayment,
@@ -52,6 +53,7 @@ export function BookingFacts({
 }: {
   booking: AdminBooking;
 }): ReactElement {
+  if (booking.live) return <LiveTransactionFacts item={booking} />;
   const a = booking.audit;
   const ticket = a
     ? {
@@ -108,6 +110,7 @@ export function PaymentFacts({
 }: {
   payment: AdminPayment;
 }): ReactElement {
+  if (payment.live) return <LiveTransactionFacts item={payment} />;
   const a = payment.audit;
   const outcome =
     payment.status === "success"
@@ -166,6 +169,7 @@ export function PaymentFacts({
   );
 }
 export function RefundFacts({ refund }: { refund: AdminRefund }): ReactElement {
+  if (refund.live) return <LiveTransactionFacts item={refund} />;
   const a = refund.audit;
   const main: Fact[] = [
     ["Refund ID", refund.id],

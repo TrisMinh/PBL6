@@ -136,7 +136,7 @@ public sealed class AdminIdentityService(IIdentityRepository users, IClock clock
         await users.InsertMembershipAsync(membership, cancellationToken);
         await users.ReplaceUserRolesAsync(command.UserId, command.RoleCodes, command.OrganizationId, cancellationToken);
         await users.InsertAuditAsync(command.ActorId, command.UserId, "MEMBERSHIP_ADD", "SUCCEEDED", command.Reason, correlationId, cancellationToken);
-        return Result<MembershipDto>.Success(Map(membership));
+        return Result<MembershipDto>.Success(Map(membership with { CreatedAt = clock.UtcNow }));
     }
 
     public async Task<Result<MembershipDto>> ChangeMembershipAsync(MembershipCommand command, Guid correlationId, CancellationToken cancellationToken)
@@ -178,5 +178,5 @@ public sealed class AdminIdentityService(IIdentityRepository users, IClock clock
         items.Select(Map).ToArray();
 
     private static MembershipDto Map(MembershipRecord item) =>
-        new(item.Id, item.UserId, item.OrganizationId, item.Status, item.RoleCodes, item.RowVersion);
+        new(item.Id, item.UserId, item.OrganizationId, item.Status, item.RoleCodes, item.RowVersion, item.CreatedAt);
 }

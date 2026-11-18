@@ -3,4 +3,5 @@ export interface PagedResult<T> {
   page: number;
   pageSize: number;
   total: number;
+  statusCounts?: Record<string, number>;
 }

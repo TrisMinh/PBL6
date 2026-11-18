@@ -12,6 +12,8 @@ import { TransactionHistory } from "../components/TransactionHistory";
 import type { TransactionResource } from "../transactionConfig";
 import { TransactionState } from "../components/TransactionState";
 import "./TransactionPages.css";
+import { isMockApi } from "@/shared/api/config";
+import { transactionCode } from "../transactionProjection";
 
 export function TransactionDetail({
   resource,
@@ -41,7 +43,14 @@ export function TransactionDetail({
         detail
         subtitle={
           !state && item
-            ? `${item.id} · ${item.audit?.organizationName ?? ("organizationId" in item ? item.organizationId : "")}`
+            ? [
+                transactionCode(item),
+                item.live?.organizationName ??
+                  item.audit?.organizationName ??
+                  ("organizationId" in item ? item.organizationId : ""),
+              ]
+                .filter(Boolean)
+                .join(" · ")
             : undefined
         }
       />
@@ -67,10 +76,16 @@ export function TransactionDetail({
             Quay lại danh sách
           </Link>
           {children}
-          {item?.audit && <TransactionHistory history={item.audit.history} />}
-          <p className="transaction-page__detail-footer">
-            Dữ liệu cập nhật lúc 10:36 ngày 19/09/2026 (UTC+7)
-          </p>
+          {item?.live ? (
+            <TransactionHistory history={item.live.history} />
+          ) : (
+            item?.audit && <TransactionHistory history={item.audit.history} />
+          )}
+          {isMockApi && (
+            <p className="transaction-page__detail-footer">
+              Dữ liệu cập nhật lúc 10:36 ngày 19/09/2026 (UTC+7)
+            </p>
+          )}
         </div>
       )}
     </div>
