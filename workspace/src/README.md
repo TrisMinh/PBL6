@@ -6,3 +6,4 @@
 - `services/`: Identity, Transport, Booking, Payment, Notification, Reporting.
 - `building-blocks/`: Result, error envelope, JWT, outbox/inbox Rabbit consumers.
 - `tests/`: architecture, contract, service integration, messaging bus.
+- [Local PostgreSQL backup and restore](data-backup/README.md)

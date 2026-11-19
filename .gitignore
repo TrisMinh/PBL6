@@ -41,3 +41,7 @@ outputs/pbl6-round2/logs/
 outputs/pbl6-round2/junit/
 __pycache__/
 *.pyc
+
+# Private PostgreSQL snapshots and their extracted contents
+/workspace/src/data-backup/*
+!/workspace/src/data-backup/README.md

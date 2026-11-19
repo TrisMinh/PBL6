@@ -11,3 +11,4 @@ agent-transcripts
 **/*.user
 **/coverage
 workspace/src/apps/mobile/node_modules
+workspace/src/data-backup
