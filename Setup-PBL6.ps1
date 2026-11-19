@@ -71,7 +71,8 @@ if (-not $SeedOnly) {
         $archive = Get-Item -LiteralPath $BackupPath
     } else {
         $archive = Get-ChildItem -LiteralPath @($PSScriptRoot, $backups) -Filter 'PBL6-data-*.zip' -File -ErrorAction SilentlyContinue |
-            Sort-Object Name -Descending | Select-Object -First 1
+            Sort-Object -Property @{ Expression = { $_.Name -ne 'PBL6-data-sample.zip' } }, Name -Descending |
+            Select-Object -First 1
     }
     if (-not $archive -or $archive.PSIsContainer -or $archive.Extension -ne '.zip') {
         throw 'Place the PBL6-data-*.zip snapshot beside the script, pass -BackupPath, or use -SeedOnly.'

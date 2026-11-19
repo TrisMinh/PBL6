@@ -45,3 +45,4 @@ __pycache__/
 # Private PostgreSQL snapshots and their extracted contents
 /workspace/src/data-backup/*
 !/workspace/src/data-backup/README.md
+!/workspace/src/data-backup/PBL6-data-sample.zip

@@ -6,4 +6,4 @@ Postman CLI is installed on this device, and can be used for API Engineering wor
 
 ## Local Docker data
 
-After cloning on Windows, use `workspace/scripts/dev-docker.ps1 -RestoreData` to import the private snapshot and start the Docker stack. Look for the ZIP in `workspace/src/data-backup/` or use `-BackupPath` if it is stored elsewhere. Keep existing populated databases intact. See [the restore procedure](workspace/src/data-backup/README.md).
+After cloning on Windows, use `workspace/scripts/dev-docker.ps1 -RestoreData` to import the bundled sample data and start the Docker stack. The script prefers a local private snapshot in `workspace/src/data-backup/` when one is present. Use `-BackupPath` to select a specific ZIP. Keep existing populated databases intact. See [the restore procedure](workspace/src/data-backup/README.md).

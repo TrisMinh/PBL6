@@ -24,7 +24,11 @@ if ($BackupPath) {
     $archive = Get-Item -LiteralPath $BackupPath
 } elseif ($RestoreData -and (Test-Path -LiteralPath $backups)) {
     $archive = Get-ChildItem -LiteralPath $backups -Filter 'PBL6-data-*.zip' -File |
+        Where-Object { $_.Name -ne 'PBL6-data-sample.zip' } |
         Sort-Object Name -Descending | Select-Object -First 1
+    if (-not $archive) {
+        $archive = Get-Item -LiteralPath (Join-Path $backups 'PBL6-data-sample.zip') -ErrorAction SilentlyContinue
+    }
 }
 if (($RestoreData -or $BackupPath) -and (-not $archive -or $archive.PSIsContainer -or $archive.Extension -ne '.zip')) {
     throw 'Copy PBL6-data-*.zip into workspace/src/data-backup or pass -BackupPath.'
