@@ -1,0 +1,62 @@
+[
+  {
+    "screen": "customer-booking-anchor",
+    "width": 1280,
+    "scrollWidth": 1250,
+    "search": {
+      "x": 86,
+      "y": 104,
+      "width": 1168,
+      "height": 128,
+      "top": 104,
+      "right": 1254,
+      "bottom": 232,
+      "left": 86
+    }
+  },
+  {
+    "screen": "admin-account",
+    "width": 1280,
+    "scrollWidth": 1280,
+    "dialog": {
+      "x": 440,
+      "y": 397.5,
+      "width": 400,
+      "height": 205,
+      "top": 397.5,
+      "right": 840,
+      "bottom": 602.5,
+      "left": 440
+    }
+  },
+  {
+    "screen": "customer-booking-anchor",
+    "width": 1920,
+    "scrollWidth": 1890,
+    "search": {
+      "x": 375,
+      "y": 104,
+      "width": 1168,
+      "height": 128,
+      "top": 104,
+      "right": 1543,
+      "bottom": 232,
+      "left": 375
+    }
+  },
+  {
+    "screen": "admin-account",
+    "width": 1920,
+    "scrollWidth": 1920,
+    "dialog": {
+      "x": 760,
+      "y": 397.5,
+      "width": 400,
+      "height": 205,
+      "top": 397.5,
+      "right": 1160,
+      "bottom": 602.5,
+      "left": 760
+    }
+  }
+]

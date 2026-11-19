@@ -11,7 +11,7 @@ import type {
   PaymentResult,
   PaymentStatus,
 } from "@/features/payment/types/payment";
-import { paymentVnPayPath, ticketPath, ROUTES } from "@/shared/config/routes";
+import { paymentCheckoutPath, ticketPath, ROUTES } from "@/shared/config/routes";
 import { formatCurrencyVnd } from "@/shared/lib/formatCurrencyVnd";
 import { formatDateTime } from "@/shared/lib/formatDateTime";
 import { Button } from "@/shared/ui/Button/Button";
@@ -231,12 +231,12 @@ function RecoveryActions({
         </Button>
       )}
       {["failed", "cancelled"].includes(result.status) && canRetry && (
-        <Link to={paymentVnPayPath(result.bookingId)}>
+        <Link to={paymentCheckoutPath(result.bookingId)}>
           Chọn phương thức khác
         </Link>
       )}
       {result.live && result.status === "pending" && canRetry && (
-        <Link to={paymentVnPayPath(result.bookingId)}>Tiếp tục thanh toán</Link>
+        <Link to={paymentCheckoutPath(result.bookingId)}>Tiếp tục thanh toán</Link>
       )}
       <Link
         to={

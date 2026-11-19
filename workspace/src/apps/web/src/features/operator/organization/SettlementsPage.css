@@ -1,0 +1,277 @@
+.operator-settlements .operator-schedule__main {
+  display: grid;
+  align-content: start;
+  gap: 0.85rem;
+}
+.operator-settlements__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.65rem 1rem;
+  padding: 0.65rem 1rem;
+  border: 1px solid var(--op-border);
+  border-radius: 1rem;
+  background: var(--op-white);
+}
+.operator-settlements__header h1 {
+  margin: 0;
+  color: var(--color-text-editorial-heading);
+  font: 700 1.375rem/1.3 var(--font-body);
+}
+.operator-settlements__actions,
+.operator-settlements__list-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.operator-settlements__actions .button {
+  white-space: nowrap;
+}
+.operator-settlements .operator-workspace-demo__metrics {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin: 0;
+}
+.operator-settlements .operator-workspace-demo__metrics article {
+  min-width: 0;
+  padding: 0.65rem 0.75rem;
+}
+.operator-settlements .operator-workspace-demo__metrics strong {
+  font-size: 1.1rem;
+  overflow-wrap: anywhere;
+}
+.operator-settlements .operator-workspace-demo__card {
+  margin: 0;
+  padding: 0.9rem;
+}
+.operator-settlements__list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+  margin-bottom: 0.6rem;
+}
+.operator-settlements .operator-settlements__list-header h2,
+.operator-settlements__list-actions p {
+  margin: 0;
+}
+.operator-settlements__filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 0.65rem;
+  margin-bottom: 0.85rem;
+}
+.operator-settlements__filters > * {
+  flex: 1 1 9rem;
+  min-width: 0;
+}
+.operator-settlements__filters > :first-child {
+  flex: 2 1 16rem;
+}
+.operator-settlements__filters > :nth-child(2) {
+  flex-basis: 12rem;
+}
+.operator-settlements__filters > .operator-settlements__currency {
+  flex-basis: 6rem;
+}
+.operator-settlements__filters :is(input, select) {
+  min-width: 0;
+  width: 100%;
+}
+.operator-settlements .operator-settlements__filters :is(input, select) {
+  min-height: 44px;
+  height: 44px;
+}
+.operator-settlements__table {
+  overflow: auto;
+}
+.operator-settlements__table table {
+  width: 100%;
+  border-collapse: collapse;
+  white-space: nowrap;
+}
+.operator-settlements__table :is(th, td) {
+  padding: 0.65rem;
+  text-align: left;
+  border-bottom: 1px solid #e4ebf6;
+}
+.operator-settlements__table thead {
+  background: #f2f6fc;
+}
+.operator-settlements__table th {
+  font-weight: 600;
+}
+.operator-settlements__detail {
+  border: 0;
+  background: transparent;
+  color: #1558be;
+  text-decoration: underline;
+  cursor: pointer;
+  font: inherit;
+}
+.operator-schedule__dialog.operator-settlements__dialog {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  width: min(46rem, calc(100% - 2rem));
+  max-height: calc(100dvh - 2rem);
+  padding: 0;
+  overflow: hidden;
+  background: var(--op-white);
+  box-shadow: 0 20px 65px rgb(13 31 59 / 18%);
+}
+.operator-settlements__dialog-header,
+.operator-settlements__dialog-footer {
+  padding: 0.75rem 1.25rem;
+}
+.operator-settlements__dialog-header {
+  border-bottom: 1px solid var(--op-divider);
+}
+.operator-schedule__dialog.operator-settlements__dialog
+  .operator-workspace-demo__dialog-header {
+  margin-bottom: 0;
+}
+.operator-settlements__dialog .operator-settlements__dialog-header p {
+  margin: 0;
+  color: var(--op-copy);
+  font-size: 0.8125rem;
+  overflow-wrap: anywhere;
+}
+.operator-settlements__dialog-body {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.operator-settlements__amounts,
+.operator-settlements__breakdown {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0.75rem 0.875rem;
+  border: 1px solid var(--op-border);
+  border-radius: 0.625rem;
+}
+.operator-settlements__amounts {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  background: var(--op-action-soft);
+}
+.operator-settlements__breakdown {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.operator-settlements__dialog-body dt,
+.operator-settlements__receipt p {
+  color: var(--op-copy);
+  font-size: 0.8125rem;
+}
+.operator-settlements__dialog-body dd {
+  margin: 0.2rem 0 0;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.operator-settlements__payable dd {
+  font-size: clamp(1.25rem, 3vw, 1.75rem);
+  line-height: 1.2;
+}
+.operator-settlements__dialog-status {
+  text-align: end;
+}
+.operator-settlements__dialog-status .operator-status-badge {
+  white-space: normal;
+}
+.operator-settlements__receipt {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.75rem 0.875rem;
+  border: 1px solid var(--op-border);
+  border-radius: 0.625rem;
+  background: var(--op-soft);
+}
+.operator-settlements__receipt h3,
+.operator-settlements__dialog .operator-settlements__receipt p,
+.operator-settlements__review {
+  margin: 0;
+}
+.operator-settlements__receipt h3 {
+  font-size: 0.9375rem;
+}
+.operator-settlements__receipt-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: 0.75rem;
+  margin-top: 0.2rem;
+}
+.operator-settlements__receipt p[role="alert"] {
+  color: var(--color-status-danger-text, #b42318);
+}
+.operator-settlements__review {
+  color: var(--op-copy);
+  font-size: 0.875rem;
+}
+.operator-settlements__identifier {
+  color: var(--op-copy);
+  font-size: 0.8125rem;
+  overflow-wrap: anywhere;
+}
+.operator-settlements__identifier summary {
+  width: fit-content;
+  cursor: pointer;
+}
+.operator-settlements__identifier code {
+  display: block;
+  margin-top: 0.35rem;
+  user-select: all;
+}
+.operator-settlements__dialog-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  border-top: 1px solid var(--op-divider);
+  background: var(--op-white);
+}
+@media (max-width: 32rem) {
+  .operator-settlements__dialog-header,
+  .operator-settlements__dialog-body,
+  .operator-settlements__dialog-footer {
+    padding-inline: 0.75rem;
+  }
+  .operator-settlements__amounts,
+  .operator-settlements__receipt-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .operator-settlements__dialog-status {
+    text-align: start;
+  }
+  .operator-settlements__dialog-footer {
+    display: grid;
+  }
+  .operator-settlements__dialog-footer .button {
+    width: 100%;
+  }
+}
+@media (max-width: 58rem) {
+  .operator-settlements .operator-workspace-demo__metrics {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr));
+  }
+}
+@media (max-width: 38rem) {
+  .operator-settlements__header {
+    padding-inline: 0.85rem;
+  }
+  .operator-settlements__filters {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .operator-settlements__filters > :first-child,
+  .operator-settlements__filters:not(:has(.operator-settlements__currency))
+    > :nth-child(2) {
+    grid-column: 1 / -1;
+  }
+}

@@ -9,7 +9,7 @@ import { createPassengerSchema } from "@/features/booking/schemas/passenger.sche
 import { useBookingDraftStore } from "@/features/booking/store/bookingDraftStore";
 import type { BookingDraft } from "@/features/booking/types/booking";
 import type { BookingCreationSummary } from "@/features/booking/types/bookingSummary";
-import { paymentVnPayPath } from "@/shared/config/routes";
+import { paymentCheckoutPath } from "@/shared/config/routes";
 
 export interface CreateBookingResult {
   create: () => void;
@@ -122,7 +122,7 @@ function useBookingMutation(
       void navigate(
         booking.status === "confirmed"
           ? "/account/tickets"
-          : paymentVnPayPath(booking.bookingId),
+          : paymentCheckoutPath(booking.bookingId),
       );
     },
     onSettled: (_data, error, variables) => {

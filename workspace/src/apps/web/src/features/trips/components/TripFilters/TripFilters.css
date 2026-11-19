@@ -39,6 +39,40 @@
   font-weight: 600;
 }
 
+.trip-filters__operator-search {
+  margin-bottom: 16px;
+}
+
+.trip-filters__operator-search-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.trip-filters__operator-search-row input {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding-inline: 10px;
+  border: 1px solid var(--color-results-control-border);
+  border-radius: 10px;
+  background: var(--color-results-surface);
+  color: var(--color-results-text);
+  font: inherit;
+  font-size: 14px;
+}
+
+.trip-filters__operator-search-row input:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.trip-filters__operator-search-row .button {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+}
+
 .trip-filters__select {
   width: 100%;
   min-width: var(--size-control-min);

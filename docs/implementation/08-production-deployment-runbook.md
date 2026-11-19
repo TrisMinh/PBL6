@@ -9,7 +9,7 @@
 
 ## 2. Secrets and configuration
 
-Copy `workspace/src/infra/production.env.example` to a protected location outside Git, replace every placeholder and restrict its permissions to the deployment account. Generate independent random values; do not reuse the database, RabbitMQ, JWT, SMTP or VNPay secrets.
+Copy `workspace/src/infra/production.env.example` to a protected location outside Git, replace every placeholder and restrict its permissions to the deployment account. Generate independent random values; do not reuse the database, RabbitMQ, JWT, SMTP or SePay secrets.
 
 Run the mandatory preflight from `workspace`:
 
@@ -45,7 +45,7 @@ curl --fail https://api.example.vn/health
 curl --fail https://api.example.vn/ready
 ```
 
-All long-running services must be `healthy`. Verify registration email with a real mailbox, complete one low-value VNPay sandbox transaction, cancel it, and confirm payment/refund/settlement records before production traffic is enabled.
+All long-running services must be `healthy`. Verify registration email with a real mailbox, complete one low-value SePay sandbox transaction in staging, cancel it, and confirm payment/refund/settlement records before production traffic is enabled.
 
 Restart recovery check:
 

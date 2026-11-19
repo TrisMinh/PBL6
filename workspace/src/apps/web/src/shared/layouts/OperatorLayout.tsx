@@ -1,4 +1,4 @@
-import { useState, type ReactElement } from "react";
+import { useEffect, useRef, useState, type ReactElement } from "react";
 import {
   Link,
   NavLink,
@@ -28,6 +28,7 @@ import refundsIcon from "@/assets/operator/schedule/imgFrame8.svg";
 import "./OperatorLayout.css";
 import "./OperatorTheme.css";
 import "./OperatorConsistency.css";
+import "./OperatorMotion.css";
 import { workspaceAccess } from "@/features/auth/lib/workspaceAccess";
 import { OperatorWorkspaceContext } from "./OperatorWorkspaceContext";
 import { OperatorAccountAvatar } from "@/features/operator/components/OperatorAccountAvatar";
@@ -116,6 +117,26 @@ function LiveOperatorLayout(): ReactElement {
   const [open, setOpen] = useState(false);
   const [switching, setSwitching] = useState(false);
   const navigate = useNavigate();
+  const mainRef = useRef<HTMLElement>(null);
+  const ready = isHydrated && Boolean(session);
+
+  useEffect(() => {
+    const main = mainRef.current;
+    if (!ready || !main?.animate) return;
+    const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (preference.matches) return;
+    const animation = main.animate([{ opacity: 0.72 }, { opacity: 1 }], {
+      duration: 200,
+      easing: "cubic-bezier(0.2, 0.75, 0.3, 1)",
+    });
+    const stop = () => animation.cancel();
+    preference.addEventListener("change", stop);
+    return () => {
+      preference.removeEventListener("change", stop);
+      stop();
+    };
+  }, [location.pathname, ready]);
+
   if (!isHydrated)
     return (
       <div className="operator-workspace__loading" role="status">
@@ -260,6 +281,7 @@ function LiveOperatorLayout(): ReactElement {
           </div>
         </header>
         <main
+          ref={mainRef}
           id="operator-main"
           className="operator-workspace__main"
           tabIndex={-1}

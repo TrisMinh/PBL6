@@ -1,8 +1,8 @@
 import { readApiSession } from "@/shared/api/session";
-import { BookingRepositoryError } from "@/features/booking/repositories/bookingRepositoryError";
 import { z } from "zod";
 import { apiJson } from "@/shared/api/client";
-import { backendTicketSchema } from "@/shared/api/contracts";
+import { backendTicketSchema, bookingSchema } from "@/shared/api/contracts";
+import { ApiError } from "@/shared/api/error";
 import { getBackendTrip } from "@/features/trips/repositories/backendTripRepository";
 import {
   hydrateBackendTicket,
@@ -30,6 +30,14 @@ export async function getCancellationPreview(
   signal?: AbortSignal,
 ): Promise<z.infer<typeof cancellationPreviewSchema>> {
   const booking = await ownedBooking(code, signal);
+  return requestCancellationPreview(booking, ticketIds, signal);
+}
+
+async function requestCancellationPreview(
+  booking: z.infer<typeof bookingSchema>,
+  ticketIds: readonly string[],
+  signal?: AbortSignal,
+): Promise<z.infer<typeof cancellationPreviewSchema>> {
   const quote = await apiJson(
     `/api/v1/bookings/${booking.id}/cancellation-preview`,
     cancellationPreviewSchema,
@@ -50,19 +58,29 @@ const time = (value: string): string =>
 export const backendCancellationRepository: CancellationRepository = {
   getOptions: async (code, _access, signal) => {
     const booking = await ownedBooking(code, signal);
-    const [all, trip] = await Promise.all([
-      apiJson(
-        `/api/v1/bookings/${booking.id}/tickets`,
-        z.array(backendTicketSchema),
-        { signal },
-      ),
-      getBackendTrip(booking.tripId, signal),
-    ]);
-    const tickets = await Promise.all(
-      all
-        .filter((t) => t.status === "ISSUED")
-        .map((t) => hydrateBackendTicket(t, signal)),
+    const all = await apiJson(
+      `/api/v1/bookings/${booking.id}/tickets`,
+      z.array(backendTicketSchema),
+      { signal },
     );
+    const issued = all.filter((ticket) => ticket.status === "ISSUED");
+    if (!issued.length)
+      throw new ApiError(
+        "NO_CANCELLABLE_TICKETS",
+        409,
+        "Không còn vé có thể hủy.",
+      );
+
+    // Booking remains the source of eligibility even when trip details are no longer public.
+    const quote = await requestCancellationPreview(
+      booking,
+      issued.map((ticket) => ticket.id),
+      signal,
+    );
+    const [trip, tickets] = await Promise.all([
+      getBackendTrip(booking.tripId, signal),
+      Promise.all(issued.map((ticket) => hydrateBackendTicket(ticket, signal))),
+    ]);
     const pickup = trip.stops.find(
       (s) => s.id === booking.items[0]?.pickupStopId,
     );
@@ -72,15 +90,8 @@ export const backendCancellationRepository: CancellationRepository = {
     const minutes = Math.round(
       (Date.parse(trip.arrivalAt) - Date.parse(trip.departureAt)) / 60000,
     );
-    const quote = tickets.length
-      ? await getCancellationPreview(
-          booking.id,
-          tickets.map((t) => t.ticketId),
-          signal,
-        )
-      : undefined;
-    const fare = (quote?.fee ?? 0) + (quote?.refundAmount ?? 0);
-    const feeRatePercent = fare ? ((quote?.fee ?? 0) / fare) * 100 : 0;
+    const fare = quote.fee + quote.refundAmount;
+    const feeRatePercent = fare ? (quote.fee / fare) * 100 : 0;
     return {
       bookingId: booking.id,
       bookingCode: booking.code,
@@ -92,7 +103,7 @@ export const backendCancellationRepository: CancellationRepository = {
       latestRefund: null,
       refundRatePercent: fare ? 100 - feeRatePercent : 0,
       feeRatePercent,
-      policyLabel: `Chính sách ${quote?.policyVersion ?? trip.policyVersion ?? "hiện hành"}`,
+      policyLabel: `Chính sách ${quote.policyVersion}`,
       journey: {
         operatorName: trip.operatorName,
         tripCode: trip.id,
@@ -119,7 +130,7 @@ export const backendCancellationRepository: CancellationRepository = {
     const booking = await ownedBooking(code, signal);
     const reviewed = previews.get(previewKey(booking.id, ticketIds));
     if (!reviewed || Date.parse(reviewed.quote.expiresAt) <= Date.now())
-      throw new BookingRepositoryError("CANCELLATION_NOT_ALLOWED", 409);
+      throw new ApiError("PREVIEW_STALE", 410, "Báo phí hủy đã hết hiệu lực.");
     const preview = reviewed.quote;
     const result = await apiJson(
       `/api/v1/bookings/${booking.id}/cancel`,

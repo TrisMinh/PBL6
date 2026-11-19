@@ -13,7 +13,6 @@ import { liveApiJson, liveQueryKey } from "@/shared/api/liveRequest";
 import { ApiFailure } from "@/shared/api/ResourcePage";
 import { Button } from "@/shared/ui/Button/Button";
 import { holdSchema } from "@/shared/api/contracts";
-import { useSePay } from "@/features/payment/checkoutAction";
 
 import type { SeatLayout } from "../types/seat";
 
@@ -261,9 +260,7 @@ export function LiveBookingOptions({
         <p>
           {payLater
             ? "Thanh toán theo hướng dẫn của nhà xe."
-            : useSePay
-              ? "Bạn sẽ được chuyển sang SePay để thanh toán."
-              : "Chọn thanh toán trực tuyến ở bước tiếp theo."}
+            : "Bạn sẽ được chuyển sang SePay để thanh toán."}
         </p>
       </div>
     </>

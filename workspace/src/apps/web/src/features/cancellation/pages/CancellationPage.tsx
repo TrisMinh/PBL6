@@ -20,7 +20,8 @@ import progressRail from "@/assets/payment/progress-rail.svg";
 import statusDot from "@/assets/payment/status-dot.svg";
 import { useAccountSession } from "@/features/auth/hooks/useAccountSession";
 import type { MockSession } from "@/features/auth/types/auth";
-import type { BookingRepositoryError } from "@/features/booking/repositories/bookingRepositoryError";
+import { BookingRepositoryError } from "@/features/booking/repositories/bookingRepositoryError";
+import { ApiError } from "@/shared/api/error";
 import { CancellationConfirmDialog } from "@/features/cancellation/components/CancellationConfirmDialog/CancellationConfirmDialog";
 import { CancellationSelector } from "@/features/cancellation/components/CancellationSelector/CancellationSelector";
 import {
@@ -73,8 +74,81 @@ function refundMoney(value: number): string {
   return `₫${new Intl.NumberFormat("vi-VN").format(value)}`;
 }
 
-function accessError(error: BookingRepositoryError | null): boolean {
-  return Boolean(error && [401, 410].includes(error.status));
+function accessError(error: ApiError | BookingRepositoryError | null): boolean {
+  return error?.status === 401 || (isMockApi && error?.status === 410);
+}
+
+function cancellationIssue(error: unknown): {
+  title: string;
+  description: string;
+  retry?: boolean;
+} {
+  if (error instanceof ApiError) {
+    if (
+      error.code === "CANCELLATION_NOT_ALLOWED" ||
+      error.message ===
+        "Self-service cancellation is not allowed this close to departure."
+    ) {
+      const details = error.details as
+        | { reason?: string; departureAt?: string; cutoffAt?: string }
+        | undefined;
+      const departed = details?.reason === "TRIP_DEPARTED";
+      const timestamp = Date.parse(
+        (departed ? details?.departureAt : details?.cutoffAt) ?? "",
+      );
+      const time = Number.isFinite(timestamp)
+        ? new Intl.DateTimeFormat("vi-VN", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            timeZone: "Asia/Ho_Chi_Minh",
+          }).format(timestamp)
+        : "";
+      return {
+        title: departed
+          ? "Chuyến xe đã khởi hành"
+          : "Đã hết thời hạn tự hủy vé",
+        description:
+          departed && time
+            ? `Chuyến xe khởi hành lúc ${time} (giờ Việt Nam). Vé chỉ được tự hủy trước giờ khởi hành ít nhất 2 tiếng.`
+            : time
+              ? `Hạn tự hủy là ${time} (giờ Việt Nam), trước giờ khởi hành 2 tiếng.`
+              : "Vé chỉ được tự hủy trước giờ khởi hành ít nhất 2 tiếng.",
+      };
+    }
+    if (
+      error.code === "NO_CANCELLABLE_TICKETS" ||
+      error.code === "INVALID_STATE_TRANSITION"
+    )
+      return {
+        title: "Không còn vé có thể hủy",
+        description:
+          "Trạng thái hiện tại của vé hoặc đơn không cho phép hủy. Bạn có thể xem lại trong Vé của tôi.",
+      };
+    if (error.code === "PREVIEW_STALE" || error.code === "VERSION_CONFLICT")
+      return {
+        title: "Báo phí hủy đã hết hiệu lực",
+        description:
+          "Đóng cửa sổ xác nhận và xem lại phí hủy trước khi tiếp tục.",
+      };
+  }
+  if (
+    (error instanceof ApiError ||
+      (!isMockApi && error instanceof BookingRepositoryError)) &&
+    [403, 404].includes(error.status)
+  )
+    return {
+      title: "Không tìm thấy vé trong tài khoản",
+      description:
+        "Hãy đăng nhập bằng tài khoản đã đặt vé và kiểm tra lại mã đơn.",
+    };
+  return {
+    title: "Chưa thể tải yêu cầu hủy",
+    description: "Kiểm tra kết nối rồi thử lại.",
+    retry: true,
+  };
 }
 
 export function JourneyCard({
@@ -260,6 +334,8 @@ function RefundSummary({
   journey,
   reviewing,
   isPending,
+  reviewDisabled,
+  confirmDisabled,
   onReview,
   onConfirm,
   onKeep,
@@ -270,6 +346,8 @@ function RefundSummary({
   journey: Journey;
   reviewing: boolean;
   isPending?: boolean;
+  reviewDisabled?: boolean;
+  confirmDisabled?: boolean;
   onReview?: () => void;
   onConfirm?: () => void;
   onKeep: () => void;
@@ -318,7 +396,11 @@ function RefundSummary({
       </section>
       {reviewing ? (
         <div className="cancellation-dialog__actions">
-          <Button isLoading={isPending} onClick={onConfirm}>
+          <Button
+            disabled={confirmDisabled}
+            isLoading={isPending}
+            onClick={onConfirm}
+          >
             Xác nhận hủy {seats.length} vé
           </Button>
           <Dialog.Close asChild>
@@ -330,7 +412,7 @@ function RefundSummary({
       ) : (
         <>
           <Button
-            disabled={!seats.length}
+            disabled={!seats.length || reviewDisabled}
             id={reviewTriggerId}
             onClick={onReview}
           >
@@ -449,6 +531,13 @@ function ConfirmationView({
         {chosen.map((ticket) => ticket.ticketCode).join(", ")}
       </p>
       <Heading confirm />
+      {mutation.error && (
+        <p className="cancellation-page__feedback" role="alert">
+          {isMockApi
+            ? "Không thể hủy các vé đã chọn. Kiểm tra trạng thái vé rồi thử lại."
+            : cancellationIssue(mutation.error).description}
+        </p>
+      )}
       <div className="cancellation-page__grid">
         <main className="cancellation-page__review-panel">
           <JourneyCard journey={options.journey} />
@@ -466,6 +555,11 @@ function ConfirmationView({
           journey={options.journey}
           reviewing
           isPending={mutation.isPending}
+          confirmDisabled={
+            !isMockApi &&
+            !!mutation.error &&
+            !cancellationIssue(mutation.error).retry
+          }
           onConfirm={confirm}
           onKeep={close}
         />
@@ -591,13 +685,38 @@ export function RefundProcessing({
   );
 }
 
-function SelectionError({ denied }: { denied: boolean }): ReactElement {
+function SelectionError({
+  error,
+  retry,
+}: {
+  error: ApiError | BookingRepositoryError;
+  retry: () => void;
+}): ReactElement {
+  const issue = accessError(error)
+    ? {
+        title: "Cần xác thực để hủy vé",
+        description:
+          "Tra cứu vé hoặc đăng nhập tài khoản sở hữu vé để tiếp tục.",
+      }
+    : cancellationIssue(error);
   return (
-    <PageState
-      title={denied ? "Cần xác thực để hủy vé" : "Chưa thể tải yêu cầu hủy"}
-      description="Tra cứu lại vé hoặc thử lại sau."
-      action={<Link to={ROUTES.ticketLookup}>Tra cứu vé</Link>}
-    />
+    <div className="cancellation-page__blocked" role="alert">
+      <PageState
+        title={issue.title}
+        description={issue.description}
+        action={
+          issue.retry ? (
+            <Button type="button" onClick={retry}>
+              Thử lại
+            </Button>
+          ) : (
+            <Link to={isMockApi ? ROUTES.ticketLookup : ROUTES.accountTickets}>
+              {isMockApi ? "Tra cứu vé" : "Về Vé của tôi"}
+            </Link>
+          )
+        }
+      />
+    </div>
   );
 }
 
@@ -613,7 +732,9 @@ function Selection({
   if (query.isPending)
     return <BrandLoading compact title="Đang tải vé có thể hủy…" />;
   if (query.isError)
-    return <SelectionError denied={accessError(query.error)} />;
+    return (
+      <SelectionError error={query.error} retry={() => void query.refetch()} />
+    );
   if (query.data.latestRefund)
     return (
       <RefundProcessing
@@ -688,15 +809,36 @@ function CancellationForm({
   const confirm = (): void => {
     if (submittedRef.current || mutation.isPending || selected.length === 0)
       return;
+    const previewId = quote.data?.previewId;
+    if (!isMockApi && !previewId) return;
+    const key = previewId
+      ? `cancel-${previewId}`
+      : (keyRef.current ??= crypto.randomUUID());
     submittedRef.current = true;
-    keyRef.current ??= crypto.randomUUID();
-    mutation.mutate({ ticketIds: selected, key: keyRef.current });
+    mutation.mutate({ ticketIds: selected, key });
+  };
+  const review = async (): Promise<void> => {
+    if (
+      !isMockApi &&
+      (!quote.data || Date.parse(quote.data.expiresAt) <= Date.now())
+    ) {
+      const updated = await quote.refetch();
+      if (
+        updated.isError ||
+        !updated.data ||
+        Date.parse(updated.data.expiresAt) <= Date.now()
+      )
+        return;
+    }
+    mutation.reset();
+    setDialogOpen(true);
   };
   if (mutation.data)
     return (
       <RefundProcessing refund={mutation.data} journey={options.journey} />
     );
   const seats = chosen.map((ticket) => ticket.seatCode);
+  const quoteIssue = quote.error ? cancellationIssue(quote.error) : undefined;
   return (
     <>
       <Heading />
@@ -707,27 +849,32 @@ function CancellationForm({
           amounts={amounts}
           journey={options.journey}
           reviewing={false}
-          onReview={() => {
-            if (
-              isMockApi ||
-              (quote.data && Date.parse(quote.data.expiresAt) > Date.now())
-            )
-              setDialogOpen(true);
-          }}
+          reviewDisabled={
+            !isMockApi && (!quote.data || quote.isFetching || quote.isError)
+          }
+          onReview={() => void review()}
           onKeep={() => setSelected([])}
           reviewTriggerId={reviewTriggerId}
         />
       </div>
-      {!isMockApi && quote.isError ? (
-        <Toast
-          tone="error"
-          message="Chưa thể lấy phí hủy. Kiểm tra kết nối và chọn lại vé."
-        />
+      {!isMockApi && quoteIssue ? (
+        <div className="cancellation-page__feedback">
+          <p role="alert">{quoteIssue.description}</p>
+          {quoteIssue.retry && (
+            <Button variant="secondary" onClick={() => void quote.refetch()}>
+              Thử lấy phí hủy lại
+            </Button>
+          )}
+        </div>
       ) : null}
-      {mutation.isError ? (
+      {mutation.isError && !dialogOpen ? (
         <Toast
           tone="error"
-          message="Không thể hủy các vé đã chọn. Kiểm tra trạng thái vé rồi thử lại."
+          message={
+            isMockApi
+              ? "Không thể hủy các vé đã chọn. Kiểm tra trạng thái vé rồi thử lại."
+              : cancellationIssue(mutation.error).description
+          }
         />
       ) : null}
       <CancellationConfirmDialog
@@ -775,13 +922,31 @@ export function CancellationPage(): ReactElement {
     return <BrandLoading compact title="Đang kiểm tra quyền hủy vé…" />;
   const parsed = ticketCodeSchema.safeParse(bookingCode?.toUpperCase());
   if (!parsed.success) return <InvalidBooking />;
-  const access = resolveAccess(account.session, guest.access);
+  const access = resolveAccess(
+    account.session,
+    isMockApi ? guest.access : null,
+  );
   if (!access)
     return (
       <PageState
         title="Cần xác thực để hủy vé"
-        description="Tra cứu vé hoặc đăng nhập tài khoản sở hữu vé để tiếp tục."
-        action={<Link to={ROUTES.ticketLookup}>Tra cứu vé</Link>}
+        description={
+          isMockApi
+            ? "Tra cứu vé hoặc đăng nhập tài khoản sở hữu vé để tiếp tục."
+            : "Đăng nhập bằng tài khoản đã đặt vé để yêu cầu hủy."
+        }
+        action={
+          isMockApi ? (
+            <Link to={ROUTES.ticketLookup}>Tra cứu vé</Link>
+          ) : (
+            <Link
+              to={ROUTES.login}
+              state={{ from: `/bookings/${parsed.data}/cancel` }}
+            >
+              Đăng nhập
+            </Link>
+          )
+        }
       />
     );
   return (

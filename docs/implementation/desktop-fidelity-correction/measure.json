@@ -1,0 +1,511 @@
+{
+  "fonts": [
+    {
+      "family": "Be Vietnam Pro",
+      "status": "loaded",
+      "weight": "400"
+    },
+    {
+      "family": "Be Vietnam Pro",
+      "status": "loaded",
+      "weight": "400"
+    },
+    {
+      "family": "Be Vietnam Pro",
+      "status": "loaded",
+      "weight": "400"
+    },
+    {
+      "family": "Be Vietnam Pro",
+      "status": "loaded",
+      "weight": "500"
+    },
+    {
+      "family": "Be Vietnam Pro",
+      "status": "loaded",
+      "weight": "500"
+    },
+    {
+      "family": "Be Vietnam Pro",
+      "status": "loaded",
+      "weight": "500"
+    },
+    {
+      "family": "Be Vietnam Pro",
+      "status": "loaded",
+      "weight": "600"
+    },
+    {
+      "family": "Be Vietnam Pro",
+      "status": "loaded",
+      "weight": "600"
+    },
+    {
+      "family": "Be Vietnam Pro",
+      "status": "loaded",
+      "weight": "600"
+    },
+    {
+      "family": "Be Vietnam Pro",
+      "status": "loaded",
+      "weight": "700"
+    },
+    {
+      "family": "Be Vietnam Pro",
+      "status": "loaded",
+      "weight": "700"
+    },
+    {
+      "family": "Be Vietnam Pro",
+      "status": "loaded",
+      "weight": "700"
+    },
+    {
+      "family": "Bricolage Grotesque",
+      "status": "loaded",
+      "weight": "700"
+    },
+    {
+      "family": "Bricolage Grotesque",
+      "status": "loaded",
+      "weight": "700"
+    },
+    {
+      "family": "Bricolage Grotesque",
+      "status": "loaded",
+      "weight": "700"
+    },
+    {
+      "family": "Bricolage Grotesque",
+      "status": "unloaded",
+      "weight": "800"
+    },
+    {
+      "family": "Bricolage Grotesque",
+      "status": "unloaded",
+      "weight": "800"
+    },
+    {
+      "family": "Bricolage Grotesque",
+      "status": "unloaded",
+      "weight": "800"
+    },
+    {
+      "family": "Newsreader",
+      "status": "unloaded",
+      "weight": "600"
+    },
+    {
+      "family": "Newsreader",
+      "status": "unloaded",
+      "weight": "600"
+    },
+    {
+      "family": "Newsreader",
+      "status": "unloaded",
+      "weight": "600"
+    }
+  ],
+  "nodes": [
+    {
+      "class": "trip-results__search-action",
+      "rect": {
+        "x": 1028,
+        "y": 198,
+        "width": 276,
+        "height": 56,
+        "top": 198,
+        "right": 1304,
+        "bottom": 254,
+        "left": 1028
+      },
+      "font": "\"Be Vietnam Pro\", sans-serif",
+      "weight": "600",
+      "border": "0px solid rgb(255, 255, 255)"
+    },
+    {
+      "class": "trip-filters__group",
+      "rect": {
+        "x": 104,
+        "y": 406,
+        "width": 212,
+        "height": 124,
+        "top": 406,
+        "right": 316,
+        "bottom": 530,
+        "left": 104
+      },
+      "font": "\"Be Vietnam Pro\", sans-serif",
+      "weight": "400",
+      "border": "1px solid rgb(214, 223, 238)"
+    },
+    {
+      "class": "trip-filters__legend",
+      "rect": {
+        "x": 104,
+        "y": 425,
+        "width": 212,
+        "height": 28,
+        "top": 425,
+        "right": 316,
+        "bottom": 453,
+        "left": 104
+      },
+      "font": "\"Be Vietnam Pro\", sans-serif",
+      "weight": "600",
+      "border": "0px solid rgb(8, 25, 52)"
+    },
+    {
+      "class": "trip-filters__group",
+      "rect": {
+        "x": 104,
+        "y": 530,
+        "width": 212,
+        "height": 110,
+        "top": 530,
+        "right": 316,
+        "bottom": 640,
+        "left": 104
+      },
+      "font": "\"Be Vietnam Pro\", sans-serif",
+      "weight": "400",
+      "border": "1px solid rgb(214, 223, 238)"
+    },
+    {
+      "class": "trip-filters__legend",
+      "rect": {
+        "x": 104,
+        "y": 549,
+        "width": 212,
+        "height": 28,
+        "top": 549,
+        "right": 316,
+        "bottom": 577,
+        "left": 104
+      },
+      "font": "\"Be Vietnam Pro\", sans-serif",
+      "weight": "600",
+      "border": "0px solid rgb(8, 25, 52)"
+    },
+    {
+      "class": "trip-filters__group",
+      "rect": {
+        "x": 104,
+        "y": 640,
+        "width": 212,
+        "height": 114,
+        "top": 640,
+        "right": 316,
+        "bottom": 754,
+        "left": 104
+      },
+      "font": "\"Be Vietnam Pro\", sans-serif",
+      "weight": "400",
+      "border": "1px solid rgb(214, 223, 238)"
+    },
+    {
+      "class": "trip-filters__legend",
+      "rect": {
+        "x": 104,
+        "y": 653,
+        "width": 212,
+        "height": 28,
+        "top": 653,
+        "right": 316,
+        "bottom": 681,
+        "left": 104
+      },
+      "font": "\"Be Vietnam Pro\", sans-serif",
+      "weight": "600",
+      "border": "0px solid rgb(8, 25, 52)"
+    },
+    {
+      "class": "trip-filters__group",
+      "rect": {
+        "x": 104,
+        "y": 754,
+        "width": 212,
+        "height": 124,
+        "top": 754,
+        "right": 316,
+        "bottom": 878,
+        "left": 104
+      },
+      "font": "\"Be Vietnam Pro\", sans-serif",
+      "weight": "400",
+      "border": "0px none rgb(16, 36, 62)"
+    },
+    {
+      "class": "trip-filters__legend",
+      "rect": {
+        "x": 104,
+        "y": 766,
+        "width": 212,
+        "height": 28,
+        "top": 766,
+        "right": 316,
+        "bottom": 794,
+        "left": 104
+      },
+      "font": "\"Be Vietnam Pro\", sans-serif",
+      "weight": "600",
+      "border": "0px solid rgb(8, 25, 52)"
+    },
+    {
+      "class": "trip-filters__range",
+      "rect": {
+        "x": 104,
+        "y": 842,
+        "width": 212,
+        "height": 20,
+        "top": 842,
+        "right": 316,
+        "bottom": 862,
+        "left": 104
+      },
+      "font": "\"Be Vietnam Pro\", sans-serif",
+      "weight": "400",
+      "border": "0px solid rgb(16, 36, 62)"
+    },
+    {
+      "class": "trip-filters__group trip-filters__group--amenities",
+      "rect": {
+        "x": 104,
+        "y": 878,
+        "width": 212,
+        "height": 228,
+        "top": 878,
+        "right": 316,
+        "bottom": 1106,
+        "left": 104
+      },
+      "font": "\"Be Vietnam Pro\", sans-serif",
+      "weight": "400",
+      "border": "1px solid rgb(214, 223, 238)"
+    },
+    {
+      "class": "trip-filters__legend",
+      "rect": {
+        "x": 104,
+        "y": 897,
+        "width": 212,
+        "height": 28,
+        "top": 897,
+        "right": 316,
+        "bottom": 925,
+        "left": 104
+      },
+      "font": "\"Be Vietnam Pro\", sans-serif",
+      "weight": "600",
+      "border": "0px solid rgb(8, 25, 52)"
+    },
+    {
+      "class": "trip-results__title",
+      "rect": {
+        "x": 370,
+        "y": 341,
+        "width": 905.6875,
+        "height": 34,
+        "top": 341,
+        "right": 1275.6875,
+        "bottom": 375,
+        "left": 370
+      },
+      "font": "\"Be Vietnam Pro\", sans-serif",
+      "weight": "700",
+      "border": "0px solid rgb(8, 25, 52)"
+    },
+    {
+      "class": "trip-card__operator",
+      "rect": {
+        "x": 442,
+        "y": 474,
+        "width": 144,
+        "height": 22,
+        "top": 474,
+        "right": 586,
+        "bottom": 496,
+        "left": 442
+      },
+      "font": "\"Bricolage Grotesque\", sans-serif",
+      "weight": "600",
+      "border": "0px solid rgb(8, 25, 52)"
+    },
+    {
+      "class": "trip-card__fare",
+      "rect": {
+        "x": 562.125,
+        "y": 644.5,
+        "width": 107.875,
+        "height": 26,
+        "top": 644.5,
+        "right": 670,
+        "bottom": 670.5,
+        "left": 562.125
+      },
+      "font": "\"Be Vietnam Pro\", sans-serif",
+      "weight": "400",
+      "border": "0px solid rgb(8, 25, 52)"
+    },
+    {
+      "class": "trip-card__operator",
+      "rect": {
+        "x": 778,
+        "y": 474,
+        "width": 144,
+        "height": 22,
+        "top": 474,
+        "right": 922,
+        "bottom": 496,
+        "left": 778
+      },
+      "font": "\"Bricolage Grotesque\", sans-serif",
+      "weight": "600",
+      "border": "0px solid rgb(8, 25, 52)"
+    },
+    {
+      "class": "trip-card__fare",
+      "rect": {
+        "x": 898.375,
+        "y": 644.5,
+        "width": 107.625,
+        "height": 26,
+        "top": 644.5,
+        "right": 1006,
+        "bottom": 670.5,
+        "left": 898.375
+      },
+      "font": "\"Be Vietnam Pro\", sans-serif",
+      "weight": "400",
+      "border": "0px solid rgb(8, 25, 52)"
+    },
+    {
+      "class": "trip-card__operator",
+      "rect": {
+        "x": 1114,
+        "y": 474,
+        "width": 144,
+        "height": 22,
+        "top": 474,
+        "right": 1258,
+        "bottom": 496,
+        "left": 1114
+      },
+      "font": "\"Bricolage Grotesque\", sans-serif",
+      "weight": "600",
+      "border": "0px solid rgb(8, 25, 52)"
+    },
+    {
+      "class": "trip-card__fare",
+      "rect": {
+        "x": 1233.40625,
+        "y": 644.5,
+        "width": 108.59375,
+        "height": 26,
+        "top": 644.5,
+        "right": 1342,
+        "bottom": 670.5,
+        "left": 1233.40625
+      },
+      "font": "\"Be Vietnam Pro\", sans-serif",
+      "weight": "400",
+      "border": "0px solid rgb(8, 25, 52)"
+    },
+    {
+      "class": "trip-card__operator",
+      "rect": {
+        "x": 442,
+        "y": 794,
+        "width": 144,
+        "height": 22,
+        "top": 794,
+        "right": 586,
+        "bottom": 816,
+        "left": 442
+      },
+      "font": "\"Bricolage Grotesque\", sans-serif",
+      "weight": "600",
+      "border": "0px solid rgb(8, 25, 52)"
+    },
+    {
+      "class": "trip-card__fare",
+      "rect": {
+        "x": 562.078125,
+        "y": 964.5,
+        "width": 107.921875,
+        "height": 26,
+        "top": 964.5,
+        "right": 670,
+        "bottom": 990.5,
+        "left": 562.078125
+      },
+      "font": "\"Be Vietnam Pro\", sans-serif",
+      "weight": "400",
+      "border": "0px solid rgb(8, 25, 52)"
+    },
+    {
+      "class": "trip-card__operator",
+      "rect": {
+        "x": 778,
+        "y": 794,
+        "width": 144,
+        "height": 22,
+        "top": 794,
+        "right": 922,
+        "bottom": 816,
+        "left": 778
+      },
+      "font": "\"Bricolage Grotesque\", sans-serif",
+      "weight": "600",
+      "border": "0px solid rgb(8, 25, 52)"
+    },
+    {
+      "class": "trip-card__fare",
+      "rect": {
+        "x": 900.09375,
+        "y": 964.5,
+        "width": 105.90625,
+        "height": 26,
+        "top": 964.5,
+        "right": 1006,
+        "bottom": 990.5,
+        "left": 900.09375
+      },
+      "font": "\"Be Vietnam Pro\", sans-serif",
+      "weight": "400",
+      "border": "0px solid rgb(8, 25, 52)"
+    },
+    {
+      "class": "trip-card__operator",
+      "rect": {
+        "x": 1114,
+        "y": 794,
+        "width": 144,
+        "height": 22,
+        "top": 794,
+        "right": 1258,
+        "bottom": 816,
+        "left": 1114
+      },
+      "font": "\"Bricolage Grotesque\", sans-serif",
+      "weight": "600",
+      "border": "0px solid rgb(8, 25, 52)"
+    },
+    {
+      "class": "trip-card__fare",
+      "rect": {
+        "x": 1233.765625,
+        "y": 964.5,
+        "width": 108.234375,
+        "height": 26,
+        "top": 964.5,
+        "right": 1342,
+        "bottom": 990.5,
+        "left": 1233.765625
+      },
+      "font": "\"Be Vietnam Pro\", sans-serif",
+      "weight": "400",
+      "border": "0px solid rgb(8, 25, 52)"
+    }
+  ]
+}

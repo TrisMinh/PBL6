@@ -1,0 +1,147 @@
+{
+  "baseline": "0c9cf258",
+  "scope": "all three portals",
+  "changedBaselineStyleAssets": [
+    "workspace/src/apps/web/src/features/payment/components/LiveCheckoutView.css",
+    "workspace/src/apps/web/src/features/payment/pages/BackendPaymentPage.css",
+    "workspace/src/apps/web/src/features/tickets/pages/TicketLookupPage.css"
+  ],
+  "routeBranches": [
+    {
+      "routeFile": "workspace/src/apps/web/src/routes/admin/bookings/detail.tsx",
+      "hasAlternativePresentation": true
+    },
+    {
+      "routeFile": "workspace/src/apps/web/src/routes/admin/bookings/index.tsx",
+      "hasAlternativePresentation": true
+    },
+    {
+      "routeFile": "workspace/src/apps/web/src/routes/admin/organizations/detail.tsx",
+      "hasAlternativePresentation": true
+    },
+    {
+      "routeFile": "workspace/src/apps/web/src/routes/admin/organizations/index.tsx",
+      "hasAlternativePresentation": true
+    },
+    {
+      "routeFile": "workspace/src/apps/web/src/routes/admin/payments/detail.tsx",
+      "hasAlternativePresentation": true
+    },
+    {
+      "routeFile": "workspace/src/apps/web/src/routes/admin/payments/index.tsx",
+      "hasAlternativePresentation": true
+    },
+    {
+      "routeFile": "workspace/src/apps/web/src/routes/admin/refunds/detail.tsx",
+      "hasAlternativePresentation": true
+    },
+    {
+      "routeFile": "workspace/src/apps/web/src/routes/admin/refunds/index.tsx",
+      "hasAlternativePresentation": true
+    },
+    {
+      "routeFile": "workspace/src/apps/web/src/routes/admin/staff/detail.tsx",
+      "hasAlternativePresentation": true
+    },
+    {
+      "routeFile": "workspace/src/apps/web/src/routes/admin/staff/index.tsx",
+      "hasAlternativePresentation": true
+    },
+    {
+      "routeFile": "workspace/src/apps/web/src/routes/bookings/cancel.tsx",
+      "hasAlternativePresentation": true
+    },
+    {
+      "routeFile": "workspace/src/apps/web/src/routes/bookings/refund.tsx",
+      "hasAlternativePresentation": true
+    },
+    {
+      "routeFile": "workspace/src/apps/web/src/routes/operator/bookings.tsx",
+      "hasAlternativePresentation": true
+    },
+    {
+      "routeFile": "workspace/src/apps/web/src/routes/operator/create-resource-route.tsx",
+      "hasAlternativePresentation": true
+    },
+    {
+      "routeFile": "workspace/src/apps/web/src/routes/operator/drivers.tsx",
+      "hasAlternativePresentation": true
+    },
+    {
+      "routeFile": "workspace/src/apps/web/src/routes/operator/edit-driver.tsx",
+      "hasAlternativePresentation": true
+    },
+    {
+      "routeFile": "workspace/src/apps/web/src/routes/operator/edit-resource-route.tsx",
+      "hasAlternativePresentation": true
+    },
+    {
+      "routeFile": "workspace/src/apps/web/src/routes/operator/new-driver.tsx",
+      "hasAlternativePresentation": true
+    },
+    {
+      "routeFile": "workspace/src/apps/web/src/routes/operator/passenger-manifest.tsx",
+      "hasAlternativePresentation": true
+    },
+    {
+      "routeFile": "workspace/src/apps/web/src/routes/operator/refund-requests.tsx",
+      "hasAlternativePresentation": true
+    },
+    {
+      "routeFile": "workspace/src/apps/web/src/routes/operator/refund-tracking.tsx",
+      "hasAlternativePresentation": true
+    },
+    {
+      "routeFile": "workspace/src/apps/web/src/routes/operator/reports.tsx",
+      "hasAlternativePresentation": true
+    },
+    {
+      "routeFile": "workspace/src/apps/web/src/routes/operator/resources-routes.tsx",
+      "hasAlternativePresentation": true
+    },
+    {
+      "routeFile": "workspace/src/apps/web/src/routes/operator/settlements.tsx",
+      "hasAlternativePresentation": true
+    },
+    {
+      "routeFile": "workspace/src/apps/web/src/routes/operator/trip-detail.tsx",
+      "hasAlternativePresentation": true
+    },
+    {
+      "routeFile": "workspace/src/apps/web/src/routes/operator/trip-passenger-lists.tsx",
+      "hasAlternativePresentation": true
+    },
+    {
+      "routeFile": "workspace/src/apps/web/src/routes/operator/trips.tsx",
+      "hasAlternativePresentation": true
+    },
+    {
+      "routeFile": "workspace/src/apps/web/src/routes/operator/vehicles.tsx",
+      "hasAlternativePresentation": true
+    },
+    {
+      "routeFile": "workspace/src/apps/web/src/routes/payment/vnpay-return.tsx",
+      "hasAlternativePresentation": true
+    },
+    {
+      "routeFile": "workspace/src/apps/web/src/routes/payment/vnpay.tsx",
+      "hasAlternativePresentation": true
+    },
+    {
+      "routeFile": "workspace/src/apps/web/src/routes/portal/guard.tsx",
+      "hasAlternativePresentation": true
+    },
+    {
+      "routeFile": "workspace/src/apps/web/src/routes/portal/login.tsx",
+      "hasAlternativePresentation": true
+    },
+    {
+      "routeFile": "workspace/src/apps/web/src/routes/tickets/detail.tsx",
+      "hasAlternativePresentation": true
+    },
+    {
+      "routeFile": "workspace/src/apps/web/src/routes/tickets/lookup.tsx",
+      "hasAlternativePresentation": true
+    }
+  ]
+}

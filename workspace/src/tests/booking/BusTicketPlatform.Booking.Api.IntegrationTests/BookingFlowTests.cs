@@ -148,6 +148,59 @@ public sealed class BookingFlowTests
         Assert.True(cancel.Response.IsSuccessStatusCode, cancel.Body.ToString());
     }
 
+    [Theory]
+    [InlineData(1, "CUTOFF_PASSED")]
+    [InlineData(-1, "TRIP_DEPARTED")]
+    public async Task Cancellation_explains_closed_window_at_preview_and_confirmation(int departureInHours, string expectedReason)
+    {
+        using var client = _fixture.CreateClient();
+        var trip = await ImportTrip(client, seatCount: 1);
+        var token = TestJwt.Mint(Guid.CreateVersion7(), ["CUSTOMER"]);
+        var hold = await CreateHold(client, trip, trip.SeatIds, token);
+        var price = hold.Body.GetProperty("seats")[0].GetProperty("price").GetProperty("amount").GetInt64();
+        var booking = await CreateBooking(client, trip, hold.Body.GetProperty("holdToken").GetString()!, token,
+            price, "PAY_LATER", [Passenger(trip, trip.SeatIds[0], "Test Passenger")]);
+        Assert.Equal(HttpStatusCode.Created, booking.Response.StatusCode);
+        var id = booking.Body.GetProperty("id").GetGuid();
+        var current = await Send(client, HttpMethod.Get, $"/api/v1/bookings/{id}", null, token);
+        var ticketsPath = $"/api/v1/bookings/{id}/tickets";
+        var ticket = (await Send(client, HttpMethod.Get, ticketsPath, null, token)).Body[0];
+        var ticketIds = new[] { ticket.GetProperty("id").GetGuid() };
+        var previewPath = $"/api/v1/bookings/{id}/cancellation-preview";
+        var validPreview = await Send(client, HttpMethod.Post, previewPath, new { ticketIds }, token);
+        Assert.Equal(HttpStatusCode.OK, validPreview.Response.StatusCode);
+
+        await using var connection = new NpgsqlConnection(_fixture.Container.GetConnectionString());
+        await connection.OpenAsync();
+        await using var update = new NpgsqlCommand("""
+            UPDATE trip_snapshots SET departure_at = @departure, arrival_at = @arrival WHERE trip_id = @trip;
+            """, connection);
+        var departure = DateTimeOffset.UtcNow.AddHours(departureInHours);
+        update.Parameters.AddWithValue("departure", departure);
+        update.Parameters.AddWithValue("arrival", departure.AddHours(4));
+        update.Parameters.AddWithValue("trip", trip.TripId);
+        await update.ExecuteNonQueryAsync();
+
+        var deniedPreview = await Send(client, HttpMethod.Post, previewPath, new { ticketIds }, token);
+        var deniedConfirmation = await Send(client, HttpMethod.Post, $"/api/v1/bookings/{id}/cancel", new
+        {
+            previewId = validPreview.Body.GetProperty("previewId").GetGuid(),
+            reason = "Changed plans",
+            expectedVersion = current.Body.GetProperty("rowVersion").GetInt64()
+        }, token, Guid.NewGuid().ToString());
+        foreach (var denied in new[] { deniedPreview, deniedConfirmation })
+        {
+            Assert.Equal(HttpStatusCode.Conflict, denied.Response.StatusCode);
+            var error = denied.Body.GetProperty("error");
+            Assert.Equal("CANCELLATION_NOT_ALLOWED", error.GetProperty("code").GetString());
+            var details = error.GetProperty("details");
+            Assert.Equal(expectedReason, details.GetProperty("reason").GetString());
+            Assert.Equal(details.GetProperty("departureAt").GetDateTimeOffset().AddHours(-2),
+                details.GetProperty("cutoffAt").GetDateTimeOffset());
+        }
+        Assert.Equal("ISSUED", (await Send(client, HttpMethod.Get, ticketsPath, null, token)).Body[0].GetProperty("status").GetString());
+    }
+
     [Fact]
     public async Task Holds_are_atomic_and_concurrent()
     {
@@ -366,9 +419,10 @@ public sealed class BookingFlowTests
             new { bookingId = id, paymentId = Guid.CreateVersion7(), amount = total, currency = "VND" });
         var current = await Send(client, HttpMethod.Get, $"/api/v1/bookings/{id}", null, token);
         var tickets = await Send(client, HttpMethod.Get, "/api/v1/tickets", null, token);
-        Assert.True(forged.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden,
+        Assert.True(forged.StatusCode is HttpStatusCode.NotFound or HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden,
             $"Anonymous payment event returned {(int)forged.StatusCode}; booking={current.Body.GetProperty("status")}; tickets={tickets.Body.GetProperty("items").GetArrayLength()}");
         Assert.Equal("PENDING_PAYMENT", current.Body.GetProperty("status").GetString());
+        Assert.Empty(tickets.Body.GetProperty("items").EnumerateArray());
     }
 
     [Fact]

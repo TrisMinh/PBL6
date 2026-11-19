@@ -6,6 +6,7 @@ import type {
 import { tripSearchSchema } from "@/features/trips/schemas/search.schema";
 import { tripSchema } from "@/features/trips/schemas/tripResponse.schema";
 import { isMockApi } from "@/shared/api/config";
+import { normalizeSearch } from "@/shared/api/livePresentation";
 
 export function parseTripSearch(params: URLSearchParams): TripSearch | null {
   const fields = [
@@ -43,8 +44,11 @@ export function selectVisibleTrips(
   filters: TripFilterCriteria = {},
 ): Trip[] {
   const vehicle = tripSchema.shape.vehicleType.safeParse(filters.vehicleType);
+  const operatorName = normalizeSearch(filters.operatorName ?? "");
   const visible = trips.filter(
     (trip) =>
+      (!operatorName ||
+        normalizeSearch(trip.displayOperatorName).includes(operatorName)) &&
       (!filters.organizationId ||
         trip.operator.id === filters.organizationId) &&
       (!filters.pickupStopId ||
@@ -82,6 +86,7 @@ export function selectVisibleTrips(
 }
 
 export interface TripFilterCriteria {
+  operatorName?: string;
   organizationId?: string;
   pickupStopId?: string;
   dropoffStopId?: string;

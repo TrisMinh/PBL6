@@ -16,5 +16,6 @@
     <EmbeddedResource Include="..\..\..\..\..\docs\database\_shared\000_integration_tables.sql" LogicalName="sql.shared" />
     <EmbeddedResource Include="..\..\..\..\..\docs\database\booking\001_initial.sql" LogicalName="sql.booking" />
     <EmbeddedResource Include="..\..\..\..\..\docs\database\booking\002_coupons.sql" LogicalName="sql.coupons" />
+    <EmbeddedResource Include="..\..\..\..\..\docs\database\booking\003_operator_booking_analytics.sql" LogicalName="sql.booking-analytics" />
   </ItemGroup>
 </Project>

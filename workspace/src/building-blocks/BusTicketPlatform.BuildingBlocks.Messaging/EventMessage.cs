@@ -87,6 +87,7 @@ public static class Topology
     public const string RefundRequestedRoutingKey = "booking.refund.requested.v1";
     public const string PaymentSucceededRoutingKey = "payment.payment.succeeded.v1";
     public const string PaymentFailedRoutingKey = "payment.payment.failed.v1";
+    public const string RevenueMovementRoutingKey = "payment.reporting.movement.v1";
     public const string RefundSucceededRoutingKey = "payment.refund.succeeded.v1";
     public const string RefundFailedRoutingKey = "payment.refund.failed.v1";
 }

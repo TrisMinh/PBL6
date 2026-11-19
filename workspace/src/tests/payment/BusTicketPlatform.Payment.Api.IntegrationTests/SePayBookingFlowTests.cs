@@ -36,6 +36,8 @@ public sealed class SePayBookingFlowTests(PaymentPostgresFixture fixture)
             builder.ConfigureTestServices(services => { services.RemoveAll<BookingDatabaseOptions>(); services.AddSingleton(new BookingDatabaseOptions { ConnectionString = connectionString }); });
         });
         var bookingClient = bookingFactory.CreateClient(); var paymentClient = fixture.CreateClient();
+        await using var replicaFactory = fixture.Factory.WithWebHostBuilder(_ => { });
+        using var replicaClient = replicaFactory.CreateClient();
         var user = Guid.CreateVersion7(); var org = Guid.CreateVersion7(); var trip = Guid.CreateVersion7();
         var origin = Guid.CreateVersion7(); var destination = Guid.CreateVersion7(); var token = TestJwt.Mint(user, ["CUSTOMER"]);
         var imported = await bookingClient.PostAsJsonAsync("/api/v1/internal/trips/published", new {
@@ -70,14 +72,29 @@ public sealed class SePayBookingFlowTests(PaymentPostgresFixture fixture)
         Assert.Equal(payable, decimal.Parse(payment.GetProperty("providerAction").GetProperty("order_amount").GetString()!, System.Globalization.CultureInfo.InvariantCulture));
         var paymentId = payment.GetProperty("id").GetGuid();
         Assert.Equal(0, (await Send(bookingClient, HttpMethod.Get, $"/api/v1/bookings/{bookingId}/tickets", token)).GetArrayLength());
-        using var hook = new HttpRequestMessage(HttpMethod.Post, "/integrations/payments/sepay/ipn");
-        hook.Headers.Add("X-Secret-Key", "test-only-ipn-key");
-        hook.Content = JsonContent.Create(new {
+        var notification = new {
             timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds(), notification_type = "ORDER_PAID",
             order = new { order_invoice_number = payment.GetProperty("providerAction").GetProperty("order_invoice_number").GetString(), order_amount = payable.ToString("F2", System.Globalization.CultureInfo.InvariantCulture), order_currency = "VND", order_status = "CAPTURED" },
             transaction = new { id = Guid.NewGuid().ToString(), transaction_amount = payable.ToString(System.Globalization.CultureInfo.InvariantCulture), transaction_currency = "VND", transaction_status = "APPROVED", transaction_type = "PAYMENT" }, customer = new { customer_id = user.ToString() }
-        });
-        Assert.Equal(HttpStatusCode.OK, (await paymentClient.SendAsync(hook)).StatusCode);
+        };
+        async Task<HttpStatusCode> SendIpnAsync(HttpClient client)
+        {
+            using var hook = new HttpRequestMessage(HttpMethod.Post, "/integrations/payments/sepay/ipn");
+            hook.Headers.Add("X-Secret-Key", "test-only-ipn-key");
+            hook.Content = JsonContent.Create(notification);
+            using var response = await client.SendAsync(hook);
+            return response.StatusCode;
+        }
+
+        Assert.Equal(HttpStatusCode.OK, await SendIpnAsync(replicaClient));
+        Assert.Equal(HttpStatusCode.OK, await SendIpnAsync(paymentClient));
+        await using (var connection = new NpgsqlConnection(fixture.Container.GetConnectionString()))
+        {
+            await connection.OpenAsync();
+            await using var count = new NpgsqlCommand("SELECT COUNT(*) FROM outbox_messages WHERE aggregate_id = @id AND message_type = 'PaymentSucceeded'", connection);
+            count.Parameters.AddWithValue("id", paymentId);
+            Assert.Equal(1L, await count.ExecuteScalarAsync());
+        }
         if (bookingExpiresBeforeEvent)
         {
             await using var connection = new NpgsqlConnection(connectionString); await connection.OpenAsync();

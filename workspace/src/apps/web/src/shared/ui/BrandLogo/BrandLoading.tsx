@@ -35,7 +35,6 @@ export function BrandLoading({
         </div>
         <div className="brand-loading__road">
           <span className="brand-loading__lane" />
-          <span className="brand-loading__light" />
         </div>
       </div>
       <div

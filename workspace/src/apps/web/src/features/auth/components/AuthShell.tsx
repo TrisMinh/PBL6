@@ -15,6 +15,7 @@ import storyPrev from "@/assets/auth/story-prev.svg";
 import storyRegister from "@/assets/auth/story-front-register.svg";
 import storyStack from "@/assets/auth/story-stack.svg";
 import { ROUTES } from "@/shared/config/routes";
+import { customerOrigin } from "@/shared/config/portalOrigins";
 import { BrandLogo } from "@/shared/ui/BrandLogo/BrandLogo";
 
 import "./AuthShell.css";
@@ -56,27 +57,59 @@ const AUTH_COPY = {
   },
 } satisfies Record<AuthMode, Record<string, string>>;
 
+const OPERATOR_COPY = {
+  eyebrow: "BLUE OPERATOR",
+  title: "Đăng nhập nhà xe",
+  support: "Sử dụng tài khoản được cấp để vào trang quản lý.",
+  assistant: "Cần hỗ trợ? Liên hệ quản trị nhà xe.",
+};
+
 export function AuthShell({
   children,
   mode,
+  audience = "customer",
 }: {
   children: ReactNode;
   mode: AuthMode;
+  audience?: "customer" | "operator";
 }): ReactElement {
-  const copy = AUTH_COPY[mode];
+  const operator = audience === "operator";
+  const classes = ["auth-page", `auth-page--${mode}`];
+  if (operator) classes.push("auth-page--operator");
+  const copy = operator ? OPERATOR_COPY : AUTH_COPY[mode];
+  const homeLabel = (
+    <>
+      <House size={17} aria-hidden /> Về trang chủ
+    </>
+  );
   return (
-    <section className={`auth-page auth-page--${mode}`}>
+    <section className={classes.join(" ")}>
       <div className="auth-page__shell">
         <div className="auth-page__form-zone">
           <div className="auth-page__topline">
-            <Link aria-label="BLUE — Trang chủ" to={ROUTES.home}>
-              <BrandLogo placement="auth" />
-            </Link>
-            <Link className="auth-page__home" to={ROUTES.home}>
-              <House size={17} aria-hidden /> Về trang chủ
-            </Link>
+            {operator ? (
+              <>
+                <BrandLogo placement="auth" />
+                <a className="auth-page__home" href={customerOrigin()}>
+                  {homeLabel}
+                </a>
+              </>
+            ) : (
+              <>
+                <Link aria-label="BLUE — Trang chủ" to={ROUTES.home}>
+                  <BrandLogo placement="auth" />
+                </Link>
+                <Link className="auth-page__home" to={ROUTES.home}>
+                  {homeLabel}
+                </Link>
+              </>
+            )}
           </div>
-          <AuthIntro mode={mode} assistant={copy.assistant} />
+          <AuthIntro
+            mode={mode}
+            assistant={copy.assistant}
+            showTabs={!operator}
+          />
           <div className="auth-page__heading">
             <p className="auth-page__eyebrow">{copy.eyebrow}</p>
             <h1 className="auth-page__title">{copy.title}</h1>
@@ -89,7 +122,7 @@ export function AuthShell({
           )}
           {children}
         </div>
-        <ScenicPanel mode={mode} />
+        <ScenicPanel mode={mode} operator={operator} />
       </div>
     </section>
   );
@@ -98,16 +131,20 @@ export function AuthShell({
 function AuthIntro({
   assistant,
   mode,
+  showTabs,
 }: {
   assistant: string;
   mode: AuthMode;
+  showTabs: boolean;
 }): ReactElement {
   return (
     <>
-      <nav className="auth-page__tabs" aria-label="Tài khoản">
-        <NavLink to={ROUTES.register}>Đăng ký</NavLink>
-        <NavLink to={ROUTES.login}>Đăng nhập</NavLink>
-      </nav>
+      {showTabs && (
+        <nav className="auth-page__tabs" aria-label="Tài khoản">
+          <NavLink to={ROUTES.register}>Đăng ký</NavLink>
+          <NavLink to={ROUTES.login}>Đăng nhập</NavLink>
+        </nav>
+      )}
       <div className="auth-page__assistant">
         <img
           src={mode === "forgot" ? worried : happy}
@@ -121,7 +158,13 @@ function AuthIntro({
   );
 }
 
-function ScenicPanel({ mode }: { mode: AuthMode }): ReactElement {
+function ScenicPanel({
+  mode,
+  operator,
+}: {
+  mode: AuthMode;
+  operator: boolean;
+}): ReactElement {
   const storyFront =
     mode === "login"
       ? storyLogin
@@ -143,6 +186,27 @@ function ScenicPanel({ mode }: { mode: AuthMode }): ReactElement {
         height="834"
         alt="Xe BLUE trên cung đường núi — ảnh minh họa"
       />
+      {operator ? (
+        <div className="auth-page__operator-caption">
+          <h2>Điều hành chuyến xe</h2>
+          <p>Quản lý lịch chuyến, đội xe và doanh thu.</p>
+        </div>
+      ) : (
+        <CustomerScenicCopy storyFront={storyFront} storyArrow={storyArrow} />
+      )}
+    </aside>
+  );
+}
+
+function CustomerScenicCopy({
+  storyFront,
+  storyArrow,
+}: {
+  storyFront: string;
+  storyArrow: string;
+}): ReactElement {
+  return (
+    <>
       <div className="auth-page__story-card">
         <img className="auth-page__story-stack" src={storyStack} alt="" />
         <img className="auth-page__story-front" src={storyFront} alt="" />
@@ -169,6 +233,6 @@ function ScenicPanel({ mode }: { mode: AuthMode }): ReactElement {
           <img src={storyNext} alt="" />
         </div>
       </div>
-    </aside>
+    </>
   );
 }

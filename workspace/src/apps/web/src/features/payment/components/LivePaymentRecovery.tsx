@@ -20,6 +20,7 @@ interface Props {
   payment: { id: string; status: string; amount: number };
   checking: boolean;
   checkedAt: number;
+  notice?: string;
   onRecheck: () => Promise<unknown>;
 }
 const clock = (value: string | number): string =>
@@ -34,6 +35,7 @@ export function LivePaymentRecovery({
   payment,
   checking,
   checkedAt,
+  notice,
   onRecheck,
 }: Props): ReactElement {
   const query = useQuery({
@@ -63,6 +65,7 @@ export function LivePaymentRecovery({
           Chuyến đi → Chọn ghế → Hành khách → Thanh toán → Không thành công
         </nav>
         <h1>{title}</h1>
+        {notice && <p role="alert">{notice}</p>}
       </header>
       {query.isPending ? (
         <p role="status">Đang tải thông tin đơn…</p>

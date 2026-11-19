@@ -17,9 +17,9 @@ if ($EnvFile) {
 $required = @(
     'POSTGRES_PASSWORD', 'RABBITMQ_PASSWORD', 'JWT_SIGNING_KEY', 'API_ALLOWED_HOSTS',
     'CUSTOMER_ORIGIN', 'SMTP_HOST', 'SMTP_FROM',
-    'SMTP_USERNAME', 'SMTP_PASSWORD', 'VNPAY_CHECKOUT_URL', 'VNPAY_TMN_CODE', 'VNPAY_HASH_SECRET'
+    'SMTP_USERNAME', 'SMTP_PASSWORD', 'SEPAY_MERCHANT_ID', 'SEPAY_SECRET_KEY', 'SEPAY_IPN_SECRET_KEY', 'CUSTOMER_PUBLIC_ORIGIN'
 )
-$secretNames = @('POSTGRES_PASSWORD', 'RABBITMQ_PASSWORD', 'JWT_SIGNING_KEY', 'SMTP_PASSWORD', 'VNPAY_HASH_SECRET')
+$secretNames = @('POSTGRES_PASSWORD', 'RABBITMQ_PASSWORD', 'JWT_SIGNING_KEY', 'SMTP_PASSWORD', 'SEPAY_IPN_SECRET_KEY')
 $placeholder = '(?i)(replace|change.?me|local.?dev|example\.test|password$|secret$|guest$|postgres$)'
 
 $errors = [System.Collections.Generic.List[string]]::new()
@@ -36,7 +36,7 @@ foreach ($name in $required) {
     }
 }
 
-foreach ($originName in @('CUSTOMER_ORIGIN')) {
+foreach ($originName in @('CUSTOMER_ORIGIN', 'CUSTOMER_PUBLIC_ORIGIN')) {
     $origin = [Environment]::GetEnvironmentVariable($originName, 'Process')
     if ($origin -and $origin -notmatch '^https://') { $errors.Add("$originName must use HTTPS") }
 }

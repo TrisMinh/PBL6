@@ -1079,3 +1079,55 @@
   line-height: 1.6;
   color: var(--color-auth-muted);
 }
+
+.auth-page--operator .auth-page__assistant {
+  margin-top: 32px;
+}
+
+.auth-page--operator .auth-page__fields {
+  gap: 16px;
+  margin-top: 28px;
+}
+
+.auth-page--operator .auth-page__fields > .button {
+  margin-top: 4px;
+}
+
+.auth-page--operator .auth-page__control--email {
+  background-image: url("../../../assets/auth/field-email.svg");
+}
+
+.auth-page--operator .auth-page__control--password {
+  background-image: url("../../../assets/auth/field-password.svg");
+}
+
+@media (min-width: 1440px) {
+  .auth-page--operator .auth-page__assistant {
+    margin-top: 84px;
+  }
+}
+
+.auth-page__operator-caption {
+  position: absolute;
+  inset: 52px 52px auto auto;
+  max-width: 260px;
+  padding: 18px 22px;
+  border-radius: 18px;
+  background: var(--color-auth-surface);
+  color: var(--color-auth-ink);
+  box-shadow: var(--shadow-auth-shell);
+}
+
+.auth-page__operator-caption h2 {
+  margin: 0 0 4px;
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+.auth-page__operator-caption p {
+  margin: 0;
+  color: var(--color-auth-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}

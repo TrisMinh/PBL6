@@ -6,7 +6,7 @@ using System.Text;
 
 namespace BusTicketPlatform.Payment.Application;
 
-public sealed record Actor(Guid UserId, Guid? OrganizationId, IReadOnlyList<string> RoleCodes)
+public sealed record Actor(Guid UserId, Guid? OrganizationId, IReadOnlyList<string> RoleCodes, IReadOnlyList<string>? OrganizationRoles = null)
 {
     public bool Has(params string[] roles) => roles.Any(RoleCodes.Contains);
 }
@@ -19,7 +19,9 @@ public sealed record CreateRefundRequest(string RefundReference, Guid PaymentId,
 public sealed record RefundDto(Guid Id, string RefundReference, Guid PaymentId, Guid BookingId, long Amount, string Currency, string Status, string Reason, DateTimeOffset? CreatedAt = null);
 public sealed record RefundPageDto(int Page, int Size, long TotalElements, int TotalPages, IReadOnlyList<RefundDto> Items);
 public sealed record BookingQuote(Guid BookingId, Guid CustomerId, Guid OrganizationId, long Amount, string Currency, string PaymentChannel, decimal CommissionRate, DateTimeOffset? ExpiresAt = null);
-public sealed record BookingSettlementDto(Guid Id, Guid BookingId, Guid OrganizationId, Guid? PaymentId, string PaymentChannel, long GrossAmount, decimal CommissionRate, long CommissionAmount, long OperatorNet, string Currency, string CollectionStatus);
+public sealed record BookingSettlementDto(Guid Id, Guid BookingId, Guid OrganizationId, Guid? PaymentId, string PaymentChannel, long GrossAmount, decimal CommissionRate, long CommissionAmount, long OperatorNet, string Currency, string CollectionStatus, long OriginalAmount, long RefundAmount, DateTimeOffset? CreatedAt, long RowVersion, SettlementReceipt? Receipt);
+public sealed record ConfirmSettlementReceiptRequest(string Reference, long Amount, string Currency, long ExpectedVersion);
+public sealed record SettlementReceipt(string Reference, long Amount, string Currency, long SettlementVersion, DateTimeOffset ConfirmedAt);
 public sealed record SettlementPageDto(int Page, int Size, long TotalElements, int TotalPages, IReadOnlyList<BookingSettlementDto> Items);
 public sealed record CreatePayoutRequest(Guid OrganizationId, DateOnly PeriodStart, DateOnly PeriodEnd, string Currency, long PayableAmount);
 public sealed record OperatorPayoutDto(Guid Id, Guid OrganizationId, DateOnly PeriodStart, DateOnly PeriodEnd, string Currency, long PayableAmount, string Status, DateTimeOffset? TransferredAt);
@@ -50,12 +52,13 @@ public interface IPaymentRepository
     Task<(IReadOnlyList<RefundRecord> Items, long Total)> SearchRefundsAsync(Guid? orgId, int page, int size, CancellationToken cancellationToken);
     Task InsertSettlementAsync(SettlementRecord settlement, CancellationToken cancellationToken);
     Task<(IReadOnlyList<SettlementRecord> Items, long Total)> ListSettlementsAsync(Guid? orgId, int page, int size, CancellationToken cancellationToken);
+    Task<Result<SettlementReceipt>> ConfirmSettlementReceiptAsync(Guid id, Guid organizationId, Guid actorId, ConfirmSettlementReceiptRequest request, CancellationToken cancellationToken);
     Task<PayoutRecord> InsertPayoutAsync(PayoutRecord payout, CancellationToken cancellationToken);
 }
 
 public sealed record PaymentRecord(Guid Id, Guid BookingId, Guid CustomerId, Guid OrganizationId, string Provider, string LogicalReference, long Amount, string Currency, string Status, DateTimeOffset ExpiresAt, long RowVersion, string? ReturnUri, string? CheckoutMethod = null, DateTimeOffset? CreatedAt = null);
 public sealed record RefundRecord(Guid Id, Guid PaymentId, Guid BookingId, Guid RequestedBy, string RefundReference, long Amount, string Currency, string Reason, string Status, DateTimeOffset? CreatedAt = null);
-public sealed record SettlementRecord(Guid Id, Guid BookingId, Guid OrganizationId, Guid? PaymentId, string PaymentChannel, long Gross, decimal Rate, long Commission, long Net, string Currency, string Status);
+public sealed record SettlementRecord(Guid Id, Guid BookingId, Guid OrganizationId, Guid? PaymentId, string PaymentChannel, long Gross, decimal Rate, long Commission, long Net, string Currency, string Status, long? OriginalAmount = null, DateTimeOffset? CreatedAt = null, long RowVersion = 0, SettlementReceipt? Receipt = null);
 public sealed record PayoutRecord(Guid Id, Guid OrganizationId, DateOnly PeriodStart, DateOnly PeriodEnd, string Currency, long PayableAmount, string Status, DateTimeOffset? TransferredAt);
 
 public interface IPaymentEvents
@@ -100,7 +103,7 @@ public sealed class PaymentService(IPaymentRepository store, IPaymentEvents even
 
     public async Task<Result<PaymentDto>> CreateAsync(Actor actor, Guid bookingId, CreatePaymentRequest request, Guid correlationId, CancellationToken cancellationToken)
     {
-        if (request.Provider is not ("VNPAY_SANDBOX" or "SEPAY") || request.Provider == "VNPAY_SANDBOX" && !vnpay.Enabled)
+        if (request.Provider is not ("VNPAY_SANDBOX" or "SEPAY") || request.Provider == "VNPAY_SANDBOX" && !vnpay.IsConfigured)
         {
             return Result<PaymentDto>.Failure(PlatformErrors.Validation("Unsupported provider.", "provider"));
         }
@@ -210,7 +213,7 @@ public sealed class PaymentService(IPaymentRepository store, IPaymentEvents even
 
     public async Task<Result> HandleWebhookAsync(string provider, IReadOnlyDictionary<string, object> body, Guid correlationId, CancellationToken cancellationToken)
     {
-        if (!vnpay.Enabled || !string.Equals(provider, "vnpay-sandbox", StringComparison.OrdinalIgnoreCase))
+        if (!vnpay.IsConfigured || !string.Equals(provider, "vnpay-sandbox", StringComparison.OrdinalIgnoreCase))
         {
             return Result.Failure(PlatformErrors.WebhookInvalid());
         }
@@ -394,12 +397,34 @@ public sealed class PaymentService(IPaymentRepository store, IPaymentEvents even
             return Result<SettlementPageDto>.Failure(PlatformErrors.AccessDenied());
         }
 
-        if (!platform && !actor.Has("OPERATOR_ADMIN", "OPERATOR_FINANCE")) return Result<SettlementPageDto>.Failure(PlatformErrors.AccessDenied());
+        if (!platform && !CanReconcile(actor)) return Result<SettlementPageDto>.Failure(PlatformErrors.AccessDenied());
         if (page < 0 || size is < 1 or > 100) return Result<SettlementPageDto>.Failure(PlatformErrors.Validation("Page must be non-negative and size must be between 1 and 100."));
 
         var org = platform ? (Guid?)null : actor.OrganizationId;
         var (items, total) = await store.ListSettlementsAsync(org, page, size, cancellationToken);
         return Result<SettlementPageDto>.Success(new SettlementPageDto(page, size, total, Pages(total, size), items.Select(Map).ToArray()));
+    }
+
+    private static bool CanReconcile(Actor actor) =>
+        actor.OrganizationId is Guid id && id != Guid.Empty &&
+        actor.OrganizationRoles?.Any(role => role is "OPERATOR_ADMIN" or "OPERATOR_FINANCE") == true;
+
+    public Task<Result<SettlementReceipt>> ConfirmSettlementReceiptAsync(Actor actor, Guid settlementId,
+        ConfirmSettlementReceiptRequest request, CancellationToken cancellationToken)
+    {
+        if (!CanReconcile(actor))
+            return Task.FromResult(Result<SettlementReceipt>.Failure(PlatformErrors.AccessDenied()));
+
+        var reference = request.Reference?.Trim().ToUpperInvariant() ?? "";
+        if (reference.Length < 3 || reference.Length > 100 ||
+            !reference.All(c => char.IsAsciiLetterOrDigit(c) || c is '-' or '_' or '.' or '/'))
+            return Task.FromResult(Result<SettlementReceipt>.Failure(PlatformErrors.Validation("Nhập mã chuyển khoản hợp lệ từ 3 đến 100 ký tự.", "reference")));
+        if (request.Amount <= 0 || request.ExpectedVersion < 0 ||
+            request.Currency is not { Length: 3 } || !request.Currency.All(char.IsAsciiLetterUpper))
+            return Task.FromResult(Result<SettlementReceipt>.Failure(PlatformErrors.Validation("Số tiền, loại tiền hoặc phiên bản không hợp lệ.")));
+
+        return store.ConfirmSettlementReceiptAsync(settlementId, actor.OrganizationId.GetValueOrDefault(), actor.UserId,
+            request with { Reference = reference }, cancellationToken);
     }
 
     public async Task ApplyRefundRequestedAsync(
@@ -486,7 +511,7 @@ public sealed class PaymentService(IPaymentRepository store, IPaymentEvents even
         {
             action = SePayCheckout.BuildAction(sepay, payment with { ReturnUri = ret }, payment.CheckoutMethod ?? "BANK_TRANSFER");
         }
-        else if (payment.Provider != "SEPAY" && vnpay.Enabled && !string.IsNullOrWhiteSpace(ret) && payment.Status is "PENDING" or "PROCESSING")
+        else if (payment.Provider != "SEPAY" && vnpay.IsConfigured && !string.IsNullOrWhiteSpace(ret) && payment.Status is "PENDING" or "PROCESSING")
         {
             action = new Dictionary<string, string>
             {
@@ -520,7 +545,8 @@ public sealed class PaymentService(IPaymentRepository store, IPaymentEvents even
         new(refund.Id, refund.RefundReference, refund.PaymentId, refund.BookingId, refund.Amount, refund.Currency, refund.Status, refund.Reason, refund.CreatedAt);
 
     private static BookingSettlementDto Map(SettlementRecord item) =>
-        new(item.Id, item.BookingId, item.OrganizationId, item.PaymentId, item.PaymentChannel, item.Gross, item.Rate, item.Commission, item.Net, item.Currency, item.Status);
+        new(item.Id, item.BookingId, item.OrganizationId, item.PaymentId, item.PaymentChannel, item.Gross, item.Rate, item.Commission, item.Net, item.Currency, item.Status, item.OriginalAmount ?? item.Gross,
+            Math.Max(0, (item.OriginalAmount ?? item.Gross) - item.Gross), item.CreatedAt, item.RowVersion, item.Receipt);
 
     private static OperatorPayoutDto Map(PayoutRecord item) =>
         new(item.Id, item.OrganizationId, item.PeriodStart, item.PeriodEnd, item.Currency, item.PayableAmount, item.Status, item.TransferredAt);

@@ -1,0 +1,13 @@
+{
+  "status": "passed",
+  "checks": [
+    "login",
+    "organization",
+    "settlements",
+    "create-review-publish",
+    "desktop-reload",
+    "no-overflow",
+    "logout"
+  ],
+  "errors": []
+}

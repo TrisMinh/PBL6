@@ -319,14 +319,12 @@
 @supports (interpolate-size: allow-keywords) {
   @media (prefers-reduced-motion: no-preference) {
     :is(
-      .trip-card__details,
       .payment-checkout__transaction-details,
       .partner-sales__faq details
     ) {
       interpolate-size: allow-keywords;
     }
     :is(
-      .trip-card__details,
       .payment-checkout__transaction-details,
       .partner-sales__faq details
     )::details-content {
@@ -337,7 +335,6 @@
         content-visibility var(--motion-panel) allow-discrete;
     }
     :is(
-        .trip-card__details,
         .payment-checkout__transaction-details,
         .partner-sales__faq details
       )[open]::details-content {

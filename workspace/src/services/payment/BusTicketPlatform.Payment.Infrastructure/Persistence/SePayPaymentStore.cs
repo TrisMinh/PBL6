@@ -9,6 +9,18 @@ namespace BusTicketPlatform.Payment.Infrastructure.Persistence;
 
 public sealed partial class PaymentRepository
 {
+    public async Task<bool> TryStartReconciliationAsync(Guid paymentId, CancellationToken cancellationToken)
+    {
+        await using var connection = await OpenAsync(cancellationToken);
+        await using var command = new NpgsqlCommand("""
+            UPDATE payments SET sepay_checked_at = NOW()
+            WHERE id = @id AND provider = 'SEPAY' AND status IN ('PENDING', 'PROCESSING', 'FAILED', 'CANCELLED')
+                AND (sepay_checked_at IS NULL OR sepay_checked_at <= NOW() - INTERVAL '30 seconds');
+            """, connection);
+        command.Parameters.AddWithValue("id", paymentId);
+        return await command.ExecuteNonQueryAsync(cancellationToken) == 1;
+    }
+
     public async Task<Result> ApplySePayAsync(SePayNotification notification, string payloadHash, Guid correlationId, CancellationToken cancellationToken)
     {
         await using var connection = await OpenAsync(cancellationToken);

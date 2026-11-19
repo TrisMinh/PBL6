@@ -54,13 +54,12 @@ Nếu repository đã có sẵn, chỉ chạy ba lệnh cuối.
 | 5672 / 15672 | RabbitMQ / management |
 | 6379 | Redis |
 | 8025 / 1025 | Mailpit web / SMTP |
-| 8099 | VNPay simulator |
 
 Kiểm tra ví dụ:
 
 ```powershell
 Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue |
-  Where-Object LocalPort -In 5080,5081,5082,5083,5084,5085,5086,5173,5174,5432,5672,6379,8025,8099
+  Where-Object LocalPort -In 5080,5081,5082,5083,5084,5085,5086,5173,5174,5432,5672,6379,8025
 ```
 
 ## 5. Kiến thức tối thiểu trước khi code

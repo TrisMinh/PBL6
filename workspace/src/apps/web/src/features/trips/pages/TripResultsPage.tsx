@@ -164,6 +164,8 @@ function TripSearchPanel({
       next.set("browse", "1");
     const view = params.get("view");
     if (view) next.set("view", view);
+    const operatorName = params.get("operatorName");
+    if (operatorName) next.set("operatorName", operatorName);
     setError("");
     onChange(next);
   }
@@ -495,14 +497,37 @@ function ResultsLoading(): ReactElement {
   );
 }
 
-function ResultsEmpty(): ReactElement {
+function ResultsEmpty({
+  operatorName,
+  onClearOperator,
+}: {
+  operatorName: string | null;
+  onClearOperator: () => void;
+}): ReactElement {
   return (
     <PageState
       title="Không tìm thấy chuyến phù hợp"
-      description="Thử đổi loại xe hoặc sửa hành trình và ngày đi để tìm chuyến khác."
-      action={<EditSearch />}
+      description={
+        operatorName
+          ? `Không có chuyến phù hợp với tên nhà xe “${operatorName}” và các bộ lọc hiện tại.`
+          : "Thử đổi loại xe hoặc sửa hành trình và ngày đi để tìm chuyến khác."
+      }
+      action={
+        operatorName ? (
+          <Button onClick={onClearOperator}>Bỏ lọc tên nhà xe</Button>
+        ) : (
+          <EditSearch />
+        )
+      }
     />
   );
+}
+
+function withoutOperatorName(params: URLSearchParams): URLSearchParams {
+  const next = new URLSearchParams(params);
+  next.delete("operatorName");
+  next.delete("page");
+  return next;
 }
 
 function ResultsState({
@@ -524,12 +549,18 @@ function ResultsState({
 }): ReactElement {
   if (query.isPending) return <ResultsLoading />;
   if (query.isError) return <ResultsError query={query} />;
-  const visible = selectVisibleTrips(
-    query.data,
-    search.sort,
-    parseFilterCriteria(params),
-  );
-  if (visible.length === 0) return <ResultsEmpty />;
+  const operatorName = params.get("operatorName");
+  const visible = selectVisibleTrips(query.data, search.sort, {
+    ...parseFilterCriteria(params),
+    operatorName: operatorName ?? undefined,
+  });
+  if (visible.length === 0)
+    return (
+      <ResultsEmpty
+        operatorName={operatorName}
+        onClearOperator={() => onChange(withoutOperatorName(params))}
+      />
+    );
   return (
     <ResultsList
       key={params.toString()}
@@ -630,10 +661,11 @@ function TripCatalogue({
   const sort = tripSearchSchema.shape.sort.safeParse(
     params.get("sort") ?? "relevance",
   );
+  const operatorName = params.get("operatorName");
   const visible = selectVisibleTrips(
     candidates,
     sort.success && sort.data !== "relevance" ? sort.data : "departure",
-    parseFilterCriteria(params),
+    { ...parseFilterCriteria(params), operatorName: operatorName ?? undefined },
   );
   return (
     <div className="trip-results trip-results--catalogue">
@@ -673,6 +705,13 @@ function TripCatalogue({
             destinationLabel=""
             allRoutes
           />
+        ) : operatorName ? (
+          <div className="trip-catalogue__empty">
+            <ResultsEmpty
+              operatorName={operatorName}
+              onClearOperator={() => onChange(withoutOperatorName(effective))}
+            />
+          </div>
         ) : (
           <div className="trip-catalogue__empty">
             <PageState

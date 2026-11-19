@@ -12,6 +12,7 @@ Test Design xác định mức kiểm thử, traceability, dữ liệu/môi trư
 - [3.6.6 Performance, reliability và observability tests](./06-performance-reliability-tests.md)
 - [3.6.7 Test data, execution và evidence](./07-test-data-evidence.md)
 - [3.6.8 FR/NFR/AC coverage register](./08-requirement-coverage-register.md)
+- [Kiểm kê test case theo service và kết quả chạy ngày 19/11/2026](./09-service-test-inventory-2026-11-19.md)
 
 ## Exit criteria
 

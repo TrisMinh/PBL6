@@ -17,7 +17,9 @@ public static class PaymentEndpoints
             provider = "SEPAY",
             environment = options.Environment,
             configured = options.IsConfigured,
-            methods = options.IsConfigured ? options.Methods.Where(method => method is "BANK_TRANSFER" or "NAPAS_BANK_TRANSFER" or "CARD").ToArray() : Array.Empty<string>()
+            methods = options.IsConfigured
+                ? options.Methods.Where(method => method is "BANK_TRANSFER" or "NAPAS_BANK_TRANSFER" or "CARD").Distinct().ToArray()
+                : Array.Empty<string>()
         }, PlatformHttp.Json));
         endpoints.MapGet("/integrations/payments/sepay/browser-return", (HttpContext context, SePayOptions options, string? state) => {
             context.Response.Headers.CacheControl = "no-store";
@@ -30,6 +32,7 @@ public static class PaymentEndpoints
         api.MapPost("/bookings/{bookingId:guid}/payments", CreateAsync);
         api.MapGet("/bookings/{bookingId:guid}/payments", ListAsync);
         api.MapGet("/payments/{paymentId:guid}", GetAsync);
+        api.MapPost("/payments/{paymentId:guid}/reconcile", ReconcileAsync);
         api.MapPost("/payments/{paymentId:guid}/cancel", CancelAsync);
         api.MapPost("/refunds", RefundAsync);
         api.MapGet("/refunds/{refundId:guid}", GetRefundAsync);
@@ -38,6 +41,7 @@ public static class PaymentEndpoints
         api.MapGet("/operator/refunds", SearchRefundsAsync);
         api.MapGet("/operator/refunds/{refundId:guid}", GetRefundAsync);
         api.MapGet("/operator/settlements", OperatorSettlementsAsync);
+        api.MapPut("/operator/settlements/{id:guid}/receipt", ConfirmSettlementReceiptAsync);
         api.MapGet("/admin/settlements", AdminSettlementsAsync);
         api.MapPost("/admin/payouts", PayoutAsync);
         endpoints.MapPost("/integrations/payments/{provider}/webhooks", WebhookAsync);
@@ -52,7 +56,8 @@ public static class PaymentEndpoints
         var userId = context.User.UserId();
         return userId is null
             ? null
-            : new Actor(userId.Value, context.User.OrganizationId(), context.User.Claims.Where(c => c.Type.EndsWith("/role", StringComparison.Ordinal) || c.Type == System.Security.Claims.ClaimTypes.Role).Select(c => c.Value).Distinct().ToArray());
+            : new Actor(userId.Value, context.User.OrganizationId(), context.User.Claims.Where(c => c.Type.EndsWith("/role", StringComparison.Ordinal) || c.Type == System.Security.Claims.ClaimTypes.Role).Select(c => c.Value).Distinct().ToArray(),
+                context.User.FindAll("org_role").Select(c => c.Value).ToArray());
     }
 
     private static async Task<IResult> CreateAsync(HttpContext context, PaymentService service, IIdempotencyStore store, ICheckoutRequestRecovery recovery, Guid bookingId, CreatePaymentRequest body)
@@ -93,6 +98,16 @@ public static class PaymentEndpoints
     {
         var actor = ActorOf(context);
         return actor is null ? PlatformHttp.Error(PlatformErrors.AuthenticationRequired(), context.CorrelationId()) : (await service.GetAsync(actor, paymentId, context.RequestAborted)).ToHttp(context.CorrelationId());
+    }
+
+    private static async Task<IResult> ReconcileAsync(HttpContext context, PaymentService service, SePayReconciliation reconciliation, Guid paymentId)
+    {
+        var actor = ActorOf(context);
+        if (actor is null) return PlatformHttp.Error(PlatformErrors.AuthenticationRequired(), context.CorrelationId());
+
+        var result = await reconciliation.CheckAsync(actor.UserId, paymentId, context.CorrelationId(), context.RequestAborted);
+        if (!result.IsSuccess) return result.ToHttp(context.CorrelationId());
+        return (await service.GetAsync(actor, paymentId, context.RequestAborted)).ToHttp(context.CorrelationId());
     }
 
     private static async Task<IResult> CancelAsync(HttpContext context, PaymentService service, IIdempotencyStore store, Guid paymentId)
@@ -147,6 +162,15 @@ public static class PaymentEndpoints
     {
         var actor = ActorOf(context);
         return actor is null ? PlatformHttp.Error(PlatformErrors.AuthenticationRequired(), context.CorrelationId()) : (await service.ListSettlementsAsync(actor, false, page, size, context.RequestAborted)).ToHttp(context.CorrelationId());
+    }
+
+    private static async Task<IResult> ConfirmSettlementReceiptAsync(HttpContext context, PaymentService service,
+        Guid id, ConfirmSettlementReceiptRequest body)
+    {
+        var actor = ActorOf(context);
+        return actor is null
+            ? PlatformHttp.Error(PlatformErrors.AuthenticationRequired(), context.CorrelationId())
+            : (await service.ConfirmSettlementReceiptAsync(actor, id, body, context.RequestAborted)).ToHttp(context.CorrelationId());
     }
 
     private static async Task<IResult> AdminSettlementsAsync(HttpContext context, PaymentService service, int page = 0, int size = 20)

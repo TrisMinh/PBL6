@@ -16,22 +16,37 @@ public sealed class ReportingApiCollection : ICollectionFixture<ReportingPostgre
 
 public sealed class ReportingPostgresFixture : IAsyncLifetime
 {
-    public PostgreSqlContainer Container { get; } = new PostgreSqlBuilder().WithImage("postgres:17-alpine").WithDatabase("reporting").WithUsername("platform").WithPassword("postgres").Build();
+    private PostgreSqlContainer? _container;
+    public string ConnectionString { get; private set; } = null!;
     public WebApplicationFactory<Program> Factory { get; private set; } = null!;
     public async Task InitializeAsync()
     {
-        await Container.StartAsync();
+        var localDatabase = Environment.GetEnvironmentVariable("REPORTING_TEST_POSTGRES");
+        if (string.IsNullOrWhiteSpace(localDatabase))
+        {
+            _container = new PostgreSqlBuilder().WithImage("postgres:17-alpine").WithDatabase("reporting")
+                .WithUsername("platform").WithPassword("postgres").Build();
+            await _container.StartAsync();
+            localDatabase = _container.GetConnectionString();
+        }
+        ConnectionString = localDatabase;
         Factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
         {
+            builder.UseSetting("Authentication:SigningKey", TestJwt.SigningKey);
+            builder.UseSetting("Messaging:AmqpUri", "");
             builder.ConfigureTestServices(services =>
             {
                 services.RemoveAll<ReportingDatabaseOptions>();
-                services.AddSingleton(new ReportingDatabaseOptions { ConnectionString = Container.GetConnectionString() });
+                services.AddSingleton(new ReportingDatabaseOptions { ConnectionString = ConnectionString });
             });
         });
     }
     public HttpClient CreateClient() => Factory.CreateClient();
-    public async Task DisposeAsync() { await Factory.DisposeAsync(); await Container.DisposeAsync(); }
+    public async Task DisposeAsync()
+    {
+        if (Factory is not null) await Factory.DisposeAsync();
+        if (_container is not null) await _container.DisposeAsync();
+    }
 }
 
 [Collection("ReportingApi")]
@@ -58,7 +73,7 @@ public sealed class ReportingHealthTests
         await service.IngestRefundAsync(bookingId, 50000, default);
         await service.IngestAsync(paidFact with { Status = "CANCELLED", RefundedAmount = 0, NetAmount = 150000 }, default);
 
-        await using var connection = new NpgsqlConnection(_fixture.Container.GetConnectionString());
+        await using var connection = new NpgsqlConnection(_fixture.ConnectionString);
         await connection.OpenAsync();
         await using var booking = new NpgsqlCommand("SELECT refunded_amount, net_amount FROM booking_projections WHERE booking_id = @id", connection);
         booking.Parameters.AddWithValue("id", bookingId);

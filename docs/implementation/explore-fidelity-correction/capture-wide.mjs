@@ -1,0 +1,14 @@
+import {createRequire} from 'node:module';
+import {fileURLToPath} from 'node:url';
+const require=createRequire(new URL('../../../workspace/src/apps/web/package.json',import.meta.url));
+const {chromium}=require('@playwright/test');
+const browser=await chromium.launch({channel:'chrome',headless:true});
+const page=await browser.newPage({viewport:{width:1920,height:1080}});
+await page.goto('http://127.0.0.1:5173/explore',{waitUntil:'networkidle'});
+await page.evaluate(()=>document.fonts.ready);
+await page.screenshot({path:fileURLToPath(new URL('desktop-1920.png',import.meta.url))});
+console.log(JSON.stringify(await page.evaluate(()=>({width:innerWidth,scrollWidth:document.documentElement.scrollWidth,header:document.querySelector('.customer-layout__header').getBoundingClientRect().toJSON(),hero:document.querySelector('.home-hero').getBoundingClientRect().toJSON()}))));
+await page.evaluate(()=>scrollTo(0,1200));
+await page.screenshot({path:fileURLToPath(new URL('desktop-1920-catalog.png',import.meta.url))});
+console.log('header bottom after scroll:',await page.locator('.customer-layout__header').evaluate(e=>e.getBoundingClientRect().bottom));
+await browser.close();

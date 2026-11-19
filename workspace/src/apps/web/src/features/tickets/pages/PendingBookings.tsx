@@ -9,7 +9,7 @@ import { bookingSchema, pageOf } from "@/shared/api/contracts";
 import { getBackendTrip } from "@/features/trips/repositories/backendTripRepository";
 import { formatCurrencyVnd } from "@/shared/lib/formatCurrencyVnd";
 import { formatDateTime } from "@/shared/lib/formatDateTime";
-import { paymentVnPayPath } from "@/shared/config/routes";
+import { paymentCheckoutPath } from "@/shared/config/routes";
 import { Button } from "@/shared/ui/Button/Button";
 import { PageState } from "@/shared/ui/PageState/PageState";
 import "./PendingBookings.css";
@@ -138,7 +138,7 @@ export function PendingBookings(): ReactElement {
                 <footer>
                   <Link
                     className="pending-bookings__continue"
-                    to={paymentVnPayPath(booking.id)}
+                    to={paymentCheckoutPath(booking.id)}
                   >
                     Tiếp tục thanh toán
                   </Link>

@@ -10,11 +10,13 @@ public sealed class VnPayOptions
     public const string SectionName = "Payment";
     public bool Enabled { get; set; }
 
-    public string CheckoutBaseUrl { get; set; } = "http://localhost:8099/checkout";
-    public string TmnCode { get; set; } = "LOCALDEV";
-    public string HashSecret { get; set; } = "local-dev-only-vnpay-hash-secret-32b";
+    public string CheckoutBaseUrl { get; set; } = "";
+    public string TmnCode { get; set; } = "";
+    public string HashSecret { get; set; } = "";
     public string DefaultClientIp { get; set; } = "127.0.0.1";
     public decimal DefaultCommissionRate { get; set; } = 0.10m;
+    public bool IsConfigured => Enabled && Uri.TryCreate(CheckoutBaseUrl, UriKind.Absolute, out var uri) &&
+        (uri.Scheme is "https" or "http") && !string.IsNullOrWhiteSpace(TmnCode) && !string.IsNullOrWhiteSpace(HashSecret);
 }
 
 public static class VnPayCheckout

@@ -47,6 +47,7 @@ app.MapPlatformOpenApi();
 
 app.MapBookingEndpoints();
 app.MapAdminBookingAudit();
+app.MapOperatorBookingAnalytics();
 
 app.Run();
 

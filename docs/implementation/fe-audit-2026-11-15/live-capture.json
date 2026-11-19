@@ -1,0 +1,123 @@
+{
+  "note": "Live frontend with intercepted HTTP fixtures; no real backend transactions.",
+  "results": [
+    {
+      "name": "home",
+      "path": "/",
+      "width": 1440,
+      "url": "http://127.0.0.1:5181/",
+      "headings": [
+        "Mỗi hành trình đều thật giản đơn.",
+        "Tuyến đường đang mở bán",
+        "An tâm trên từng chặng đường",
+        "Kế hoạch thay đổi? Bạn vẫn kiểm soát hành trình.",
+        "KHÁM PHÁ",
+        "DỊCH VỤ",
+        "HỖ TRỢ"
+      ],
+      "overflow": false,
+      "errors": [],
+      "requests": [
+        "/api/v1/explore/routes",
+        "/api/v1/explore/routes",
+        "/api/v1/explore/routes",
+        "/api/v1/explore/routes",
+        "/api/v1/notifications"
+      ],
+      "bodyText": "Đến nội dung chính\nTrang chủ\nKhám phá\nĐiểm đến\nVé xe\nHành trình của tôi\nĐặt vé\n\nĐặt vé rõ ràng - Đi xa nhẹ nhàng\n\nMỗi hành trình\nđều thật giản đơn.\n\nChuyến ngon mình chọn, ghế ngon mình chốt\n\nĐiểm đi\n⌄\n⇄\nĐiểm đến\n⌄\nNgày đi\nHành khách\n1 người\n2 người\n3 người\n4 người\n5 người\n6 người\nTìm chuyến\n01\nGiá rõ ràng\nKhông phí ẩn\n02\nGiữ ghế 10 phút\nLuôn chờ đợi bạn\n03\nVé xe trong tài khoản\nCó mã dự phòng\nTuyến đường đang mở bán\n\nKhám phá các tuyến xe hiện có trên BLUE\n\nChưa có tuyến đang mở bán.\n\nRõ ràng từng bước\n\nAn tâm trên từng chặng đường\n\nĐặt vé nhanh chóng, thanh toán tiện lợi\n\n01\nGiá rõ ràng\nĐúng giá, không phí ẩn.\n02\nGiữ ghế 10 phút\nCơ chế rõ ràng.\n03\nXác nhận thanh toán\nXuất vé nhanh chóng.\n\nLUÔN CHỦ ĐỘNG\n\nKế hoạch thay đổi?\nBạn vẫn kiểm soát hành trình.\n\nTheo dõi yêu cầu hủy vé, tiến trình hoàn tiền và trao đổi với hỗ trợ trong cùng một nơi.\n\nMở trung tâm hỗ trợ\n24/7\nHỗ trợ xuyên suốt hành trình\n\nHủy vé và hoàn tiền là quy trình riêng, có trạng thái và thời gian dự kiến rõ ràng.\n\nKết nối những hành trình đáng nhớ bằng trải nghiệm đặt vé tinh tế, thuận tiện và đáng tin cậy.\n\nKẾT NỐI\n\nInstagram Facebook LinkedIn\n\nKHÁM PHÁ\nĐiểm đến\nTuyến phổ biến\nCâu chuyện\nƯu đãi\nDỊCH VỤ\nĐặt vé\nHành trình của tôi\nVé điện tử\nĐối tác vận chuyển\nHỖ TRỢ\nTrung tâm hỗ trợ\nLiên hệ\nĐiều khoản\nChính sách bảo mật\n\n© 2026 BLUE. All rights reserved.\n\nChính sách bảo mật · Điều khoản dịch vụ · Cài đặt cookie"
+    },
+    {
+      "name": "admin-bookings",
+      "path": "/admin/bookings",
+      "width": 1440,
+      "url": "http://127.0.0.1:5181/admin/bookings",
+      "headings": [
+        "Đặt vé"
+      ],
+      "overflow": false,
+      "errors": [],
+      "requests": [
+        "/api/v1/admin/bookings"
+      ],
+      "bodyText": "Đến nội dung quản trị\nTổ chức\nNhân viên\nĐơn đặt vé\nThanh toán\nHoàn tiền\nTài khoản\n\nQUẢN LÝ & THEO DÕI\n\nĐặt vé\n\nDữ liệu được cập nhật theo hoạt động trong hệ thống.\n\nLàm mới\nTìm kiếm\nTrạng thái\nTất cả trạng thái\nĐã xác nhận\n1 kết quả\nMã đơn\tTrạng thái\tTổng tiền (VND)\tKênh thanh toán\nBK-AUDIT-001\tĐã xác nhận\t640.000 ₫\tThanh toán trước\n1–1 / 1 kết quả\nTrước\nTrang 1 / 1\nSau"
+    },
+    {
+      "name": "operator-bookings",
+      "path": "/operator/bookings",
+      "width": 1440,
+      "url": "http://127.0.0.1:5181/operator/bookings",
+      "headings": [
+        "VẬN HÀNH",
+        "TÀI NGUYÊN",
+        "QUẢN TRỊ",
+        "Đặt chỗ của nhà xe"
+      ],
+      "overflow": false,
+      "errors": [],
+      "requests": [
+        "/api/v1/notifications",
+        "/api/v1/operator/bookings"
+      ],
+      "bodyText": "Đến nội dung chính\nVẬN HÀNH\nChuyến đi\nĐặt chỗ & giao dịch\nHủy vé & hoàn tiền\nTÀI NGUYÊN\nTuyến & điểm dừng\nXe & sơ đồ ghế\nTài xế\nQUẢN TRỊ\nĐối soát\nBáo cáo\nHồ sơ nhà xe\nOP\nKhông gian nhà xe\nBLUE · Vận hành\nĐăng xuất\nKhông gian làm việc\nĐặt chỗ & giao dịch\nTài khoản của tôi\n\nQUẢN LÝ & THEO DÕI\n\nĐặt chỗ của nhà xe\n\nDữ liệu được cập nhật theo hoạt động trong hệ thống.\n\nLàm mới\nTìm kiếm\nTrạng thái\nTất cả trạng thái\nĐã xác nhận\n1 kết quả\nThanh toán / hoàn tiền\tMã đặt chỗ\tNgười đặt\tTrạng thái\tThanh toán\tTổng tiền (VND)\nXem giao dịch\tBK-AUDIT-001\t—\tĐã xác nhận\tThanh toán trước\t640.000 ₫\n1–1 / 1 kết quả\nTrước\nTrang 1 / 1\nSau"
+    },
+    {
+      "name": "home",
+      "path": "/",
+      "width": 360,
+      "url": "http://127.0.0.1:5181/",
+      "headings": [
+        "Mỗi hành trình đều thật giản đơn.",
+        "Tuyến đường đang mở bán",
+        "An tâm trên từng chặng đường",
+        "Kế hoạch thay đổi? Bạn vẫn kiểm soát hành trình.",
+        "KHÁM PHÁ",
+        "DỊCH VỤ",
+        "HỖ TRỢ"
+      ],
+      "overflow": false,
+      "errors": [],
+      "requests": [
+        "/api/v1/explore/routes",
+        "/api/v1/explore/routes",
+        "/api/v1/explore/routes",
+        "/api/v1/explore/routes",
+        "/api/v1/notifications"
+      ],
+      "bodyText": "Đến nội dung chính\n\nĐặt vé rõ ràng - Đi xa nhẹ nhàng\n\nMỗi hành trình\nđều thật giản đơn.\n\nChuyến ngon mình chọn, ghế ngon mình chốt\n\nĐiểm đi\n⌄\n⇄\nĐiểm đến\n⌄\nNgày đi\nHành khách\n1 người\n2 người\n3 người\n4 người\n5 người\n6 người\nTìm chuyến\n01\nGiá rõ ràng\nKhông phí ẩn\n02\nGiữ ghế 10 phút\nLuôn chờ đợi bạn\n03\nVé xe trong tài khoản\nCó mã dự phòng\nTuyến đường đang mở bán\n\nKhám phá các tuyến xe hiện có trên BLUE\n\nChưa có tuyến đang mở bán.\n\nRõ ràng từng bước\n\nAn tâm trên từng chặng đường\n\nĐặt vé nhanh chóng, thanh toán tiện lợi\n\n01\nGiá rõ ràng\nĐúng giá, không phí ẩn.\n02\nGiữ ghế 10 phút\nCơ chế rõ ràng.\n03\nXác nhận thanh toán\nXuất vé nhanh chóng.\n\nLUÔN CHỦ ĐỘNG\n\nKế hoạch thay đổi?\nBạn vẫn kiểm soát hành trình.\n\nTheo dõi yêu cầu hủy vé, tiến trình hoàn tiền và trao đổi với hỗ trợ trong cùng một nơi.\n\nMở trung tâm hỗ trợ\n24/7\nHỗ trợ xuyên suốt hành trình\n\nHủy vé và hoàn tiền là quy trình riêng, có trạng thái và thời gian dự kiến rõ ràng.\n\nKết nối những hành trình đáng nhớ bằng trải nghiệm đặt vé tinh tế, thuận tiện và đáng tin cậy.\n\nKẾT NỐI\n\nInstagram Facebook LinkedIn\n\nKHÁM PHÁ\nĐiểm đến\nTuyến phổ biến\nCâu chuyện\nƯu đãi\nDỊCH VỤ\nĐặt vé\nHành trình của tôi\nVé điện tử\nĐối tác vận chuyển\nHỖ TRỢ\nTrung tâm hỗ trợ\nLiên hệ\nĐiều khoản\nChính sách bảo mật\n\n© 2026 BLUE. All rights reserved.\n\nChính sách bảo mật · Điều khoản dịch vụ · Cài đặt cookie"
+    },
+    {
+      "name": "admin-bookings",
+      "path": "/admin/bookings",
+      "width": 360,
+      "url": "http://127.0.0.1:5181/admin/bookings",
+      "headings": [
+        "Đặt vé"
+      ],
+      "overflow": false,
+      "errors": [],
+      "requests": [
+        "/api/v1/admin/bookings"
+      ],
+      "bodyText": "Đến nội dung quản trị\n\nQUẢN LÝ & THEO DÕI\n\nĐặt vé\n\nDữ liệu được cập nhật theo hoạt động trong hệ thống.\n\nLàm mới\nTìm kiếm\nTrạng thái\nTất cả trạng thái\nĐã xác nhận\n1 kết quả\nMã đơn\tTrạng thái\tTổng tiền (VND)\tKênh thanh toán\nBK-AUDIT-001\tĐã xác nhận\t640.000 ₫\tThanh toán trước\n1–1 / 1 kết quả\nTrước\nTrang 1 / 1\nSau"
+    },
+    {
+      "name": "operator-bookings",
+      "path": "/operator/bookings",
+      "width": 360,
+      "url": "http://127.0.0.1:5181/operator/bookings",
+      "headings": [
+        "VẬN HÀNH",
+        "TÀI NGUYÊN",
+        "QUẢN TRỊ",
+        "Đặt chỗ của nhà xe"
+      ],
+      "overflow": false,
+      "errors": [],
+      "requests": [
+        "/api/v1/notifications",
+        "/api/v1/operator/bookings"
+      ],
+      "bodyText": "Đến nội dung chính\nKhông gian làm việc\nĐặt chỗ & giao dịch\n\nQUẢN LÝ & THEO DÕI\n\nĐặt chỗ của nhà xe\n\nDữ liệu được cập nhật theo hoạt động trong hệ thống.\n\nLàm mới\nTìm kiếm\nTrạng thái\nTất cả trạng thái\nĐã xác nhận\n1 kết quả\nThanh toán / hoàn tiền\tMã đặt chỗ\tNgười đặt\tTrạng thái\tThanh toán\tTổng tiền (VND)\nXem giao dịch\tBK-AUDIT-001\t—\tĐã xác nhận\tThanh toán trước\t640.000 ₫\n1–1 / 1 kết quả\nTrước\nTrang 1 / 1\nSau"
+    }
+  ]
+}

@@ -29,13 +29,16 @@ Actor? ActorOf(HttpContext context)
     var userId = context.User.UserId();
     return userId is null
         ? null
-        : new Actor(userId.Value, context.User.OrganizationId(), context.User.Claims.Where(c => c.Type.EndsWith("/role", StringComparison.Ordinal) || c.Type == System.Security.Claims.ClaimTypes.Role).Select(c => c.Value).Distinct().ToArray());
+        : new Actor(userId.Value, context.User.OrganizationId(),
+            context.User.FindAll(System.Security.Claims.ClaimTypes.Role).Select(c => c.Value).Distinct().ToArray(),
+            context.User.FindAll("org_role").Select(c => c.Value).ToArray());
 }
 
-app.MapGet("/api/v1/reports/revenue", async (HttpContext context, ReportingService service, DateTimeOffset from, DateTimeOffset to, string timezone) =>
+app.MapGet("/api/v1/reports/revenue", async (HttpContext context, ReportingService service, DateTimeOffset from, DateTimeOffset to, string timezone, bool? operatorOnly, bool? allTime) =>
 {
     var actor = ActorOf(context);
-    return actor is null ? PlatformHttp.Error(PlatformErrors.AuthenticationRequired(), context.CorrelationId()) : (await service.RevenueAsync(actor, from, to, timezone, context.RequestAborted)).ToHttp(context.CorrelationId());
+    return actor is null ? PlatformHttp.Error(PlatformErrors.AuthenticationRequired(), context.CorrelationId())
+        : (await service.RevenueAsync(actor, from, to, timezone, context.RequestAborted, operatorOnly == true, allTime == true)).ToHttp(context.CorrelationId());
 }).RequireAuthorization();
 
 app.MapGet("/api/v1/reports/bookings", async (HttpContext context, ReportingService service, DateTimeOffset from, DateTimeOffset to, string timezone) =>
@@ -49,12 +52,6 @@ app.MapGet("/api/v1/reports/occupancy", async (HttpContext context, ReportingSer
     var actor = ActorOf(context);
     return actor is null ? PlatformHttp.Error(PlatformErrors.AuthenticationRequired(), context.CorrelationId()) : (await service.OccupancyAsync(actor, from, to, timezone, context.RequestAborted)).ToHttp(context.CorrelationId());
 }).RequireAuthorization();
-
-app.MapPost("/internal/projections/bookings", async (HttpContext context, ReportingService service, BookingFact body) =>
-{
-    await service.IngestAsync(body, context.RequestAborted);
-    return Results.StatusCode(204);
-});
 
 app.Run();
 public partial class Program;

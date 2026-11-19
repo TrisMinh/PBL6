@@ -260,6 +260,18 @@ public sealed class IdentityRepository(IdentityDatabaseOptions options, IIdGener
             reader.IsDBNull(6) ? null : reader.GetGuid(6));
     }
 
+    public async Task<bool> IsSessionActiveAsync(Guid userId, Guid sessionId, CancellationToken cancellationToken)
+    {
+        await using var connection = await OpenAsync(cancellationToken);
+        await using var command = new NpgsqlCommand("""
+            SELECT EXISTS (SELECT 1 FROM refresh_sessions
+                WHERE id = @id AND user_id = @user AND revoked_at IS NULL AND expires_at > NOW());
+            """, connection);
+        command.Parameters.AddWithValue("id", sessionId);
+        command.Parameters.AddWithValue("user", userId);
+        return await command.ExecuteScalarAsync(cancellationToken) is true;
+    }
+
     public async Task UpdateSessionAsync(SessionRecord session, CancellationToken cancellationToken)
     {
         await using var connection = await OpenAsync(cancellationToken);

@@ -30,6 +30,29 @@ x-api: &api
   networks: [platform]
   restart: unless-stopped
 
+x-payment: &payment
+  <<: *api
+  build:
+    context: ../../..
+    dockerfile: workspace/src/infra/docker/api.Dockerfile
+    args:
+      PROJECT: src/services/payment/BusTicketPlatform.Payment.Api/BusTicketPlatform.Payment.Api.csproj
+  command: ["BusTicketPlatform.Payment.Api.dll"]
+  environment:
+    <<: *api-env
+    ConnectionStrings__Payment: Host=postgres;Port=5432;Database=payment;Username=platform;Password=${POSTGRES_PASSWORD:-postgres}
+    SePay__Environment: ${SEPAY_ENVIRONMENT:-sandbox}
+    SePay__MerchantId: ${SEPAY_MERCHANT_ID:-}
+    SePay__SecretKey: ${SEPAY_SECRET_KEY:-}
+    SePay__IpnSecretKey: ${SEPAY_IPN_SECRET_KEY:-}
+    SePay__CustomerOrigin: ${CUSTOMER_PUBLIC_ORIGIN:-http://localhost:5173}
+  healthcheck:
+    test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8080/ready"]
+    interval: 10s
+    timeout: 5s
+    retries: 20
+    start_period: 45s
+
 services:
   identity:
     <<: *api
@@ -77,27 +100,12 @@ services:
       - "5083:8080"
 
   payment:
-    <<: *api
-    build:
-      context: ../../..
-      dockerfile: workspace/src/infra/docker/api.Dockerfile
-      args:
-        PROJECT: src/services/payment/BusTicketPlatform.Payment.Api/BusTicketPlatform.Payment.Api.csproj
-    command: ["BusTicketPlatform.Payment.Api.dll"]
-    environment:
-      <<: *api-env
-      ConnectionStrings__Payment: Host=postgres;Port=5432;Database=payment;Username=platform;Password=${POSTGRES_PASSWORD:-postgres}
-      SePay__Environment: ${SEPAY_ENVIRONMENT:-sandbox}
-      SePay__MerchantId: ${SEPAY_MERCHANT_ID:-}
-      SePay__SecretKey: ${SEPAY_SECRET_KEY:-}
-      SePay__IpnSecretKey: ${SEPAY_IPN_SECRET_KEY:-}
-      SePay__CustomerOrigin: ${CUSTOMER_PUBLIC_ORIGIN:-http://localhost:5173}
-      Payment__Enabled: ${VNPAY_ENABLED:-false}
-      Payment__CheckoutBaseUrl: http://localhost:8099/checkout
-      Payment__TmnCode: ${VNPAY_TMN_CODE:-LOCALDEV}
-      Payment__HashSecret: ${VNPAY_HASH_SECRET:-local-dev-only-vnpay-hash-secret-32b}
+    <<: *payment
     ports:
       - "5084:8080"
+
+  payment-2:
+    <<: *payment
 
   notification:
     <<: *api
@@ -149,7 +157,9 @@ services:
       booking:
         condition: service_healthy
       payment:
-        condition: service_healthy
+        condition: service_started
+      payment-2:
+        condition: service_started
       notification:
         condition: service_healthy
       reporting:
@@ -162,6 +172,7 @@ services:
       ReverseProxy__Clusters__transport__Destinations__transport-local__Address: http://transport:8080/
       ReverseProxy__Clusters__booking__Destinations__booking-local__Address: http://booking:8080/
       ReverseProxy__Clusters__payment__Destinations__payment-local__Address: http://payment:8080/
+      ReverseProxy__Clusters__payment__Destinations__payment-2__Address: http://payment-2:8080/
       ReverseProxy__Clusters__notification__Destinations__notification-local__Address: http://notification:8080/
       ReverseProxy__Clusters__reporting__Destinations__reporting-local__Address: http://reporting:8080/
     ports:
@@ -171,6 +182,9 @@ services:
     build:
       context: ../apps/web
       dockerfile: Dockerfile
+      args:
+        APP_TARGET: customer
+        API_MODE: live
     depends_on:
       gateway:
         condition: service_healthy
@@ -190,7 +204,11 @@ services:
       dockerfile: Dockerfile
       args:
         APP_TARGET: operator
-        API_MODE: mock
+        API_MODE: live
+        OPERATOR_POWER_BI_EMBED_URL: ${OPERATOR_POWER_BI_EMBED_URL:-}
+    depends_on:
+      gateway:
+        condition: service_healthy
     ports:
       - "5174:8080"
     healthcheck:
@@ -220,9 +238,3 @@ services:
       retries: 10
     networks: [platform]
     restart: unless-stopped
-
-  payment-simulator:
-    environment:
-      WEBHOOK_URL: http://gateway:8080/integrations/payments/vnpay-sandbox/webhooks
-      HASH_SECRET: ${VNPAY_HASH_SECRET:-local-dev-only-vnpay-hash-secret-32b}
-      TMN_CODE: ${VNPAY_TMN_CODE:-LOCALDEV}

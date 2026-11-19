@@ -28,8 +28,8 @@ export const bookingPassengersPath = (sessionId: string): string =>
   `/booking/${encodeURIComponent(sessionId)}/passengers`;
 export const bookingReviewPath = (sessionId: string): string =>
   `/booking/${encodeURIComponent(sessionId)}/review`;
-export const paymentVnPayPath = (bookingId: string): string =>
-  `/payment/${encodeURIComponent(bookingId)}/${import.meta.env.VITE_PAYMENT_PROVIDER !== "vnpay" ? "sepay" : "vnpay"}`;
+export const paymentCheckoutPath = (bookingId: string): string =>
+  `/payment/${encodeURIComponent(bookingId)}/sepay`;
 export const ticketPath = (ticketCode: string): string =>
   `/tickets/${encodeURIComponent(ticketCode)}`;
 export const bookingCancellationPath = (bookingCode: string): string =>

@@ -1,0 +1,10 @@
+import {createRequire} from 'node:module';
+import {fileURLToPath} from 'node:url';
+const require=createRequire(new URL('../../../workspace/src/apps/web/package.json',import.meta.url));
+const {chromium}=require('@playwright/test');
+const browser=await chromium.launch({channel:'chrome',headless:true});
+const page=await browser.newPage({viewport:{width:1440,height:1080}});
+await page.goto('http://127.0.0.1:5173/explore',{waitUntil:'networkidle'});
+await page.evaluate(()=>document.fonts.ready);
+await page.screenshot({path:fileURLToPath(new URL(process.argv[2]||'before.png',import.meta.url)),fullPage:true});
+await browser.close();

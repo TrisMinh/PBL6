@@ -1,0 +1,666 @@
+const imgOfficialBlueLogoPng = "https://www.figma.com/api/mcp/asset/2939d6d1-3781-4b5d-922d-a80151f0a826.png";
+const imgOriginIcon = "https://www.figma.com/api/mcp/asset/cf76e0c2-c9e7-4fef-86be-daca3bd194b3.svg";
+const imgDestinationIcon = "https://www.figma.com/api/mcp/asset/d9ff586c-418c-4df2-ba0f-c74b030110fb.svg";
+const imgCalendarIcon = "https://www.figma.com/api/mcp/asset/abbb16f0-f98e-4a60-bdad-45fd7a90df56.svg";
+const imgPassengersIcon = "https://www.figma.com/api/mcp/asset/5d345cc4-4c04-45e3-a860-1a48e3835b5c.svg";
+const imgPriceMin = "https://www.figma.com/api/mcp/asset/dd536a90-26bf-4af8-8108-697d66c7d5cc.svg";
+const imgIconChevron = "https://www.figma.com/api/mcp/asset/4f7a151f-2a64-4abe-8d97-6b9ef861bd0b.svg";
+const imgIconClock = "https://www.figma.com/api/mcp/asset/3daefd74-3605-49fd-b97e-bfe0300f2506.svg";
+const imgOperatorMark = "https://www.figma.com/api/mcp/asset/607c3758-61a8-402d-a13c-54bfde862b7c.svg";
+const imgRouteDashedLine = "https://www.figma.com/api/mcp/asset/ada1accc-a734-45e0-b165-8c52cb4af7a2.svg";
+const imgRouteDestination = "https://www.figma.com/api/mcp/asset/021cc07c-8163-414f-a230-7d8d4c2a6cd2.svg";
+const imgLucideBusFront = "https://www.figma.com/api/mcp/asset/d4ec5b6d-f74d-4655-87dd-2eb830bf30f1.svg";
+const imgLucideTicket = "https://www.figma.com/api/mcp/asset/6a0a29b0-8a3c-487c-bc0d-af5cb69b061d.svg";
+const imgOperatorMark1 = "https://www.figma.com/api/mcp/asset/778bbcda-2543-44c8-845e-622320d5f53f.svg";
+const imgOperatorMark2 = "https://www.figma.com/api/mcp/asset/04aaf154-303a-4c2a-b884-91687331cfd4.svg";
+
+export default function CustomerSearchResults1440() {
+  return (
+    <a className="bg-[#f4f7fd] block cursor-pointer relative size-full" data-node-id="28:30" data-name="Customer / Search / Results / 1440">
+      <div className="absolute bg-white drop-shadow-[0px_10px_12px_rgba(7,26,47,0.08)] h-[190px] left-[80px] rounded-[24px] top-[112px] w-[1280px]" data-node-id="215:79" data-name="Search panel">
+        <div className="absolute bg-[#246bda] h-[36px] left-[24px] overflow-clip rounded-[18px] top-[20px] w-[108px]" data-node-id="215:80" data-name="Trip type / One way">
+          <div className="-translate-x-1/2 -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:SemiBold'] h-[36px] justify-center leading-[0] left-[54px] not-italic text-[14px] text-center text-white top-[18px] w-[108px]" data-node-id="215:81">
+            <p className="leading-[20px]">Một chiều</p>
+          </div>
+        </div>
+        <div className="absolute bg-white border border-[#d6dfee] border-solid h-[36px] left-[142px] overflow-clip rounded-[18px] top-[20px] w-[96px]" data-node-id="215:82" data-name="Trip type / Round">
+          <div className="-translate-x-1/2 -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Medium'] h-[36px] justify-center leading-[0] left-[47px] not-italic text-[#5c6d89] text-[14px] text-center top-[17px] w-[96px]" data-node-id="215:83">
+            <p className="leading-[20px]">Khứ hồi</p>
+          </div>
+        </div>
+        <div className="-translate-x-full -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Medium'] h-[28px] justify-center leading-[0] left-[1232px] not-italic text-[#5c6d89] text-[13px] text-right top-[38px] w-[176px]" data-node-id="215:84">
+          <p className="leading-[20px]">24 chuyến phù hợp</p>
+        </div>
+        <div className="absolute bg-[#f7f9fe] h-[72px] left-[24px] overflow-clip rounded-[16px] top-[76px] w-[238px]" data-node-id="215:85" data-name="Origin">
+          <div className="-translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Medium'] h-[18px] justify-center leading-[0] left-[18px] not-italic text-[#7e8da2] text-[11px] text-left top-[19px] w-[202px]" data-node-id="215:86">
+            <p className="leading-[16px]">ĐIỂM ĐI</p>
+          </div>
+          <div className="-translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:SemiBold'] justify-center leading-[0] left-[46px] not-italic text-[#081934] text-[14px] text-left top-[43px] w-[176px]" data-node-id="215:88">
+            <p className="leading-[20px]">TP. Hồ Chí Minh</p>
+          </div>
+          <div className="absolute left-[18px] size-[18px] top-[36px]" data-node-id="257:346" data-name="Origin icon">
+            <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgOriginIcon} />
+          </div>
+        </div>
+        <div className="absolute bg-[#f7f9fe] h-[72px] left-[274px] overflow-clip rounded-[16px] top-[76px] w-[238px]" data-node-id="215:89" data-name="Destination">
+          <div className="-translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Medium'] h-[18px] justify-center leading-[0] left-[18px] not-italic text-[#7e8da2] text-[11px] text-left top-[19px] w-[202px]" data-node-id="215:90">
+            <p className="leading-[16px]">ĐIỂM ĐẾN</p>
+          </div>
+          <div className="-translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:SemiBold'] justify-center leading-[0] left-[46px] not-italic text-[#081934] text-[14px] text-left top-[43px] w-[176px]" data-node-id="215:92">
+            <p className="leading-[20px]">Đà Lạt</p>
+          </div>
+          <div className="absolute left-[18px] size-[18px] top-[36px]" data-node-id="257:348" data-name="Destination icon">
+            <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgDestinationIcon} />
+          </div>
+        </div>
+        <div className="absolute bg-[#246bda] left-[250px] overflow-clip rounded-[18px] size-[36px] top-[96px]" data-node-id="215:93" data-name="Swap route">
+          <div className="-translate-x-1/2 -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Bold'] font-bold justify-center leading-[0] left-[18px] size-[36px] text-[16px] text-center text-white top-[18px]" data-node-id="215:94" style={{ fontVariationSettings: '"CTGR" 0, "wdth" 100' }}>
+            <p className="leading-[20px]">⇄</p>
+          </div>
+        </div>
+        <div className="absolute bg-[#f7f9fe] h-[72px] left-[524px] overflow-clip rounded-[16px] top-[76px] w-[212px]" data-node-id="215:95" data-name="Departure date">
+          <div className="-translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Medium'] h-[18px] justify-center leading-[0] left-[18px] not-italic text-[#7e8da2] text-[11px] text-left top-[19px] w-[176px]" data-node-id="215:96">
+            <p className="leading-[16px]">NGÀY ĐI</p>
+          </div>
+          <div className="-translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:SemiBold'] justify-center leading-[0] left-[46px] not-italic text-[#081934] text-[14px] text-left top-[43px] w-[150px]" data-node-id="215:98">
+            <p className="leading-[20px]">28/08/2026</p>
+          </div>
+          <div className="absolute left-[18px] size-[18px] top-[36px]" data-node-id="257:351" data-name="Calendar icon">
+            <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgCalendarIcon} />
+          </div>
+        </div>
+        <div className="absolute bg-[#f7f9fe] h-[72px] left-[748px] overflow-clip rounded-[16px] top-[76px] w-[188px]" data-node-id="215:99" data-name="Passengers">
+          <div className="-translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Medium'] h-[18px] justify-center leading-[0] left-[18px] not-italic text-[#7e8da2] text-[11px] text-left top-[19px] w-[152px]" data-node-id="215:100">
+            <p className="leading-[16px]">HÀNH KHÁCH</p>
+          </div>
+          <div className="-translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:SemiBold'] justify-center leading-[0] left-[46px] not-italic text-[#081934] text-[14px] text-left top-[43px] w-[126px]" data-node-id="215:102">
+            <p className="leading-[20px]">2 người</p>
+          </div>
+          <div className="absolute left-[18px] size-[18px] top-[36px]" data-node-id="257:354" data-name="Passengers icon">
+            <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgPassengersIcon} />
+          </div>
+        </div>
+        <div className="absolute bg-[#246bda] h-[56px] left-[956px] overflow-clip rounded-[16px] top-[86px] w-[276px]" data-node-id="215:103" data-name="Button / Tìm chuyến">
+          <div className="-translate-x-1/2 -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:SemiBold'] h-[56px] justify-center leading-[0] left-[138px] not-italic text-[14px] text-center text-white top-[28px] w-[276px]" data-node-id="215:104">
+            <p className="leading-[20px]">Tìm chuyến</p>
+          </div>
+        </div>
+      </div>
+      <div className="absolute bg-white drop-shadow-[0px_10px_12px_rgba(7,26,47,0.08)] h-[850px] left-[80px] rounded-[24px] top-[336px] w-[260px]" data-node-id="215:105" data-name="Filters panel">
+        <div className="-translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Bold'] h-[34px] justify-center leading-[0] left-[24px] not-italic text-[#081934] text-[22px] text-left top-[39px] w-[120px]" data-node-id="215:106">
+          <p className="leading-[28px]">Bộ lọc</p>
+        </div>
+        <div className="-translate-x-full -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Medium'] h-[30px] justify-center leading-[0] left-[236px] not-italic text-[#1b6eea] text-[13px] text-right top-[39px] w-[66px]" data-node-id="215:107">
+          <p className="leading-[20px]">Đặt lại</p>
+        </div>
+        <div className="absolute bg-[#d6dfee] h-px left-[24px] top-[70px] w-[212px]" data-node-id="215:108" data-name="Divider 1" />
+        <div className="-translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:SemiBold'] h-[28px] justify-center leading-[0] left-[24px] not-italic text-[#081934] text-[15px] text-left top-[102px] w-[180px]" data-node-id="215:109">
+          <p className="leading-[22px]">Loại xe</p>
+        </div>
+        <div className="absolute bg-[#d6dfee] h-px left-[24px] top-[194px] w-[212px]" data-node-id="215:119" data-name="Divider 2" />
+        <div className="-translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:SemiBold'] h-[28px] justify-center leading-[0] left-[24px] not-italic text-[#081934] text-[15px] text-left top-[226px] w-[180px]" data-node-id="215:120">
+          <p className="leading-[22px]">Buổi khởi hành</p>
+        </div>
+        <div className="absolute bg-[#071a2f] h-[34px] left-[24px] overflow-clip rounded-[17px] top-[252px] w-[64px]" data-node-id="215:121" data-name="Time / Morning">
+          <div className="-translate-x-1/2 -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:SemiBold'] h-[34px] justify-center leading-[0] left-[32px] not-italic text-[14px] text-center text-white top-[17px] w-[64px]" data-node-id="215:122">
+            <p className="leading-[20px]">Sáng</p>
+          </div>
+        </div>
+        <div className="absolute bg-white border border-[#d6dfee] border-solid h-[34px] left-[96px] overflow-clip rounded-[17px] top-[252px] w-[68px]" data-node-id="215:123" data-name="Time / Afternoon">
+          <div className="-translate-x-1/2 -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Medium'] h-[34px] justify-center leading-[0] left-[33px] not-italic text-[#5c6d89] text-[14px] text-center top-[16px] w-[68px]" data-node-id="215:124">
+            <p className="leading-[20px]">Chiều</p>
+          </div>
+        </div>
+        <div className="absolute bg-white border border-[#d6dfee] border-solid h-[34px] left-[172px] overflow-clip rounded-[17px] top-[252px] w-[64px]" data-node-id="215:125" data-name="Time / Evening">
+          <div className="-translate-x-1/2 -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Medium'] h-[34px] justify-center leading-[0] left-[31px] not-italic text-[#5c6d89] text-[14px] text-center top-[16px] w-[64px]" data-node-id="215:126">
+            <p className="leading-[20px]">Tối</p>
+          </div>
+        </div>
+        <div className="absolute bg-[#d6dfee] h-px left-[24px] top-[304px] w-[212px]" data-node-id="215:127" data-name="Divider 3" />
+        <div className="-translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:SemiBold'] h-[28px] justify-center leading-[0] left-[24px] not-italic text-[#081934] text-[15px] text-left top-[444px] w-[180px]" data-node-id="215:128">
+          <p className="leading-[22px]">Khoảng giá</p>
+        </div>
+        <div className="-translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Regular'] h-[24px] justify-center leading-[0] left-[24px] not-italic text-[#5c6d89] text-[13px] text-left top-[474px] w-[212px]" data-node-id="215:129">
+          <p className="leading-[20px]">200.000 đ — 450.000 đ</p>
+        </div>
+        <div className="absolute bg-[#d6dfee] h-[4px] left-[24px] rounded-[2px] top-[504px] w-[212px]" data-node-id="215:130" data-name="Price track" />
+        <div className="absolute bg-[#1b6eea] h-[4px] left-[52px] rounded-[2px] top-[504px] w-[126px]" data-node-id="215:131" data-name="Price active" />
+        <div className="absolute left-[46px] size-[16px] top-[498px]" data-node-id="215:132" data-name="Price min">
+          <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgPriceMin} />
+        </div>
+        <div className="absolute left-[172px] size-[16px] top-[498px]" data-node-id="215:133" data-name="Price max">
+          <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgPriceMin} />
+        </div>
+        <div className="absolute bg-[#d6dfee] h-px left-[24px] top-[542px] w-[212px]" data-node-id="215:134" data-name="Divider 4" />
+        <div className="-translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:SemiBold'] h-[28px] justify-center leading-[0] left-[24px] not-italic text-[#081934] text-[15px] text-left top-[574px] w-[180px]" data-node-id="215:135">
+          <p className="leading-[22px]">Tiện ích</p>
+        </div>
+        <div className="absolute bg-[#1b6eea] border border-[#1b6eea] border-solid left-[24px] rounded-[5px] size-[18px] top-[600px]" data-node-id="215:136" data-name="Checkbox" />
+        <div className="-translate-x-1/2 -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Bold'] font-bold h-[20px] justify-center leading-[0] left-[33px] text-[12px] text-center text-white top-[609px] w-[18px]" data-node-id="215:137" style={{ fontVariationSettings: '"CTGR" 0, "wdth" 100' }}>
+          <p className="leading-[18px]">✓</p>
+        </div>
+        <div className="-translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Regular'] h-[26px] justify-center leading-[0] left-[54px] not-italic text-[#081934] text-[14px] text-left top-[609px] w-[180px]" data-node-id="215:138">
+          <p className="leading-[20px]">Có Wi-Fi</p>
+        </div>
+        <div className="absolute bg-[#1b6eea] border border-[#1b6eea] border-solid left-[24px] rounded-[5px] size-[18px] top-[638px]" data-node-id="215:139" data-name="Checkbox" />
+        <div className="-translate-x-1/2 -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Bold'] font-bold h-[20px] justify-center leading-[0] left-[33px] text-[12px] text-center text-white top-[647px] w-[18px]" data-node-id="215:140" style={{ fontVariationSettings: '"CTGR" 0, "wdth" 100' }}>
+          <p className="leading-[18px]">✓</p>
+        </div>
+        <div className="-translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Regular'] h-[26px] justify-center leading-[0] left-[54px] not-italic text-[#081934] text-[14px] text-left top-[647px] w-[180px]" data-node-id="215:141">
+          <p className="leading-[20px]">Cổng sạc</p>
+        </div>
+        <div className="absolute bg-white border border-[#d6dfee] border-solid left-[24px] rounded-[5px] size-[18px] top-[676px]" data-node-id="215:142" data-name="Checkbox" />
+        <div className="-translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Regular'] h-[26px] justify-center leading-[0] left-[54px] not-italic text-[#081934] text-[14px] text-left top-[685px] w-[180px]" data-node-id="215:143">
+          <p className="leading-[20px]">Nhà vệ sinh</p>
+        </div>
+        <div className="absolute bg-white border border-[#d6dfee] border-solid left-[24px] rounded-[5px] size-[18px] top-[714px]" data-node-id="215:144" data-name="Checkbox" />
+        <div className="-translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Regular'] h-[26px] justify-center leading-[0] left-[54px] not-italic text-[#081934] text-[14px] text-left top-[723px] w-[180px]" data-node-id="215:145">
+          <p className="leading-[20px]">Đón tận nơi</p>
+        </div>
+        <div className="absolute bg-[#1b6eea] h-[48px] left-[24px] overflow-clip rounded-[24px] top-[780px] w-[212px]" data-node-id="215:146" data-name="Button / Áp dụng bộ lọc">
+          <div className="-translate-x-1/2 -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:SemiBold'] h-[48px] justify-center leading-[0] left-[106px] not-italic text-[14px] text-center text-white top-[24px] w-[212px]" data-node-id="215:147">
+            <p className="leading-[20px]">Áp dụng bộ lọc</p>
+          </div>
+        </div>
+        <div className="absolute bg-white border border-[#ccdbf0] border-solid h-[48px] left-[24px] overflow-clip rounded-[10px] top-[126px] w-[212px]" data-node-id="877:319" data-name="Field / Vehicle Catalog">
+          <p className="[word-break:break-word] absolute font-['Be_Vietnam_Pro:Medium'] leading-[normal] left-[13px] not-italic text-[#6e85a3] text-[9px] text-left top-[6px] whitespace-nowrap" data-node-id="877:320">
+            DANH MỤC
+          </p>
+          <p className="[word-break:break-word] absolute font-['Be_Vietnam_Pro:Medium'] leading-[normal] left-[13px] not-italic text-[#0e1e35] text-[12px] text-left top-[22px] whitespace-nowrap" data-node-id="877:321">
+            Tất cả 15 loại xe
+          </p>
+          <div className="absolute h-[8px] left-[185px] top-[17px] w-[12px]" data-node-id="877:322" data-name="Icon / Chevron">
+            <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgIconChevron} />
+          </div>
+        </div>
+        <p className="[word-break:break-word] absolute font-['Be_Vietnam_Pro:SemiBold'] leading-[normal] left-[24px] not-italic text-[#0e1e35] text-[14px] text-left top-[322px] whitespace-nowrap" data-node-id="877:325">
+          Giờ khởi hành
+        </p>
+        <div className="absolute bg-white border border-[#ccdbf0] border-solid h-[48px] left-[24px] overflow-clip rounded-[10px] top-[356px] w-[212px]" data-node-id="877:326" data-name="Field / Departure Hour">
+          <p className="[word-break:break-word] absolute font-['Be_Vietnam_Pro:Medium'] leading-[normal] left-[13px] not-italic text-[#6e85a3] text-[9px] text-left top-[6px] whitespace-nowrap" data-node-id="877:327">
+            GIỜ XUẤT PHÁT
+          </p>
+          <p className="[word-break:break-word] absolute font-['Be_Vietnam_Pro:Medium'] leading-[normal] left-[13px] not-italic text-[#0e1e35] text-[12px] text-left top-[22px] whitespace-nowrap" data-node-id="877:328">
+            Chọn giờ
+          </p>
+          <div className="absolute left-[181px] size-[18px] top-[13px]" data-node-id="877:329" data-name="Icon / Clock">
+            <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgIconClock} />
+          </div>
+        </div>
+      </div>
+      <div className="-translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Bold'] font-bold h-[44px] justify-center leading-[0] left-[370px] text-[#081934] text-[26px] text-left top-[358px] w-[700px]" data-node-id="215:148" style={{ fontVariationSettings: '"CTGR" 0, "wdth" 100' }}>
+        <p className="leading-[34px]">Chuyến xe TP. Hồ Chí Minh → Đà Lạt</p>
+      </div>
+      <div className="-translate-x-full -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Medium'] h-[28px] justify-center leading-[0] left-[1360px] not-italic text-[#5c6d89] text-[13px] text-right top-[358px] w-[180px]" data-node-id="215:149">
+        <p className="leading-[20px]">24 kết quả</p>
+      </div>
+      <div className="absolute bg-[#071a2f] h-[36px] left-[370px] overflow-clip rounded-[18px] top-[390px] w-[126px]" data-node-id="215:150" data-name="Sort / Best">
+        <div className="-translate-x-1/2 -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:SemiBold'] h-[36px] justify-center leading-[0] left-[63px] not-italic text-[14px] text-center text-white top-[18px] w-[126px]" data-node-id="215:151">
+          <p className="leading-[20px]">Phù hợp nhất</p>
+        </div>
+      </div>
+      <div className="absolute bg-white border border-[#d6dfee] border-solid h-[36px] left-[506px] overflow-clip rounded-[18px] top-[390px] w-[128px]" data-node-id="215:152" data-name="Sort / Price">
+        <div className="-translate-x-1/2 -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Medium'] h-[36px] justify-center leading-[0] left-[63px] not-italic text-[#5c6d89] text-[14px] text-center top-[17px] w-[128px]" data-node-id="215:153">
+          <p className="leading-[20px]">Giá thấp nhất</p>
+        </div>
+      </div>
+      <div className="absolute bg-white border border-[#d6dfee] border-solid h-[36px] left-[644px] overflow-clip rounded-[18px] top-[390px] w-[138px]" data-node-id="215:154" data-name="Sort / Time">
+        <div className="-translate-x-1/2 -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Medium'] h-[36px] justify-center leading-[0] left-[68px] not-italic text-[#5c6d89] text-[14px] text-center top-[17px] w-[138px]" data-node-id="215:155">
+          <p className="leading-[20px]">Khởi hành sớm</p>
+        </div>
+      </div>
+      <div className="absolute bg-white drop-shadow-[0px_8px_10px_rgba(7,26,47,0.06)] h-[300px] left-[370px] rounded-[22px] top-[446px] w-[318px]" data-node-id="215:156" data-name="Trip result / Grid 1">
+        <div className="absolute left-[18px] size-[42px] top-[18px]" data-node-id="215:157" data-name="Operator mark">
+          <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgOperatorMark} />
+        </div>
+        <div className="-translate-x-1/2 -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Bold'] justify-center leading-[0] left-[39px] not-italic size-[42px] text-[#1b6eea] text-[18px] text-center top-[39px]" data-node-id="215:158">
+          <p className="leading-[24px]">B</p>
+        </div>
+        <div className="-translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:SemiBold'] h-[42px] justify-center leading-[0] left-[72px] not-italic text-[#081934] text-[15px] text-left top-[39px] w-[144px]" data-node-id="215:159">
+          <p className="leading-[22px]">BLUE Express</p>
+        </div>
+        <div className="absolute bg-[#f4f7fb] h-[32px] left-[168px] overflow-clip rounded-[16px] top-[22px] w-[132px]" data-node-id="215:160" data-name="Vehicle type">
+          <div className="-translate-x-1/2 -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Medium'] h-[32px] justify-center leading-[0] left-[66px] not-italic text-[#1f3352] text-[10px] text-center top-[16px] w-[132px]" data-node-id="215:161">
+            <p className="leading-[16px]">Limousine 11 chỗ</p>
+          </div>
+        </div>
+        <div className="absolute bg-[#d6dfee] h-px left-[18px] top-[72px] w-[282px]" data-node-id="215:162" data-name="Top divider" />
+        <div className="-translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Bold'] h-[36px] justify-center leading-[0] left-[18px] not-italic text-[#081934] text-[23px] text-left top-[106px] w-[88px]" data-node-id="215:163">
+          <p className="leading-[30px]">07:00</p>
+        </div>
+        <div className="-translate-x-full -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Bold'] h-[36px] justify-center leading-[0] left-[300px] not-italic text-[#081934] text-[23px] text-right top-[106px] w-[88px]" data-node-id="215:164">
+          <p className="leading-[30px]">13:30</p>
+        </div>
+        <div className="-translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Regular'] h-[24px] justify-center leading-[0] left-[18px] not-italic text-[#7e8da2] text-[11px] text-left top-[132px] w-[108px]" data-node-id="215:165">
+          <p className="leading-[16px]">Miền Đông mới</p>
+        </div>
+        <div className="-translate-x-full -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Regular'] h-[24px] justify-center leading-[0] left-[300px] not-italic text-[#7e8da2] text-[11px] text-right top-[132px] w-[108px]" data-node-id="215:166">
+          <p className="leading-[16px]">Bến xe Đà Lạt</p>
+        </div>
+        <div className="absolute h-[28px] left-[110px] overflow-clip top-[111px] w-[98px]" data-node-id="215:170" data-name="Duration">
+          <div className="-translate-x-1/2 -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Medium'] h-[28px] justify-center leading-[0] left-[49px] not-italic text-[#667388] text-[11px] text-center top-[14px] w-[98px]" data-node-id="215:171">
+            <p className="leading-[16px]">6 giờ 30</p>
+          </div>
+        </div>
+        <div className="-translate-x-1/2 -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Regular'] h-[20px] justify-center leading-[0] left-[158px] not-italic text-[#667388] text-[11px] text-center top-[173px] w-[84px]" data-node-id="215:172">
+          <p className="leading-[16px]">Đi thẳng</p>
+        </div>
+        <div className="absolute bg-[#d6dfee] h-px left-[18px] top-[184px] w-[282px]" data-node-id="215:173" data-name="Bottom divider" />
+        <div className="-translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Medium'] h-[28px] justify-center leading-[0] left-[44px] not-italic text-[#179b69] text-[12px] text-left top-[212px] w-[112px]" data-node-id="215:174">
+          <p className="leading-[18px]">Còn 6 ghế</p>
+        </div>
+        <div className="-translate-x-full -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Bold'] h-[34px] justify-center leading-[0] left-[300px] not-italic text-[#081934] text-[20px] text-right top-[211px] w-[136px]" data-node-id="215:175">
+          <p className="leading-[26px]">320.000 đ</p>
+        </div>
+        <div className="absolute bg-[#1b6eea] h-[42px] left-[18px] overflow-clip rounded-[21px] top-[240px] w-[282px]" data-node-id="215:176" data-name="Button / Chọn chuyến">
+          <div className="-translate-x-1/2 -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:SemiBold'] h-[42px] justify-center leading-[0] left-[141px] not-italic text-[14px] text-center text-white top-[21px] w-[282px]" data-node-id="215:177">
+            <p className="leading-[20px]">Chọn chuyến</p>
+          </div>
+        </div>
+        <div className="absolute h-0 left-[142px] top-[153px] w-[48px]" data-node-id="218:23" data-name="Route dashed line">
+          <div className="absolute inset-[-1.5px_0_0_0]">
+            <img alt="" className="block max-w-none size-full" src={imgRouteDashedLine} />
+          </div>
+        </div>
+        <div className="absolute left-[192px] size-[8px] top-[149px]" data-node-id="218:24" data-name="Route destination">
+          <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgRouteDestination} />
+        </div>
+        <div className="absolute left-[116px] size-[20px] top-[143px]" data-node-id="219:18" data-name="Lucide / Bus Front">
+          <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgLucideBusFront} />
+        </div>
+        <div className="absolute left-[18px] size-[19px] top-[201px]" data-node-id="219:22" data-name="Lucide / Ticket">
+          <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgLucideTicket} />
+        </div>
+      </div>
+      <div className="absolute bg-white drop-shadow-[0px_8px_10px_rgba(7,26,47,0.06)] h-[300px] left-[706px] rounded-[22px] top-[446px] w-[318px]" data-node-id="215:178" data-name="Trip result / Grid 2">
+        <div className="absolute left-[18px] size-[42px] top-[18px]" data-node-id="215:179" data-name="Operator mark">
+          <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgOperatorMark1} />
+        </div>
+        <div className="-translate-x-1/2 -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Bold'] justify-center leading-[0] left-[39px] not-italic size-[42px] text-[#176f5b] text-[18px] text-center top-[39px]" data-node-id="215:180">
+          <p className="leading-[24px]">A</p>
+        </div>
+        <div className="-translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:SemiBold'] h-[42px] justify-center leading-[0] left-[72px] not-italic text-[#081934] text-[15px] text-left top-[39px] w-[144px]" data-node-id="215:181">
+          <p className="leading-[22px]">An Lạc</p>
+        </div>
+        <div className="absolute bg-[#f4f7fb] h-[32px] left-[168px] overflow-clip rounded-[16px] top-[22px] w-[132px]" data-node-id="215:182" data-name="Vehicle type">
+          <div className="-translate-x-1/2 -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Medium'] h-[32px] justify-center leading-[0] left-[66px] not-italic text-[#1f3352] text-[10px] text-center top-[16px] w-[132px]" data-node-id="215:183">
+            <p className="leading-[16px]">Giường nằm 40 chỗ</p>
+          </div>
+        </div>
+        <div className="absolute bg-[#d6dfee] h-px left-[18px] top-[72px] w-[282px]" data-node-id="215:184" data-name="Top divider" />
+        <div className="-translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Bold'] h-[36px] justify-center leading-[0] left-[18px] not-italic text-[#081934] text-[23px] text-left top-[106px] w-[88px]" data-node-id="215:185">
+          <p className="leading-[30px]">08:00</p>
+        </div>
+        <div className="-translate-x-full -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Bold'] h-[36px] justify-center leading-[0] left-[300px] not-italic text-[#081934] text-[23px] text-right top-[106px] w-[88px]" data-node-id="215:186">
+          <p className="leading-[30px]">14:15</p>
+        </div>
+        <div className="-translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Regular'] h-[24px] justify-center leading-[0] left-[18px] not-italic text-[#7e8da2] text-[11px] text-left top-[132px] w-[108px]" data-node-id="215:187">
+          <p className="leading-[16px]">Miền Đông mới</p>
+        </div>
+        <div className="-translate-x-full -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Regular'] h-[24px] justify-center leading-[0] left-[300px] not-italic text-[#7e8da2] text-[11px] text-right top-[132px] w-[108px]" data-node-id="215:188">
+          <p className="leading-[16px]">Bến xe Đà Lạt</p>
+        </div>
+        <div className="absolute h-[28px] left-[110px] overflow-clip top-[111px] w-[98px]" data-node-id="215:192" data-name="Duration">
+          <div className="-translate-x-1/2 -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Medium'] h-[28px] justify-center leading-[0] left-[49px] not-italic text-[#667388] text-[11px] text-center top-[14px] w-[98px]" data-node-id="215:193">
+            <p className="leading-[16px]">6 giờ 15</p>
+          </div>
+        </div>
+        <div className="-translate-x-1/2 -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Regular'] h-[20px] justify-center leading-[0] left-[158px] not-italic text-[#667388] text-[11px] text-center top-[173px] w-[84px]" data-node-id="215:194">
+          <p className="leading-[16px]">Đi thẳng</p>
+        </div>
+        <div className="absolute bg-[#d6dfee] h-px left-[18px] top-[184px] w-[282px]" data-node-id="215:195" data-name="Bottom divider" />
+        <div className="-translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Medium'] h-[28px] justify-center leading-[0] left-[44px] not-italic text-[#176f5b] text-[12px] text-left top-[212px] w-[112px]" data-node-id="215:196">
+          <p className="leading-[18px]">Còn 12 ghế</p>
+        </div>
+        <div className="-translate-x-full -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Bold'] h-[34px] justify-center leading-[0] left-[300px] not-italic text-[#081934] text-[20px] text-right top-[211px] w-[136px]" data-node-id="215:197">
+          <p className="leading-[26px]">280.000 đ</p>
+        </div>
+        <div className="absolute bg-[#1b6eea] h-[42px] left-[18px] overflow-clip rounded-[21px] top-[240px] w-[282px]" data-node-id="215:198" data-name="Button / Chọn chuyến">
+          <div className="-translate-x-1/2 -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:SemiBold'] h-[42px] justify-center leading-[0] left-[141px] not-italic text-[14px] text-center text-white top-[21px] w-[282px]" data-node-id="215:199">
+            <p className="leading-[20px]">Chọn chuyến</p>
+          </div>
+        </div>
+        <div className="absolute h-0 left-[142px] top-[153px] w-[48px]" data-node-id="218:32" data-name="Route dashed line">
+          <div className="absolute inset-[-1.5px_0_0_0]">
+            <img alt="" className="block max-w-none size-full" src={imgRouteDashedLine} />
+          </div>
+        </div>
+        <div className="absolute left-[192px] size-[8px] top-[149px]" data-node-id="218:33" data-name="Route destination">
+          <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgRouteDestination} />
+        </div>
+        <div className="absolute left-[116px] size-[20px] top-[143px]" data-node-id="219:25" data-name="Lucide / Bus Front">
+          <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgLucideBusFront} />
+        </div>
+        <div className="absolute left-[18px] size-[19px] top-[201px]" data-node-id="219:29" data-name="Lucide / Ticket">
+          <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgLucideTicket} />
+        </div>
+      </div>
+      <div className="absolute bg-white drop-shadow-[0px_8px_10px_rgba(7,26,47,0.06)] h-[300px] left-[1042px] rounded-[22px] top-[446px] w-[318px]" data-node-id="215:200" data-name="Trip result / Grid 3">
+        <div className="absolute left-[18px] size-[42px] top-[18px]" data-node-id="215:201" data-name="Operator mark">
+          <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgOperatorMark2} />
+        </div>
+        <div className="-translate-x-1/2 -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Bold'] justify-center leading-[0] left-[39px] not-italic size-[42px] text-[#8a5606] text-[18px] text-center top-[39px]" data-node-id="215:202">
+          <p className="leading-[24px]">T</p>
+        </div>
+        <div className="-translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:SemiBold'] h-[42px] justify-center leading-[0] left-[72px] not-italic text-[#081934] text-[15px] text-left top-[39px] w-[144px]" data-node-id="215:203">
+          <p className="leading-[22px]">Thiên Việt</p>
+        </div>
+        <div className="absolute bg-[#f4f7fb] h-[32px] left-[168px] overflow-clip rounded-[16px] top-[22px] w-[132px]" data-node-id="215:204" data-name="Vehicle type">
+          <div className="-translate-x-1/2 -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Medium'] h-[32px] justify-center leading-[0] left-[66px] not-italic text-[#1f3352] text-[10px] text-center top-[16px] w-[132px]" data-node-id="215:205">
+            <p className="leading-[16px]">Cabin 24 phòng</p>
+          </div>
+        </div>
+        <div className="absolute bg-[#d6dfee] h-px left-[18px] top-[72px] w-[282px]" data-node-id="215:206" data-name="Top divider" />
+        <div className="-translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Bold'] h-[36px] justify-center leading-[0] left-[18px] not-italic text-[#081934] text-[23px] text-left top-[106px] w-[88px]" data-node-id="215:207">
+          <p className="leading-[30px]">09:30</p>
+        </div>
+        <div className="-translate-x-full -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Bold'] h-[36px] justify-center leading-[0] left-[300px] not-italic text-[#081934] text-[23px] text-right top-[106px] w-[88px]" data-node-id="215:208">
+          <p className="leading-[30px]">15:45</p>
+        </div>
+        <div className="-translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Regular'] h-[24px] justify-center leading-[0] left-[18px] not-italic text-[#7e8da2] text-[11px] text-left top-[132px] w-[108px]" data-node-id="215:209">
+          <p className="leading-[16px]">Bến xe Q.5</p>
+        </div>
+        <div className="-translate-x-full -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Regular'] h-[24px] justify-center leading-[0] left-[300px] not-italic text-[#7e8da2] text-[11px] text-right top-[132px] w-[108px]" data-node-id="215:210">
+          <p className="leading-[16px]">Trung tâm Đà Lạt</p>
+        </div>
+        <div className="absolute h-[28px] left-[110px] overflow-clip top-[111px] w-[98px]" data-node-id="215:214" data-name="Duration">
+          <div className="-translate-x-1/2 -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Medium'] h-[28px] justify-center leading-[0] left-[49px] not-italic text-[#667388] text-[11px] text-center top-[14px] w-[98px]" data-node-id="215:215">
+            <p className="leading-[16px]">6 giờ 15</p>
+          </div>
+        </div>
+        <div className="-translate-x-1/2 -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Regular'] h-[20px] justify-center leading-[0] left-[158px] not-italic text-[#667388] text-[11px] text-center top-[173px] w-[84px]" data-node-id="215:216">
+          <p className="leading-[16px]">Đi thẳng</p>
+        </div>
+        <div className="absolute bg-[#d6dfee] h-px left-[18px] top-[184px] w-[282px]" data-node-id="215:217" data-name="Bottom divider" />
+        <div className="-translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Medium'] h-[28px] justify-center leading-[0] left-[44px] not-italic text-[#176f5b] text-[12px] text-left top-[212px] w-[112px]" data-node-id="215:218">
+          <p className="leading-[18px]">Còn 4 ghế</p>
+        </div>
+        <div className="-translate-x-full -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Bold'] h-[34px] justify-center leading-[0] left-[300px] not-italic text-[#081934] text-[20px] text-right top-[211px] w-[136px]" data-node-id="215:219">
+          <p className="leading-[26px]">390.000 đ</p>
+        </div>
+        <div className="absolute bg-[#1b6eea] h-[42px] left-[18px] overflow-clip rounded-[21px] top-[240px] w-[282px]" data-node-id="215:220" data-name="Button / Chọn chuyến">
+          <div className="-translate-x-1/2 -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:SemiBold'] h-[42px] justify-center leading-[0] left-[141px] not-italic text-[14px] text-center text-white top-[21px] w-[282px]" data-node-id="215:221">
+            <p className="leading-[20px]">Chọn chuyến</p>
+          </div>
+        </div>
+        <div className="absolute h-0 left-[142px] top-[153px] w-[48px]" data-node-id="218:41" data-name="Route dashed line">
+          <div className="absolute inset-[-1.5px_0_0_0]">
+            <img alt="" className="block max-w-none size-full" src={imgRouteDashedLine} />
+          </div>
+        </div>
+        <div className="absolute left-[192px] size-[8px] top-[149px]" data-node-id="218:42" data-name="Route destination">
+          <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgRouteDestination} />
+        </div>
+        <div className="absolute left-[116px] size-[20px] top-[143px]" data-node-id="219:32" data-name="Lucide / Bus Front">
+          <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgLucideBusFront} />
+        </div>
+        <div className="absolute left-[18px] size-[19px] top-[201px]" data-node-id="219:36" data-name="Lucide / Ticket">
+          <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgLucideTicket} />
+        </div>
+      </div>
+      <div className="absolute bg-white drop-shadow-[0px_8px_10px_rgba(7,26,47,0.06)] h-[300px] left-[370px] rounded-[22px] top-[766px] w-[318px]" data-node-id="215:222" data-name="Trip result / Grid 4">
+        <div className="absolute left-[18px] size-[42px] top-[18px]" data-node-id="215:223" data-name="Operator mark">
+          <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgOperatorMark} />
+        </div>
+        <div className="-translate-x-1/2 -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Bold'] justify-center leading-[0] left-[39px] not-italic size-[42px] text-[#1146b0] text-[18px] text-center top-[39px]" data-node-id="215:224">
+          <p className="leading-[24px]">M</p>
+        </div>
+        <div className="-translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:SemiBold'] h-[42px] justify-center leading-[0] left-[72px] not-italic text-[#081934] text-[15px] text-left top-[39px] w-[144px]" data-node-id="215:225">
+          <p className="leading-[22px]">Minh Châu</p>
+        </div>
+        <div className="absolute bg-[#f4f7fb] h-[32px] left-[168px] overflow-clip rounded-[16px] top-[22px] w-[132px]" data-node-id="215:226" data-name="Vehicle type">
+          <div className="-translate-x-1/2 -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Medium'] h-[32px] justify-center leading-[0] left-[66px] not-italic text-[#1f3352] text-[10px] text-center top-[16px] w-[132px]" data-node-id="215:227">
+            <p className="leading-[16px]">Limousine 24 chỗ</p>
+          </div>
+        </div>
+        <div className="absolute bg-[#d6dfee] h-px left-[18px] top-[72px] w-[282px]" data-node-id="215:228" data-name="Top divider" />
+        <div className="-translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Bold'] h-[36px] justify-center leading-[0] left-[18px] not-italic text-[#081934] text-[23px] text-left top-[106px] w-[88px]" data-node-id="215:229">
+          <p className="leading-[30px]">11:00</p>
+        </div>
+        <div className="-translate-x-full -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Bold'] h-[36px] justify-center leading-[0] left-[300px] not-italic text-[#081934] text-[23px] text-right top-[106px] w-[88px]" data-node-id="215:230">
+          <p className="leading-[30px]">17:20</p>
+        </div>
+        <div className="-translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Regular'] h-[24px] justify-center leading-[0] left-[18px] not-italic text-[#7e8da2] text-[11px] text-left top-[132px] w-[108px]" data-node-id="215:231">
+          <p className="leading-[16px]">Miền Đông mới</p>
+        </div>
+        <div className="-translate-x-full -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Regular'] h-[24px] justify-center leading-[0] left-[300px] not-italic text-[#7e8da2] text-[11px] text-right top-[132px] w-[108px]" data-node-id="215:232">
+          <p className="leading-[16px]">Bến xe Đà Lạt</p>
+        </div>
+        <div className="absolute h-[28px] left-[110px] overflow-clip top-[111px] w-[98px]" data-node-id="215:236" data-name="Duration">
+          <div className="-translate-x-1/2 -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Medium'] h-[28px] justify-center leading-[0] left-[49px] not-italic text-[#667388] text-[11px] text-center top-[14px] w-[98px]" data-node-id="215:237">
+            <p className="leading-[16px]">6 giờ 20</p>
+          </div>
+        </div>
+        <div className="-translate-x-1/2 -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Regular'] h-[20px] justify-center leading-[0] left-[158px] not-italic text-[#667388] text-[11px] text-center top-[173px] w-[84px]" data-node-id="215:238">
+          <p className="leading-[16px]">Đi thẳng</p>
+        </div>
+        <div className="absolute bg-[#d6dfee] h-px left-[18px] top-[184px] w-[282px]" data-node-id="215:239" data-name="Bottom divider" />
+        <div className="-translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Medium'] h-[28px] justify-center leading-[0] left-[44px] not-italic text-[#179b69] text-[12px] text-left top-[212px] w-[112px]" data-node-id="215:240">
+          <p className="leading-[18px]">Còn 9 ghế</p>
+        </div>
+        <div className="-translate-x-full -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Bold'] h-[34px] justify-center leading-[0] left-[300px] not-italic text-[#081934] text-[20px] text-right top-[211px] w-[136px]" data-node-id="215:241">
+          <p className="leading-[26px]">330.000 đ</p>
+        </div>
+        <div className="absolute bg-[#1b6eea] h-[42px] left-[18px] overflow-clip rounded-[21px] top-[240px] w-[282px]" data-node-id="215:242" data-name="Button / Chọn chuyến">
+          <div className="-translate-x-1/2 -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:SemiBold'] h-[42px] justify-center leading-[0] left-[141px] not-italic text-[14px] text-center text-white top-[21px] w-[282px]" data-node-id="215:243">
+            <p className="leading-[20px]">Chọn chuyến</p>
+          </div>
+        </div>
+        <div className="absolute h-0 left-[142px] top-[153px] w-[48px]" data-node-id="218:50" data-name="Route dashed line">
+          <div className="absolute inset-[-1.5px_0_0_0]">
+            <img alt="" className="block max-w-none size-full" src={imgRouteDashedLine} />
+          </div>
+        </div>
+        <div className="absolute left-[192px] size-[8px] top-[149px]" data-node-id="218:51" data-name="Route destination">
+          <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgRouteDestination} />
+        </div>
+        <div className="absolute left-[116px] size-[20px] top-[143px]" data-node-id="219:39" data-name="Lucide / Bus Front">
+          <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgLucideBusFront} />
+        </div>
+        <div className="absolute left-[18px] size-[19px] top-[201px]" data-node-id="219:43" data-name="Lucide / Ticket">
+          <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgLucideTicket} />
+        </div>
+      </div>
+      <div className="absolute bg-white drop-shadow-[0px_8px_10px_rgba(7,26,47,0.06)] h-[300px] left-[706px] rounded-[22px] top-[766px] w-[318px]" data-node-id="215:244" data-name="Trip result / Grid 5">
+        <div className="absolute left-[18px] size-[42px] top-[18px]" data-node-id="215:245" data-name="Operator mark">
+          <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgOperatorMark1} />
+        </div>
+        <div className="-translate-x-1/2 -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Bold'] justify-center leading-[0] left-[39px] not-italic size-[42px] text-[#176f5b] text-[18px] text-center top-[39px]" data-node-id="215:246">
+          <p className="leading-[24px]">C</p>
+        </div>
+        <div className="-translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:SemiBold'] h-[42px] justify-center leading-[0] left-[72px] not-italic text-[#081934] text-[15px] text-left top-[39px] w-[144px]" data-node-id="215:247">
+          <p className="leading-[22px]">Cao Nguyên</p>
+        </div>
+        <div className="absolute bg-[#f4f7fb] h-[32px] left-[168px] overflow-clip rounded-[16px] top-[22px] w-[132px]" data-node-id="215:248" data-name="Vehicle type">
+          <div className="-translate-x-1/2 -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Medium'] h-[32px] justify-center leading-[0] left-[66px] not-italic text-[#1f3352] text-[10px] text-center top-[16px] w-[132px]" data-node-id="215:249">
+            <p className="leading-[16px]">Limousine giường 34</p>
+          </div>
+        </div>
+        <div className="absolute bg-[#d6dfee] h-px left-[18px] top-[72px] w-[282px]" data-node-id="215:250" data-name="Top divider" />
+        <div className="-translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Bold'] h-[36px] justify-center leading-[0] left-[18px] not-italic text-[#081934] text-[23px] text-left top-[106px] w-[88px]" data-node-id="215:251">
+          <p className="leading-[30px]">13:30</p>
+        </div>
+        <div className="-translate-x-full -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Bold'] h-[36px] justify-center leading-[0] left-[300px] not-italic text-[#081934] text-[23px] text-right top-[106px] w-[88px]" data-node-id="215:252">
+          <p className="leading-[30px]">20:00</p>
+        </div>
+        <div className="-translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Regular'] h-[24px] justify-center leading-[0] left-[18px] not-italic text-[#7e8da2] text-[11px] text-left top-[132px] w-[108px]" data-node-id="215:253">
+          <p className="leading-[16px]">Bến xe An Sương</p>
+        </div>
+        <div className="-translate-x-full -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Regular'] h-[24px] justify-center leading-[0] left-[300px] not-italic text-[#7e8da2] text-[11px] text-right top-[132px] w-[108px]" data-node-id="215:254">
+          <p className="leading-[16px]">Bến xe Đà Lạt</p>
+        </div>
+        <div className="absolute h-[28px] left-[110px] overflow-clip top-[111px] w-[98px]" data-node-id="215:258" data-name="Duration">
+          <div className="-translate-x-1/2 -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Medium'] h-[28px] justify-center leading-[0] left-[49px] not-italic text-[#667388] text-[11px] text-center top-[14px] w-[98px]" data-node-id="215:259">
+            <p className="leading-[16px]">6 giờ 30</p>
+          </div>
+        </div>
+        <div className="-translate-x-1/2 -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Regular'] h-[20px] justify-center leading-[0] left-[158px] not-italic text-[#667388] text-[11px] text-center top-[173px] w-[84px]" data-node-id="215:260">
+          <p className="leading-[16px]">Đi thẳng</p>
+        </div>
+        <div className="absolute bg-[#d6dfee] h-px left-[18px] top-[184px] w-[282px]" data-node-id="215:261" data-name="Bottom divider" />
+        <div className="-translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Medium'] h-[28px] justify-center leading-[0] left-[44px] not-italic text-[#176f5b] text-[12px] text-left top-[212px] w-[112px]" data-node-id="215:262">
+          <p className="leading-[18px]">Còn 15 ghế</p>
+        </div>
+        <div className="-translate-x-full -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Bold'] h-[34px] justify-center leading-[0] left-[300px] not-italic text-[#081934] text-[20px] text-right top-[211px] w-[136px]" data-node-id="215:263">
+          <p className="leading-[26px]">275.000 đ</p>
+        </div>
+        <div className="absolute bg-[#1b6eea] h-[42px] left-[18px] overflow-clip rounded-[21px] top-[240px] w-[282px]" data-node-id="215:264" data-name="Button / Chọn chuyến">
+          <div className="-translate-x-1/2 -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:SemiBold'] h-[42px] justify-center leading-[0] left-[141px] not-italic text-[14px] text-center text-white top-[21px] w-[282px]" data-node-id="215:265">
+            <p className="leading-[20px]">Chọn chuyến</p>
+          </div>
+        </div>
+        <div className="absolute h-0 left-[142px] top-[153px] w-[48px]" data-node-id="218:59" data-name="Route dashed line">
+          <div className="absolute inset-[-1.5px_0_0_0]">
+            <img alt="" className="block max-w-none size-full" src={imgRouteDashedLine} />
+          </div>
+        </div>
+        <div className="absolute left-[192px] size-[8px] top-[149px]" data-node-id="218:60" data-name="Route destination">
+          <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgRouteDestination} />
+        </div>
+        <div className="absolute left-[116px] size-[20px] top-[143px]" data-node-id="219:46" data-name="Lucide / Bus Front">
+          <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgLucideBusFront} />
+        </div>
+        <div className="absolute left-[18px] size-[19px] top-[201px]" data-node-id="219:50" data-name="Lucide / Ticket">
+          <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgLucideTicket} />
+        </div>
+      </div>
+      <div className="absolute bg-white drop-shadow-[0px_8px_10px_rgba(7,26,47,0.06)] h-[300px] left-[1042px] rounded-[22px] top-[766px] w-[318px]" data-node-id="215:266" data-name="Trip result / Grid 6">
+        <div className="absolute left-[18px] size-[42px] top-[18px]" data-node-id="215:267" data-name="Operator mark">
+          <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgOperatorMark} />
+        </div>
+        <div className="-translate-x-1/2 -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Bold'] justify-center leading-[0] left-[39px] not-italic size-[42px] text-[#1b6eea] text-[18px] text-center top-[39px]" data-node-id="215:268">
+          <p className="leading-[24px]">Đ</p>
+        </div>
+        <div className="-translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:SemiBold'] h-[42px] justify-center leading-[0] left-[72px] not-italic text-[#081934] text-[15px] text-left top-[39px] w-[144px]" data-node-id="215:269">
+          <p className="leading-[22px]">Đồi Xanh</p>
+        </div>
+        <div className="absolute bg-[#f4f7fb] h-[32px] left-[168px] overflow-clip rounded-[16px] top-[22px] w-[132px]" data-node-id="215:270" data-name="Vehicle type">
+          <div className="-translate-x-1/2 -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Medium'] h-[32px] justify-center leading-[0] left-[66px] not-italic text-[#1f3352] text-[10px] text-center top-[16px] w-[132px]" data-node-id="215:271">
+            <p className="leading-[16px]">Giường phòng 21</p>
+          </div>
+        </div>
+        <div className="absolute bg-[#d6dfee] h-px left-[18px] top-[72px] w-[282px]" data-node-id="215:272" data-name="Top divider" />
+        <div className="-translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Bold'] h-[36px] justify-center leading-[0] left-[18px] not-italic text-[#081934] text-[23px] text-left top-[106px] w-[88px]" data-node-id="215:273">
+          <p className="leading-[30px]">22:00</p>
+        </div>
+        <div className="-translate-x-full -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Bold'] h-[36px] justify-center leading-[0] left-[300px] not-italic text-[#081934] text-[23px] text-right top-[106px] w-[88px]" data-node-id="215:274">
+          <p className="leading-[30px]">04:30</p>
+        </div>
+        <div className="-translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Regular'] h-[24px] justify-center leading-[0] left-[18px] not-italic text-[#7e8da2] text-[11px] text-left top-[132px] w-[108px]" data-node-id="215:275">
+          <p className="leading-[16px]">Miền Đông mới</p>
+        </div>
+        <div className="-translate-x-full -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Regular'] h-[24px] justify-center leading-[0] left-[300px] not-italic text-[#7e8da2] text-[11px] text-right top-[132px] w-[108px]" data-node-id="215:276">
+          <p className="leading-[16px]">Trung tâm Đà Lạt</p>
+        </div>
+        <div className="absolute h-[28px] left-[110px] overflow-clip top-[111px] w-[98px]" data-node-id="215:280" data-name="Duration">
+          <div className="-translate-x-1/2 -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Medium'] h-[28px] justify-center leading-[0] left-[49px] not-italic text-[#667388] text-[11px] text-center top-[14px] w-[98px]" data-node-id="215:281">
+            <p className="leading-[16px]">6 giờ 30</p>
+          </div>
+        </div>
+        <div className="-translate-x-1/2 -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Regular'] h-[20px] justify-center leading-[0] left-[158px] not-italic text-[#667388] text-[11px] text-center top-[173px] w-[84px]" data-node-id="215:282">
+          <p className="leading-[16px]">Đi thẳng</p>
+        </div>
+        <div className="absolute bg-[#d6dfee] h-px left-[18px] top-[184px] w-[282px]" data-node-id="215:283" data-name="Bottom divider" />
+        <div className="-translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Medium'] h-[28px] justify-center leading-[0] left-[44px] not-italic text-[#179b69] text-[12px] text-left top-[212px] w-[112px]" data-node-id="215:284">
+          <p className="leading-[18px]">Còn 7 ghế</p>
+        </div>
+        <div className="-translate-x-full -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Bold'] h-[34px] justify-center leading-[0] left-[300px] not-italic text-[#081934] text-[20px] text-right top-[211px] w-[136px]" data-node-id="215:285">
+          <p className="leading-[26px]">350.000 đ</p>
+        </div>
+        <div className="absolute bg-[#1b6eea] h-[42px] left-[18px] overflow-clip rounded-[21px] top-[240px] w-[282px]" data-node-id="215:286" data-name="Button / Chọn chuyến">
+          <div className="-translate-x-1/2 -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:SemiBold'] h-[42px] justify-center leading-[0] left-[141px] not-italic text-[14px] text-center text-white top-[21px] w-[282px]" data-node-id="215:287">
+            <p className="leading-[20px]">Chọn chuyến</p>
+          </div>
+        </div>
+        <div className="absolute h-0 left-[142px] top-[153px] w-[48px]" data-node-id="218:68" data-name="Route dashed line">
+          <div className="absolute inset-[-1.5px_0_0_0]">
+            <img alt="" className="block max-w-none size-full" src={imgRouteDashedLine} />
+          </div>
+        </div>
+        <div className="absolute left-[192px] size-[8px] top-[149px]" data-node-id="218:69" data-name="Route destination">
+          <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgRouteDestination} />
+        </div>
+        <div className="absolute left-[116px] size-[20px] top-[143px]" data-node-id="219:53" data-name="Lucide / Bus Front">
+          <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgLucideBusFront} />
+        </div>
+        <div className="absolute left-[18px] size-[19px] top-[201px]" data-node-id="219:57" data-name="Lucide / Ticket">
+          <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgLucideTicket} />
+        </div>
+      </div>
+      <div className="-translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Regular'] h-[32px] justify-center leading-[0] left-[370px] not-italic text-[#5c6d89] text-[13px] text-left top-[1128px] w-[300px]" data-node-id="215:288">
+        <p className="leading-[20px]">Hiển thị 1–6 trong 24 chuyến</p>
+      </div>
+      <div className="absolute bg-white border border-[#d6dfee] border-solid h-[40px] left-[1136px] overflow-clip rounded-[20px] top-[1110px] w-[44px]" data-node-id="215:289" data-name="Pagination / Prev">
+        <div className="-translate-x-1/2 -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Medium'] h-[40px] justify-center leading-[0] left-[21px] not-italic text-[#5c6d89] text-[14px] text-center top-[19px] w-[44px]" data-node-id="215:290">
+          <p className="leading-[20px]">‹</p>
+        </div>
+      </div>
+      <div className="absolute bg-[#071a2f] h-[40px] left-[1188px] overflow-clip rounded-[20px] top-[1110px] w-[44px]" data-node-id="215:291" data-name="Pagination / 1">
+        <div className="-translate-x-1/2 -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:SemiBold'] h-[40px] justify-center leading-[0] left-[22px] not-italic text-[14px] text-center text-white top-[20px] w-[44px]" data-node-id="215:292">
+          <p className="leading-[20px]">1</p>
+        </div>
+      </div>
+      <div className="absolute bg-white border border-[#d6dfee] border-solid h-[40px] left-[1240px] overflow-clip rounded-[20px] top-[1110px] w-[44px]" data-node-id="215:293" data-name="Pagination / 2">
+        <div className="-translate-x-1/2 -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Medium'] h-[40px] justify-center leading-[0] left-[21px] not-italic text-[#5c6d89] text-[14px] text-center top-[19px] w-[44px]" data-node-id="215:294">
+          <p className="leading-[20px]">2</p>
+        </div>
+      </div>
+      <div className="absolute bg-white border border-[#d6dfee] border-solid h-[40px] left-[1292px] overflow-clip rounded-[20px] top-[1110px] w-[44px]" data-node-id="215:295" data-name="Pagination / Next">
+        <div className="-translate-x-1/2 -translate-y-1/2 [word-break:break-word] absolute flex flex-col font-['Be_Vietnam_Pro:Medium'] h-[40px] justify-center leading-[0] left-[21px] not-italic text-[#5c6d89] text-[14px] text-center top-[19px] w-[44px]" data-node-id="215:296">
+          <p className="leading-[20px]">›</p>
+        </div>
+      </div>
+      <div className="absolute bg-white border border-[#d6e5f7] border-solid h-[72px] left-[80px] overflow-clip rounded-[16px] shadow-[0px_8px_24px_0px_rgba(23,58,100,0.1)] top-[18px] w-[1280px]" data-node-id="28:31" data-name="BLUE/Desktop Navigation">
+        <div className="-translate-y-1/2 absolute h-[48px] left-[31px] overflow-clip top-1/2 w-[126px]" data-node-id="I28:31;23:12" data-name="Brand">
+          <div className="absolute h-[48px] left-0 overflow-clip top-0 w-[126px]" data-node-id="I28:31;163:12" data-name="Official BLUE logo instance">
+            <div className="absolute h-[40px] left-[8px] top-[4px] w-[110px]" data-node-id="I28:31;163:12;163:11" data-name="Official BLUE logo.png">
+              <img alt="" className="absolute inset-0 max-w-none object-contain pointer-events-none size-full" src={imgOfficialBlueLogoPng} />
+            </div>
+          </div>
+        </div>
+        <div className="-translate-x-1/2 -translate-y-1/2 [word-break:break-word] absolute h-[32px] leading-[normal] left-1/2 not-italic text-[12px] text-left top-1/2 w-[324px]" data-node-id="I28:31;132:10" data-name="Primary navigation / Clean">
+          <p className="absolute font-['Be_Vietnam_Pro:Regular'] h-[16px] left-0 text-[#174ea6] top-[8px] w-[72px]" data-node-id="I28:31;132:11">
+            Trang chủ
+          </p>
+          <p className="absolute font-['Be_Vietnam_Pro:Regular'] h-[16px] left-[90px] text-[#174ea6] top-[8px] w-[72px]" data-node-id="I28:31;132:12">
+            Khám phá
+          </p>
+          <p className="absolute font-['Be_Vietnam_Pro:Regular'] h-[16px] left-[180px] text-[#174ea6] top-[8px] w-[72px]" data-node-id="I28:31;132:13">
+            Điểm đến
+          </p>
+          <p className="absolute font-['Be_Vietnam_Pro:SemiBold'] h-[16px] left-[276px] text-[#69a5ff] top-[8px] w-[48px]" data-node-id="I28:31;132:14">
+            Vé xe
+          </p>
+        </div>
+        <p className="[word-break:break-word] absolute font-['Be_Vietnam_Pro:SemiBold'] h-[16px] leading-[normal] not-italic right-[291px] text-[#174ea6] text-[12px] text-left top-[calc(50%-8px)] translate-x-full w-[116px]" data-node-id="I28:31;132:15">
+          Hành trình của tôi
+        </p>
+        <div className="-translate-y-1/2 absolute bg-[#246bda] h-[44px] overflow-clip right-[31px] rounded-[12px] top-1/2 w-[116px]" data-node-id="I28:31;132:16" data-name="Header CTA / Đặt vé">
+          <p className="-translate-x-1/2 [word-break:break-word] absolute font-['Be_Vietnam_Pro:SemiBold'] h-[16px] leading-[normal] left-[58px] not-italic text-[12px] text-center text-white top-[14px] w-[60px]" data-node-id="I28:31;132:17">
+            Đặt vé
+          </p>
+        </div>
+      </div>
+    </a>
+  );
+}
+SUPER CRITICAL: The generated React+Tailwind code MUST be converted to match the target project's technology stack and styling system.
+1. Analyze the target codebase to identify: technology stack, styling approach, component patterns, and design tokens
+2. Convert React syntax to the target framework/library
+3. Transform all Tailwind classes to the target styling system while preserving exact visual design
+4. Follow the project's existing patterns and conventions
+DO NOT install any Tailwind as a dependency unless the user instructs you to do so.
+
+Node ids have been added to the code as data attributes, e.g. `data-node-id="1:2"`.
+Component descriptions: The following components have usage descriptions or documentation links defined in Figma. These descriptions provide important context about the intended usage, best practices, and any constraints for each component. Follow these guidelines when implementing or using these components.
+
+## Role=Customer
+**Node ID:** 23:11
+
+Customer desktop navigation. Active item uses weight plus text color.
+
+## BLUE/Desktop Navigation
+**Node ID:** 23:61
+
+Role-aware desktop shell: Customer, Operator, Driver, Admin.
+The generated code contains image and SVG URL constants, e.g. const image = 'https://www.figma.com/api/mcp/asset/550e8400-e29b-41d4-a716-446655440000.png'. These URLs are temporary download sources and expire after 7 days. Download each asset into the project with curl -L, then replace its URL in the generated code with a reference to the downloaded asset. Never use the temporary URLs as runtime image sources.

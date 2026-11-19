@@ -1,0 +1,14 @@
+import {createRequire} from 'node:module';
+const require=createRequire(new URL('../../../workspace/src/apps/web/package.json',import.meta.url));
+const {chromium}=require('@playwright/test');
+const browser=await chromium.launch({channel:'chrome',headless:true});
+const page=await browser.newPage({viewport:{width:1440,height:1000}});
+await page.goto('http://127.0.0.1:5174/login',{waitUntil:'networkidle'});
+await page.getByRole('button',{name:'Điền tài khoản demo'}).click();await page.getByRole('button',{name:'Đăng nhập',exact:true}).click();await page.waitForURL(/operator\/trips$/);
+await page.goto('http://127.0.0.1:5174/operator/trips/new',{waitUntil:'networkidle'});
+await page.getByLabel('Điểm đi',{exact:true}).waitFor();
+console.log('before',await page.locator('select').evaluateAll(es=>es.map(e=>e.outerHTML)));
+await page.getByLabel('Điểm đi',{exact:true}).selectOption({label:'TP.HCM'});
+console.log('after',await page.locator('select').evaluateAll(es=>es.map(e=>e.outerHTML)));
+console.log(await page.evaluate(()=>[...document.querySelectorAll('select')].map(e=>[e.getAttribute('aria-label'),e.value])));
+await browser.close();

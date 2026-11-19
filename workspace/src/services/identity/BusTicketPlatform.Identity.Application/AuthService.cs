@@ -217,7 +217,8 @@ public sealed class AuthService(
         }
 
         var now = clock.UtcNow;
-        var issued = tokens.Issue(user, await TokenRolesAsync(user.Id, cancellationToken), ids.NewUuidV7(), await TokenOrgAsync(user.Id, cancellationToken));
+        var scope = await TokenScopeAsync(user.Id, cancellationToken);
+        var issued = tokens.Issue(user, scope.Roles, ids.NewUuidV7(), scope.OrganizationId, scope.OrganizationRoles);
         var replacement = new SessionRecord(
             ids.NewUuidV7(),
             user.Id,
@@ -387,8 +388,8 @@ public sealed class AuthService(
     {
         var now = clock.UtcNow;
         var sessionId = ids.NewUuidV7();
-        var roles = await TokenRolesAsync(user.Id, cancellationToken);
-        var issued = tokens.Issue(user, roles, sessionId, await TokenOrgAsync(user.Id, cancellationToken));
+        var scope = await TokenScopeAsync(user.Id, cancellationToken);
+        var issued = tokens.Issue(user, scope.Roles, sessionId, scope.OrganizationId, scope.OrganizationRoles);
         var session = new SessionRecord(
             sessionId,
             user.Id,
@@ -414,22 +415,19 @@ public sealed class AuthService(
         return new SessionResponse(accessToken, refreshToken, "Bearer", expiresIn, sessionId, profile);
     }
 
-    private async Task<IReadOnlyList<string>> TokenRolesAsync(Guid userId, CancellationToken cancellationToken)
+    private async Task<(IReadOnlyList<string> Roles, Guid? OrganizationId, IReadOnlyList<string>? OrganizationRoles)> TokenScopeAsync(
+        Guid userId, CancellationToken cancellationToken)
     {
         var roles = (await users.GetRoleCodesAsync(userId, cancellationToken)).ToList();
         var memberships = await users.GetMembershipsForUserAsync(userId, cancellationToken);
-        foreach (var membership in memberships.Where(item => item.Status == "ACTIVE"))
+        var active = memberships.Where(item => item.Status == "ACTIVE").ToArray();
+        foreach (var membership in active)
         {
             roles.AddRange(membership.RoleCodes);
         }
 
-        return roles.Distinct(StringComparer.Ordinal).ToArray();
-    }
-
-    private async Task<Guid?> TokenOrgAsync(Guid userId, CancellationToken cancellationToken)
-    {
-        var memberships = await users.GetMembershipsForUserAsync(userId, cancellationToken);
-        return memberships.FirstOrDefault(item => item.Status == "ACTIVE")?.OrganizationId;
+        var current = active.FirstOrDefault();
+        return (roles.Distinct(StringComparer.Ordinal).ToArray(), current?.OrganizationId, current?.RoleCodes);
     }
 
     public static string HashSecret(string value) =>

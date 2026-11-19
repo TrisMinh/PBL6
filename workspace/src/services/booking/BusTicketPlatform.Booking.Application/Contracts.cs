@@ -114,6 +114,8 @@ public interface IBookingEvents
 
 public static class CancellationPolicy
 {
+    public static DateTimeOffset SelfServiceCutoff(DateTimeOffset departureAt) => departureAt.AddHours(-2);
+
     public static (decimal Rate, bool Allowed) For(DateTimeOffset departureAt, DateTimeOffset now)
     {
         var hours = (departureAt - now).TotalHours;
@@ -127,7 +129,7 @@ public static class CancellationPolicy
             return (0.20m, true);
         }
 
-        if (hours >= 2)
+        if (now <= SelfServiceCutoff(departureAt))
         {
             return (0.30m, true);
         }

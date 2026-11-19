@@ -58,7 +58,6 @@ public static class BookingEndpoints
         api.MapGet("/admin/bookings", SearchAsync).RequireAuthorization();
         api.MapGet("/operator/bookings", SearchAsync).RequireAuthorization();
         api.MapPost("/internal/trips/published", ImportAsync);
-        api.MapPost("/internal/payments/succeeded", PaymentSucceededAsync);
         return endpoints;
     }
 
@@ -255,6 +254,4 @@ public static class BookingEndpoints
     private static async Task<IResult> ImportAsync(HttpContext context, BookingService service, TripPublishedMessage body) =>
         (await service.ImportPublishedTripAsync(body, context.CorrelationId(), context.RequestAborted)).ToHttp(context.CorrelationId(), 202);
 
-    private static async Task<IResult> PaymentSucceededAsync(HttpContext context, BookingService service, PaymentSucceededMessage body) =>
-        (await service.ApplyPaymentSucceededAsync(body, context.CorrelationId(), context.RequestAborted)).ToHttp(context.CorrelationId());
 }

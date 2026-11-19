@@ -366,6 +366,7 @@ paths:
       tags: [Booking]
       operationId: previewCancellation
       summary: Preview cancellation fees and refund amount
+      description: Self-service cancellation closes two hours before departure. A closed window returns CANCELLATION_NOT_ALLOWED with a reason, departureAt and cutoffAt in the error details.
       requestBody:
         required: true
         content: {application/json: {schema: {$ref: '#/components/schemas/CancellationPreviewRequest'}}}
@@ -378,6 +379,7 @@ paths:
       tags: [Booking]
       operationId: cancelBookingItems
       summary: Cancel eligible booking items
+      description: The self-service cancellation deadline still applies when confirming a preview.
       parameters: [{$ref: '#/components/parameters/IdempotencyKey'}]
       requestBody:
         required: true
@@ -414,6 +416,19 @@ paths:
       summary: Get an accessible payment
       responses:
         '200': {description: Payment, content: {application/json: {schema: {$ref: '#/components/schemas/Payment'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /payments/{paymentId}/reconcile:
+    parameters: [{$ref: '#/components/parameters/PaymentId'}]
+    post:
+      tags: [Payments]
+      operationId: reconcileSePayPayment
+      summary: Check SePay for an owned payment and recover a missed confirmation
+      description: An eligible payment may be checked at most once per 30 seconds across Payment instances. If SePay has not confirmed capture, the payment is unchanged.
+      responses:
+        '200': {description: Current payment after reconciliation, content: {application/json: {schema: {$ref: '#/components/schemas/Payment'}}}}
+        '404': {$ref: '#/components/responses/Error'}
+        '429': {$ref: '#/components/responses/Error'}
+        '503': {$ref: '#/components/responses/Error'}
         default: {$ref: '#/components/responses/Error'}
   /payments/{paymentId}/cancel:
     parameters: [{$ref: '#/components/parameters/PaymentId'}]
@@ -829,6 +844,29 @@ paths:
       responses:
         '200': {description: Settlements, content: {application/json: {schema: {$ref: '#/components/schemas/SettlementPage'}}}}
         default: {$ref: '#/components/responses/Error'}
+  /operator/settlements/{settlementId}/receipt:
+    put:
+      tags: [Payments]
+      operationId: confirmOperatorSettlementReceipt
+      summary: Record receipt of a bank transfer already received by the active operator
+      description: Requires the active organization's OPERATOR_ADMIN or OPERATOR_FINANCE role. A repeat of the same confirmation is safe. This action does not send money.
+      parameters:
+        - {name: settlementId, in: path, required: true, schema: {type: string, format: uuid}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reference, amount, currency, expectedVersion]
+              properties:
+                reference: {type: string, minLength: 3, maxLength: 100, pattern: '^[A-Za-z0-9._/-]+$'}
+                amount: {type: integer, format: int64, minimum: 1}
+                currency: {$ref: '#/components/schemas/Currency'}
+                expectedVersion: {type: integer, format: int64, minimum: 0}
+      responses:
+        '200': {description: Recorded receipt, content: {application/json: {schema: {$ref: '#/components/schemas/SettlementReceipt'}}}}
+        default: {$ref: '#/components/responses/Error'}
   /admin/settlements:
     get:
       tags: [Payments]
@@ -871,15 +909,98 @@ paths:
       responses:
         '200': {description: Notification, content: {application/json: {schema: {$ref: '#/components/schemas/Notification'}}}}
         default: {$ref: '#/components/responses/Error'}
+  /operator/bookings/analytics:
+    get:
+      tags: [Reports]
+      operationId: getOperatorBookingAnalytics
+      summary: Summarize booking activity by booking date, route and payment channel
+      description: Uses the active organization on the operator session. The date range is inclusive in Vietnam time.
+      parameters:
+        - {name: from, in: query, required: true, schema: {type: string, format: date}}
+        - {name: to, in: query, required: true, schema: {type: string, format: date}}
+        - {name: routeId, in: query, schema: {type: string, format: uuid}}
+        - {name: channel, in: query, schema: {type: string, enum: [PREPAID, PAY_LATER]}}
+        - {name: allTime, in: query, schema: {type: boolean, default: false}, description: Read all dates up to the requested end date for the active operator organization.}
+      responses:
+        '200':
+          description: Scoped activity totals, daily trend, available routes, channel-by-route-by-date matrix and status distribution.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [totals, daily, routes, matrix, statuses]
+                properties:
+                  totals:
+                    type: object
+                    required: [bookings, confirmed, customers, trips, tickets, boarded]
+                    properties:
+                      bookings: {type: integer, minimum: 0}
+                      confirmed: {type: integer, minimum: 0}
+                      customers: {type: integer, minimum: 0, description: Distinct booking accounts with valid tickets.}
+                      trips: {type: integer, minimum: 0}
+                      tickets: {type: integer, minimum: 0}
+                      boarded: {type: integer, minimum: 0}
+                  daily: {type: array, items: {type: object, required: [date, bookings, tickets, boarded]}}
+                  routes: {type: array, items: {type: object, required: [id, name]}}
+                  matrix: {type: array, items: {type: object, required: [date, routeId, name, channel, bookings, tickets, boarded]}}
+                  statuses: {type: array, items: {type: object, required: [status, bookings]}}
+        default: {$ref: '#/components/responses/Error'}
+  /operator/bookings/analytics/orders:
+    get:
+      tags: [Reports]
+      operationId: listOperatorBookingAnalyticsOrders
+      summary: List orders behind an operator booking report
+      description: Uses the session organization and inclusive booking dates in Vietnam time, with a maximum range of 366 days.
+      parameters:
+        - {name: from, in: query, required: true, schema: {type: string, format: date}}
+        - {name: to, in: query, required: true, schema: {type: string, format: date}}
+        - {name: routeId, in: query, schema: {type: string, format: uuid}}
+        - {name: channel, in: query, schema: {type: string, enum: [PREPAID, PAY_LATER]}}
+        - {name: status, in: query, schema: {type: string, enum: [PENDING_PAYMENT, CONFIRMED, PAID, EXPIRED, CANCELLED, REFUND_PENDING, REFUNDED, COMPLETED]}}
+        - {name: tickets, in: query, schema: {type: string, enum: [valid, checked-in]}}
+        - {name: q, in: query, description: Case-insensitive booking code search., schema: {type: string, maxLength: 64}}
+        - {name: page, in: query, schema: {type: integer, minimum: 1, default: 1}}
+        - {name: allTime, in: query, schema: {type: boolean, default: false}, description: Read all dates up to the requested end date for the active operator organization.}
+      responses:
+        '200':
+          description: Matching order count and up to 15 orders, newest first.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [total, items]
+                properties:
+                  total: {type: integer, minimum: 0}
+                  items:
+                    type: array
+                    maxItems: 15
+                    items:
+                      type: object
+                      required: [code, date, route, channel, status, tickets, checkedIn]
+                      properties:
+                        code: {type: string}
+                        date: {type: string, format: date}
+                        route: {type: string}
+                        channel: {type: string}
+                        status: {type: string}
+                        tickets: {type: integer, minimum: 0}
+                        checkedIn: {type: integer, minimum: 0}
+        default: {$ref: '#/components/responses/Error'}
   /reports/revenue:
     get:
       tags: [Reports]
       operationId: getRevenueReport
-      summary: Get a scoped online revenue report
+      summary: Get payment and settlement movements summarized by local day and currency
+      description: Uses inclusive Vietnam calendar dates between from and to, with a maximum of 366 days.
       x-permission: report.revenue.read
-      parameters: [{$ref: '#/components/parameters/From'}, {$ref: '#/components/parameters/To'}, {$ref: '#/components/parameters/Timezone'}]
+      parameters:
+        - {$ref: '#/components/parameters/From'}
+        - {$ref: '#/components/parameters/To'}
+        - {name: timezone, in: query, required: true, schema: {const: Asia/Ho_Chi_Minh}}
+        - {name: operatorOnly, in: query, schema: {type: boolean, default: false}, description: Force the active organization scope and its finance role even for dual-role users.}
+        - {name: allTime, in: query, schema: {type: boolean, default: false}, description: Read all dates up to the requested end date for the active operator organization.}
       responses:
-        '200': {description: Report, content: {application/json: {schema: {$ref: '#/components/schemas/Report'}}}}
+        '200': {description: Revenue report, content: {application/json: {schema: {$ref: '#/components/schemas/RevenueReport'}}}}
         default: {$ref: '#/components/responses/Error'}
   /reports/bookings:
     get:
@@ -1478,6 +1599,20 @@ components:
         operatorNet: {type: integer, format: int64}
         currency: {$ref: '#/components/schemas/Currency'}
         collectionStatus: {type: string, enum: [UNCOLLECTED, COLLECTED, REFUNDED, NOSHOW_WRITTEN_OFF]}
+        originalAmount: {type: integer, format: int64, minimum: 0}
+        refundAmount: {type: integer, format: int64, minimum: 0}
+        createdAt: {type: [string, 'null'], format: date-time}
+        rowVersion: {type: integer, format: int64, minimum: 0}
+        receipt: {oneOf: [{$ref: '#/components/schemas/SettlementReceipt'}, {type: 'null'}]}
+    SettlementReceipt:
+      type: object
+      required: [reference, amount, currency, settlementVersion, confirmedAt]
+      properties:
+        reference: {type: string}
+        amount: {type: integer, format: int64, minimum: 1}
+        currency: {$ref: '#/components/schemas/Currency'}
+        settlementVersion: {type: integer, format: int64, minimum: 0}
+        confirmedAt: {type: string, format: date-time}
     SettlementPage:
       allOf:
         - {$ref: '#/components/schemas/PageMeta'}
@@ -1581,3 +1716,28 @@ components:
         dataAsOf: {$ref: '#/components/schemas/DateTime'}
         timezone: {type: string}
         metricDefinitions: {type: object, additionalProperties: {type: string}}
+    RevenueReport:
+      type: object
+      required: [data, generatedAt, dataAsOf, timezone, metricDefinitions]
+      properties:
+        data: {type: array, items: {$ref: '#/components/schemas/RevenueDay'}}
+        generatedAt: {$ref: '#/components/schemas/DateTime'}
+        dataAsOf: {type: [string, 'null'], format: date-time, description: Latest projection write in the selected results. Null when empty.}
+        timezone: {const: Asia/Ho_Chi_Minh}
+        metricDefinitions: {type: object, additionalProperties: {type: string}}
+    RevenueDay:
+      type: object
+      required: [organizationId, periodDate, currency, grossRevenue, refundAmount, netRevenue, platformCommission, operatorPayable, unsettledAmount, paymentCount, refundCount, dataAsOf]
+      properties:
+        organizationId: {type: string, format: uuid}
+        periodDate: {type: string, format: date}
+        currency: {type: string, pattern: '^[A-Z]{3}$'}
+        grossRevenue: {type: integer, format: int64, minimum: 0}
+        refundAmount: {type: integer, format: int64, minimum: 0}
+        netRevenue: {type: integer, format: int64, description: Gross captures minus refunds in the period.}
+        platformCommission: {type: integer, format: int64, description: Net recorded change in platform commission.}
+        operatorPayable: {type: integer, format: int64, description: Net recorded change in operator payable before payout.}
+        unsettledAmount: {type: integer, format: int64, description: Net collection minus commission and operator payable movements.}
+        paymentCount: {type: integer, format: int64, minimum: 0}
+        refundCount: {type: integer, format: int64, minimum: 0}
+        dataAsOf: {$ref: '#/components/schemas/DateTime'}

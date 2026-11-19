@@ -4,7 +4,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import {
   submitCheckoutAction,
-  useSePay,
   livePaymentPath,
 } from "../checkoutAction";
 import { Link, useParams, useSearchParams } from "react-router";
@@ -20,6 +19,7 @@ import { stateLabel } from "@/shared/api/livePresentation";
 import "./BackendPaymentPage.css";
 import { LiveCheckoutView } from "../components/LiveCheckoutView";
 import { LivePaymentRecovery } from "../components/LivePaymentRecovery";
+import { useSePayRecheck } from "../hooks/useSePayRecheck";
 
 const paymentSchema = z.object({
   id: z.string().uuid(),
@@ -27,11 +27,11 @@ const paymentSchema = z.object({
   status: z.string(),
   amount: z.number(),
   currency: z.string(),
+  provider: z.string().optional(),
   providerAction: z.record(z.string(), z.string()).nullish(),
 });
 const guid = z.string().uuid();
 export function BackendPaymentPage(): ReactElement {
-  const [method] = useState(useSePay ? "BANK_TRANSFER" : "VNPAY");
   const { bookingId = "" } = useParams();
   const query = useQuery({
     queryKey: liveQueryKey("booking", bookingId),
@@ -72,9 +72,9 @@ export function BackendPaymentPage(): ReactElement {
           method: "POST",
           idempotent: true,
           body: {
-            provider: useSePay ? "SEPAY" : "VNPAY_SANDBOX",
-            method,
-            returnUri: `${window.location.origin}/payment/${useSePay ? "sepay" : "vnpay"}/return?bookingId=${bookingId}`,
+            provider: "SEPAY",
+            method: "BANK_TRANSFER",
+            returnUri: `${window.location.origin}/payment/sepay/return?bookingId=${bookingId}`,
           },
         },
       );
@@ -129,7 +129,7 @@ export function BackendPaymentPage(): ReactElement {
   if (query.data?.status === "PENDING_PAYMENT" && !paymentExpired)
     return (
       <LiveCheckoutView
-        providerName={useSePay ? "SePay" : "VNPay"}
+        providerName="SePay"
         booking={query.data}
         remainingTime={remainingTime}
         onPay={() => mutation.mutate()}
@@ -298,6 +298,11 @@ export function BackendPaymentReturnPage(): ReactElement {
     payment && ["FAILED", "CANCELLED"].includes(payment.status)
       ? payment
       : undefined;
+  const check = useSePayRecheck(() => query.refetch());
+  const recheck = async () => {
+    await check.recheck(payment).catch(() => {});
+    if (captured) await tickets.refetch();
+  };
   const pendingRefund = payment?.status === "REFUND_PENDING";
   if (
     query.error instanceof ApiError &&
@@ -305,7 +310,7 @@ export function BackendPaymentReturnPage(): ReactElement {
   )
     return (
       <PaymentAccessNotice
-        returnTo={`/payment/${useSePay ? "sepay" : "vnpay"}/return?bookingId=${bookingId}`}
+        returnTo={`/payment/sepay/return?bookingId=${bookingId}`}
       />
     );
   if (failed && !query.isError)
@@ -313,9 +318,10 @@ export function BackendPaymentReturnPage(): ReactElement {
       <LivePaymentRecovery
         bookingId={bookingId}
         payment={failed}
-        checking={query.isFetching}
+        checking={query.isFetching || check.checking}
         checkedAt={query.dataUpdatedAt}
-        onRecheck={() => query.refetch()}
+        notice={check.notice}
+        onRecheck={recheck}
       />
     );
   const issued = captured && !!tickets.data?.length;
@@ -352,6 +358,7 @@ export function BackendPaymentReturnPage(): ReactElement {
         <ApiFailure error={query.error} retry={() => void query.refetch()} />
       ) : (
         <>
+          {check.notice && <p role="alert">{check.notice}</p>}
           <div className="live-payment-result__receipt">
             <span>TRẠNG THÁI GIAO DỊCH</span>
             <strong role="status">
@@ -395,10 +402,8 @@ export function BackendPaymentReturnPage(): ReactElement {
           )}
           <Button
             variant="secondary"
-            onClick={() => {
-              void query.refetch();
-              if (captured) void tickets.refetch();
-            }}
+            isLoading={check.checking}
+            onClick={() => void recheck()}
           >
             Kiểm tra lại trạng thái
           </Button>

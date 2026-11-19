@@ -24,7 +24,8 @@ public sealed class JwtTokenService(IOptions<AuthenticationOptions> options) : I
         UserRecord user,
         IReadOnlyList<string> roles,
         Guid sessionId,
-        Guid? organizationId = null)
+        Guid? organizationId = null,
+        IReadOnlyList<string>? organizationRoles = null)
     {
         var settings = options.Value;
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(settings.SigningKey));
@@ -39,6 +40,8 @@ public sealed class JwtTokenService(IOptions<AuthenticationOptions> options) : I
         if (organizationId is not null)
         {
             claims.Add(new Claim("org", organizationId.Value.ToString()));
+            if (organizationRoles is not null)
+                claims.AddRange(organizationRoles.Select(role => new Claim("org_role", role)));
         }
 
         claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));

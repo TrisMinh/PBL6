@@ -24,8 +24,9 @@ public static class ReportingInfrastructureExtensions
             Topology.ReportingEventsQueue,
             "reporting-facts",
             options.ConnectionString,
-            ["booking.booking.*.v1", "payment.payment.*.v1", "payment.refund.*.v1"],
-            ReportingEventHandlers.HandleAsync));
+            ["booking.booking.*.v1", "payment.payment.*.v1", "payment.refund.*.v1", Topology.RevenueMovementRoutingKey],
+            ReportingEventHandlers.HandleAsync,
+            new HashSet<string>(StringComparer.Ordinal) { "RevenueMovementRecorded" }));
         return services;
     }
 

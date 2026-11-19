@@ -115,6 +115,31 @@ public sealed class MessagingSmokeTests
     }
 
     [Fact]
+    public async Task Outbox_replicas_do_not_publish_the_same_pending_row_concurrently()
+    {
+        var connectionString = _fixture.Postgres.GetConnectionString();
+        var writer = new OutboxPublisher(new IdentityDatabaseOptions { ConnectionString = connectionString });
+        await writer.EnqueueAsync(CreateUserRegistered(), CancellationToken.None);
+
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        var publisher = new PausedPublisher();
+        var first = new OutboxRelay(connectionString).PublishPendingAsync(publisher, timeout.Token);
+        try
+        {
+            await publisher.Started.Task.WaitAsync(timeout.Token);
+            var second = new OutboxRelay(connectionString);
+            Assert.Equal((0, 0), await second.PublishPendingAsync(new ThrowingPublisher(), timeout.Token));
+        }
+        finally
+        {
+            publisher.Resume.TrySetResult();
+            Assert.Equal((1, 0), await first);
+        }
+
+        Assert.Equal((0, 0), await new OutboxRelay(connectionString).PublishPendingAsync(new ThrowingPublisher(), timeout.Token));
+    }
+
+    [Fact]
     public async Task Reconnects_after_broker_restart()
     {
         await using (var warmup = await RabbitMqSmokeBus.ConnectAsync(_fixture.Rabbit.GetConnectionString(), CancellationToken.None))
@@ -194,6 +219,18 @@ public sealed class MessagingSmokeTests
         }
 
         throw new DirectoryNotFoundException("repository root was not found.");
+    }
+
+    private sealed class PausedPublisher : IEventPublisher
+    {
+        public TaskCompletionSource Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public TaskCompletionSource Resume { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public Task PublishAsync(EventMessage message, string routingKey, CancellationToken cancellationToken)
+        {
+            Started.TrySetResult();
+            return Resume.Task.WaitAsync(cancellationToken);
+        }
     }
 
     private sealed class ThrowingPublisher : IEventPublisher

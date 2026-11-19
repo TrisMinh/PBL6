@@ -1,5 +1,6 @@
 using BusTicketPlatform.Reporting.Application;
 using Npgsql;
+using NpgsqlTypes;
 
 namespace BusTicketPlatform.Reporting.Infrastructure.Persistence;
 
@@ -97,14 +98,52 @@ public sealed class ReportingRepository(ReportingDatabaseOptions options) : IRep
         await command.ExecuteNonQueryAsync(cancellationToken);
     }
 
-    public Task<IReadOnlyList<IReadOnlyDictionary<string, object>>> RevenueAsync(Guid? orgId, DateTimeOffset from, DateTimeOffset to, CancellationToken cancellationToken) =>
-        Query("""
-            SELECT organization_id_external AS organizationId, period_date AS periodDate, currency, gross_revenue AS grossRevenue,
-                   refund_amount AS refundAmount, net_revenue AS netRevenue, paid_booking_count AS paidBookingCount
-            FROM revenue_projections
-            WHERE period_date BETWEEN @from AND @to AND (@org::uuid IS NULL OR organization_id_external = @org)
-            ORDER BY period_date
-            """, orgId, from, to, cancellationToken);
+    public async Task RecordRevenueAsync(RevenueMovement movement, CancellationToken cancellationToken)
+    {
+        await using var connection = new NpgsqlConnection(options.ConnectionString);
+        await connection.OpenAsync(cancellationToken);
+        await using var command = new NpgsqlCommand("""
+            INSERT INTO revenue_movements (movement_key, kind, payment_id, organization_id_external,
+                currency, effective_at, amount, commission, payable)
+            VALUES (@key, @kind, @payment, @org, @currency, @at, @amount, @commission, @payable)
+            ON CONFLICT (movement_key) DO NOTHING
+            """, connection);
+        command.Parameters.AddWithValue("key", movement.MovementKey);
+        command.Parameters.AddWithValue("kind", movement.Kind);
+        command.Parameters.AddWithValue("payment", movement.PaymentId);
+        command.Parameters.AddWithValue("org", movement.OrganizationId);
+        command.Parameters.AddWithValue("currency", movement.Currency);
+        command.Parameters.AddWithValue("at", movement.EffectiveAt.UtcDateTime);
+        command.Parameters.AddWithValue("amount", movement.Amount);
+        command.Parameters.AddWithValue("commission", movement.Commission);
+        command.Parameters.AddWithValue("payable", movement.Payable);
+        await command.ExecuteNonQueryAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<RevenueDay>> RevenueAsync(Guid? orgId, DateOnly from, DateOnly to, CancellationToken cancellationToken)
+    {
+        await using var connection = new NpgsqlConnection(options.ConnectionString);
+        await connection.OpenAsync(cancellationToken);
+        await using var command = new NpgsqlCommand("""
+            SELECT organization_id_external, period_date, currency, gross_revenue, refund_amount, net_revenue,
+                   platform_commission, operator_payable, unsettled_amount, payment_count, refund_count, data_as_of
+            FROM bi.revenue_daily
+            WHERE period_date BETWEEN @from AND @to AND (@org IS NULL OR organization_id_external = @org)
+            ORDER BY period_date, currency, organization_id_external
+            """, connection);
+        command.Parameters.AddWithValue("from", from);
+        command.Parameters.AddWithValue("to", to);
+        command.Parameters.AddWithValue("org", NpgsqlDbType.Uuid, (object?)orgId ?? DBNull.Value);
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        var result = new List<RevenueDay>();
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            result.Add(new RevenueDay(reader.GetGuid(0), reader.GetFieldValue<DateOnly>(1), reader.GetString(2),
+                reader.GetInt64(3), reader.GetInt64(4), reader.GetInt64(5), reader.GetInt64(6), reader.GetInt64(7),
+                reader.GetInt64(8), reader.GetInt64(9), reader.GetInt64(10), reader.GetFieldValue<DateTimeOffset>(11)));
+        }
+        return result;
+    }
 
     public Task<IReadOnlyList<IReadOnlyDictionary<string, object>>> BookingsAsync(Guid? orgId, DateTimeOffset from, DateTimeOffset to, CancellationToken cancellationToken) =>
         Query("""
@@ -129,7 +168,7 @@ public sealed class ReportingRepository(ReportingDatabaseOptions options) : IRep
         await using var command = new NpgsqlCommand(sql, connection);
         command.Parameters.AddWithValue("from", from.UtcDateTime);
         command.Parameters.AddWithValue("to", to.UtcDateTime);
-        command.Parameters.AddWithValue("org", (object?)orgId ?? DBNull.Value);
+        command.Parameters.AddWithValue("org", NpgsqlDbType.Uuid, (object?)orgId ?? DBNull.Value);
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
         var rows = new List<IReadOnlyDictionary<string, object>>();
         while (await reader.ReadAsync(cancellationToken))

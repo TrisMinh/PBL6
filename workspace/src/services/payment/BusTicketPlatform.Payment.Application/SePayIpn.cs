@@ -9,6 +9,7 @@ public sealed record SePayNotification(string Invoice, string TransactionId, str
 
 public interface ISePayPaymentStore
 {
+    Task<bool> TryStartReconciliationAsync(Guid paymentId, CancellationToken cancellationToken);
     // Receipt, payment, settlement and downstream outbox event commit together.
     Task<Result> ApplySePayAsync(SePayNotification notification, string payloadHash, Guid correlationId, CancellationToken cancellationToken);
     Task<bool> QueueSePayRefundAsync(PaymentRecord payment, string reference, long amount, string reason, Guid requestedBy, CancellationToken cancellationToken);

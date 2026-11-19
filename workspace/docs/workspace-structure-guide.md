@@ -524,12 +524,11 @@ Chỉ khi **cả hai** đúng:
 
 ```text
 infra/
-├── docker-compose.yml        # Dependency: PostgreSQL, RabbitMQ, Redis, Mailpit, payment simulator
+├── docker-compose.yml        # Dependency: PostgreSQL, RabbitMQ, Redis, Mailpit
 ├── docker-compose.apps.yml   # Ứng dụng: Gateway, 6 API, 2 web app
 ├── docker/                   # Dockerfile + Nginx config dùng chung
 ├── postgres/                 # Tạo database riêng cho từng service
-├── rabbitmq/                 # Exchange, queue, tài khoản
-└── payment-simulator/        # Giả lập nhà cung cấp thanh toán (chỉ để dev local)
+└── rabbitmq/                 # Exchange, queue, tài khoản
 ```
 
 `infra` **không chứa business logic**.
@@ -548,7 +547,6 @@ infra/
 | RabbitMQ | Truyền event giữa service |
 | Redis | Cache / dữ liệu tạm |
 | Mailpit | Hộp thư giả: xem email dev gửi ra mà không gửi thật |
-| payment-simulator | Giả lập cổng thanh toán, không cần tài khoản thật |
 
 ---
 

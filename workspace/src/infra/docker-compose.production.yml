@@ -61,10 +61,6 @@ services:
     profiles: [development]
     ports: !reset []
 
-  payment-simulator:
-    profiles: [development]
-    ports: !reset []
-
   identity:
     <<: *api-hardening
     ports: !reset []
@@ -102,15 +98,20 @@ services:
   payment:
     <<: *api-hardening
     ports: !reset []
-    environment:
+    environment: &payment-production-env
       Authentication__SigningKey: ${JWT_SIGNING_KEY:?JWT_SIGNING_KEY is required}
       Messaging__AmqpUri: amqp://platform:${RABBITMQ_PASSWORD:?RABBITMQ_PASSWORD is required}@rabbitmq:5672/bus-ticket
       ConnectionStrings__Payment: Host=postgres;Port=5432;Database=payment;Username=platform;Password=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
-      AllowedHosts: localhost;127.0.0.1;payment;${API_ALLOWED_HOSTS:?API_ALLOWED_HOSTS is required}
-      Payment__Enabled: "false"
-      Payment__CheckoutBaseUrl: ${VNPAY_CHECKOUT_URL:-https://sandbox.vnpayment.vn/paymentv2/vpcpay.html}
-      Payment__TmnCode: ${VNPAY_TMN_CODE:-}
-      Payment__HashSecret: ${VNPAY_HASH_SECRET:-}
+      AllowedHosts: localhost;127.0.0.1;payment;payment-2;${API_ALLOWED_HOSTS:?API_ALLOWED_HOSTS is required}
+      SePay__Environment: ${SEPAY_ENVIRONMENT:-production}
+      SePay__MerchantId: ${SEPAY_MERCHANT_ID:?SEPAY_MERCHANT_ID is required}
+      SePay__SecretKey: ${SEPAY_SECRET_KEY:?SEPAY_SECRET_KEY is required}
+      SePay__IpnSecretKey: ${SEPAY_IPN_SECRET_KEY:?SEPAY_IPN_SECRET_KEY is required}
+      SePay__CustomerOrigin: ${CUSTOMER_PUBLIC_ORIGIN:?CUSTOMER_PUBLIC_ORIGIN is required}
+
+  payment-2:
+    <<: *api-hardening
+    environment: *payment-production-env
 
   notification:
     <<: *api-hardening
@@ -143,7 +144,6 @@ services:
     build:
       args:
         API_MODE: live
-        PAYMENT_PROVIDER: sepay
     ports: !override
       - 127.0.0.1:${CUSTOMER_HTTP_PORT:-8080}:8080
     read_only: true
@@ -160,6 +160,7 @@ services:
     build:
       args:
         API_MODE: live
+        CUSTOMER_WEB_ORIGIN: ${CUSTOMER_ORIGIN:?CUSTOMER_ORIGIN is required}
     ports: !override
       - 127.0.0.1:${OPERATOR_HTTP_PORT:-8081}:8080
     read_only: true

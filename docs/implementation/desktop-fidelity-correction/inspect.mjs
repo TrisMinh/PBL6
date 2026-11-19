@@ -1,0 +1,11 @@
+import { createRequire } from 'node:module';
+import { writeFile } from 'node:fs/promises';
+const require=createRequire(new URL('../../../workspace/src/apps/web/package.json',import.meta.url));
+const {chromium}=require('@playwright/test');
+const browser=await chromium.launch({channel:'chrome',headless:true});
+const page=await browser.newPage({viewport:{width:1440,height:1280}});
+await page.goto('http://127.0.0.1:5173/trips?originId=loc-hcm&destinationId=loc-dalat&departureDate=2099-01-01&passengerCount=2',{waitUntil:'networkidle'});
+await page.getByRole('article').first().waitFor();await page.evaluate(()=>document.fonts.ready);
+await page.screenshot({path:new URL('before.png',import.meta.url).pathname.replace(/^\/([A-Za-z]:)/,'$1'),fullPage:true});
+await writeFile(new URL('geometry.json',import.meta.url),JSON.stringify(await page.evaluate(()=>[...document.querySelectorAll('.trip-card,.trip-results__search,.trip-filters__desktop,.customer-layout__header')].map(e=>({selector:e.className,rect:e.getBoundingClientRect().toJSON(),font:getComputedStyle(e).fontFamily}))),null,2));
+await browser.close();

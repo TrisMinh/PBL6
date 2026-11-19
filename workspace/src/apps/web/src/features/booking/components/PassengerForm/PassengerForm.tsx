@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isMockApi } from "@/shared/api/config";
-import { useId, useState, type ReactElement } from "react";
+import { useEffect, useId, useState, type ReactElement } from "react";
 import { useForm, type UseFormReturn } from "react-hook-form";
 
 import mailIcon from "@/assets/booking/passenger-review/mail.svg";
@@ -242,6 +242,34 @@ export function PassengerForm(props: PassengerFormProps): ReactElement {
     ),
     defaultValues: props.initialValues,
   });
+  const { getFieldState, getValues, resetField } = form;
+  const { fullName, email, phone } = props.initialValues.contact;
+  const firstPassengerName = props.initialValues.passengers[0]?.fullName;
+  const firstPassengerPhone = props.initialValues.passengers[0]?.phone;
+  useEffect(() => {
+    // The profile may arrive after the passenger form is already editable.
+    const defaults = [
+      ["contact.fullName", fullName],
+      ["contact.email", email],
+      ["contact.phone", phone],
+      ["passengers.0.fullName", firstPassengerName],
+      ["passengers.0.phone", firstPassengerPhone],
+    ] as const;
+    for (const [field, value] of defaults) {
+      const { isDirty, isTouched } = getFieldState(field);
+      if (value && !isDirty && !isTouched && !getValues(field))
+        resetField(field, { defaultValue: value });
+    }
+  }, [
+    email,
+    firstPassengerName,
+    firstPassengerPhone,
+    fullName,
+    getFieldState,
+    getValues,
+    phone,
+    resetField,
+  ]);
   const submit = (): void => {
     const values = form.getValues();
     const firstPassenger = values.passengers[0];

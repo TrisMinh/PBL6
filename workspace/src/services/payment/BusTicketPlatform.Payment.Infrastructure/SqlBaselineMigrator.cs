@@ -25,6 +25,9 @@ public sealed class SqlBaselineMigrator(PaymentDatabaseOptions options)
         await ApplyFileAsync(connection, "sql.payment", "001_initial.sql", cancellationToken);
         await ApplyFileAsync(connection, "sql.sepay", "002_sepay.sql", cancellationToken);
         await ApplyFileAsync(connection, "sql.payment-organization", "003_legacy_payment_organization.sql", cancellationToken);
+        await ApplyFileAsync(connection, "sql.revenue-movements", "004_revenue_movements.sql", cancellationToken);
+        await ApplyFileAsync(connection, "sql.settlement-receipts", "005_operator_settlement_receipts.sql", cancellationToken);
+        await ApplyFileAsync(connection, "sql.sepay-reconciliation", "006_sepay_reconciliation.sql", cancellationToken);
     }
 
     private static async Task ApplyFileAsync(
@@ -33,9 +36,15 @@ public sealed class SqlBaselineMigrator(PaymentDatabaseOptions options)
         string filename,
         CancellationToken cancellationToken)
     {
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+        await using (var migrationLock = new NpgsqlCommand("SELECT pg_advisory_xact_lock(hashtext('schema_migrations'))", connection, transaction))
+        {
+            await migrationLock.ExecuteNonQueryAsync(cancellationToken);
+        }
+
         await using (var check = new NpgsqlCommand(
                          "SELECT 1 FROM schema_migrations WHERE filename = @filename",
-                         connection))
+                         connection, transaction))
         {
             check.Parameters.AddWithValue("filename", filename);
             var exists = await check.ExecuteScalarAsync(cancellationToken);
@@ -46,12 +55,14 @@ public sealed class SqlBaselineMigrator(PaymentDatabaseOptions options)
         }
 
         var sql = ReadResource(resourceName);
-        await ExecuteAsync(connection, sql, cancellationToken);
+        await using var migration = new NpgsqlCommand(sql, connection, transaction);
+        await migration.ExecuteNonQueryAsync(cancellationToken);
         await using var insert = new NpgsqlCommand(
             "INSERT INTO schema_migrations (filename, applied_at) VALUES (@filename, NOW())",
-            connection);
+            connection, transaction);
         insert.Parameters.AddWithValue("filename", filename);
         await insert.ExecuteNonQueryAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
     }
 
     public static async Task ExecuteAsync(

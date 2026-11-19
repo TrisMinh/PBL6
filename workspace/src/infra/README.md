@@ -23,6 +23,8 @@ The desktop frontends are separate applications:
 
 They have independent routes, login and build artifacts. The old temporary backoffice has been removed. Source/design primitives are maintained in `workspace/src/apps/web`; app entry packages live in `customer-web`, `operator-web` and `admin-web`.
 
+Configure SePay with the variables in the root `.env.example`. The Docker stack uses SePay for live checkout.
+
 The Docker admin app uses live APIs through the gateway, including organization
 lists, profiles and updates stored in PostgreSQL. Sign in with the local seed
 account `admin.seed@example.test` / `AdminPass1234`. Customer and operator build
@@ -86,8 +88,17 @@ Services:
 | rabbitmq | 5672 / 15672 | vhost `bus-ticket`, topic exchanges from AsyncAPI |
 | redis | 6379 | Booking hold/cache later |
 | mailpit | 1025 / 8025 | SMTP capture |
-| payment-simulator | 8099 | Sandbox provider for Sprint 0 |
 
 Credentials are local-dev only (`platform` / `postgres` or `.env`). Do not use production secrets.
 
 `db-bootstrap` applies `docs/database/_shared/000_integration_tables.sql` then each service `001_initial.sql`, tracked in `schema_migrations`.
+
+## Báo cáo Operator và Power BI trên Docker
+
+Nếu các cổng phát triển chuẩn đang được dùng, chạy từ thư mục này:
+
+```powershell
+docker compose -f docker-compose.yml -f docker-compose.apps.yml -f docker-compose.operator-bi.yml up -d --build --wait operator-web
+```
+
+Operator dùng API live qua gateway và mở tại http://127.0.0.1:5184/operator/reports. PostgreSQL được giới hạn ở địa chỉ loopback `127.0.0.1:55474` để một Power BI gateway chạy trên máy Windows có thể kết nối. Đặt `OPERATOR_POWER_BI_EMBED_URL` trước khi build để chọn báo cáo nhúng. Quy trình tạo dự án live, giới hạn dữ liệu theo nhà xe và bật lịch làm mới nằm trong `workspace/analytics/power-bi/README.md`.

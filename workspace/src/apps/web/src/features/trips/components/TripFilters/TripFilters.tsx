@@ -1,4 +1,5 @@
 import * as Dialog from "@radix-ui/react-dialog";
+import { MagnifyingGlass } from "@phosphor-icons/react/dist/csr/MagnifyingGlass";
 import { useEffect, useId, useState, type ReactElement } from "react";
 
 import { tripSearchSchema } from "@/features/trips/schemas/search.schema";
@@ -35,6 +36,7 @@ const VEHICLE_OPTIONS = [
 
 type DeparturePeriod = "morning" | "afternoon" | "evening";
 interface FilterDraft {
+  operatorName: string;
   organizationId: string;
   pickupStopId: string;
   dropoffStopId: string;
@@ -52,6 +54,7 @@ const AMENITIES = [
   ["doorPickup", "Đón tận nơi"],
 ] as const satisfies readonly (readonly [TripAmenity, string])[];
 const FILTER_KEYS = [
+  "operatorName",
   "organizationId",
   "pickupStopId",
   "dropoffStopId",
@@ -67,6 +70,7 @@ const FILTER_KEYS = [
   "page",
 ] as const;
 const DEFAULT_DRAFT: FilterDraft = {
+  operatorName: "",
   organizationId: "",
   pickupStopId: "",
   dropoffStopId: "",
@@ -122,6 +126,7 @@ function draftFromParams(params: URLSearchParams): FilterDraft {
   );
   const period = singleParam(params, "departurePeriod");
   return {
+    operatorName: singleParam(params, "operatorName") ?? "",
     organizationId: singleParam(params, "organizationId") ?? "",
     pickupStopId: singleParam(params, "pickupStopId") ?? "",
     dropoffStopId: singleParam(params, "dropoffStopId") ?? "",
@@ -186,6 +191,7 @@ interface FilterControlsProps extends TripFiltersProps {
   setDraft: (draft: FilterDraft) => void;
   onApply: () => void;
   onReset: () => void;
+  onOperatorSearch: (name: string) => void;
 }
 
 function FilterControls({
@@ -195,7 +201,9 @@ function FilterControls({
   draft,
   setDraft,
   onApply,
+  onOperatorSearch,
 }: FilterControlsProps): ReactElement {
+  const operatorSearchId = useId();
   const sort = tripSearchSchema.shape.sort.safeParse(
     singleParam(searchParams, "sort"),
   );
@@ -270,6 +278,31 @@ function FilterControls({
   );
   return (
     <div className="trip-filters__controls">
+      <form
+        className="trip-filters__operator-search trip-filters__field"
+        onSubmit={(event) => {
+          event.preventDefault();
+          onOperatorSearch(draft.operatorName.trim());
+        }}
+      >
+        <label className="trip-filters__label" htmlFor={operatorSearchId}>
+          Tìm theo tên nhà xe
+        </label>
+        <div className="trip-filters__operator-search-row">
+          <input
+            id={operatorSearchId}
+            onChange={(event) =>
+              setDraft({ ...draft, operatorName: event.target.value })
+            }
+            placeholder="Nhập tên nhà xe"
+            type="search"
+            value={draft.operatorName}
+          />
+          <Button aria-label="Tìm nhà xe" type="submit" variant="secondary">
+            <MagnifyingGlass aria-hidden="true" size={18} />
+          </Button>
+        </div>
+      </form>
       <div className="trip-filters__sort-field">
         <FilterSelect
           label="Sắp xếp"
@@ -447,7 +480,13 @@ function MobileFilters(props: FilterControlsProps): ReactElement {
           Bộ lọc và sắp xếp
         </Button>
       </Dialog.Trigger>
-      <FilterDrawer {...props} />
+      <FilterDrawer
+        {...props}
+        onOperatorSearch={(name) => {
+          props.onOperatorSearch(name);
+          setIsOpen(false);
+        }}
+      />
     </Dialog.Root>
   );
 }
@@ -458,6 +497,8 @@ export function TripFilters(props: TripFiltersProps): ReactElement {
   const apply = (): void => {
     const next = new URLSearchParams(props.searchParams);
     for (const key of FILTER_KEYS) next.delete(key);
+    const operatorName = draft.operatorName.trim();
+    if (operatorName) next.set("operatorName", operatorName);
     for (const key of [
       "organizationId",
       "pickupStopId",
@@ -489,6 +530,13 @@ export function TripFilters(props: TripFiltersProps): ReactElement {
     setDraft,
     onApply: apply,
     onReset: reset,
+    onOperatorSearch(name: string): void {
+      const next = new URLSearchParams(props.searchParams);
+      if (name) next.set("operatorName", name);
+      else next.delete("operatorName");
+      next.delete("page");
+      props.onChange(next);
+    },
   };
   return (
     <div className="trip-filters">

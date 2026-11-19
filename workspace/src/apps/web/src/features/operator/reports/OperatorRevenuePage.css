@@ -1,0 +1,336 @@
+.revenue-report {
+  container-type: inline-size;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+  width: 100%;
+  color: var(--color-text-primary, #172748);
+  font-family: var(--font-body);
+  font-size: 14px;
+}
+
+.revenue-report :is(h1, h2, p, dl, dd) {
+  margin: 0;
+}
+.revenue-report :is(h1, h2, h3) {
+  font-family: var(--font-display);
+  font-weight: 600;
+}
+.revenue-report h1 {
+  font-size: 20px;
+  line-height: 1.25;
+}
+.revenue-report h2 {
+  font-size: 16px;
+  line-height: 1.35;
+}
+.revenue-report
+  :is(
+    .revenue-report__heading,
+    .revenue-report__panel-header,
+    .revenue-report__metadata
+  ) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1.25rem;
+}
+.revenue-report :is(.revenue-report__heading, .revenue-report__panel-header) p {
+  margin-top: 0.25rem;
+  color: #52627c;
+}
+.revenue-report .revenue-report__heading {
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 2px;
+}
+.revenue-report .recharts-wrapper {
+  font-family: var(--font-body);
+}
+.revenue-report__demo {
+  display: inline-block;
+  margin-top: 0.65rem;
+  padding: 0.24rem 0.55rem;
+  border: 1px solid #cbdcf7;
+  border-radius: 0.45rem;
+  color: #234f88;
+  background: #eef5ff;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.revenue-report
+  :is(.revenue-report__panel, .revenue-report__metric, .revenue-report__state) {
+  min-width: 0;
+  padding: 1.15rem;
+  background: #fff;
+  border: 1px solid #d5e1ef;
+  border-radius: 12px;
+}
+.revenue-report__state {
+  display: grid;
+  justify-items: start;
+  gap: 0.85rem;
+}
+.revenue-report :is(.revenue-report__dates, .revenue-report__actions) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  align-items: end;
+}
+.revenue-report label {
+  display: grid;
+  gap: 0.3rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+.revenue-report :is(input, select) {
+  min-height: 2.75rem;
+  min-width: 7rem;
+  padding: 0.45rem 0.65rem;
+  background: #fff;
+  border: 1px solid #aebed3;
+  border-radius: 0.5rem;
+  color: inherit;
+  font: inherit;
+}
+.revenue-report
+  :is(
+    button,
+    input,
+    select,
+    summary,
+    .revenue-report__table-scroll
+  ):focus-visible {
+  outline: 2px solid #1558be;
+  outline-offset: 2px;
+}
+.revenue-report__form-error {
+  flex-basis: 100%;
+  color: #a21c37;
+}
+.revenue-report :is(.revenue-report__metadata, .revenue-report__caption) {
+  color: #52627c;
+  font-size: 0.875rem;
+}
+.revenue-report__metrics {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+.revenue-report .revenue-report__metrics > .revenue-report__metric {
+  gap: 0.25rem;
+  padding: 0.75rem 0.8rem;
+}
+.revenue-report__metrics .revenue-report__metric strong {
+  font-size: 1.125rem;
+  line-height: 1.35;
+}
+@container (max-width: 63rem) {
+  .revenue-report__metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@container (max-width: 35rem) {
+  .revenue-report__metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.revenue-report__metric {
+  display: grid;
+  align-content: start;
+  gap: 0.35rem;
+}
+.revenue-report .revenue-report__metric[data-metric] {
+  border-color: var(--report-card-edge, #d7e3f1);
+  border-top: 3px solid var(--report-card-edge, #d7e3f1);
+}
+.revenue-report__metric:is(
+  [data-metric="customers"],
+  [data-metric="grossRevenue"]
+) {
+  --report-card-edge: #bcd3f9;
+}
+.revenue-report__metric:is(
+  [data-metric="bookings"],
+  [data-metric="platformCommission"]
+) {
+  --report-card-edge: #d8c9f5;
+}
+.revenue-report__metric:is(
+  [data-metric="tickets"],
+  [data-metric="netRevenue"]
+) {
+  --report-card-edge: #aee0cd;
+}
+.revenue-report__metric:is(
+  [data-metric="check-in"],
+  [data-metric="operatorPayable"]
+) {
+  --report-card-edge: #b7e1e6;
+}
+.revenue-report__metric:is(
+  [data-metric="refundAmount"],
+  [data-metric="unsettledAmount"]
+) {
+  --report-card-edge: #f8d3b4;
+}
+.revenue-report__metric h2 {
+  font-size: 0.91rem;
+  color: #435675;
+}
+.revenue-report__metric strong {
+  font-size: 1.45rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.revenue-report__metric small {
+  font-size: 0.8rem;
+  color: #52627c;
+}
+.revenue-report__table-scroll {
+  max-height: 32rem;
+  overflow: auto;
+  margin-top: 1rem;
+}
+.revenue-report table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-variant-numeric: tabular-nums;
+}
+.revenue-report :is(th, td) {
+  padding: 0.65rem 0.75rem;
+  text-align: right;
+  white-space: nowrap;
+  border-bottom: 1px solid #e6ecf6;
+}
+.revenue-report th:first-child {
+  text-align: left;
+}
+.revenue-report :is(thead, tfoot) {
+  background: #eff4fb;
+  font-weight: 700;
+}
+.revenue-report thead {
+  position: sticky;
+  top: 0;
+}
+.revenue-report tfoot {
+  position: sticky;
+  bottom: 0;
+}
+.revenue-report td[data-negative="true"] {
+  color: #a21c37;
+}
+.revenue-report > :is(#van-hanh, #tai-chinh, #power-bi) {
+  scroll-margin-top: 1rem;
+}
+.revenue-report__definitions summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.revenue-report__definitions dl {
+  display: grid;
+  gap: 0.3rem;
+  margin-top: 0.8rem;
+}
+.revenue-report__definitions dt {
+  margin-top: 0.35rem;
+  font-weight: 600;
+}
+.revenue-report__definitions dd {
+  color: #435675;
+}
+
+@media (max-width: 38rem) {
+  .revenue-report {
+    gap: 0.85rem;
+  }
+  .revenue-report
+    :is(
+      .revenue-report__panel,
+      .revenue-report__metric,
+      .revenue-report__state
+    ) {
+    padding: 0.85rem;
+  }
+}
+.revenue-report .revenue-report__filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 0.65rem;
+  padding: 0.7rem 0.85rem;
+}
+.revenue-report__filters label {
+  gap: 0.25rem;
+  color: #455674;
+  font-size: 0.78rem;
+}
+.revenue-report__filters .revenue-report__dates {
+  min-width: 0;
+  align-items: end;
+}
+.revenue-report__filters :is(input, select) {
+  width: 100%;
+  min-width: 0;
+  font-size: 0.875rem;
+}
+.revenue-report__filters input[type="date"] {
+  min-inline-size: 8.3rem;
+}
+.revenue-report__filters .button {
+  min-height: 2.75rem;
+}
+.revenue-report__comparison {
+  margin-inline-start: auto;
+  align-self: center;
+}
+.revenue-report__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 0.85rem;
+  border-bottom: 1px solid #d5e1ef;
+}
+.revenue-report__tabs a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 6px 10px;
+  border-bottom: 2px solid transparent;
+  color: #3f536b;
+  font-weight: 600;
+  text-decoration: none;
+}
+.revenue-report__tabs a:hover {
+  color: #1858c5;
+}
+.revenue-report__tabs a[aria-current="page"] {
+  color: #1858c5;
+  border-bottom-color: #1858c5;
+}
+@media (max-width: 38rem) {
+  .revenue-report__comparison {
+    flex-basis: 100%;
+    margin-inline-start: 0;
+  }
+  .revenue-report__filters .revenue-report__dates {
+    display: grid;
+    flex: 1 1 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .revenue-report__filters input[type="date"] {
+    min-inline-size: 0;
+  }
+  .revenue-report__dates .revenue-report__form-error {
+    grid-column: 1 / -1;
+  }
+}
+.revenue-report__tabs a:focus-visible {
+  outline: 2px solid #1558be;
+  outline-offset: 2px;
+}

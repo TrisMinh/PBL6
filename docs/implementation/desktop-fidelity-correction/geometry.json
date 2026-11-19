@@ -1,0 +1,128 @@
+[
+  {
+    "selector": "customer-layout__header",
+    "rect": {
+      "x": 80,
+      "y": 18,
+      "width": 1280,
+      "height": 72,
+      "top": 18,
+      "right": 1360,
+      "bottom": 90,
+      "left": 80
+    },
+    "font": "\"Be Vietnam Pro\", sans-serif"
+  },
+  {
+    "selector": "trip-results__search",
+    "rect": {
+      "x": 80,
+      "y": 112,
+      "width": 1280,
+      "height": 190,
+      "top": 112,
+      "right": 1360,
+      "bottom": 302,
+      "left": 80
+    },
+    "font": "\"Be Vietnam Pro\", sans-serif"
+  },
+  {
+    "selector": "trip-filters__desktop",
+    "rect": {
+      "x": 80,
+      "y": 336,
+      "width": 260,
+      "height": 852,
+      "top": 336,
+      "right": 340,
+      "bottom": 1188,
+      "left": 80
+    },
+    "font": "\"Be Vietnam Pro\", sans-serif"
+  },
+  {
+    "selector": "trip-card",
+    "rect": {
+      "x": 370,
+      "y": 446,
+      "width": 318,
+      "height": 300,
+      "top": 446,
+      "right": 688,
+      "bottom": 746,
+      "left": 370
+    },
+    "font": "\"Be Vietnam Pro\", sans-serif"
+  },
+  {
+    "selector": "trip-card",
+    "rect": {
+      "x": 706,
+      "y": 446,
+      "width": 318,
+      "height": 300,
+      "top": 446,
+      "right": 1024,
+      "bottom": 746,
+      "left": 706
+    },
+    "font": "\"Be Vietnam Pro\", sans-serif"
+  },
+  {
+    "selector": "trip-card",
+    "rect": {
+      "x": 1042,
+      "y": 446,
+      "width": 318,
+      "height": 300,
+      "top": 446,
+      "right": 1360,
+      "bottom": 746,
+      "left": 1042
+    },
+    "font": "\"Be Vietnam Pro\", sans-serif"
+  },
+  {
+    "selector": "trip-card",
+    "rect": {
+      "x": 370,
+      "y": 766,
+      "width": 318,
+      "height": 300,
+      "top": 766,
+      "right": 688,
+      "bottom": 1066,
+      "left": 370
+    },
+    "font": "\"Be Vietnam Pro\", sans-serif"
+  },
+  {
+    "selector": "trip-card",
+    "rect": {
+      "x": 706,
+      "y": 766,
+      "width": 318,
+      "height": 300,
+      "top": 766,
+      "right": 1024,
+      "bottom": 1066,
+      "left": 706
+    },
+    "font": "\"Be Vietnam Pro\", sans-serif"
+  },
+  {
+    "selector": "trip-card",
+    "rect": {
+      "x": 1042,
+      "y": 766,
+      "width": 318,
+      "height": 300,
+      "top": 766,
+      "right": 1360,
+      "bottom": 1066,
+      "left": 1042
+    },
+    "font": "\"Be Vietnam Pro\", sans-serif"
+  }
+]

@@ -1,0 +1,85 @@
+.revenue-line__toggle {
+  display: inline-flex;
+  gap: 0.18rem;
+  padding: 0.2rem;
+  border: 1px solid #d0ddeb;
+  border-radius: 0.65rem;
+  background: #edf3fa;
+}
+.revenue-line__toggle button {
+  min-height: 2.25rem;
+  padding: 0.35rem 0.8rem;
+  border: 0;
+  border-radius: 0.45rem;
+  background: transparent;
+  color: #455674;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.revenue-line__toggle button[aria-pressed="true"] {
+  color: #1049ab;
+  background: #fff;
+  box-shadow: 0 1px 3px #0f3c5326;
+}
+.revenue-report .revenue-line__values {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin-top: 0.95rem;
+}
+.revenue-line__values div {
+  min-width: 0;
+  padding: 0.7rem 0.85rem;
+  border-radius: 0.5rem;
+  background: #f5f8fc;
+}
+.revenue-line__values dt {
+  display: flex;
+  align-items: center;
+  gap: 0.38rem;
+  color: #455674;
+  font-size: 0.8rem;
+}
+.revenue-line__values dt span {
+  width: 0.62rem;
+  height: 0.62rem;
+  border-radius: 50%;
+  flex: none;
+}
+.revenue-line__values dd {
+  font-size: clamp(0.9rem, 1.4vw, 1.23rem);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.revenue-line__plot {
+  min-width: 0;
+  margin-top: 1rem;
+}
+.revenue-line__plot svg {
+  display: block;
+  width: 100%;
+}
+.revenue-line__plot text {
+  fill: #485c76;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.settlement-waterfall .recharts-cartesian-axis-tick-value,
+.booking-analytics__trend .recharts-cartesian-axis-tick-value {
+  fill: #485c76;
+  font-size: 12px;
+}
+@media (max-width: 36rem) {
+  .revenue-report .revenue-line__values {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .revenue-line__toggle button {
+    min-height: 2.5rem;
+  }
+}
+.revenue-line .revenue-line__comparison {
+  margin-top: 0.6rem;
+  color: #6948a6;
+}

@@ -2,9 +2,9 @@
 
 ## 1. Trạng thái hiện tại
 
-**Kết luận khảo sát ngày 2026-09-19: dự án chưa tích hợp Power BI.**
+Báo cáo doanh thu Operator đã có nguồn Import theo từng nhà xe. Xem [cấu hình Power BI cho Operator](../../../workspace/analytics/power-bi/README.md) và view `bi.operator_revenue_daily`. Các phần nhúng Back-office, publish và refresh Power BI Service dưới đây mô tả thiết kế đề xuất cho giai đoạn tiếp theo.
 
-Repository đã có nền móng Reporting nhưng chưa có artefact hoặc cấu hình Power BI chạy được.
+**Khảo sát baseline ngày 2026-09-19**
 
 | Đã có trong baseline | Chưa có |
 |---|---|

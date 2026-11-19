@@ -68,6 +68,40 @@ function operators(): string[] {
 }
 
 describe("TripResultsPage", () => {
+  it.each([core, "browse=1"])(
+    "filters by an unaccented operator name and returns to the first page (%s)",
+    async (query) => {
+      const { router } = renderResults(query + "&view=list&page=2");
+      const input = within(filters()).getByRole("searchbox", {
+        name: "Tìm theo tên nhà xe",
+      });
+      await userEvent.type(input, "  thien VIET  {Enter}");
+
+      await waitFor(() => expect(operators().length).toBeGreaterThan(0));
+      expect(new Set(operators())).toEqual(new Set(["Thiên Việt"]));
+      const params = new URLSearchParams(router.state.location.search);
+      expect(params.get("operatorName")).toBe("thien VIET");
+      expect(params.has("page")).toBe(false);
+      expect(params.get("view")).toBe("list");
+      if (query === core) expect(params.get("originId")).toBe("loc-hcm");
+
+      const applied = within(filters()).getByRole("searchbox", {
+        name: "Tìm theo tên nhà xe",
+      });
+      await userEvent.clear(applied);
+      await userEvent.type(applied, "nhaxe-khong-ton-tai{Enter}");
+      expect(
+        await screen.findByText(/Không có chuyến phù hợp với tên nhà xe/),
+      ).toBeVisible();
+      await userEvent.click(
+        screen.getByRole("button", { name: "Bỏ lọc tên nhà xe" }),
+      );
+      expect(
+        new URLSearchParams(router.state.location.search).has("operatorName"),
+      ).toBe(false);
+    },
+  );
+
   it("edits a search on the results page and clears stale filters", async () => {
     const { router } = renderResults(
       core + "&vehicleType=cabin-22&page=3&view=list",

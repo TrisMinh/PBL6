@@ -5,7 +5,11 @@ vi.mock("@/features/tickets/repositories/backendTicketRepository", () => ({
   hydrateBackendTicket: vi.fn(),
 }));
 import { apiJson } from "@/shared/api/client";
-import { ownedBooking } from "@/features/tickets/repositories/backendTicketRepository";
+import { ApiError } from "@/shared/api/error";
+import {
+  hydrateBackendTicket,
+  ownedBooking,
+} from "@/features/tickets/repositories/backendTicketRepository";
 import {
   backendCancellationRepository,
   getCancellationPreview,
@@ -20,6 +24,30 @@ beforeEach(() => {
   } as never);
 });
 describe("original cancellation live adapter", () => {
+  it("checks cancellation eligibility before loading trip details for a departed trip", async () => {
+    const denied = new ApiError(
+      "CANCELLATION_NOT_ALLOWED",
+      409,
+      "Đã hết thời hạn tự hủy vé.",
+      undefined,
+      {
+        reason: "TRIP_DEPARTED",
+      },
+    );
+    vi.mocked(apiJson)
+      .mockResolvedValueOnce([{ id: "issued-ticket", status: "ISSUED" }])
+      .mockRejectedValueOnce(denied);
+
+    await expect(
+      backendCancellationRepository.getOptions("BK-REAL", access),
+    ).rejects.toBe(denied);
+    expect(vi.mocked(apiJson).mock.calls.map(([path]) => path)).toEqual([
+      "/api/v1/bookings/booking/tickets",
+      "/api/v1/bookings/booking/cancellation-preview",
+    ]);
+    expect(hydrateBackendTicket).not.toHaveBeenCalled();
+  });
+
   it("submits the quote the customer reviewed rather than obtaining a different quote during confirmation", async () => {
     vi.mocked(apiJson).mockResolvedValueOnce({
       previewId: "reviewed",

@@ -1,0 +1,718 @@
+[
+  {
+    "file": "workspace/src/apps/web/src/routes/account/tickets.tsx",
+    "componentImports": [
+      [
+        " LiveAccountPage ",
+        "@/features/account/LiveAccountPage"
+      ],
+      [
+        " AccountTicketsPage ",
+        "@/features/tickets/pages/AccountTicketsPage"
+      ]
+    ],
+    "modeSwitch": true,
+    "genericLive": false
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/admin/bookings/detail.tsx",
+    "componentImports": [
+      [
+        " BackendAdminDetailPage ",
+        "@/features/admin/BackendAdminPage"
+      ],
+      [
+        " BookingDetailPage ",
+        "@/features/admin/transactions/pages/BookingDetailPage"
+      ]
+    ],
+    "modeSwitch": true,
+    "genericLive": true
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/admin/bookings/index.tsx",
+    "componentImports": [
+      [
+        " BackendAdminPage ",
+        "@/features/admin/BackendAdminPage"
+      ],
+      [
+        " BookingListPage ",
+        "@/features/admin/transactions/pages/BookingListPage"
+      ]
+    ],
+    "modeSwitch": true,
+    "genericLive": true
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/admin/organizations/detail.tsx",
+    "componentImports": [
+      [
+        " BackendAdminDetailPage ",
+        "@/features/admin/BackendAdminPage"
+      ],
+      [
+        " OrganizationDetailPage ",
+        "@/features/admin/organizations/pages/OrganizationDetailPage"
+      ]
+    ],
+    "modeSwitch": true,
+    "genericLive": true
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/admin/organizations/index.tsx",
+    "componentImports": [
+      [
+        " BackendAdminPage ",
+        "@/features/admin/BackendAdminPage"
+      ],
+      [
+        " OrganizationListPage ",
+        "@/features/admin/organizations/pages/OrganizationListPage"
+      ]
+    ],
+    "modeSwitch": true,
+    "genericLive": true
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/admin/payments/detail.tsx",
+    "componentImports": [
+      [
+        " BackendAdminDetailPage ",
+        "@/features/admin/BackendAdminPage"
+      ],
+      [
+        " PaymentDetailPage ",
+        "@/features/admin/transactions/pages/PaymentDetailPage"
+      ]
+    ],
+    "modeSwitch": true,
+    "genericLive": true
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/admin/payments/index.tsx",
+    "componentImports": [
+      [
+        " BackendAdminPage ",
+        "@/features/admin/BackendAdminPage"
+      ],
+      [
+        " PaymentListPage ",
+        "@/features/admin/transactions/pages/PaymentListPage"
+      ]
+    ],
+    "modeSwitch": true,
+    "genericLive": true
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/admin/refunds/detail.tsx",
+    "componentImports": [
+      [
+        " BackendAdminDetailPage ",
+        "@/features/admin/BackendAdminPage"
+      ],
+      [
+        " RefundDetailPage ",
+        "@/features/admin/transactions/pages/RefundDetailPage"
+      ]
+    ],
+    "modeSwitch": true,
+    "genericLive": true
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/admin/refunds/index.tsx",
+    "componentImports": [
+      [
+        " BackendAdminPage ",
+        "@/features/admin/BackendAdminPage"
+      ],
+      [
+        " RefundListPage ",
+        "@/features/admin/transactions/pages/RefundListPage"
+      ]
+    ],
+    "modeSwitch": true,
+    "genericLive": true
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/admin/staff/detail.tsx",
+    "componentImports": [
+      [
+        " BackendAdminDetailPage ",
+        "@/features/admin/BackendAdminPage"
+      ],
+      [
+        " StaffDetailPage ",
+        "@/features/admin/staff/pages/StaffDetailPage"
+      ]
+    ],
+    "modeSwitch": true,
+    "genericLive": true
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/admin/staff/index.tsx",
+    "componentImports": [
+      [
+        " BackendAdminPage ",
+        "@/features/admin/BackendAdminPage"
+      ],
+      [
+        " StaffListPage ",
+        "@/features/admin/staff/pages/StaffListPage"
+      ]
+    ],
+    "modeSwitch": true,
+    "genericLive": true
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/auth/forgot-password.tsx",
+    "componentImports": [
+      [
+        " ForgotPasswordPage ",
+        "@/features/auth/pages/ForgotPasswordPage"
+      ]
+    ],
+    "modeSwitch": false,
+    "genericLive": false
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/auth/login.tsx",
+    "componentImports": [
+      [
+        " LoginPage ",
+        "@/features/auth/pages/LoginPage"
+      ]
+    ],
+    "modeSwitch": false,
+    "genericLive": false
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/auth/register.tsx",
+    "componentImports": [
+      [
+        " RegisterPage ",
+        "@/features/auth/pages/RegisterPage"
+      ]
+    ],
+    "modeSwitch": false,
+    "genericLive": false
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/auth/reset-password.tsx",
+    "componentImports": [
+      [
+        " AccountChallengePage ",
+        "@/features/auth/pages/AccountChallengePage"
+      ]
+    ],
+    "modeSwitch": false,
+    "genericLive": false
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/auth/verify-email.tsx",
+    "componentImports": [
+      [
+        " AccountChallengePage ",
+        "@/features/auth/pages/AccountChallengePage"
+      ]
+    ],
+    "modeSwitch": false,
+    "genericLive": false
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/booking/passengers.tsx",
+    "componentImports": [
+      [
+        " PassengerDetailsPage ",
+        "@/features/booking/pages/PassengerDetailsPage"
+      ]
+    ],
+    "modeSwitch": false,
+    "genericLive": false
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/booking/review.tsx",
+    "componentImports": [
+      [
+        " BookingReviewPage ",
+        "@/features/booking/pages/BookingReviewPage"
+      ]
+    ],
+    "modeSwitch": false,
+    "genericLive": false
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/booking/seats.tsx",
+    "componentImports": [
+      [
+        " SeatSelectionPage ",
+        "@/features/booking/pages/SeatSelectionPage"
+      ]
+    ],
+    "modeSwitch": false,
+    "genericLive": false
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/booking/trip-seats.tsx",
+    "componentImports": [
+      [
+        " TripSeatsPage ",
+        "@/features/booking/pages/TripSeatsPage"
+      ]
+    ],
+    "modeSwitch": false,
+    "genericLive": false
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/bookings/cancel.tsx",
+    "componentImports": [
+      [
+        " LiveCancellationPage ",
+        "@/features/cancellation/pages/LiveCancellationPage"
+      ],
+      [
+        " CancellationPage ",
+        "@/features/cancellation/pages/CancellationPage"
+      ]
+    ],
+    "modeSwitch": true,
+    "genericLive": false
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/bookings/refund.tsx",
+    "componentImports": [],
+    "modeSwitch": false,
+    "genericLive": false
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/explore/detail.tsx",
+    "componentImports": [
+      [
+        " BackendExploreDetail ",
+        "@/features/explore/BackendExplorePage"
+      ],
+      [
+        " ProvincePage ",
+        "@/features/explore/ExplorePages"
+      ]
+    ],
+    "modeSwitch": true,
+    "genericLive": false
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/explore/index.tsx",
+    "componentImports": [
+      [
+        " BackendExploreIndex ",
+        "@/features/explore/BackendExplorePage"
+      ],
+      [
+        " ExplorePage ",
+        "@/features/explore/ExplorePages"
+      ]
+    ],
+    "modeSwitch": true,
+    "genericLive": false
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/guards/admin.tsx",
+    "componentImports": [],
+    "modeSwitch": false,
+    "genericLive": false
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/guards/booking-session.tsx",
+    "componentImports": [],
+    "modeSwitch": false,
+    "genericLive": false
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/guards/customer-session.tsx",
+    "componentImports": [],
+    "modeSwitch": false,
+    "genericLive": false
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/home.tsx",
+    "componentImports": [
+      [
+        " HomePage ",
+        "@/features/home/pages/HomePage"
+      ]
+    ],
+    "modeSwitch": false,
+    "genericLive": false
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/layouts/admin.tsx",
+    "componentImports": [],
+    "modeSwitch": false,
+    "genericLive": false
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/layouts/customer.tsx",
+    "componentImports": [],
+    "modeSwitch": false,
+    "genericLive": false
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/layouts/operator.tsx",
+    "componentImports": [],
+    "modeSwitch": false,
+    "genericLive": false
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/not-found.tsx",
+    "componentImports": [],
+    "modeSwitch": false,
+    "genericLive": false
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/operator/bookings.tsx",
+    "componentImports": [
+      [
+        " BackendOperatorPage ",
+        "@/features/operator/BackendOperatorPage"
+      ],
+      [
+        " RecentBookingsPage ",
+        "@/features/operator/bookings/RecentBookingsPage"
+      ]
+    ],
+    "modeSwitch": true,
+    "genericLive": true
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/operator/create-resource-route.tsx",
+    "componentImports": [
+      [
+        " LiveRouteEditorPage ",
+        "@/features/operator/resources/LiveRouteEditorPage"
+      ],
+      [
+        " CreateRoutePage ",
+        "@/features/operator/resources/CreateRoutePage"
+      ]
+    ],
+    "modeSwitch": true,
+    "genericLive": false
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/operator/drivers.tsx",
+    "componentImports": [
+      [
+        " LiveDriversPage ",
+        "@/features/operator/drivers/LiveDriversPage"
+      ],
+      [
+        " DriversPage ",
+        "@/features/operator/drivers/DriversPage"
+      ]
+    ],
+    "modeSwitch": true,
+    "genericLive": false
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/operator/edit-draft.tsx",
+    "componentImports": [
+      [
+        " EditDraftPage ",
+        "@/features/operator/edit/EditDraftPage"
+      ]
+    ],
+    "modeSwitch": false,
+    "genericLive": false
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/operator/edit-driver.tsx",
+    "componentImports": [
+      [
+        " LiveDriverEditorPage ",
+        "@/features/operator/drivers/LiveDriverEditorPage"
+      ],
+      [
+        " EditDriverPage ",
+        "@/features/operator/drivers/EditDriverPage"
+      ]
+    ],
+    "modeSwitch": true,
+    "genericLive": false
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/operator/edit-resource-route.tsx",
+    "componentImports": [
+      [
+        " LiveRouteEditorPage ",
+        "@/features/operator/resources/LiveRouteEditorPage"
+      ],
+      [
+        " EditRoutePage ",
+        "@/features/operator/resources/EditRoutePage"
+      ]
+    ],
+    "modeSwitch": true,
+    "genericLive": false
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/operator/new-driver.tsx",
+    "componentImports": [
+      [
+        " LiveDriverEditorPage ",
+        "@/features/operator/drivers/LiveDriverEditorPage"
+      ],
+      [
+        " AddDriverPage ",
+        "@/features/operator/drivers/AddDriverPage"
+      ]
+    ],
+    "modeSwitch": true,
+    "genericLive": false
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/operator/new-trip.tsx",
+    "componentImports": [
+      [
+        " CreateTripPage ",
+        "@/features/operator/create/CreateTripPage"
+      ]
+    ],
+    "modeSwitch": false,
+    "genericLive": false
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/operator/passenger-manifest.tsx",
+    "componentImports": [
+      [
+        " BackendManifestPage ",
+        "@/features/operator/BackendOperatorPage"
+      ],
+      [
+        " PassengerManifestPage ",
+        "@/features/operator/bookings/PassengerManifestPage"
+      ]
+    ],
+    "modeSwitch": true,
+    "genericLive": true
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/operator/refund-requests.tsx",
+    "componentImports": [
+      [
+        " BackendOperatorPage ",
+        "@/features/operator/BackendOperatorPage"
+      ],
+      [
+        " RefundRequestsPage ",
+        "@/features/operator/refunds/RefundRequestsPage"
+      ]
+    ],
+    "modeSwitch": true,
+    "genericLive": true
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/operator/refund-tracking.tsx",
+    "componentImports": [
+      [
+        " BackendRefundDetailPage ",
+        "@/features/operator/BackendOperatorPage"
+      ],
+      [
+        " RefundTrackingPage ",
+        "@/features/operator/refunds/RefundTrackingPage"
+      ]
+    ],
+    "modeSwitch": true,
+    "genericLive": true
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/operator/reports.tsx",
+    "componentImports": [
+      [
+        " LiveReportsPage ",
+        "@/features/operator/reports/LiveReportsPage"
+      ],
+      [
+        " ReportsPage ",
+        "@/features/operator/reports/ReportsPage"
+      ]
+    ],
+    "modeSwitch": true,
+    "genericLive": false
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/operator/resources-routes.tsx",
+    "componentImports": [
+      [
+        " LiveRouteManagementPage ",
+        "@/features/operator/resources/LiveRouteManagementPage"
+      ],
+      [
+        " LiveRouteStopsEditor ",
+        "@/features/operator/LiveOperatorForms"
+      ],
+      [
+        " RouteManagementPage ",
+        "@/features/operator/resources/RouteManagementPage"
+      ]
+    ],
+    "modeSwitch": true,
+    "genericLive": false
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/operator/settlements.tsx",
+    "componentImports": [
+      [
+        " BackendOperatorPage ",
+        "@/features/operator/BackendOperatorPage"
+      ]
+    ],
+    "modeSwitch": false,
+    "genericLive": true
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/operator/trip-detail.tsx",
+    "componentImports": [
+      [
+        " BackendTripDetailPage ",
+        "@/features/operator/BackendOperatorPage"
+      ],
+      [
+        " TripDetailPage ",
+        "@/features/operator/detail/TripDetailPage"
+      ]
+    ],
+    "modeSwitch": true,
+    "genericLive": true
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/operator/trip-passenger-lists.tsx",
+    "componentImports": [
+      [
+        " BackendOperatorPage ",
+        "@/features/operator/BackendOperatorPage"
+      ],
+      [
+        " TripPassengerListsPage ",
+        "@/features/operator/bookings/TripPassengerListsPage"
+      ]
+    ],
+    "modeSwitch": true,
+    "genericLive": true
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/operator/trip-review.tsx",
+    "componentImports": [
+      [
+        " TripReviewPage ",
+        "@/features/operator/review/TripReviewPage"
+      ]
+    ],
+    "modeSwitch": false,
+    "genericLive": false
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/operator/trips.tsx",
+    "componentImports": [
+      [
+        " LiveOperatorSchedule ",
+        "@/features/operator/LiveOperatorSchedule"
+      ],
+      [
+        " SchedulePage ",
+        "@/features/operator/schedule/SchedulePage"
+      ]
+    ],
+    "modeSwitch": true,
+    "genericLive": false
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/operator/vehicles.tsx",
+    "componentImports": [
+      [
+        " LiveVehicleManagementPage ",
+        "@/features/operator/vehicles/LiveVehicleManagementPage"
+      ],
+      [
+        " LiveVehicleEditor ",
+        "@/features/operator/LiveOperatorForms"
+      ],
+      [
+        " VehicleManagementPage ",
+        "@/features/operator/vehicles/VehicleManagementPage"
+      ]
+    ],
+    "modeSwitch": true,
+    "genericLive": false
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/payment/vnpay-return.tsx",
+    "componentImports": [
+      [
+        " BackendPaymentReturnPage ",
+        "@/features/payment/pages/BackendPaymentPage"
+      ],
+      [
+        " VnPayReturnPage ",
+        "@/features/payment/pages/VnPayReturnPage"
+      ]
+    ],
+    "modeSwitch": true,
+    "genericLive": false
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/payment/vnpay.tsx",
+    "componentImports": [
+      [
+        " BackendPaymentPage ",
+        "@/features/payment/pages/BackendPaymentPage"
+      ],
+      [
+        " VnPayPage ",
+        "@/features/payment/pages/VnPayPage"
+      ]
+    ],
+    "modeSwitch": true,
+    "genericLive": false
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/tickets/detail.tsx",
+    "componentImports": [
+      [
+        " LiveTicketDetailPage ",
+        "@/features/tickets/pages/LiveTicketDetailPage"
+      ],
+      [
+        " TicketDetailPage ",
+        "@/features/tickets/pages/TicketDetailPage"
+      ]
+    ],
+    "modeSwitch": true,
+    "genericLive": false
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/tickets/lookup.tsx",
+    "componentImports": [
+      [
+        " BackendTicketLookupPage ",
+        "@/features/tickets/pages/BackendTicketLookupPage"
+      ],
+      [
+        " TicketLookupPage ",
+        "@/features/tickets/pages/TicketLookupPage"
+      ]
+    ],
+    "modeSwitch": true,
+    "genericLive": false
+  },
+  {
+    "file": "workspace/src/apps/web/src/routes/trips.tsx",
+    "componentImports": [
+      [
+        " TripResultsPage ",
+        "@/features/trips/pages/TripResultsPage"
+      ]
+    ],
+    "modeSwitch": false,
+    "genericLive": false
+  }
+]

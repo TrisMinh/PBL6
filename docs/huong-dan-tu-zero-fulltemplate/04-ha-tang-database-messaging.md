@@ -33,7 +33,6 @@ Trong `docker-compose.yml`, khai báo:
 | `rabbitmq` | message broker + management | 5672, 15672 |
 | `redis` | cache/seat hold | 6379 |
 | `mailpit` | SMTP giả và hộp thư web | 1025, 8025 |
-| `payment-simulator` | giả lập VNPay callback | 8099 |
 | `db-bootstrap` | áp SQL baseline một lần | không expose |
 
 Mỗi service có database riêng:
@@ -130,7 +129,6 @@ Kiểm tra dịch vụ:
 docker compose logs db-bootstrap
 docker compose logs rabbitmq
 Invoke-WebRequest http://localhost:8025
-Invoke-WebRequest http://localhost:8099/health
 ```
 
 Tắt nhưng giữ data:

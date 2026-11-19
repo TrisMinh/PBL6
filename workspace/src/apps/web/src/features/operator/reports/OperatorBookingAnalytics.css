@@ -1,0 +1,403 @@
+.booking-analytics {
+  display: grid;
+  min-width: 0;
+  gap: 1rem;
+}
+.revenue-report__finance-title h2 {
+  font-size: 18px;
+}
+.booking-analytics__route {
+  flex: 0 1 13rem;
+  min-width: 0;
+}
+.booking-analytics__payment {
+  flex: 0 1 9rem;
+  min-width: 0;
+}
+.booking-analytics__metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+.booking-analytics__metrics dt {
+  color: #435675;
+  font-weight: 700;
+  font-size: 0.91rem;
+}
+.booking-analytics__metrics dd {
+  font-size: 1.7rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.booking-analytics__metric-note {
+  padding: 0.3rem 0;
+  color: #52627c;
+  font-size: 0.87rem;
+}
+.booking-analytics__metric-note summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.booking-analytics__metric-note[open] p {
+  margin-top: 0.4rem;
+}
+.booking-analytics__metric-note a {
+  color: #1558be;
+  text-decoration: underline;
+}
+.booking-analytics__charts,
+.revenue-report__finance-charts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+.booking-analytics .booking-analytics__charts {
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  align-items: start;
+}
+.booking-analytics__metrics .revenue-report__metric {
+  padding: 0.85rem 1rem;
+}
+.booking-analytics h3 {
+  margin: 0 0 0.7rem;
+  font-size: 14px;
+}
+.booking-analytics__trend {
+  margin: 0;
+}
+.booking-analytics__trend-plot {
+  display: grid;
+  gap: 0.2rem;
+  overflow: auto;
+  margin: 0.85rem 0;
+}
+.booking-analytics__trend-group {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+  text-align: center;
+  color: #52627c;
+}
+.booking-analytics__trend-bars {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  height: 8rem;
+  gap: 2px;
+  background: repeating-linear-gradient(
+    to top,
+    #e9eef6 0 1px,
+    transparent 1px 25%
+  );
+}
+.booking-analytics__trend-bars span {
+  width: min(1.4rem, 44%);
+  background: #2165cd;
+  border-radius: 0.15rem 0.15rem 0 0;
+}
+.booking-analytics__trend-bars span + span,
+.booking-analytics__bar span + span {
+  background: #087b80;
+}
+.booking-analytics__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.85rem;
+  color: #435675;
+  font-size: 0.84rem;
+}
+.booking-analytics__legend span::before {
+  content: "";
+  display: inline-block;
+  width: 0.65rem;
+  height: 0.65rem;
+  background: #2165cd;
+  border-radius: 2px;
+  margin-inline-end: 0.35rem;
+}
+.booking-analytics__legend span + span::before {
+  background: #087b80;
+}
+.booking-analytics__bars {
+  margin: 0.65rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+  list-style: none;
+}
+.booking-analytics__bar-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.55rem;
+  font-size: 0.9rem;
+}
+.booking-analytics__bar-label strong {
+  flex: none;
+  font-variant-numeric: tabular-nums;
+}
+.booking-analytics__bar-label button {
+  border: 0;
+  padding: 0.2rem 0;
+  background: transparent;
+  cursor: pointer;
+  color: #1558be;
+  font: inherit;
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+.booking-analytics__bar {
+  display: flex;
+  height: 0.55rem;
+  overflow: hidden;
+  border-radius: 0.3rem;
+  background: #eaf0fa;
+  margin-top: 0.3rem;
+}
+.booking-analytics__bar span {
+  background: #2165cd;
+}
+.booking-analytics__bar span[data-tone="PAID"] {
+  background: #00816e;
+}
+.booking-analytics__bar span[data-tone="COMPLETED"] {
+  background: #128c75;
+}
+.booking-analytics__bar span[data-tone="CONFIRMED"] {
+  background: #7350c7;
+}
+.booking-analytics__bar span[data-tone="CANCELLED"] {
+  background: #bf4e4d;
+}
+.booking-analytics__bar
+  span:is([data-tone="EXPIRED"], [data-tone="PENDING_PAYMENT"]) {
+  background: #c27719;
+}
+.booking-analytics__bar
+  span:is([data-tone="REFUNDED"], [data-tone="REFUND_PENDING"]) {
+  background: #b75925;
+}
+.booking-analytics__channel-mix {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem 1.45rem;
+  min-height: 9rem;
+}
+.booking-analytics__donut {
+  position: relative;
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: clamp(7rem, 10vw, 9.5rem);
+  aspect-ratio: 1;
+  border-radius: 50%;
+}
+.booking-analytics__donut-total {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  pointer-events: none;
+  display: grid;
+  width: 73%;
+  aspect-ratio: 1;
+  align-content: center;
+  border-radius: 50%;
+  text-align: center;
+  color: #52627c;
+  font-size: 0.76rem;
+}
+.booking-analytics__donut strong {
+  color: #203458;
+  font-size: 1.55rem;
+}
+.booking-analytics__mix-legend {
+  flex: 1 1 10rem;
+  display: grid;
+  gap: 0.65rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.booking-analytics__mix-legend li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) max-content;
+  gap: 0.18rem 0.45rem;
+  font-size: 0.85rem;
+}
+.booking-analytics__mix-legend button {
+  display: flex;
+  align-items: center;
+  gap: 0.32rem;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: #2d466c;
+  text-align: left;
+  text-decoration: underline;
+  font: inherit;
+  cursor: pointer;
+}
+.booking-analytics__mix-legend button span {
+  width: 0.65rem;
+  height: 0.65rem;
+  flex: none;
+  border-radius: 0.18rem;
+  background: #7148cf;
+}
+.booking-analytics__mix-legend button span[data-channel="pay-later"] {
+  background: #07958d;
+}
+.booking-analytics__mix-legend small {
+  grid-column: 2;
+  text-align: right;
+  color: #52627c;
+}
+.booking-analytics__bar--previous span {
+  background: #087b80;
+}
+.booking-analytics__bar span[data-negative="true"] {
+  background: #b94834;
+}
+.booking-analytics__bar-detail,
+.booking-analytics__trend summary {
+  color: #52627c;
+  font-size: 0.83rem;
+}
+.booking-analytics__matrix td[data-intensity="1"] {
+  background: #edf4ff;
+}
+.booking-analytics__matrix td[data-intensity="2"] {
+  background: #dbeaff;
+}
+.booking-analytics__matrix td[data-intensity="3"] {
+  background: #bcd7fc;
+}
+.booking-analytics__matrix td[data-intensity="4"] {
+  background: #245fac;
+  color: #fff;
+  font-weight: 700;
+}
+.booking-analytics__trend summary {
+  cursor: pointer;
+}
+.revenue-report__power {
+  display: grid;
+  min-width: 0;
+  gap: 0.85rem;
+}
+.revenue-report__power[hidden] {
+  display: none;
+}
+.revenue-report .revenue-report__power-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem 1.25rem;
+}
+.revenue-report__power-header > div:first-child {
+  flex: 1 1 22rem;
+}
+.revenue-report__power-header p {
+  margin-top: 0.35rem;
+  color: #52627c;
+}
+.revenue-report__power-actions,
+.revenue-report__power-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+}
+.revenue-report__power-frame {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid #d5e1ef;
+  border-radius: 12px;
+  background: #fff;
+}
+.revenue-report__power-frame iframe {
+  width: 100%;
+  height: clamp(34rem, 76dvh, 68rem);
+  border: 0;
+}
+.revenue-report__power-frame:fullscreen iframe {
+  height: 100%;
+}
+.revenue-report__power-downloads {
+  padding: 0.35rem 0.15rem;
+  color: #52627c;
+  font-size: 0.875rem;
+}
+.revenue-report__power-downloads summary {
+  cursor: pointer;
+  width: fit-content;
+  padding-block: 0.25rem;
+}
+.revenue-report__power-links {
+  margin-top: 0.35rem;
+}
+.revenue-report__power-links a {
+  color: #1558be;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+@media (max-width: 54rem) {
+  .booking-analytics .booking-analytics__charts,
+  .revenue-report__finance-charts {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 40rem) {
+  .booking-analytics__toolbar
+    :is(.booking-analytics__route, .booking-analytics__payment) {
+    flex: 1 1 calc(50% - 0.65rem);
+  }
+  .booking-analytics__metrics .revenue-report__metric {
+    padding: 0.75rem;
+  }
+  .booking-analytics__metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .booking-analytics__metrics dd {
+    font-size: 1.35rem;
+  }
+}
+@media (min-width: 23rem) and (max-width: 38rem) {
+  .booking-analytics__toolbar .revenue-report__dates {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) max-content;
+    gap: 0.4rem;
+  }
+  .booking-analytics__toolbar .revenue-report__dates input {
+    padding-inline: 0.35rem;
+    font-size: 0.8rem;
+  }
+  .booking-analytics__toolbar .revenue-report__dates .button {
+    padding-inline: 0.6rem;
+  }
+}
+.booking-analytics__chart-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+.booking-analytics__drill {
+  justify-self: start;
+  color: #1558be;
+  background: transparent;
+  border: 0;
+  padding: 0.3rem 0;
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  cursor: pointer;
+}

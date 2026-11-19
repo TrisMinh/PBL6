@@ -3,6 +3,8 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using BusTicketPlatform.Booking.Application;
+using BusTicketPlatform.Booking.Infrastructure;
+using BusTicketPlatform.BuildingBlocks.Messaging;
 
 namespace BusTicketPlatform.Booking.Api.IntegrationTests;
 
@@ -54,7 +56,10 @@ public sealed class CouponFlowTests(BookingPostgresFixture fixture)
         var id=booked.Body.GetProperty("id").GetGuid();
         var replay=await Send(client,HttpMethod.Post,"/api/v1/bookings",Body(550001),token,attempt);Assert.Equal(id,replay.Body.GetProperty("id").GetGuid());
         var saved=await Send(client,HttpMethod.Get,$"/api/v1/bookings/{id}",null,token);Assert.Equal(50001,saved.Body.GetProperty("discount").GetInt64());
-        var paid=await client.PostAsJsonAsync("/api/v1/internal/payments/succeeded",new{bookingId=id,paymentId=Guid.NewGuid(),amount=550001,currency="VND"});Assert.Equal(HttpStatusCode.NoContent,paid.StatusCode);
+        var paymentId = Guid.NewGuid();
+        await BookingEventHandlers.HandlePaymentAsync(fixture.Factory.Services, new EventMessage(
+            Guid.NewGuid(), "PaymentSucceeded", 1, DateTimeOffset.UtcNow, "payment-service", Guid.NewGuid(), paymentId,
+            JsonSerializer.SerializeToElement(new { bookingId = id, paymentId, amount = 550001, currency = "VND" })), default);
         var tickets=(await Send(client,HttpMethod.Get,$"/api/v1/bookings/{id}/tickets",null,token)).Body.EnumerateArray().ToArray();Assert.Equal(2,tickets.Length);
         Assert.Equal(550001,tickets.Sum(t=>t.GetProperty("unitPrice").GetInt64()));
         var preview=await Send(client,HttpMethod.Post,$"/api/v1/bookings/{id}/cancellation-preview",new{ticketIds=tickets.Select(t=>t.GetProperty("id").GetGuid()).ToArray()},token);

@@ -11,6 +11,7 @@ import type { CancellationAccess } from "@/features/cancellation/repositories/ca
 import { httpCancellationRepository } from "@/features/cancellation/repositories/httpCancellationRepository";
 import { TICKET_DETAIL_QUERY_KEY } from "@/features/tickets/config/access";
 import type { BookingRepositoryError } from "@/features/booking/repositories/bookingRepositoryError";
+import type { ApiError } from "@/shared/api/error";
 import type {
   CancellationOptions,
   Refund,
@@ -21,7 +22,7 @@ export const CANCELLATION_QUERY_KEY = "cancellation-options";
 export function useCancellationOptions(
   bookingCode: string,
   access: CancellationAccess,
-): UseQueryResult<CancellationOptions, BookingRepositoryError> {
+): UseQueryResult<CancellationOptions, BookingRepositoryError | ApiError> {
   return useQuery({
     queryKey: [
       CANCELLATION_QUERY_KEY,
@@ -31,6 +32,7 @@ export function useCancellationOptions(
     ],
     queryFn: ({ signal }) =>
       httpCancellationRepository.getOptions(bookingCode, access, signal),
+    retry: false,
   });
 }
 
@@ -39,7 +41,7 @@ export function useCreateCancellation(
   access: CancellationAccess,
 ): UseMutationResult<
   Refund,
-  BookingRepositoryError,
+  BookingRepositoryError | ApiError,
   { ticketIds: readonly string[]; key: string }
 > {
   const client = useQueryClient();

@@ -28,6 +28,9 @@ public sealed class PaymentPostgresFixture : IAsyncLifetime
         {
             builder.UseSetting("Authentication:SigningKey", TestJwt.SigningKey);
             builder.UseSetting("Payment:Enabled", "true");
+            builder.UseSetting("Payment:CheckoutBaseUrl", "https://simulator.example.test/checkout");
+            builder.UseSetting("Payment:TmnCode", "LOCALDEV");
+            builder.UseSetting("Payment:HashSecret", "local-test-only-vnpay-key-32bytes");
             builder.UseSetting("SePay:MerchantId", "TEST_MERCHANT");
             builder.UseSetting("SePay:SecretKey", "test-only-merchant-key");
             builder.UseSetting("SePay:IpnSecretKey", "test-only-ipn-key");
@@ -281,7 +284,7 @@ public sealed class PaymentFlowTests
             ["vnp_ResponseCode"] = "00",
             ["vnp_TransactionNo"] = eventId ?? Guid.CreateVersion7().ToString("N")
         };
-        fields["vnp_SecureHash"] = VnPayCheckout.Sign("local-dev-only-vnpay-hash-secret-32b", fields);
+        fields["vnp_SecureHash"] = VnPayCheckout.Sign("local-test-only-vnpay-key-32bytes", fields);
         return client.PostAsJsonAsync("/integrations/payments/vnpay-sandbox/webhooks", fields);
     }
 

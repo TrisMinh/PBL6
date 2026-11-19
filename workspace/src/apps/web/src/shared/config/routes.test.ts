@@ -5,13 +5,13 @@ import {
   bookingReviewPath,
   bookingSeatsPath,
   ticketPath,
-  paymentVnPayPath,
+  paymentCheckoutPath,
 } from "@/shared/config/routes";
 
 describe.each([
   {
-    name: "paymentVnPayPath",
-    buildPath: paymentVnPayPath,
+    name: "paymentCheckoutPath",
+    buildPath: paymentCheckoutPath,
     expected: "/payment/A%2FB/sepay",
   },
   {

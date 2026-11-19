@@ -1,0 +1,105 @@
+.booking-report-orders__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 160;
+  background: #0b1f3a66;
+}
+.booking-report-orders {
+  position: fixed;
+  z-index: 161;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  transform: translate(-50%, -50%);
+  width: min(68rem, calc(100% - 1.5rem));
+  height: min(48rem, calc(100dvh - 1.5rem));
+  display: grid;
+  grid-template-rows: auto auto minmax(5rem, 1fr) auto;
+  overflow: auto;
+  padding: clamp(0.8rem, 3vw, 1.4rem);
+  gap: 1rem;
+  border: 1px solid #d5e1ef;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 18px 56px #132e5238;
+  color: #172748;
+  font: 14px var(--font-body);
+}
+.booking-report-orders__heading,
+.booking-report-orders__footer,
+.booking-report-orders__paging {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+}
+.booking-report-orders__heading h2 {
+  margin: 0;
+  font: 600 20px var(--font-display);
+}
+.booking-report-orders__heading p {
+  margin: 0.3rem 0 0;
+  color: #52627c;
+}
+.booking-report-orders__filters {
+  display: grid;
+  grid-template-columns: minmax(8rem, 1.2fr) auto repeat(3, minmax(0, 1fr));
+  align-items: end;
+  gap: 0.55rem;
+}
+.booking-report-orders__filters label {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.booking-report-orders__filters :is(input, select) {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0.4rem 0.55rem;
+  border: 1px solid #aebed3;
+  border-radius: 8px;
+  background: white;
+  color: inherit;
+  font: inherit;
+}
+.booking-report-orders__footer {
+  min-height: 44px;
+}
+.booking-report-orders__results {
+  min-width: 0;
+  overflow: auto;
+}
+.booking-report-orders__table {
+  overflow: auto;
+}
+.booking-report-orders__table table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  white-space: nowrap;
+}
+.booking-report-orders__table :is(th, td) {
+  padding: 0.55rem 0.7rem;
+  border-bottom: 1px solid #e2eaf5;
+}
+.booking-report-orders__table thead {
+  background: #f1f6fc;
+}
+.booking-report-orders :focus-visible {
+  outline: 2px solid #1558be;
+  outline-offset: 2px;
+}
+@media (max-width: 41rem) {
+  .booking-report-orders__filters {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .booking-report-orders__filters .booking-report-orders__search {
+    grid-column: 1;
+  }
+  .booking-report-orders__filters button {
+    justify-self: start;
+  }
+}

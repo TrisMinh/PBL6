@@ -1,7 +1,10 @@
 # Avoid the Windows PostgreSQL/RabbitMQ services while using Docker's isolated platform databases.
 services:
   postgres:
-    ports: !override ["127.0.0.1:55432:5432"]
+    ports: !override
+      - "127.0.0.1:55432:5432"
+      # The existing local Power BI gateway connections use this endpoint.
+      - "127.0.0.1:55474:5432"
   rabbitmq:
     ports: !override ["127.0.0.1:55672:5672", "127.0.0.1:55673:15672"]
   redis:

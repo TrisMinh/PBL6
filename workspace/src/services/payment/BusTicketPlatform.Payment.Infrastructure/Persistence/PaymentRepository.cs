@@ -1,3 +1,5 @@
+using BusTicketPlatform.BuildingBlocks.Errors;
+using BusTicketPlatform.BuildingBlocks.Results;
 using BusTicketPlatform.Payment.Application;
 using Npgsql;
 
@@ -306,8 +308,77 @@ public sealed partial class PaymentRepository(PaymentDatabaseOptions options) : 
         await command.ExecuteNonQueryAsync(cancellationToken);
     }
 
+    private const string SettlementColumns = """
+        s.id, s.booking_id_external, s.organization_id_external, s.payment_id, s.payment_channel,
+        s.gross_amount, s.commission_rate, s.commission_amount, s.operator_net, s.currency, s.collection_status,
+        p.amount, s.created_at, s.row_version, r.reference, r.amount, r.currency, r.settlement_version, r.confirmed_at
+        """;
+
+    private const string SettlementSource = """
+        booking_settlements s
+        LEFT JOIN payments p ON p.id = s.payment_id AND p.organization_id_external = s.organization_id_external
+        LEFT JOIN operator_settlement_receipts r ON r.settlement_id = s.id AND r.organization_id_external = s.organization_id_external
+        """;
+
     public Task<(IReadOnlyList<SettlementRecord> Items, long Total)> ListSettlementsAsync(Guid? orgId, int page, int size, CancellationToken cancellationToken) =>
-        SearchAsync("id, booking_id_external, organization_id_external, payment_id, payment_channel, gross_amount, commission_rate, commission_amount, operator_net, currency, collection_status", "booking_settlements s", orgId, page, size, ReadSettlement, cancellationToken);
+        SearchAsync(SettlementColumns, SettlementSource, orgId, page, size, ReadSettlement, cancellationToken, " ORDER BY s.created_at DESC, s.id DESC");
+
+    public async Task<Result<SettlementReceipt>> ConfirmSettlementReceiptAsync(Guid id, Guid organizationId, Guid actorId,
+        ConfirmSettlementReceiptRequest request, CancellationToken cancellationToken)
+    {
+        await using var connection = await OpenAsync(cancellationToken);
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+        // Lock the settlement first. Refund processing uses this same row when changing the payable amount.
+        await using (var row = new NpgsqlCommand(
+            "SELECT 1 FROM booking_settlements WHERE id = @id AND organization_id_external = @org FOR UPDATE", connection, transaction))
+        {
+            row.Parameters.AddWithValue("id", id);
+            row.Parameters.AddWithValue("org", organizationId);
+            if (await row.ExecuteScalarAsync(cancellationToken) is null)
+                return Result<SettlementReceipt>.Failure(PlatformErrors.NotFound());
+        }
+
+        SettlementRecord settlement;
+        await using (var row = new NpgsqlCommand(
+            $"SELECT {SettlementColumns} FROM {SettlementSource} WHERE s.id = @id AND s.organization_id_external = @org", connection, transaction))
+        {
+            row.Parameters.AddWithValue("id", id);
+            row.Parameters.AddWithValue("org", organizationId);
+            await using var reader = await row.ExecuteReaderAsync(cancellationToken);
+            await reader.ReadAsync(cancellationToken);
+            settlement = ReadSettlement(reader);
+        }
+
+        if (settlement.PaymentChannel != "PREPAID" || settlement.Status != "COLLECTED" ||
+            settlement.RowVersion != request.ExpectedVersion || settlement.Net != request.Amount ||
+            settlement.Currency != request.Currency)
+            return Result<SettlementReceipt>.Failure(PlatformErrors.ResourceConflict("Khoản phải trả đã thay đổi hoặc số tiền không khớp. Hãy tải lại và kiểm tra sao kê."));
+
+        if (settlement.Receipt is { } previous)
+            return previous.Reference == request.Reference && previous.Amount == request.Amount &&
+                   previous.Currency == request.Currency && previous.SettlementVersion == request.ExpectedVersion
+                ? Result<SettlementReceipt>.Success(previous)
+                : Result<SettlementReceipt>.Failure(PlatformErrors.ResourceConflict("Khoản này đã có xác nhận. Hãy kiểm tra thông tin đã lưu."));
+
+        await using var insert = new NpgsqlCommand("""
+            INSERT INTO operator_settlement_receipts
+              (settlement_id, organization_id_external, reference, amount, currency, settlement_version, confirmed_by_external)
+            VALUES (@id, @org, @reference, @amount, @currency, @version, @actor)
+            ON CONFLICT DO NOTHING RETURNING confirmed_at
+            """, connection, transaction);
+        insert.Parameters.AddWithValue("id", id);
+        insert.Parameters.AddWithValue("org", organizationId);
+        insert.Parameters.AddWithValue("reference", request.Reference);
+        insert.Parameters.AddWithValue("amount", request.Amount);
+        insert.Parameters.AddWithValue("currency", request.Currency);
+        insert.Parameters.AddWithValue("version", request.ExpectedVersion);
+        insert.Parameters.AddWithValue("actor", actorId);
+        if (await insert.ExecuteScalarAsync(cancellationToken) is not DateTime confirmedAt)
+            return Result<SettlementReceipt>.Failure(PlatformErrors.ResourceConflict("Mã chuyển khoản này đã được dùng cho khoản khác."));
+        await transaction.CommitAsync(cancellationToken);
+        return Result<SettlementReceipt>.Success(new SettlementReceipt(request.Reference, request.Amount, request.Currency,
+            request.ExpectedVersion, new DateTimeOffset(confirmedAt)));
+    }
 
     public async Task<PayoutRecord> InsertPayoutAsync(PayoutRecord payout, CancellationToken cancellationToken)
     {
@@ -340,11 +411,11 @@ public sealed partial class PaymentRepository(PaymentDatabaseOptions options) : 
         return await reader.ReadAsync(cancellationToken) ? ReadPayment(reader) : null;
     }
 
-    private async Task<(IReadOnlyList<T> Items, long Total)> SearchAsync<T>(string cols, string from, Guid? orgId, int page, int size, Func<NpgsqlDataReader, T> map, CancellationToken cancellationToken)
+    private async Task<(IReadOnlyList<T> Items, long Total)> SearchAsync<T>(string cols, string from, Guid? orgId, int page, int size, Func<NpgsqlDataReader, T> map, CancellationToken cancellationToken, string orderBy = "")
     {
         await using var connection = await OpenAsync(cancellationToken);
         var orgFilter = orgId is not null && from.Contains("booking_settlements", StringComparison.Ordinal)
-            ? " WHERE organization_id_external = @org"
+            ? " WHERE s.organization_id_external = @org"
             : orgId is not null && from.Contains("payments p", StringComparison.Ordinal)
                 ? " WHERE p.organization_id_external = @org"
             : "";
@@ -352,9 +423,9 @@ public sealed partial class PaymentRepository(PaymentDatabaseOptions options) : 
         await using var count = new NpgsqlCommand($"SELECT COUNT(*) FROM {from}{orgFilter}", connection);
         count.Parameters.AddWithValue("org", (object?)orgId ?? DBNull.Value);
         var total = Convert.ToInt64(await count.ExecuteScalarAsync(cancellationToken));
-        await using var select = new NpgsqlCommand($"SELECT {cols} FROM {from}{orgFilter} OFFSET @offset LIMIT @limit", connection);
+        await using var select = new NpgsqlCommand($"SELECT {cols} FROM {from}{orgFilter}{orderBy} OFFSET @offset LIMIT @limit", connection);
         select.Parameters.AddWithValue("org", (object?)orgId ?? DBNull.Value);
-        select.Parameters.AddWithValue("offset", page * Math.Max(size, 1));
+        select.Parameters.AddWithValue("offset", (long)page * Math.Max(size, 1));
         select.Parameters.AddWithValue("limit", size <= 0 ? 20 : size);
         await using var reader = await select.ExecuteReaderAsync(cancellationToken);
         var items = new List<T>();
@@ -373,7 +444,12 @@ public sealed partial class PaymentRepository(PaymentDatabaseOptions options) : 
         new(reader.GetGuid(0), reader.GetGuid(1), reader.GetGuid(2), reader.GetGuid(3), reader.GetString(4), reader.GetInt64(5), reader.GetString(6), reader.GetString(7), reader.GetString(8), new DateTimeOffset(DateTime.SpecifyKind(reader.GetDateTime(9), DateTimeKind.Utc)));
 
     private static SettlementRecord ReadSettlement(NpgsqlDataReader reader) =>
-        new(reader.GetGuid(0), reader.GetGuid(1), reader.GetGuid(2), reader.IsDBNull(3) ? null : reader.GetGuid(3), reader.GetString(4), reader.GetInt64(5), reader.GetDecimal(6), reader.GetInt64(7), reader.GetInt64(8), reader.GetString(9), reader.GetString(10));
+        new(reader.GetGuid(0), reader.GetGuid(1), reader.GetGuid(2), reader.IsDBNull(3) ? null : reader.GetGuid(3),
+            reader.GetString(4), reader.GetInt64(5), reader.GetDecimal(6), reader.GetInt64(7), reader.GetInt64(8),
+            reader.GetString(9), reader.GetString(10), reader.IsDBNull(11) ? null : reader.GetInt64(11),
+            reader.GetFieldValue<DateTimeOffset>(12), reader.GetInt64(13),
+            reader.IsDBNull(14) ? null : new SettlementReceipt(reader.GetString(14), reader.GetInt64(15),
+                reader.GetString(16), reader.GetInt64(17), reader.GetFieldValue<DateTimeOffset>(18)));
 
     private static async Task EnsureQuotesAsync(NpgsqlConnection connection, CancellationToken cancellationToken)
     {

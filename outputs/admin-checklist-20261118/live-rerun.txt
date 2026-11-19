@@ -1,9 +1,0 @@
-PASS: Edit organization legal/contact data including international phone
-PASS: Create staff profile and initial organization membership
-PASS: Edit staff profile through live API
-PASS: Display/filter both memberships and edit the selected organization
-PASS: Lock/unlock account without overwriting organization permissions
-PASS: bookings: real code search, organization/state filters, exact state, history and links
-PASS: payments: real code search, organization/state filters, exact state, history and links
-PASS: refunds: real code search, organization/state filters, exact state, history and links
-PASS: Logout API and zero browser errors

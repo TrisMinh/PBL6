@@ -362,7 +362,9 @@ public sealed class BookingService(IBookingRepository store, IBookingEvents even
 
     public async Task<Result<BookingPageDto>> SearchBookingsAsync(Actor actor, int page, int size, CancellationToken cancellationToken)
     {
-        if (!actor.Has("PLATFORM_ADMIN", "OPERATOR_ADMIN", "OPERATOR_OPERATIONS", "PLATFORM_SUPPORT"))
+        var platform = actor.Has("PLATFORM_ADMIN", "PLATFORM_SUPPORT");
+        if (!platform && (!actor.Has("OPERATOR_ADMIN", "OPERATOR_OPERATIONS")
+            || actor.OrganizationId is null || actor.OrganizationId == Guid.Empty))
         {
             return Result<BookingPageDto>.Failure(PlatformErrors.AccessDenied());
         }
@@ -373,7 +375,7 @@ public sealed class BookingService(IBookingRepository store, IBookingEvents even
             return Result<BookingPageDto>.Failure(PlatformErrors.Validation("Page bounds are invalid."));
         }
 
-        var org = actor.Has("PLATFORM_ADMIN", "PLATFORM_SUPPORT") ? (Guid?)null : actor.OrganizationId;
+        var org = platform ? null : actor.OrganizationId;
         var items = await store.SearchBookingsAsync(org, page, size, cancellationToken);
         var total = await store.CountBookingsAsync(org, cancellationToken);
         return Result<BookingPageDto>.Success(new BookingPageDto(page, size, total, Pages(total, size), items.Select(MapBooking).ToArray()));
@@ -398,10 +400,15 @@ public sealed class BookingService(IBookingRepository store, IBookingEvents even
         }
 
         var trip = await store.GetTripAsync(booking.TripId, cancellationToken);
-        var (rate, allowed) = CancellationPolicy.For(trip!.DepartureAt, DateTimeOffset.UtcNow);
+        if (trip is null)
+            return Result<CancellationPreviewDto>.Failure(PlatformErrors.InvalidStateTransition());
+
+        var now = DateTimeOffset.UtcNow;
+        var cutoff = CancellationPolicy.SelfServiceCutoff(trip.DepartureAt);
+        var (rate, allowed) = CancellationPolicy.For(trip.DepartureAt, now);
         if (!allowed)
         {
-            return Result<CancellationPreviewDto>.Failure(PlatformErrors.Validation("Self-service cancellation is not allowed this close to departure."));
+            return Result<CancellationPreviewDto>.Failure(CancellationCutoffError(trip.DepartureAt, now));
         }
 
         var tickets = new List<TicketRecord>();
@@ -425,6 +432,7 @@ public sealed class BookingService(IBookingRepository store, IBookingEvents even
         var fee = booking.PaymentChannel == "PREPAID" ? CancellationPolicy.HalfUp(eligible * rate) : 0;
         var refund = booking.PaymentChannel == "PREPAID" ? Math.Max(0, eligible - fee) : 0;
         eligible = fee + refund;
+        var expiresAt = now.AddMinutes(5);
         var preview = await store.InsertPreviewAsync(new CancellationPreviewRecord(
             ids.NewUuidV7(),
             bookingId,
@@ -436,7 +444,7 @@ public sealed class BookingService(IBookingRepository store, IBookingEvents even
             rate,
             fee,
             refund,
-            DateTimeOffset.UtcNow.AddMinutes(5)), cancellationToken);
+            expiresAt < cutoff ? expiresAt : cutoff), cancellationToken);
         return Result<CancellationPreviewDto>.Success(new CancellationPreviewDto(preview.Id, preview.TicketIds, preview.PolicyVersion, preview.Fee, preview.Refund, booking.Currency, preview.ExpiresAt));
     }
 
@@ -458,12 +466,20 @@ public sealed class BookingService(IBookingRepository store, IBookingEvents even
             return Result<OperationAccepted>.Failure(PlatformErrors.InvalidStateTransition());
         }
 
+        var trip = await store.GetTripAsync(booking.TripId, cancellationToken);
+        if (trip is null)
+            return Result<OperationAccepted>.Failure(PlatformErrors.InvalidStateTransition());
+
         var preview = await store.GetPreviewAsync(request.PreviewId, cancellationToken);
+        var now = DateTimeOffset.UtcNow;
+        if (!CancellationPolicy.For(trip.DepartureAt, now).Allowed)
+            return Result<OperationAccepted>.Failure(CancellationCutoffError(trip.DepartureAt, now));
+
         if (preview is null
             || preview.BookingId != bookingId
             || preview.RequestedBy != actor.UserId
             || preview.ConsumedAt is not null
-            || preview.ExpiresAt <= DateTimeOffset.UtcNow)
+            || preview.ExpiresAt <= now)
         {
             return Result<OperationAccepted>.Failure(PlatformErrors.PreviewStale());
         }
@@ -477,6 +493,15 @@ public sealed class BookingService(IBookingRepository store, IBookingEvents even
 
         return Result<OperationAccepted>.Success(new OperationAccepted(bookingId, "ACCEPTED", AcceptedAt: DateTimeOffset.UtcNow));
     }
+
+    private static AppError CancellationCutoffError(DateTimeOffset departureAt, DateTimeOffset now) =>
+        new(ErrorCodes.CancellationNotAllowed, "Đã hết thời hạn tự hủy vé.", StatusCodes.Conflict,
+            new Dictionary<string, object>
+            {
+                ["reason"] = departureAt <= now ? "TRIP_DEPARTED" : "CUTOFF_PASSED",
+                ["departureAt"] = departureAt,
+                ["cutoffAt"] = CancellationPolicy.SelfServiceCutoff(departureAt),
+            });
 
     public async Task<Result> ApplyPaymentSucceededAsync(PaymentSucceededMessage message, Guid correlationId, CancellationToken cancellationToken)
     {

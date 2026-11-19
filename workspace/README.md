@@ -18,7 +18,7 @@ npm run dev:admin
 
 ## Run (dev / test)
 
-Infra only (Postgres, Rabbit, Redis, Mailpit, VNPay simulator):
+Infra only (Postgres, Rabbit, Redis, Mailpit):
 
 ```bash
 docker compose -f src/infra/docker-compose.yml up -d --wait
@@ -39,8 +39,7 @@ Local services without Docker:
 ```
 
 The script installs missing PostgreSQL, Redis, Erlang/RabbitMQ dependencies through
-`winget` where available, creates the local databases and RabbitMQ permissions, starts
-the payment simulator, launches the Gateway and six APIs in separate terminals, and
+`winget` where available, creates the local databases and RabbitMQ permissions, launches the Gateway and six APIs in separate terminals, and
 opens Swagger at `http://localhost:5080/swagger`.
 
 HTTP:
@@ -50,7 +49,6 @@ HTTP:
 - Admin: `http://localhost:5175/admin/organizations`
 - Gateway: `http://localhost:5080`
 - Mailpit: `http://localhost:8025`
-- VNPay simulator: `http://localhost:8099`
 
 Seed logins (local/test only):
 

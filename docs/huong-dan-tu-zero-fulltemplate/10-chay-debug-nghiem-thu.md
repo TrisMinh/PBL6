@@ -53,7 +53,6 @@ Script dùng cả `docker-compose.yml` và `docker-compose.apps.yml`, build Gate
 ```powershell
 docker compose -f src/infra/docker-compose.yml ps
 Invoke-WebRequest http://localhost:8025
-Invoke-WebRequest http://localhost:8099/health
 ```
 
 ### Backend

@@ -35,7 +35,7 @@ Giá trị dưới đây là mặc định kiểm thử/nghiệm thu MVP. Secret
 
 | Key | Default | Ghi chú |
 |---|---:|---|
-| `Payment:Provider` | `VNPAY_SANDBOX` | Local/CI có thể dùng `SIMULATOR` cùng port/contract |
+| `SePay:Environment` | `sandbox` | Dùng `production` khi triển khai cùng thông tin xác thực SePay |
 | `Payment:ConnectTimeoutSeconds` | 3 | Không retry charge mù quáng |
 | `Payment:OverallTimeoutSeconds` | 10 | Timeout giữ trạng thái PROCESSING nếu outcome chưa chắc chắn |
 | `Payment:WebhookReplayWindowMinutes` | 5 | Còn phải dedupe external event/transaction ID |

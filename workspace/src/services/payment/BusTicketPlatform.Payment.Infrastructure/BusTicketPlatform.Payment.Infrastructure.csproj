@@ -17,5 +17,8 @@
     <EmbeddedResource Include="..\..\..\..\..\docs\database\payment\001_initial.sql" LogicalName="sql.payment" />
     <EmbeddedResource Include="..\..\..\..\..\docs\database\payment\002_sepay.sql" LogicalName="sql.sepay" />
     <EmbeddedResource Include="..\..\..\..\..\docs\database\payment\003_legacy_payment_organization.sql" LogicalName="sql.payment-organization" />
+    <EmbeddedResource Include="..\..\..\..\..\docs\database\payment\004_revenue_movements.sql" LogicalName="sql.revenue-movements" />
+    <EmbeddedResource Include="..\..\..\..\..\docs\database\payment\005_operator_settlement_receipts.sql" LogicalName="sql.settlement-receipts" />
+    <EmbeddedResource Include="..\..\..\..\..\docs\database\payment\006_sepay_reconciliation.sql" LogicalName="sql.sepay-reconciliation" />
   </ItemGroup>
 </Project>

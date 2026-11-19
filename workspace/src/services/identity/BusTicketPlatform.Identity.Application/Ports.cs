@@ -12,7 +12,8 @@ public interface ITokenService
         UserRecord user,
         IReadOnlyList<string> roles,
         Guid sessionId,
-        Guid? organizationId = null);
+        Guid? organizationId = null,
+        IReadOnlyList<string>? organizationRoles = null);
 }
 
 public interface IChallengeNotifier
@@ -79,6 +80,7 @@ public interface IIdentityRepository
     Task RevokeActiveChallengesAsync(Guid userId, string challengeType, CancellationToken cancellationToken);
     Task InsertSessionAsync(SessionRecord session, DateTimeOffset issuedAt, CancellationToken cancellationToken);
     Task<SessionRecord?> FindSessionByTokenHashAsync(string tokenHash, CancellationToken cancellationToken);
+    Task<bool> IsSessionActiveAsync(Guid userId, Guid sessionId, CancellationToken cancellationToken);
     Task UpdateSessionAsync(SessionRecord session, CancellationToken cancellationToken);
     Task RevokeFamilyAsync(Guid familyId, string reason, DateTimeOffset revokedAt, CancellationToken cancellationToken);
     Task RevokeUserSessionsAsync(Guid userId, string reason, DateTimeOffset revokedAt, CancellationToken cancellationToken);

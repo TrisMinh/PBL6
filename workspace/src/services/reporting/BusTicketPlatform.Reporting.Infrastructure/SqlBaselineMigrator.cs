@@ -23,6 +23,7 @@ public sealed class SqlBaselineMigrator(ReportingDatabaseOptions options)
 
         await ApplyFileAsync(connection, "sql.shared", "000_integration_tables.sql", cancellationToken);
         await ApplyFileAsync(connection, "sql.reporting", "001_initial.sql", cancellationToken);
+        await ApplyFileAsync(connection, "sql.revenue-analytics", "002_revenue_analytics.sql", cancellationToken);
     }
 
     private static async Task ApplyFileAsync(
@@ -31,9 +32,15 @@ public sealed class SqlBaselineMigrator(ReportingDatabaseOptions options)
         string filename,
         CancellationToken cancellationToken)
     {
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+        await using (var migrationLock = new NpgsqlCommand("SELECT pg_advisory_xact_lock(hashtext('schema_migrations'))", connection, transaction))
+        {
+            await migrationLock.ExecuteNonQueryAsync(cancellationToken);
+        }
+
         await using (var check = new NpgsqlCommand(
                          "SELECT 1 FROM schema_migrations WHERE filename = @filename",
-                         connection))
+                         connection, transaction))
         {
             check.Parameters.AddWithValue("filename", filename);
             var exists = await check.ExecuteScalarAsync(cancellationToken);
@@ -44,12 +51,14 @@ public sealed class SqlBaselineMigrator(ReportingDatabaseOptions options)
         }
 
         var sql = ReadResource(resourceName);
-        await ExecuteAsync(connection, sql, cancellationToken);
+        await using var migration = new NpgsqlCommand(sql, connection, transaction);
+        await migration.ExecuteNonQueryAsync(cancellationToken);
         await using var insert = new NpgsqlCommand(
             "INSERT INTO schema_migrations (filename, applied_at) VALUES (@filename, NOW())",
-            connection);
+            connection, transaction);
         insert.Parameters.AddWithValue("filename", filename);
         await insert.ExecuteNonQueryAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
     }
 
     public static async Task ExecuteAsync(

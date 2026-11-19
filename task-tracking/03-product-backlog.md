@@ -118,7 +118,9 @@ Trace: [repository structure](../docs/implementation/01-repository-structure.md)
 
 ### `PAY-REC-01` — Khôi phục xác nhận SePay khi mất IPN
 
-**Trạng thái** Cần làm · **Ưu tiên** P1 · **Phụ trách** BE-2 và FE
+**Trạng thái** Đã triển khai tra cứu theo nút **Kiểm tra giao dịch** · **Ưu tiên** P1 · **Phụ trách** BE-2 và FE
+
+API `POST /api/v1/payments/{paymentId}/reconcile` giới hạn một lần tra cứu mỗi 30 giây cho mỗi hóa đơn trên cả hai instance Payment. Còn nghiệm thu trực tiếp với SePay Sandbox và tra cứu tự động cho đơn chờ quá lâu.
 
 - Khi khách bấm **Kiểm tra giao dịch** trên đơn còn chờ, backend xác minh quyền sở hữu đơn rồi tra cứu hóa đơn qua [API chi tiết đơn hàng SePay](https://developer.sepay.vn/vi/cong-thanh-toan/API/don-hang/chi-tiet-don-hang). Giới hạn tần suất tra cứu và giữ nguyên trạng thái nếu SePay chưa xác nhận hoặc API bị lỗi.
 - Chỉ ghi nhận khi hóa đơn, mã giao dịch, số tiền và loại tiền khớp. Dùng chung luồng xử lý với IPN để tránh ghi nhận hoặc phát hành vé hai lần khi IPN đến muộn hay người dùng bấm nhiều lần.
@@ -198,3 +200,11 @@ Trace: [repository structure](../docs/implementation/01-repository-structure.md)
 | Power BI Embedded analytics | `FR-REPORT-004`; thiết kế tại `docs/detailed-design/03-08-power-bi-analytics/` |
 
 Card P1 hậu MVP chỉ được đưa vào sprint khi tất cả P0 MVP của milestone hiện tại đã Done và scope change được ghi vào progress log.
+
+### `BI-DRILL-01` — Drill-through từ doanh thu theo tuyến đến đơn hàng
+
+**Trạng thái** Cần làm · **Ưu tiên** P1 · **Yêu cầu** `FR-REPORT-004`
+
+- Trên tab **Power BI** của web Operator, cho phép chọn một tuyến trên biểu đồ **Doanh thu theo tuyến** rồi mở trang **Chi tiết đơn hàng** bằng thao tác drill-through. Giữ bộ lọc tuyến, khoảng ngày giao dịch và tiền tệ đang áp dụng.
+- Hiển thị mã đơn và số tiền đóng góp vào chỉ số doanh thu đã chọn. Bổ sung dữ liệu đến cấp đơn vào mô hình Power BI để xử lý đúng khoản thu, khoản hoàn và đơn có nhiều giao dịch. Danh sách chỉ hiển thị đơn thuộc nhà xe mà người dùng có quyền xem.
+- Nghiệm thu trên báo cáo nhúng với dữ liệu PostgreSQL. Chọn tuyến Đà Nẵng – Hà Nội trong một khoảng ngày, kiểm tra danh sách chỉ có đơn phù hợp và tổng chi tiết khớp số trên biểu đồ. Kiểm tra thêm trường hợp có hoàn tiền và thao tác quay lại biểu đồ.

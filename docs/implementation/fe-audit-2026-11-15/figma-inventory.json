@@ -1,0 +1,1332 @@
+{
+  "7:5": [
+    {
+      "id": "28:30",
+      "name": "Customer / Search / Results / 1440",
+      "hidden": false
+    },
+    {
+      "id": "29:103",
+      "name": "Customer / Seat Map / Limousine Sleeper 34 / 1440",
+      "hidden": false
+    },
+    {
+      "id": "29:223",
+      "name": "Customer / Seat Map / Conflict — All Rolled Back / 1440",
+      "hidden": false
+    },
+    {
+      "id": "29:267",
+      "name": "Customer / Seat Map / Hold Expired / 1440",
+      "hidden": false
+    },
+    {
+      "id": "30:344",
+      "name": "Customer / Passenger Details / Completed / 1440",
+      "hidden": false
+    },
+    {
+      "id": "30:416",
+      "name": "Customer / Booking Review / Default / 1440",
+      "hidden": false
+    },
+    {
+      "id": "30:469",
+      "name": "Customer / Payment Return / Processing / 1440",
+      "hidden": false
+    },
+    {
+      "id": "30:489",
+      "name": "Customer / Ticket Detail / Issued / 1440",
+      "hidden": false
+    },
+    {
+      "id": "64:427",
+      "name": "Customer / Auth / Đăng nhập / Desktop",
+      "hidden": false
+    },
+    {
+      "id": "64:431",
+      "name": "Customer / Auth / Đăng ký / Desktop",
+      "hidden": false
+    },
+    {
+      "id": "64:435",
+      "name": "Customer / Auth / Quên mật khẩu / Desktop",
+      "hidden": false
+    },
+    {
+      "id": "74:462",
+      "name": "Customer / Payment Return / Failed / 1440",
+      "hidden": false
+    },
+    {
+      "id": "128:870",
+      "name": "Customer / Home / Guest / 1441",
+      "hidden": false
+    },
+    {
+      "id": "234:4",
+      "name": "Customer / Seat Map / Limousine 22 Cabin / 1440",
+      "hidden": false
+    },
+    {
+      "id": "238:65",
+      "name": "Customer / Seat Map / Selection Limit 6 / 1440",
+      "hidden": false
+    },
+    {
+      "id": "561:306",
+      "name": "Customer / Payment / VNPay Checkout / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1046:140",
+      "name": "Customer / Cancellation / Refund Processing / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1109:311",
+      "name": "Customer / Cancellation / Select Tickets / A01+A02 / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1112:324",
+      "name": "Customer / Cancellation / Select Tickets / A01 / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1112:463",
+      "name": "Customer / Cancellation / Select Tickets / A02 / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1112:602",
+      "name": "Customer / Cancellation / Select Tickets / None / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1112:741",
+      "name": "Customer / Cancellation / Confirm / A01 / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1112:876",
+      "name": "Customer / Cancellation / Refund Processing / A01",
+      "hidden": false
+    },
+    {
+      "id": "1112:925",
+      "name": "Customer / Cancellation / Confirm / A02 / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1112:1060",
+      "name": "Customer / Cancellation / Refund Processing / A02",
+      "hidden": false
+    }
+  ],
+  "7:7": [
+    {
+      "id": "32:53",
+      "name": "Legacy / Operator / Trip Validation / Conflict List / 1440 / Hidden",
+      "hidden": true
+    },
+    {
+      "id": "32:138",
+      "name": "Legacy / Operator / Trip Cancellation / Refund &amp; Notification Tracking / 1440 / Hidden",
+      "hidden": true
+    },
+    {
+      "id": "688:151",
+      "name": "Operator / Trips / Review / Conflict Dialog Open / 1440",
+      "hidden": false
+    },
+    {
+      "id": "694:206",
+      "name": "Operator / Operations / Cancellation &amp; Refund List / 1440",
+      "hidden": false
+    },
+    {
+      "id": "700:164",
+      "name": "Operator / Trips / Schedule List / 1440",
+      "hidden": false
+    },
+    {
+      "id": "702:178",
+      "name": "Legacy / Operator / Reports / Summary / Hidden",
+      "hidden": true
+    },
+    {
+      "id": "705:192",
+      "name": "Operator / Reports / Summary / 1440",
+      "hidden": false
+    },
+    {
+      "id": "764:8",
+      "name": "Operator / Trips / Create Trip / 1440",
+      "hidden": false
+    },
+    {
+      "id": "779:9",
+      "name": "Operator / Trips / Trip Detail / 1440",
+      "hidden": false
+    },
+    {
+      "id": "786:10",
+      "name": "Operator / Bookings / Recent Bookings / 1440",
+      "hidden": false
+    },
+    {
+      "id": "786:456",
+      "name": "Operator / Bookings / Trip Passenger Lists / 1440",
+      "hidden": false
+    },
+    {
+      "id": "788:12",
+      "name": "Operator / Bookings / Passenger List Detail / 1440",
+      "hidden": false
+    },
+    {
+      "id": "794:12",
+      "name": "Operator / Resources / Route Management / 1440",
+      "hidden": false
+    },
+    {
+      "id": "794:333",
+      "name": "Operator / Resources / Create Route / 1440",
+      "hidden": false
+    },
+    {
+      "id": "795:14",
+      "name": "Operator / Resources / Edit Route / 1440",
+      "hidden": false
+    },
+    {
+      "id": "800:15",
+      "name": "Operator / Resources / Edit Route / Add Stop Modal / 1440",
+      "hidden": false
+    },
+    {
+      "id": "829:16",
+      "name": "Operator / Resources / Vehicle Management / Detail / Sleeper 40 / 1440",
+      "hidden": false
+    },
+    {
+      "id": "838:306",
+      "name": "Operator / Resources / Vehicle Management / Detail / Limousine 11 / 1440",
+      "hidden": false
+    },
+    {
+      "id": "838:661",
+      "name": "Operator / Resources / Vehicle Management / Detail / Seated 29 VIP / 1440",
+      "hidden": false
+    },
+    {
+      "id": "880:22",
+      "name": "Archive / Operator / Resources / Vehicle Type Catalog / 1440",
+      "hidden": true
+    },
+    {
+      "id": "883:23",
+      "name": "Archive / Operator / Resources / Seat Template Gallery / 1 / 1440",
+      "hidden": true
+    },
+    {
+      "id": "883:490",
+      "name": "Archive / Operator / Resources / Seat Template Gallery / 2 / 1440",
+      "hidden": true
+    },
+    {
+      "id": "883:1029",
+      "name": "Archive / Operator / Resources / Seat Template Gallery / 3 / 1440",
+      "hidden": true
+    },
+    {
+      "id": "954:23",
+      "name": "Operator / Resources / Vehicle Management / Detail / Limousine 10 chỗ / 1440",
+      "hidden": false
+    },
+    {
+      "id": "954:261",
+      "name": "Operator / Resources / Vehicle Management / Detail / Limousine 24 chỗ / 1440",
+      "hidden": false
+    },
+    {
+      "id": "954:1005",
+      "name": "Operator / Resources / Vehicle Management / Detail / Giường nằm 36 chỗ / 1440",
+      "hidden": false
+    },
+    {
+      "id": "954:1397",
+      "name": "Operator / Resources / Vehicle Management / Detail / Limousine giường 34 chỗ / 1440",
+      "hidden": false
+    },
+    {
+      "id": "954:1789",
+      "name": "Operator / Resources / Vehicle Management / Detail / Limousine giường 30 chỗ / 1440",
+      "hidden": false
+    },
+    {
+      "id": "954:2181",
+      "name": "Operator / Resources / Vehicle Management / Detail / Limousine giường 24 chỗ / 1440",
+      "hidden": false
+    },
+    {
+      "id": "954:2568",
+      "name": "Operator / Resources / Vehicle Management / Detail / Limousine giường 22 chỗ / 1440",
+      "hidden": false
+    },
+    {
+      "id": "954:2955",
+      "name": "Operator / Resources / Vehicle Management / Detail / Giường phòng 24 chỗ / 1440",
+      "hidden": false
+    },
+    {
+      "id": "954:3342",
+      "name": "Operator / Resources / Vehicle Management / Detail / Giường phòng 21 chỗ / 1440",
+      "hidden": false
+    },
+    {
+      "id": "954:3734",
+      "name": "Operator / Resources / Vehicle Management / Detail / Cabin 24 phòng / 1440",
+      "hidden": false
+    },
+    {
+      "id": "954:4121",
+      "name": "Operator / Resources / Vehicle Management / Detail / Cabin 21–22 phòng / 1440",
+      "hidden": false
+    },
+    {
+      "id": "954:4513",
+      "name": "Operator / Resources / Vehicle Management / Detail / Limousine 22 cabin / 1440",
+      "hidden": false
+    },
+    {
+      "id": "965:31",
+      "name": "Operator / Resources / Drivers / Management / 1440",
+      "hidden": false
+    },
+    {
+      "id": "965:71",
+      "name": "Operator / Resources / Drivers / Add / 1440",
+      "hidden": false
+    },
+    {
+      "id": "971:107",
+      "name": "Operator / Resources / Drivers / Edit / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1008:154",
+      "name": "Archive / Bookings Cancellation / Before Style Update",
+      "hidden": true
+    },
+    {
+      "id": "1013:203",
+      "name": "Archive / Before Ticket Refund Requests",
+      "hidden": true
+    },
+    {
+      "id": "1016:223",
+      "name": "Operator / Operations / Cancellation &amp; Refund Tracking / BK-0905-018 / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1018:253",
+      "name": "Operator / Operations / Cancellation &amp; Refund Tracking / BK-0905-017 / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1018:373",
+      "name": "Operator / Operations / Cancellation &amp; Refund Tracking / BK-0905-015 / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1018:493",
+      "name": "Operator / Operations / Cancellation &amp; Refund Tracking / BK-0905-016 / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1018:613",
+      "name": "Operator / Operations / Cancellation &amp; Refund Tracking / BK-0905-012 / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1018:733",
+      "name": "Operator / Operations / Cancellation &amp; Refund Tracking / BK-0905-013 / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1118:253",
+      "name": "Operator / Trips / Review and Publish / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1129:233",
+      "name": "Operator / Trips / Review / Draft With Conflicts / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1130:234",
+      "name": "Operator / Trips / Edit Draft / Fix Conflicts / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1130:428",
+      "name": "Operator / Trips / Edit Draft / Reassigned / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1306:630",
+      "name": "Frame 1",
+      "hidden": false
+    }
+  ],
+  "7:11": [
+    {
+      "id": "1185:61",
+      "name": "Admin / Quản trị nền tảng / Tổ chức / White Topnav / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1185:760",
+      "name": "Admin / Quản trị nền tảng / Chi tiết tổ chức / White Topnav / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1185:834",
+      "name": "Admin / Tổ chức / Thêm tổ chức trên danh sách / Modal",
+      "hidden": false
+    },
+    {
+      "id": "1186:764",
+      "name": "Admin / Quản trị nền tảng / Nhân viên / White Topnav / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1186:778",
+      "name": "Admin / Quản trị nền tảng / Chi tiết nhân viên / White Topnav / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1186:792",
+      "name": "Legacy / Đã thay bằng modal / Admin / Quản trị nền tảng / Thay đổi vai trò / White Topnav / 1440",
+      "hidden": true
+    },
+    {
+      "id": "1186:862",
+      "name": "Legacy / Đã thay bằng modal / Admin / Quản trị nền tảng / Thêm thành viên / White Topnav / 1440",
+      "hidden": true
+    },
+    {
+      "id": "1187:878",
+      "name": "Admin / Hỗ trợ nền tảng / Tra cứu đơn đặt vé / White Topnav / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1187:970",
+      "name": "Legacy / Chi tiết đơn đặt vé cũ — thay bằng 26 hồ sơ giao dịch",
+      "hidden": true
+    },
+    {
+      "id": "1215:162",
+      "name": "Admin / Nhân viên / Trần Thu Hà / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1215:241",
+      "name": "Admin / Nhân viên / Hoàng Nam / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1215:320",
+      "name": "Admin / Nhân viên / Lê Minh Anh / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1230:847",
+      "name": "Admin / Nhân viên nhà xe / Phạm Ngọc Mai / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1230:926",
+      "name": "Admin / Nhân viên nhà xe / Lê Minh Khang / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1230:1005",
+      "name": "Admin / Nhân viên nhà xe / Võ Thành Đạt / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1230:1084",
+      "name": "Admin / Nhân viên nhà xe / Bùi Khánh Linh / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1230:1163",
+      "name": "Admin / Nhân viên nhà xe / Đỗ Minh Anh / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1230:1242",
+      "name": "Admin / Nhân viên nhà xe / Hoàng Quốc Bảo / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1230:1321",
+      "name": "Admin / Nhân viên nhà xe / Ngô Lan Chi / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1234:272",
+      "name": "Admin / Thêm thành viên / Tổ chức cố định / Modal",
+      "hidden": false
+    },
+    {
+      "id": "1236:312",
+      "name": "Admin / Thêm thành viên / Chọn nhà xe / Modal",
+      "hidden": false
+    },
+    {
+      "id": "1237:340",
+      "name": "Admin / Thành viên tổ chức / Thêm thành viên / Overlay",
+      "hidden": false
+    },
+    {
+      "id": "1237:1218",
+      "name": "Admin / Thành viên tổ chức / Chỉnh sửa thông tin / Nguyễn Hoàng Long",
+      "hidden": false
+    },
+    {
+      "id": "1238:414",
+      "name": "Admin / Thành viên tổ chức / Chỉnh sửa thông tin / Trần Thu Hà",
+      "hidden": false
+    },
+    {
+      "id": "1238:545",
+      "name": "Admin / Thành viên tổ chức / Chỉnh sửa thông tin / Hoàng Nam",
+      "hidden": false
+    },
+    {
+      "id": "1238:676",
+      "name": "Admin / Chi tiết nhân viên / Chỉnh sửa thông tin / Nguyễn Hoàng Long",
+      "hidden": false
+    },
+    {
+      "id": "1239:520",
+      "name": "Admin / Chi tiết nhân viên / Chỉnh sửa thông tin / Trần Thu Hà",
+      "hidden": false
+    },
+    {
+      "id": "1239:735",
+      "name": "Admin / Chi tiết nhân viên / Chỉnh sửa thông tin / Hoàng Nam",
+      "hidden": false
+    },
+    {
+      "id": "1239:950",
+      "name": "Admin / Chi tiết nhân viên / Chỉnh sửa thông tin / Phạm Ngọc Mai",
+      "hidden": false
+    },
+    {
+      "id": "1239:1762",
+      "name": "Admin / Chi tiết nhân viên / Chỉnh sửa thông tin / Lê Minh Khang",
+      "hidden": false
+    },
+    {
+      "id": "1239:1977",
+      "name": "Admin / Chi tiết nhân viên / Chỉnh sửa thông tin / Võ Thành Đạt",
+      "hidden": false
+    },
+    {
+      "id": "1239:2192",
+      "name": "Admin / Chi tiết nhân viên / Chỉnh sửa thông tin / Bùi Khánh Linh",
+      "hidden": false
+    },
+    {
+      "id": "1239:2407",
+      "name": "Admin / Chi tiết nhân viên / Chỉnh sửa thông tin / Đỗ Minh Anh",
+      "hidden": false
+    },
+    {
+      "id": "1239:2622",
+      "name": "Admin / Chi tiết nhân viên / Chỉnh sửa thông tin / Hoàng Quốc Bảo",
+      "hidden": false
+    },
+    {
+      "id": "1239:2837",
+      "name": "Admin / Chi tiết nhân viên / Chỉnh sửa thông tin / Ngô Lan Chi",
+      "hidden": false
+    },
+    {
+      "id": "1248:782",
+      "name": "Admin / Thanh toán / Danh sách / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1248:841",
+      "name": "Admin / Hoàn tiền / Danh sách / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1254:814",
+      "name": "Admin / Đơn đặt vé / BK-260916-018 / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1254:974",
+      "name": "Admin / Thanh toán / PAY-260916-018 / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1254:1134",
+      "name": "Admin / Hoàn tiền / RF-260916-018 / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1255:838",
+      "name": "Admin / Đơn đặt vé / BK-260916-019 / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1255:998",
+      "name": "Admin / Thanh toán / PAY-260916-019 / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1255:1158",
+      "name": "Admin / Đơn đặt vé / BK-260916-020 / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1255:1318",
+      "name": "Admin / Thanh toán / PAY-260916-020 / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1255:1478",
+      "name": "Admin / Hoàn tiền / RF-260916-020 / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1255:1638",
+      "name": "Admin / Đơn đặt vé / BK-260916-021 / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1255:1798",
+      "name": "Admin / Thanh toán / PAY-260916-021 / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1255:1958",
+      "name": "Admin / Đơn đặt vé / BK-260916-022 / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1255:2118",
+      "name": "Admin / Thanh toán / PAY-260916-022 / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1255:2278",
+      "name": "Admin / Hoàn tiền / RF-260916-022 / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1255:2438",
+      "name": "Admin / Đơn đặt vé / BK-260916-023 / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1255:2598",
+      "name": "Admin / Thanh toán / PAY-260916-023 / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1255:2758",
+      "name": "Admin / Hoàn tiền / RF-260916-023 / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1255:2918",
+      "name": "Admin / Đơn đặt vé / BK-260916-024 / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1255:3078",
+      "name": "Admin / Thanh toán / PAY-260916-024 / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1255:3238",
+      "name": "Admin / Đơn đặt vé / BK-260916-025 / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1255:3398",
+      "name": "Admin / Thanh toán / PAY-260916-025 / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1255:3558",
+      "name": "Admin / Hoàn tiền / RF-260916-025 / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1255:3718",
+      "name": "Admin / Đơn đặt vé / BK-260916-026 / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1255:3878",
+      "name": "Admin / Thanh toán / PAY-260916-026 / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1255:4038",
+      "name": "Admin / Hoàn tiền / RF-260916-026 / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1256:1006",
+      "name": "Admin / Đơn đặt vé / BK-260916-027 / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1256:1166",
+      "name": "Admin / Thanh toán / PAY-260916-027 / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1269:997",
+      "name": "Admin / Đơn đặt vé / Trạng thái / Đang tải / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1269:1154",
+      "name": "Admin / Đơn đặt vé / Trạng thái / Không có kết quả / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1269:1310",
+      "name": "Admin / Đơn đặt vé / Trạng thái / Lỗi tải dữ liệu / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1269:1466",
+      "name": "Admin / Đơn đặt vé / Trạng thái / Thiếu quyền / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1269:2252",
+      "name": "Admin / Thanh toán / Trạng thái / Đang tải / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1269:2410",
+      "name": "Admin / Thanh toán / Trạng thái / Không có kết quả / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1269:2567",
+      "name": "Admin / Thanh toán / Trạng thái / Lỗi tải dữ liệu / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1269:2724",
+      "name": "Admin / Thanh toán / Trạng thái / Thiếu quyền / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1269:2869",
+      "name": "Admin / Hoàn tiền / Trạng thái / Đang tải / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1269:2999",
+      "name": "Admin / Hoàn tiền / Trạng thái / Không có kết quả / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1269:3128",
+      "name": "Admin / Hoàn tiền / Trạng thái / Lỗi tải dữ liệu / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1269:3257",
+      "name": "Admin / Hoàn tiền / Trạng thái / Thiếu quyền / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1273:1198",
+      "name": "Admin / Đơn đặt vé / Chọn query",
+      "hidden": false
+    },
+    {
+      "id": "1273:1213",
+      "name": "Admin / Đơn đặt vé / Chọn org",
+      "hidden": false
+    },
+    {
+      "id": "1273:1240",
+      "name": "Admin / Đơn đặt vé / Chọn status",
+      "hidden": false
+    },
+    {
+      "id": "1273:1264",
+      "name": "Admin / Thanh toán / Chọn query",
+      "hidden": false
+    },
+    {
+      "id": "1273:1279",
+      "name": "Admin / Thanh toán / Chọn org",
+      "hidden": false
+    },
+    {
+      "id": "1273:1306",
+      "name": "Admin / Thanh toán / Chọn status",
+      "hidden": false
+    },
+    {
+      "id": "1273:1330",
+      "name": "Admin / Hoàn tiền / Chọn query",
+      "hidden": false
+    },
+    {
+      "id": "1273:1345",
+      "name": "Admin / Hoàn tiền / Chọn org",
+      "hidden": false
+    },
+    {
+      "id": "1273:1369",
+      "name": "Admin / Hoàn tiền / Chọn status",
+      "hidden": false
+    },
+    {
+      "id": "1277:1853",
+      "name": "Admin / Đơn đặt vé / Chi tiết / Đang tải / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1277:1931",
+      "name": "Admin / Đơn đặt vé / Chi tiết / Không có kết quả / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1277:2008",
+      "name": "Admin / Đơn đặt vé / Chi tiết / Lỗi tải dữ liệu / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1277:2085",
+      "name": "Admin / Đơn đặt vé / Chi tiết / Thiếu quyền / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1277:2141",
+      "name": "Admin / Thanh toán / Chi tiết / Đang tải / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1277:2220",
+      "name": "Admin / Thanh toán / Chi tiết / Không có kết quả / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1277:2298",
+      "name": "Admin / Thanh toán / Chi tiết / Lỗi tải dữ liệu / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1277:2376",
+      "name": "Admin / Thanh toán / Chi tiết / Thiếu quyền / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1277:2433",
+      "name": "Admin / Hoàn tiền / Chi tiết / Đang tải / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1277:2512",
+      "name": "Admin / Hoàn tiền / Chi tiết / Không có kết quả / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1277:2590",
+      "name": "Admin / Hoàn tiền / Chi tiết / Lỗi tải dữ liệu / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1277:2668",
+      "name": "Admin / Hoàn tiền / Chi tiết / Thiếu quyền / 1440",
+      "hidden": false
+    },
+    {
+      "id": "1278:1946",
+      "name": "QA / Admin giao dịch / Bắt đầu review",
+      "hidden": false
+    }
+  ],
+  "7:6": [
+    {
+      "id": "31:2",
+      "name": "Customer App / Home / Guest / 390",
+      "hidden": false
+    },
+    {
+      "id": "31:44",
+      "name": "Customer App / Search / Results / 390",
+      "hidden": false
+    },
+    {
+      "id": "31:89",
+      "name": "Customer App / Seat Map / Hold Active / 390",
+      "hidden": false
+    },
+    {
+      "id": "31:172",
+      "name": "Customer App / Payment Return / Processing / 390",
+      "hidden": false
+    },
+    {
+      "id": "31:183",
+      "name": "Customer App / Ticket / Issued / 390",
+      "hidden": false
+    },
+    {
+      "id": "37:127",
+      "name": "Customer App / Passenger / Completed / 390",
+      "hidden": false
+    },
+    {
+      "id": "37:171",
+      "name": "Customer App / Review / Passenger Confirmation / 390",
+      "hidden": false
+    },
+    {
+      "id": "64:634",
+      "name": "Customer App / Auth / Đăng nhập / 390",
+      "hidden": false
+    },
+    {
+      "id": "64:638",
+      "name": "Customer App / Auth / Đăng ký / 390",
+      "hidden": false
+    },
+    {
+      "id": "486:279",
+      "name": "Customer App / Search / Filter Sheet / 390",
+      "hidden": false
+    },
+    {
+      "id": "505:203",
+      "name": "Customer App / Search / Edit Route Overlay / 390",
+      "hidden": false
+    },
+    {
+      "id": "533:380",
+      "name": "Customer App / Seat Map / Conflict — All Rolled Back / 390",
+      "hidden": false
+    },
+    {
+      "id": "533:491",
+      "name": "Customer App / Seat Map / Hold Expired / 390",
+      "hidden": false
+    },
+    {
+      "id": "635:45",
+      "name": "Customer App / Tickets / List / 390",
+      "hidden": false
+    },
+    {
+      "id": "650:4",
+      "name": "Customer App / Welcome / First Open / 390",
+      "hidden": false
+    },
+    {
+      "id": "1035:7",
+      "name": "Customer App / Payment / VNPay Checkout / 390",
+      "hidden": false
+    },
+    {
+      "id": "1046:200",
+      "name": "Customer App / Cancellation / Preview / 390",
+      "hidden": false
+    },
+    {
+      "id": "1046:397",
+      "name": "Customer App / Cancellation / Refund Processing / 390",
+      "hidden": false
+    },
+    {
+      "id": "1110:4",
+      "name": "Customer App / Cancellation / Select Tickets / A01+A02 / 390",
+      "hidden": false
+    },
+    {
+      "id": "1113:4",
+      "name": "Customer App / Cancellation / Select Tickets / A01 / 390",
+      "hidden": false
+    },
+    {
+      "id": "1113:205",
+      "name": "Customer App / Cancellation / Select Tickets / A02 / 390",
+      "hidden": false
+    },
+    {
+      "id": "1113:406",
+      "name": "Customer App / Cancellation / Select Tickets / None / 390",
+      "hidden": false
+    },
+    {
+      "id": "1113:607",
+      "name": "Customer App / Cancellation / Confirm / A01 / 390",
+      "hidden": false
+    },
+    {
+      "id": "1113:804",
+      "name": "Customer App / Cancellation / Refund Processing / A01",
+      "hidden": false
+    },
+    {
+      "id": "1113:878",
+      "name": "Customer App / Cancellation / Confirm / A02 / 390",
+      "hidden": false
+    },
+    {
+      "id": "1113:1075",
+      "name": "Customer App / Cancellation / Refund Processing / A02",
+      "hidden": false
+    }
+  ],
+  "7:10": [
+    {
+      "id": "35:2",
+      "name": "01.01 — Chuyến của tôi",
+      "hidden": false
+    },
+    {
+      "id": "35:28",
+      "name": "02.02 — TR-204 / Đang đón khách",
+      "hidden": false
+    },
+    {
+      "id": "35:54",
+      "name": "04.04 — Check-in thành công",
+      "hidden": false
+    },
+    {
+      "id": "35:78",
+      "name": "04.06 — Chưa xác định kết quả",
+      "hidden": false
+    },
+    {
+      "id": "996:68",
+      "name": "Archive / Before Customer Style / Driver App / Assigned Trips / Today / 390",
+      "hidden": true
+    },
+    {
+      "id": "996:78",
+      "name": "Archive / Before Customer Style / Driver App / Trip Detail / Boarding / 390",
+      "hidden": true
+    },
+    {
+      "id": "996:88",
+      "name": "Archive / Before Customer Style / Driver App / Scanner / Success In-place / 390",
+      "hidden": true
+    },
+    {
+      "id": "996:96",
+      "name": "Archive / Before Customer Style / Driver App / Scanner / Network Uncertain / 390",
+      "hidden": true
+    },
+    {
+      "id": "996:102",
+      "name": "04.01 — Quét mã QR",
+      "hidden": false
+    },
+    {
+      "id": "1135:18",
+      "name": "06.01 — Đăng nhập",
+      "hidden": false
+    },
+    {
+      "id": "1135:95",
+      "name": "06.02 — Sai thông tin đăng nhập",
+      "hidden": false
+    },
+    {
+      "id": "1135:173",
+      "name": "06.03 — Tạm khóa đăng nhập",
+      "hidden": false
+    },
+    {
+      "id": "1135:251",
+      "name": "06.04 — Phiên đã hết hạn",
+      "hidden": false
+    },
+    {
+      "id": "1135:322",
+      "name": "06.05 — Không có kết nối",
+      "hidden": false
+    },
+    {
+      "id": "1135:393",
+      "name": "06.06 — Tài khoản tài xế",
+      "hidden": false
+    },
+    {
+      "id": "1135:471",
+      "name": "06.09 — Xác nhận đăng xuất",
+      "hidden": false
+    },
+    {
+      "id": "1136:18",
+      "name": "01.03 — Chuyến sắp tới",
+      "hidden": false
+    },
+    {
+      "id": "1136:98",
+      "name": "01.04 — Chuyến đã hoàn thành",
+      "hidden": false
+    },
+    {
+      "id": "1136:178",
+      "name": "01.05 — Đang tải lịch chuyến",
+      "hidden": false
+    },
+    {
+      "id": "1136:247",
+      "name": "01.06 — Chưa có chuyến hôm nay",
+      "hidden": false
+    },
+    {
+      "id": "1136:318",
+      "name": "01.07 — Lỗi tải lịch chuyến",
+      "hidden": false
+    },
+    {
+      "id": "1136:389",
+      "name": "01.08 — Đã thu hồi phân công",
+      "hidden": false
+    },
+    {
+      "id": "1137:18",
+      "name": "03.01 — TR-204 / Tất cả hành khách",
+      "hidden": false
+    },
+    {
+      "id": "1137:100",
+      "name": "03.02 — Lọc theo điểm đón",
+      "hidden": false
+    },
+    {
+      "id": "1137:182",
+      "name": "03.03 — Khách chưa lên xe",
+      "hidden": false
+    },
+    {
+      "id": "1137:264",
+      "name": "03.04 — Danh sách cần cập nhật",
+      "hidden": false
+    },
+    {
+      "id": "1137:345",
+      "name": "03.05 — Đang tải hành khách",
+      "hidden": false
+    },
+    {
+      "id": "1137:422",
+      "name": "03.06 — Không có kết quả lọc",
+      "hidden": false
+    },
+    {
+      "id": "1137:501",
+      "name": "03.07 — Lỗi tải hành khách",
+      "hidden": false
+    },
+    {
+      "id": "1138:18",
+      "name": "04.03 — Đang kiểm tra vé",
+      "hidden": false
+    },
+    {
+      "id": "1138:91",
+      "name": "04.05 — Vé đã được soát",
+      "hidden": false
+    },
+    {
+      "id": "1138:165",
+      "name": "04.07 — Vé thuộc chuyến khác",
+      "hidden": false
+    },
+    {
+      "id": "1138:239",
+      "name": "04.08 — Vé đã hủy",
+      "hidden": false
+    },
+    {
+      "id": "1138:313",
+      "name": "04.09 — Vé đã hoàn tiền",
+      "hidden": false
+    },
+    {
+      "id": "1138:387",
+      "name": "04.10 — Vé đã sử dụng",
+      "hidden": false
+    },
+    {
+      "id": "1138:461",
+      "name": "04.11 — Mã vé không hợp lệ",
+      "hidden": false
+    },
+    {
+      "id": "1138:535",
+      "name": "04.12 — Không có quyền soát vé",
+      "hidden": false
+    },
+    {
+      "id": "1138:608",
+      "name": "04.13 — Không thể soát khi mất mạng",
+      "hidden": false
+    },
+    {
+      "id": "1138:681",
+      "name": "04.02 — Nhập mã vé",
+      "hidden": false
+    },
+    {
+      "id": "1139:18",
+      "name": "02.01 — TR-204 / Đã lên lịch",
+      "hidden": false
+    },
+    {
+      "id": "1139:101",
+      "name": "02.03 — TR-204 / Đã xuất bến ( bỏ qua)",
+      "hidden": false
+    },
+    {
+      "id": "1139:184",
+      "name": "02.04 — TR-204 / Đang di chuyển",
+      "hidden": false
+    },
+    {
+      "id": "1139:267",
+      "name": "02.05 — TR-204 / Đã đến nơi",
+      "hidden": false
+    },
+    {
+      "id": "1139:350",
+      "name": "02.06 — TR-204 / Đã hoàn thành",
+      "hidden": false
+    },
+    {
+      "id": "1140:18",
+      "name": "05.01 — Xác nhận đón khách",
+      "hidden": false
+    },
+    {
+      "id": "1140:92",
+      "name": "05.03 — Xác nhận xuất bến",
+      "hidden": false
+    },
+    {
+      "id": "1140:166",
+      "name": "05.05 — Xác nhận di chuyển",
+      "hidden": false
+    },
+    {
+      "id": "1140:240",
+      "name": "05.07 — Xác nhận đến nơi",
+      "hidden": false
+    },
+    {
+      "id": "1140:314",
+      "name": "05.09 — Xác nhận hoàn thành",
+      "hidden": false
+    },
+    {
+      "id": "1140:1041",
+      "name": "05.02 — Đang mở đón khách",
+      "hidden": false
+    },
+    {
+      "id": "1140:1113",
+      "name": "05.04 — Đang ghi nhận xuất bến",
+      "hidden": false
+    },
+    {
+      "id": "1140:1185",
+      "name": "05.06 — Đang ghi nhận di chuyển",
+      "hidden": false
+    },
+    {
+      "id": "1140:1257",
+      "name": "05.08 — Đang ghi nhận đến nơi",
+      "hidden": false
+    },
+    {
+      "id": "1140:1329",
+      "name": "05.10 — Đang hoàn thành chuyến",
+      "hidden": false
+    },
+    {
+      "id": "1140:1401",
+      "name": "05.11 — Chuyển trạng thái không hợp lệ",
+      "hidden": false
+    },
+    {
+      "id": "1140:1474",
+      "name": "05.12 — Dữ liệu chuyến đã thay đổi",
+      "hidden": false
+    },
+    {
+      "id": "1140:1547",
+      "name": "05.13 — Lỗi cập nhật chuyến",
+      "hidden": false
+    },
+    {
+      "id": "1146:888",
+      "name": "02.08 — Đang tải thông tin chuyến",
+      "hidden": false
+    },
+    {
+      "id": "1146:964",
+      "name": "02.09 — Lỗi tải thông tin chuyến",
+      "hidden": false
+    },
+    {
+      "id": "1146:1042",
+      "name": "02.10 — Chuyến không còn khả dụng",
+      "hidden": false
+    },
+    {
+      "id": "1146:1120",
+      "name": "06.07 — Đang tải tài khoản",
+      "hidden": false
+    },
+    {
+      "id": "1146:1196",
+      "name": "06.08 — Lỗi tải tài khoản",
+      "hidden": false
+    },
+    {
+      "id": "1160:18",
+      "name": "01.02 — Lộ trình hôm nay",
+      "hidden": false
+    },
+    {
+      "id": "1160:19",
+      "name": "02.07 — TR-218 / Thông tin chuyến",
+      "hidden": false
+    },
+    {
+      "id": "1168:98",
+      "name": "03.08 — TR-218 / Hành khách",
+      "hidden": false
+    }
+  ]
+}

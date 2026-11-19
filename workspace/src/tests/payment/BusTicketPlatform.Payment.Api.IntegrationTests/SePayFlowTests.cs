@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using BusTicketPlatform.Payment.Application;
+using BusTicketPlatform.Payment.Infrastructure;
 
 namespace BusTicketPlatform.Payment.Api.IntegrationTests;
 
@@ -110,13 +111,15 @@ public sealed class SePayFlowTests(PaymentPostgresFixture fixture)
         return await client.SendAsync(request);
     }
 
-    private async Task<long> Count(string table, Guid paymentId)
+    private async Task<long> Count(string table, Guid paymentId, string? messageType = null)
     {
         await using var connection = new NpgsqlConnection(fixture.Container.GetConnectionString());
         await connection.OpenAsync();
         var filter = table == "outbox_messages" ? "aggregate_id" : "payment_id";
-        await using var command = new NpgsqlCommand($"SELECT COUNT(*) FROM {table} WHERE {filter} = @id", connection);
+        var messageFilter = messageType is null ? "" : " AND message_type = @messageType";
+        await using var command = new NpgsqlCommand($"SELECT COUNT(*) FROM {table} WHERE {filter} = @id{messageFilter}", connection);
         command.Parameters.AddWithValue("id", paymentId);
+        if (messageType is not null) command.Parameters.AddWithValue("messageType", messageType);
         return Convert.ToInt64(await command.ExecuteScalarAsync());
     }
 
@@ -126,6 +129,95 @@ public sealed class SePayFlowTests(PaymentPostgresFixture fixture)
         await using var command = new NpgsqlCommand("SELECT status FROM payments WHERE id = @id", connection);
         command.Parameters.AddWithValue("id", paymentId);
         return (string)(await command.ExecuteScalarAsync())!;
+    }
+
+    [Theory]
+    [InlineData("captured", 200, "SUCCEEDED")]
+    [InlineData("concurrent", 200, "SUCCEEDED")]
+    [InlineData("expired", 200, "REFUND_PENDING")]
+    [InlineData("pending", 200, "PROCESSING")]
+    [InlineData("mismatch", 503, "PROCESSING")]
+    [InlineData("outage", 503, "PROCESSING")]
+    public async Task SePay_reconciliation_checks_owner_and_reuses_capture_invariants(string scenario, int expectedStatus, string paymentStatus)
+    {
+        using var primary = fixture.CreateClient();
+        var customerId = Guid.NewGuid();
+        var payment = await Create(primary, customerId);
+        var paymentId = payment.GetProperty("id").GetGuid();
+        var invoice = payment.GetProperty("providerAction").GetProperty("order_invoice_number").GetString();
+        var transactionId = Guid.NewGuid().ToString();
+        var requestCount = 0;
+        if (scenario == "expired")
+        {
+            await using var connection = new NpgsqlConnection(fixture.Container.GetConnectionString());
+            await connection.OpenAsync();
+            await using var expire = new NpgsqlCommand("""
+                UPDATE payments SET created_at = NOW() - INTERVAL '2 minutes', expires_at = NOW() - INTERVAL '1 minute'
+                WHERE id = @id;
+                """, connection);
+            expire.Parameters.AddWithValue("id", paymentId);
+            await expire.ExecuteNonQueryAsync();
+        }
+
+        await using var replica = fixture.Factory.WithWebHostBuilder(builder => builder.ConfigureTestServices(services =>
+            services.AddHttpClient<ISePayOrderLookup, SePayOrderLookup>().ConfigurePrimaryHttpMessageHandler(() =>
+                new OrderHandler(async request =>
+                {
+                    Interlocked.Increment(ref requestCount);
+                    Assert.Equal(HttpMethod.Get, request.Method);
+                    Assert.Equal($"https://pgapi-sandbox.sepay.vn/v1/order/detail/{invoice}", request.RequestUri!.AbsoluteUri);
+                    Assert.Equal("Basic", request.Headers.Authorization?.Scheme);
+                    Assert.Equal("TEST_MERCHANT:test-only-merchant-key", System.Text.Encoding.UTF8.GetString(
+                        Convert.FromBase64String(request.Headers.Authorization!.Parameter!)));
+                    if (scenario == "concurrent")
+                    {
+                        using var ipn = await Ipn(primary, Notification(payment, transactionId));
+                        Assert.Equal(HttpStatusCode.OK, ipn.StatusCode);
+                    }
+                    var amount = scenario == "mismatch" ? "290000" : "280000";
+                    return scenario == "outage" ? new HttpResponseMessage(HttpStatusCode.BadGateway) : new HttpResponseMessage(HttpStatusCode.OK)
+                    {
+                        Content = JsonContent.Create(new { data = new {
+                            order_invoice_number = invoice,
+                            order_status = scenario == "pending" ? "AUTHENTICATION_NOT_NEEDED" : "CAPTURED",
+                            order_amount = amount + ".00", order_currency = "VND",
+                            transactions = new[] { new { id = transactionId, transaction_type = "PAYMENT",
+                                transaction_status = "APPROVED", transaction_amount = amount, transaction_currency = "VND" } }
+                        } })
+                    };
+                }))));
+        using var client = replica.CreateClient();
+
+        async Task<HttpStatusCode> CheckAsync(Guid user)
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Post, $"/api/v1/payments/{paymentId}/reconcile");
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", TestJwt.Mint(user, ["CUSTOMER"]));
+            using var response = await client.SendAsync(request);
+            return response.StatusCode;
+        }
+
+        Assert.Equal(HttpStatusCode.NotFound, await CheckAsync(Guid.NewGuid()));
+        Assert.Equal(0, requestCount);
+        Assert.Equal((HttpStatusCode)expectedStatus, await CheckAsync(customerId));
+        Assert.Equal(paymentStatus, await Status(paymentId));
+        Assert.Equal(paymentStatus == "PROCESSING" ? HttpStatusCode.TooManyRequests : HttpStatusCode.OK, await CheckAsync(customerId));
+        Assert.Equal(1, requestCount);
+
+        if (scenario is "captured" or "expired" or "concurrent")
+        {
+            using var lateIpn = await Ipn(primary, Notification(payment, transactionId));
+            Assert.Equal(HttpStatusCode.OK, lateIpn.StatusCode);
+            Assert.Equal(1, await Count("webhook_receipts", paymentId));
+        }
+
+        Assert.Equal(paymentStatus == "SUCCEEDED" ? 1 : 0, await Count("outbox_messages", paymentId, "PaymentSucceeded"));
+        Assert.Equal(scenario == "expired" ? 1 : 0, await Count("refunds", paymentId));
+    }
+
+    private sealed class OrderHandler(Func<HttpRequestMessage, Task<HttpResponseMessage>> respond) : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) =>
+            respond(request);
     }
 
     [Fact]
@@ -224,7 +316,7 @@ public sealed class SePayFlowTests(PaymentPostgresFixture fixture)
     }
 
     [Fact]
-    public async Task Paid_IPN_commits_payment_settlement_receipt_and_one_outbox_event_even_when_concurrent()
+    public async Task Paid_IPN_commits_payment_settlement_receipt_and_events_once_even_when_concurrent()
     {
         var client = fixture.CreateClient(); var payment = await Create(client); var id = payment.GetProperty("id").GetGuid();
         var notification = Notification(payment, Guid.NewGuid().ToString());
@@ -233,7 +325,8 @@ public sealed class SePayFlowTests(PaymentPostgresFixture fixture)
         Assert.Equal("SUCCEEDED", await Status(id));
         Assert.Equal(1, await Count("webhook_receipts", id));
         Assert.Equal(1, await Count("booking_settlements", id));
-        Assert.Equal(1, await Count("outbox_messages", id));
+        Assert.Equal(1, await Count("outbox_messages", id, "PaymentSucceeded"));
+        Assert.Equal(2, await Count("outbox_messages", id, "RevenueMovementRecorded"));
     }
 
     [Fact]
@@ -270,7 +363,7 @@ public sealed class SePayFlowTests(PaymentPostgresFixture fixture)
         Assert.Equal(HttpStatusCode.OK, (await Ipn(client, Notification(payment, Guid.NewGuid().ToString()))).StatusCode);
         Assert.Equal("REFUND_PENDING", await Status(id));
         Assert.Equal(1, await Count("refunds", id));
-        Assert.Equal(0, await Count("outbox_messages", id));
+        Assert.Equal(0, await Count("outbox_messages", id, "PaymentSucceeded"));
     }
 
     [Fact]
@@ -279,7 +372,7 @@ public sealed class SePayFlowTests(PaymentPostgresFixture fixture)
         var client = fixture.CreateClient(); var payment = await Create(client); var id = payment.GetProperty("id").GetGuid(); var txn = Guid.NewGuid().ToString();
         Assert.Equal(HttpStatusCode.OK, (await Ipn(client, Notification(payment, txn))).StatusCode);
         Assert.Equal(HttpStatusCode.OK, (await Ipn(client, Notification(payment, txn, "TRANSACTION_VOID"))).StatusCode);
-        Assert.Equal("SUCCEEDED", await Status(id)); Assert.Equal(1, await Count("outbox_messages", id));
+        Assert.Equal("SUCCEEDED", await Status(id)); Assert.Equal(1, await Count("outbox_messages", id, "PaymentSucceeded"));
         Assert.Equal(1, await Count("reconciliation_cases", id));
     }
 
@@ -351,6 +444,6 @@ public sealed class SePayFlowTests(PaymentPostgresFixture fixture)
             await remove.ExecuteNonQueryAsync();
         }
         Assert.Equal(HttpStatusCode.OK, (await Ipn(client, payload)).StatusCode);
-        Assert.Equal("SUCCEEDED", await Status(id)); Assert.Equal(1, await Count("outbox_messages", id));
+        Assert.Equal("SUCCEEDED", await Status(id)); Assert.Equal(1, await Count("outbox_messages", id, "PaymentSucceeded"));
     }
 }

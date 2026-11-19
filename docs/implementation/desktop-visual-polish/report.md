@@ -2,7 +2,7 @@
 
 ## Cách kiểm tra
 
-Chụp production Customer/Operator/Admin và xem bảng ảnh toàn trang, sau đó mở lớn các modal, form và luồng đặt vé. Có **50 ảnh trạng thái ở 1440 px**, thêm kiểm tra 1280/1920 px. Bảng ảnh: [review-gallery.html](review-gallery.html). Ảnh đúng vòng sửa cuối nằm ở `reviewed/`; `before/` là baseline, `after/` là ảnh trong lúc sửa.
+Chụp production Customer/Operator/Admin và xem bảng ảnh toàn trang, sau đó mở lớn các modal, form và luồng đặt vé. Đợt rà soát có **50 ảnh trạng thái ở 1440 px**, thêm kiểm tra 1280/1920 px. Các ảnh minh họa được liệt kê ở phần bằng chứng bên dưới.
 
 Test chức năng, geometry và accessibility là kiểm tra bổ sung. Chúng không phải kết luận về chất lượng thẩm mỹ. Không lập screenshot baseline từ giao diện đang sai rồi coi baseline đó là thiết kế chuẩn.
 

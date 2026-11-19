@@ -107,19 +107,19 @@ trong 5 bộ script; 168 kiểm thử admin ở 21 file đạt. TypeScript, ESLi
 và các script bổ sung, kiểm tra whitespace đều đạt. Container cần thiết healthy.
 Bản ghi tổ chức/nhân viên và network thử còn lại: 0.
 
-| Bộ kiểm tra | Kết quả | Bằng chứng |
-| --- | --- | --- |
-| live | 9 đạt ở lượt chạy lại | [Log](admin-checklist-20261118/live-rerun.txt) |
-| resilience | 44 đạt | [Log](admin-checklist-20261118/resilience.txt) |
-| forms | 6 đạt | [Log](admin-checklist-20261118/forms.txt) |
-| gaps | 36 đạt | [Log](admin-checklist-20261118/gaps.txt) |
-| proxy | 1 đạt | [Log](admin-checklist-20261118/proxy.txt) |
-| unit | 168 đạt | [Log](admin-checklist-20261118/unit.txt) |
-| types | Đạt | [Log](admin-checklist-20261118/types.txt) |
-| lint | Đạt | [Log](admin-checklist-20261118/lint.txt) |
+| Bộ kiểm tra | Kết quả |
+| --- | --- |
+| live | 9 đạt ở lượt chạy lại |
+| resilience | 44 đạt |
+| forms | 6 đạt |
+| gaps | 36 đạt |
+| proxy | 1 đạt |
+| unit | 168 đạt |
+| types | Đạt |
+| lint | Đạt |
 
 Đã thử đăng nhập trên **5 context mới độc lập**, đều nhận API 200, mở dữ liệu và
-đăng xuất được. [Log](admin-checklist-20261118/login-repeat.txt).
+đăng xuất được.
 
 ### Lỗi phát hiện và đã sửa trong lượt checklist
 
@@ -134,8 +134,7 @@ Hai bản sửa đã được build và triển khai lên Docker local.
 ### Ghi nhận cần theo dõi
 
 Một lần chạy bộ live đầu tiên hết thời gian chờ ở login và không thấy request login
-tương ứng trong log proxy. Chưa xác định chắc nguyên nhân. Giữ
-[log lần đầu](admin-checklist-20261118/live.txt); chạy lại toàn bộ bộ live đạt 9/9
+tương ứng trong log proxy. Chưa xác định chắc nguyên nhân. Lượt chạy lại toàn bộ bộ live đạt 9/9
 và thử thêm 5 phiên mới đạt 5/5. Chưa tái hiện được ở các lượt xác minh sau.
 
 Đối chiếu máy đọc: [final-results.json](admin-checklist-20261118/final-results.json).

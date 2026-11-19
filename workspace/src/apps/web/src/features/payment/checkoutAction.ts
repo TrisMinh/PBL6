@@ -53,7 +53,4 @@ export function submitCheckoutAction(action: Record<string, string>): void {
   }
 }
 
-export const useSePay = import.meta.env.VITE_PAYMENT_PROVIDER !== "vnpay";
-
-export const livePaymentPath = (bookingId: string): string =>
-  `/payment/${bookingId}/${useSePay ? "sepay" : "vnpay"}`;
+export { paymentCheckoutPath as livePaymentPath } from "@/shared/config/routes";

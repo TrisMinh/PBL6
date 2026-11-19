@@ -1,0 +1,153 @@
+@keyframes operator-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes operator-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes operator-panel-in {
+  from {
+    opacity: 0;
+    translate: 0 6px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+@keyframes operator-drawer-in {
+  from {
+    opacity: 0;
+    translate: -16px 0;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+@keyframes operator-bar-in {
+  from {
+    scale: 0 1;
+    opacity: 0.55;
+  }
+  to {
+    scale: 1 1;
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .operator-workspace {
+    --operator-motion-ease: cubic-bezier(0.2, 0.75, 0.3, 1);
+    --operator-motion-feedback: 150ms;
+  }
+
+  .operator-workspace
+    :is(.operator-workspace__topbar, .operator-workspace__sidebar) {
+    animation: operator-fade-in 240ms ease-out;
+  }
+
+  .operator-workspace
+    :is(
+      .revenue-report__panel,
+      .revenue-report__metrics,
+      .booking-analytics__metrics,
+      .operator-schedule__query
+    ) {
+    animation: operator-panel-in 260ms var(--operator-motion-ease);
+  }
+
+  .operator-workspace
+    :is(
+      .button,
+      .operator-workspace__nav-link,
+      .revenue-report__tabs a,
+      .revenue-line__toggle button,
+      .booking-analytics__drill,
+      input,
+      select
+    ) {
+    transition:
+      color var(--operator-motion-feedback) ease,
+      background-color var(--operator-motion-feedback) ease,
+      border-color var(--operator-motion-feedback) ease,
+      box-shadow var(--operator-motion-feedback) ease,
+      scale 110ms ease;
+  }
+
+  .operator-workspace
+    :is(.button, .revenue-report__tabs a):active:not(:disabled) {
+    scale: 0.98;
+  }
+
+  .operator-workspace .revenue-report__power iframe {
+    animation: operator-fade-in 240ms ease-out;
+  }
+
+  .operator-workspace .booking-analytics__bar > span {
+    transform-origin: left center;
+    animation: operator-bar-in 420ms var(--operator-motion-ease);
+    transition: width 360ms var(--operator-motion-ease);
+  }
+
+  :is(
+    .operator-workspace__overlay,
+    .operator-schedule__overlay,
+    .operator-bookings__overlay,
+    .operator-refunds__overlay,
+    .operator-add-stop__overlay,
+    .operator-reports__overlay,
+    .booking-report-orders__overlay
+  )[data-state="open"] {
+    animation: operator-fade-in 160ms ease-out;
+  }
+
+  :is(
+    .operator-workspace__overlay,
+    .operator-schedule__overlay,
+    .operator-bookings__overlay,
+    .operator-refunds__overlay,
+    .operator-add-stop__overlay,
+    .operator-reports__overlay,
+    .booking-report-orders__overlay
+  )[data-state="closed"] {
+    animation: operator-fade-out 120ms ease-in;
+  }
+
+  :is(
+    .operator-schedule__dialog,
+    .operator-bookings__dialog,
+    .operator-refunds__dialog,
+    .operator-add-stop__dialog,
+    .operator-reports__dialog,
+    .booking-report-orders
+  )[data-state="open"] {
+    animation: operator-panel-in 220ms cubic-bezier(0.2, 0.75, 0.3, 1);
+  }
+
+  :is(
+    .operator-workspace__drawer,
+    .operator-schedule__dialog,
+    .operator-bookings__dialog,
+    .operator-refunds__dialog,
+    .operator-add-stop__dialog,
+    .operator-reports__dialog,
+    .booking-report-orders
+  )[data-state="closed"] {
+    animation: operator-fade-out 130ms ease-in;
+  }
+
+  .operator-workspace__drawer[data-state="open"] {
+    animation: operator-drawer-in 230ms cubic-bezier(0.2, 0.75, 0.3, 1);
+  }
+}

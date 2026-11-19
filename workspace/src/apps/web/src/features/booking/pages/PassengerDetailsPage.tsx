@@ -120,22 +120,11 @@ function SaveFeedback({
     />
   );
 }
-function isPassengerBlocked(
-  props: PassengerBookingProps,
-  mutation: ReplacePassengersResult,
-): boolean {
-  return (
-    props.isFetching ||
-    mutation.isPending ||
-    props.hasQueryError ||
-    mutation.error?.code === "BOOKING_LOCKED"
-  );
-}
 function PassengerBooking(
   props: PassengerBookingProps & { seats: PassengerSeat[] },
 ): ReactElement {
   const formId = useId();
-  const { session, isHydrated } = useMockSession();
+  const { session } = useMockSession();
   const loadProfile =
     !isMockApi && session?.role === "customer" && !props.draft.contact;
   const liveProfile = useQuery({
@@ -167,12 +156,14 @@ function PassengerBooking(
     props.layout,
     mutation.error?.code === "HOLD_EXPIRED",
   );
-  const pending = isPassengerBlocked(props, mutation);
+  const formLocked =
+    mutation.isPending ||
+    props.hasQueryError ||
+    mutation.error?.code === "BOOKING_LOCKED";
+  const submissionBlocked = formLocked || props.isFetching;
   const checkInAt = new Date(
     new Date(props.layout.trip.departureTime).getTime() - 20 * 60 * 1000,
   ).toISOString();
-  if (!isHydrated || (loadProfile && liveProfile.isPending))
-    return <BrandLoading compact title="Đang tải thông tin tài khoản…" />;
   const contact = liveProfile.data
     ? { ...liveProfile.data, phone: liveProfile.data.phone ?? "" }
     : profile && account
@@ -196,16 +187,18 @@ function PassengerBooking(
             contact,
           )}
           pickup={`${props.layout.trip.originStopName} · Có mặt ${BOOKING_TIME.format(new Date(checkInAt))}`}
-          onSubmit={mutation.submit}
-          isPending={pending}
+          onSubmit={(values) => {
+            if (!submissionBlocked) mutation.submit(values);
+          }}
+          isPending={formLocked}
           formId={formId}
         />
         <BookingSummary
           draft={props.draft}
           layout={props.layout}
           countdown={props.countdown}
-          isPending={pending}
-          isActionPending={mutation.isPending || props.isFetching}
+          isPending={submissionBlocked}
+          isActionPending={mutation.isPending}
           formId={formId}
           actionLabel="Xác nhận thông tin"
           variant="passenger"

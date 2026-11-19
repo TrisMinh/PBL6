@@ -7,6 +7,7 @@ import { http, HttpResponse } from "msw";
 import { beforeEach, afterEach, describe, it, expect, vi } from "vitest";
 
 import { BookingSessionRoute } from "@/app/guards/BookingSessionRoute";
+import { bookingKeys } from "@/features/booking/api/bookingQueryKeys";
 import { PassengerDetailsPage } from "@/features/booking/pages/PassengerDetailsPage";
 import { httpBookingRepository } from "@/features/booking/repositories/httpBookingRepository";
 import {
@@ -109,6 +110,37 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 describe("passenger details integration", () => {
+  it("keeps the focused field and confirmation label during a seat recheck", async () => {
+    const draft = await setup();
+    show(draft);
+    const name = await screen.findByLabelText("Họ và tên (ghế A01)");
+    await userEvent.type(name, "Khách đang nhập");
+    let finishCheck!: () => void;
+    const waiting = new Promise<void>((resolve) => { finishCheck = resolve; });
+    server.use(
+      http.get("/api/v1/trips/:tripId/seats", async () => {
+        await waiting;
+        return undefined;
+      }),
+    );
+    act(() => {
+      void clients.at(-1)?.invalidateQueries({
+        queryKey: bookingKeys.seats(draft.tripId),
+      });
+    });
+    const confirm = screen.getByRole("button", { name: "Xác nhận thông tin" });
+    try {
+      await waitFor(() => expect(confirm).toBeDisabled());
+      expect(confirm).not.toHaveAttribute("aria-busy", "true");
+      expect(name).toBeEnabled();
+      expect(name).toHaveFocus();
+      expect(name).toHaveValue("Khách đang nhập");
+    } finally {
+      finishCheck();
+    }
+    await waitFor(() => expect(confirm).toBeEnabled());
+  });
+
   it("retains entered values when a background layout check fails, then retries", async () => {
     const draft = await setup();
     show(draft);

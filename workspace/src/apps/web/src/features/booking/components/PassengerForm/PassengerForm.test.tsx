@@ -39,6 +39,40 @@ async function fill(): Promise<void> {
     );
 }
 describe("PassengerForm accessibility and canonical values", () => {
+  it("fills untouched fields when the profile arrives without overwriting input", async () => {
+    const props = {
+      seats: SEATS,
+      pickup: "Bến thử nghiệm",
+      onSubmit: vi.fn(),
+    };
+    const { rerender } = render(
+      <PassengerForm {...props} initialValues={blank()} />,
+    );
+    const name = screen.getByLabelText("Họ và tên (ghế A01)");
+    const phone = screen.getByLabelText("Số điện thoại người liên hệ");
+    await userEvent.type(name, "Khách tự nhập");
+    await userEvent.type(phone, "0912345678");
+    await userEvent.clear(phone);
+    await userEvent.tab();
+    const defaults = blank();
+    defaults.contact = {
+      fullName: "Khách Tài Khoản",
+      email: "account@example.test",
+      phone: "0987654321",
+    };
+    defaults.passengers[0].fullName = defaults.contact.fullName;
+    rerender(<PassengerForm {...props} initialValues={defaults} />);
+
+    expect(name).toHaveValue("Khách tự nhập");
+    expect(phone).toHaveValue("");
+    expect(screen.getByLabelText("Email nhận vé")).toHaveValue(
+      "account@example.test",
+    );
+    expect(screen.getByLabelText("Họ và tên người liên hệ")).toHaveValue(
+      "Khách Tài Khoản",
+    );
+  });
+
   it("renders labeled stable seat fieldsets, hidden IDs, contact and read-only trusted pickup", () => {
     render(
       <PassengerForm

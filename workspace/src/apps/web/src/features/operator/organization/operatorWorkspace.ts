@@ -84,6 +84,15 @@ export const organizationSchema = z
       seen.add(key);
     });
   });
+const settlementReceiptSchema = z.object({
+  reference: z.string(),
+  amount: z.int().positive(),
+  currency: z.string().length(3),
+  settlementVersion: z.int().nonnegative(),
+  confirmedAt: z.iso.datetime({ offset: true }),
+});
+type SettlementReceipt = z.infer<typeof settlementReceiptSchema>;
+
 export type Settlement = {
   code: string;
   bookingCode: string;
@@ -92,7 +101,10 @@ export type Settlement = {
   gross: number;
   refunds: number;
   commission: number;
-  status: "paid" | "pending" | "review";
+  status: "paid" | "pending" | "review" | "refunded" | "excluded";
+  currency?: string;
+  version?: number;
+  receipt?: SettlementReceipt;
   reference: string;
   net?: number;
 };
@@ -160,35 +172,76 @@ export async function readWorkspace(): Promise<Workspace> {
     settlements: [],
   };
 }
-export async function getSettlements(): Promise<Settlement[]> {
-  const [values, bookings, refunds] = await Promise.all([
-    rows("/api/v1/operator/settlements"),
-    rows("/api/v1/operator/bookings"),
-    rows("/api/v1/operator/refunds"),
+export async function getSettlements(
+  signal?: AbortSignal,
+): Promise<Settlement[]> {
+  const [values, bookings] = await Promise.all([
+    rows("/api/v1/operator/settlements", signal),
+    rows("/api/v1/operator/bookings", signal).catch((error: unknown) => {
+      if (signal?.aborted) throw error;
+      // Booking codes enrich the list. Payment data remains available without them.
+      return [];
+    }),
   ]);
-  return values.map((v) => {
-    const b = bookings.find((b) => b.id === v.bookingId);
+  const byId = new Map(bookings.map((booking) => [booking.id, booking]));
+  return values.map((value) => {
+    const booking = byId.get(value.bookingId);
+    const createdAt = value.createdAt ?? booking?.createdAt;
+    const receipt =
+      value.receipt == null
+        ? undefined
+        : settlementReceiptSchema.parse(value.receipt);
+    const pending =
+      value.paymentChannel === "PREPAID" &&
+      value.collectionStatus === "COLLECTED" &&
+      value.operatorNet > 0;
     return {
-      code: v.id,
-      bookingCode: b?.code ?? v.bookingId,
-      route: "—",
-      date: b?.createdAt ? localDateTime(b.createdAt).slice(0, 10) : "",
-      gross: v.grossAmount,
-      refunds: refunds
-        .filter((r) => r.bookingId === v.bookingId && r.status === "SUCCEEDED")
-        .reduce((sum, r) => sum + Number(r.amount), 0),
-      commission: v.commissionAmount,
-      net: v.operatorNet,
-      status:
-        v.collectionStatus === "PAID"
+      code: value.id,
+      bookingCode: booking?.code ?? value.bookingId,
+      route: "",
+      date: createdAt ? localDateTime(createdAt).slice(0, 10) : "",
+      gross: value.originalAmount ?? value.grossAmount,
+      refunds: value.refundAmount ?? 0,
+      commission: value.commissionAmount,
+      net: value.operatorNet,
+      currency: value.currency,
+      version: value.rowVersion,
+      status: receipt
+        ? pending &&
+          receipt.settlementVersion === value.rowVersion &&
+          receipt.currency === value.currency &&
+          receipt.amount === value.operatorNet
           ? "paid"
-          : v.collectionStatus === "COLLECTED"
-            ? "pending"
-            : "review",
-      reference: v.paymentId ?? "",
+          : "review"
+        : pending
+          ? "pending"
+          : value.collectionStatus === "REFUNDED"
+            ? "refunded"
+            : "excluded",
+      reference: receipt?.reference ?? "",
+      receipt,
     };
   });
 }
+
+export async function confirmSettlementReceipt(
+  settlement: Settlement,
+  reference: string,
+  amount: number,
+): Promise<SettlementReceipt> {
+  const response = await request(
+    `/api/v1/operator/settlements/${settlement.code}/receipt`,
+    "PUT",
+    {
+      reference,
+      amount,
+      currency: settlement.currency,
+      expectedVersion: settlement.version,
+    },
+  );
+  return settlementReceiptSchema.parse(response);
+}
+
 export async function saveOrganization(
   input: Workspace["organization"],
 ): Promise<void> {
@@ -290,8 +343,10 @@ export function settlementTotals(items: Settlement[]): {
   return total;
 }
 export function settlementCsv(items: Settlement[]): string {
-  const cell = (value: string | number): string =>
-    `"${String(value).replaceAll('"', '""')}"`;
+  const cell = (value: string | number): string => {
+    const safe = typeof value === "string" && /^[=+@\-\t\r\n]/.test(value) ? `'${value}` : String(value);
+    return `"${safe.replaceAll('"', '""')}"`;
+  };
   return (
     "\uFEFF" +
     [
@@ -303,7 +358,8 @@ export function settlementCsv(items: Settlement[]): string {
         "Doanh thu",
         "Hoàn tiền",
         "Hoa hồng",
-        "Nhà xe nhận",
+        "Phải trả nhà xe",
+        "Tiền tệ",
         "Trạng thái",
         "Tham chiếu",
       ],
@@ -316,6 +372,7 @@ export function settlementCsv(items: Settlement[]): string {
         r.refunds,
         r.commission,
         r.net ?? r.gross - r.refunds - r.commission,
+        r.currency ?? "VND",
         r.status,
         r.reference,
       ]),

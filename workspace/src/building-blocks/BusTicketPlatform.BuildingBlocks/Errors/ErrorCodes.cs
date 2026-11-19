@@ -30,6 +30,7 @@ public static class ErrorCodes
     public const string SeatHoldExpired = "SEAT_HOLD_EXPIRED";
     public const string PayLaterNotAllowed = "PAY_LATER_NOT_ALLOWED";
     public const string PreviewStale = "PREVIEW_STALE";
+    public const string CancellationNotAllowed = "CANCELLATION_NOT_ALLOWED";
     public const string TicketAlreadyCheckedIn = "TICKET_ALREADY_CHECKED_IN";
     public const string PriceMismatch = "PRICE_MISMATCH";
     public const string PaymentNotAllowed = "PAYMENT_NOT_ALLOWED";

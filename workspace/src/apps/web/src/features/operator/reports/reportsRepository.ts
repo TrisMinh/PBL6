@@ -1,4 +1,6 @@
 import { getLiveReport } from "./liveReports";
+import { apiJson } from "@/shared/api/client";
+import { isMockApi } from "@/shared/api/config";
 import { operatorBookingRows } from "../bookings/bookingsRepository";
 import { scheduleResources } from "../schedule/scheduleRepository";
 import {
@@ -9,9 +11,15 @@ import {
 export async function getOperatorReport(
   from: string,
   to: string,
-  _period: ReportPeriod,
+  period: ReportPeriod,
   signal?: AbortSignal,
 ): Promise<OperatorReport> {
+  if (isMockApi) {
+    const params = new URLSearchParams({ from, to, period });
+    return apiJson(`/api/v1/operator/reports-preview?${params}`, reportSchema, {
+      signal,
+    });
+  }
   const [report, bookings, resources] = await Promise.all([
     getLiveReport({ from, to }, signal),
     operatorBookingRows(signal),

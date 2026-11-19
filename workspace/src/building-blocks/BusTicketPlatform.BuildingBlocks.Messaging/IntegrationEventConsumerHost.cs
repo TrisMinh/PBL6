@@ -2,6 +2,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Npgsql;
 
 namespace BusTicketPlatform.BuildingBlocks.Messaging;
 
@@ -10,7 +11,8 @@ public sealed record EventSubscription(
     string ConsumerName,
     string InboxConnectionString,
     IReadOnlyList<string> RoutingKeys,
-    Func<IServiceProvider, EventMessage, CancellationToken, Task> Handle);
+    Func<IServiceProvider, EventMessage, CancellationToken, Task> Handle,
+    IReadOnlySet<string>? IdempotentMessageTypes = null);
 
 public static class MessagingHostExtensions
 {
@@ -78,13 +80,21 @@ public sealed class IntegrationEventConsumerHost(
                     if (message is not null)
                     {
                         var hash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(delivered.Value.Body.Span));
-                        if (await inbox.TryAcceptAsync(subscription.ConsumerName, message.EventId, message.EventType, hash, stoppingToken))
+                        if (subscription.IdempotentMessageTypes?.Contains(message.EventType) == true
+                            || await inbox.TryAcceptAsync(subscription.ConsumerName, message.EventId, message.EventType, hash, stoppingToken))
                         {
                             await subscription.Handle(services, message, stoppingToken);
                         }
                     }
 
                     await bus.AckAsync(delivered.Value.DeliveryTag, stoppingToken);
+                }
+                catch (NpgsqlException exception) when (exception.IsTransient && message is not null
+                    && subscription.IdempotentMessageTypes?.Contains(message.EventType) == true)
+                {
+                    logger.LogWarning(exception, "Retrying {Type} on {Queue} after a transient database failure", message.EventType, subscription.Queue);
+                    await bus.RejectAsync(delivered.Value.DeliveryTag, requeue: true, stoppingToken);
+                    await Task.Delay(TimeSpan.FromSeconds(2), stoppingToken);
                 }
                 catch (Exception exception) when (exception is not OperationCanceledException)
                 {

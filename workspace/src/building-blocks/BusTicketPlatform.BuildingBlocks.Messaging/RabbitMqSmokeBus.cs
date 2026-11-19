@@ -7,6 +7,7 @@ public sealed class RabbitMqSmokeBus : IEventPublisher, IAsyncDisposable
 {
     private readonly IConnection _connection;
     private readonly IChannel _channel;
+    private IChannel? _revenueChannel;
 
     private RabbitMqSmokeBus(IConnection connection, IChannel channel)
     {
@@ -63,6 +64,21 @@ public sealed class RabbitMqSmokeBus : IEventPublisher, IAsyncDisposable
 
     public async Task PublishAsync(EventMessage message, string routingKey, CancellationToken cancellationToken)
     {
+        var channel = _channel;
+        if (routingKey == Topology.RevenueMovementRoutingKey)
+        {
+            if (_revenueChannel is null || !_revenueChannel.IsOpen)
+            {
+                if (_revenueChannel is not null)
+                    await _revenueChannel.DisposeAsync();
+                await EnsureConsumerAsync(Topology.ReportingEventsQueue, [routingKey], cancellationToken);
+                _revenueChannel = await _connection.CreateChannelAsync(
+                    new CreateChannelOptions(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true),
+                    cancellationToken);
+            }
+            channel = _revenueChannel;
+        }
+
         var body = JsonSerializer.SerializeToUtf8Bytes(message, EventMessageJson.Options);
         var properties = new BasicProperties
         {
@@ -75,7 +91,7 @@ public sealed class RabbitMqSmokeBus : IEventPublisher, IAsyncDisposable
             Headers = new Dictionary<string, object?> { ["schema-version"] = message.Version }
         };
 
-        await _channel.BasicPublishAsync(
+        await channel.BasicPublishAsync(
             Topology.EventsExchange,
             routingKey,
             mandatory: true,
@@ -103,6 +119,8 @@ public sealed class RabbitMqSmokeBus : IEventPublisher, IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
+        if (_revenueChannel is not null)
+            await _revenueChannel.DisposeAsync();
         await _channel.DisposeAsync();
         await _connection.DisposeAsync();
     }

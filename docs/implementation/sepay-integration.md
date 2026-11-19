@@ -26,12 +26,12 @@ The customer Nginx forwards this exact IPN path to the API gateway. A separate p
 Run from the repository root (Docker Desktop running):
 
 ```powershell
-docker compose --env-file .env -f workspace/src/infra/docker-compose.yml -f workspace/src/infra/docker-compose.apps.yml -f workspace/src/infra/docker-compose.sepay.yml up -d --build --wait
+docker compose --env-file .env -f workspace/src/infra/docker-compose.yml -f workspace/src/infra/docker-compose.apps.yml up -d --build --wait
 ```
 
 Customer: port 5173, operator: 5174, admin: 5175. The SePay overlay compiles **all three portals in live API mode**. The ordinary apps compose continues to support the standalone mock demo.
 
-For native `dotnet run`, `.env` is not loaded automatically: use environment variables `SePay__Environment`, `SePay__MerchantId`, `SePay__SecretKey`, `SePay__IpnSecretKey`, `SePay__CustomerOrigin` (or .NET user-secrets). Existing database, RabbitMQ, JWT, and gateway settings must also be configured. Keep `Payment__Enabled=false` to disable the legacy VNPay simulator; SePay/production compose enforces this. For the customer Vite process:
+For native `dotnet run`, `.env` is not loaded automatically: use environment variables `SePay__Environment`, `SePay__MerchantId`, `SePay__SecretKey`, `SePay__IpnSecretKey`, `SePay__CustomerOrigin` (or .NET user-secrets). Existing database, RabbitMQ, JWT, and gateway settings must also be configured. The default Docker and native startup configurations do not start the legacy simulator. Legacy payment IDs and database migrations are retained for transaction history. For the customer Vite process:
 
 ```dotenv
 VITE_API_MODE=live
@@ -106,8 +106,12 @@ Start the complete local platform and HTTPS tunnel from the repository root:
 .\scripts\start-sepay-local.ps1
 # Reuse built images:
 .\scripts\start-sepay-local.ps1 -NoBuild
+# Repair the tunnel while Customer and Payment are already running:
+.\scripts\start-sepay-local.ps1 -RefreshTunnelOnly
 ```
 
 Customer: `http://localhost:5173`; operator: `http://localhost:5174`; admin: `http://localhost:5175`. The local overlay uses alternate host database/broker ports to coexist with native Windows services.
 
-Leave Docker Desktop and the tunnel process running for IPN delivery. A Quick Tunnel URL is temporary: if the tunnel is restarted and its URL changes, update the IPN URL in SePay Sandbox to the URL printed by the script. The script updates the backend return origin automatically but cannot silently update the merchant dashboard. The current tunnel process is recorded in ignored `.env.sepay-runtime.json`; it is reused while alive. No production configuration was activated.
+Leave Docker Desktop and the tunnel process running for IPN delivery. The repair command checks the public health endpoint, creates a new Quick Tunnel when the saved URL is unreachable, and reloads Payment without restarting the other containers. Update the IPN URL in SePay Sandbox to the URL printed by the script when it changes. The checkout form uses the new origin the next time it is opened. If an already-open checkout returns to an expired hostname, reopen the existing booking on the local website to check its payment status before retrying. The current tunnel process is recorded in ignored `.env.sepay-runtime.json`.
+
+When `CUSTOMER_PUBLIC_ORIGIN` in `.env` points to a Quick Tunnel, `scripts/start-frontend.ps1` also runs the sandbox tunnel refresh after Customer Web starts. To reopen a payment result locally, use `http://localhost:5173/payment/sepay/return?bookingId=<booking-id>` in the customer browser session.

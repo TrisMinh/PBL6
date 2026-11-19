@@ -49,7 +49,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                     ?? context.Principal?.FindFirstValue(ClaimTypes.NameIdentifier);
                 var versionValue = context.Principal?.FindFirstValue("ver");
                 if (!Guid.TryParse(subject, out var userId)
-                    || !long.TryParse(versionValue, out var tokenVersion))
+                    || !long.TryParse(versionValue, out var tokenVersion)
+                    || !Guid.TryParse(context.Principal?.FindFirstValue("sid"), out var sessionId))
                 {
                     context.Fail("The access token is missing required identity claims.");
                     return;
@@ -59,7 +60,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 var user = await repository.FindByIdAsync(userId, context.HttpContext.RequestAborted);
                 if (user is null
                     || user.Status != UserStatuses.Active
-                    || user.AuthorizationVersion != tokenVersion)
+                    || user.AuthorizationVersion != tokenVersion
+                    || !await repository.IsSessionActiveAsync(userId, sessionId, context.HttpContext.RequestAborted))
                 {
                     context.Fail("The access token has been revoked.");
                 }

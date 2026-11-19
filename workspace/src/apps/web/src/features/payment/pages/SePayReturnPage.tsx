@@ -13,6 +13,7 @@ import { ROUTES } from "@/shared/config/routes";
 import type { PaymentStatus } from "../types/payment";
 import { PaymentAccessNotice } from "../components/PaymentAccessNotice";
 import { livePaymentSchema } from "../schemas/livePayment.schema";
+import { useSePayRecheck } from "../hooks/useSePayRecheck";
 import { PaymentResultContent } from "./VnPayReturnPage";
 
 export function SePayReturnPage(): ReactElement {
@@ -68,6 +69,7 @@ export function SePayReturnPage(): ReactElement {
         sessionId: booking.id,
         amountVnd: payment?.amount ?? booking.total,
         createdAt: payment?.createdAt,
+        payment,
         status,
         tickets:
           status === "success"
@@ -89,6 +91,7 @@ export function SePayReturnPage(): ReactElement {
         ? 3000
         : false,
   });
+  const check = useSePayRecheck(() => result.refetch());
   if (
     result.error instanceof ApiError &&
     [401, 403, 404].includes(result.error.status)
@@ -100,6 +103,7 @@ export function SePayReturnPage(): ReactElement {
     );
   return (
     <div className="payment-page payment-page--return">
+      {check.notice && <p role="alert">{check.notice}</p>}
       {!valid ? (
         <PageState
           title="Không thể xác nhận giao dịch"
@@ -114,11 +118,17 @@ export function SePayReturnPage(): ReactElement {
             <Button onClick={() => void result.refetch()}>Kiểm tra lại</Button>
           }
         />
+      ) : result.data?.payment?.status === "REFUND_PENDING" ? (
+        <PageState
+          title="Đã ghi nhận thanh toán, đang xử lý hoàn tiền"
+          description="Đơn không còn đủ điều kiện phát hành vé. Bạn có thể theo dõi đơn trong Hành trình của tôi."
+          action={<Link to={ROUTES.accountTickets}>Về hành trình của tôi</Link>}
+        />
       ) : result.data ? (
         <PaymentResultContent
           result={result.data}
-          isFetching={result.isFetching}
-          onRecheck={() => void result.refetch()}
+          isFetching={result.isFetching || check.checking}
+          onRecheck={() => void check.recheck(result.data?.payment).catch(() => {})}
         />
       ) : (
         <section>

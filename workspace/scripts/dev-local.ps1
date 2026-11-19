@@ -170,16 +170,6 @@ catch {
     Write-Warning "RabbitMQ is listening, but rabbitmqctl could not update users. Existing RabbitMQ configuration will be used."
 }
 
-$simulator = Join-Path $root "src\infra\payment-simulator\simulator.py"
-if (-not (Test-Port 8099)) {
-    if (-not (Get-Command python -ErrorAction SilentlyContinue)) {
-        throw "Python is required to run the local VNPay simulator."
-    }
-    Start-Process python -WorkingDirectory (Split-Path $simulator) `
-        -ArgumentList @($simulator) -WindowStyle Hidden
-}
-Wait-Port 8099 "VNPay simulator"
-
 . (Join-Path $PSScriptRoot "dev-env.ps1")
 Set-PlatformEnv
 # The Windows RabbitMQ installation provides the local guest account by default.

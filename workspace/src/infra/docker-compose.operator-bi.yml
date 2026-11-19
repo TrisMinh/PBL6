@@ -1,0 +1,9 @@
+services:
+  postgres:
+    ports: !override
+      - "127.0.0.1:55474:5432"
+  rabbitmq:
+    ports: !reset []
+  operator-web:
+    ports: !override
+      - "127.0.0.1:5184:8080"

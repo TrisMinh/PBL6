@@ -8,6 +8,19 @@ public static class ReportingEventHandlers
 {
     public static Task HandleAsync(IServiceProvider services, EventMessage message, CancellationToken cancellationToken)
     {
+        if (message is { EventType: "RevenueMovementRecorded", Producer: "payment", Version: 1 })
+        {
+            var movement = EventPayload.Deserialize<RevenueMovement>(message.Payload);
+            if (movement is null || string.IsNullOrWhiteSpace(movement.MovementKey) || movement.OrganizationId == Guid.Empty
+                || movement.PaymentId == Guid.Empty || movement.EffectiveAt == default || movement.OrganizationId != message.TenantId
+                || movement.PaymentId != message.AggregateId)
+            {
+                throw new InvalidOperationException("Revenue movement is missing source identity or effective time.");
+            }
+
+            return services.GetRequiredService<ReportingService>().IngestRevenueAsync(movement, cancellationToken);
+        }
+
         if (message.EventType == "RefundSucceeded")
         {
             EventPayload.TryGuid(message.Payload, "bookingId", out var refundedBookingId);
