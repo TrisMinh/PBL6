@@ -4,7 +4,7 @@ Repository dùng SRS 2.1.0 làm baseline hiện hành để triển khai hệ th
 
 ## Điểm bắt đầu
 
-- [Cài Docker và nạp dữ liệu trên máy Windows mới](./workspace/src/data-backup/README.md)
+- [Build Docker và nạp dữ liệu sau khi clone](./workspace/src/data-backup/README.md)
 - [Mục lục tài liệu](./docs/README.md)
 - [SRS 2.1.0 — active baseline](./docs/srs/v2/README.md)
 - [Kết luận sẵn sàng triển khai](./docs/implementation/06-document-readiness-report.md)

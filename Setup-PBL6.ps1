@@ -130,54 +130,10 @@ try {
         }
     }
 
-    $compose = @('compose', '--project-directory', $infra, '-p', 'pbl6-local')
-    if ($EnvFile) { $compose += @('--env-file', $EnvFile) }
-    $compose += @('-f', (Join-Path $infra 'docker-compose.yml'))
-    $appsCompose = $compose + @('-f', (Join-Path $infra 'docker-compose.apps.yml'))
-    Invoke-Checked docker.exe ($appsCompose + @('config', '--quiet'))
-
-    if ($archive) {
-        $hash = (Get-FileHash -LiteralPath $archive.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
-        Invoke-Checked docker.exe ($compose + @('up', '-d', '--wait', 'postgres'))
-        $container = Invoke-Checked docker.exe ($compose + @('ps', '-q', 'postgres'))
-        if (-not $container) { throw 'PostgreSQL container not found.' }
-        $markerPath = '/var/lib/postgresql/data/.pbl6-restore-sha256'
-        $installedHash = Invoke-Checked docker.exe @(
-            'exec', $container, 'sh', '-c', 'if test -f $1; then cat $1; fi', 'sh', $markerPath
-        )
-        if ($installedHash -eq $hash) {
-            Write-Host 'This snapshot is already restored.'
-        } elseif ($installedHash) {
-            throw 'The current volume already contains a different restored snapshot. Existing data is preserved.'
-        } else {
-            $savedArchive = Join-Path $backups $archive.Name
-            New-Item -ItemType Directory -Path $backups -Force | Out-Null
-            if (-not (Test-Path -LiteralPath $savedArchive)) {
-                Copy-Item -LiteralPath $archive.FullName -Destination $savedArchive
-            }
-            if ((Get-FileHash -LiteralPath $savedArchive -Algorithm SHA256).Hash -ne $hash) {
-                throw "A different file already exists at $savedArchive."
-            }
-            $extracted = Join-Path $backups "restore-$($hash.Substring(0, 16))"
-            Expand-Archive -LiteralPath $savedArchive -DestinationPath $extracted -Force
-            $restoreRoot = Join-Path $extracted $archive.BaseName
-            $restore = Join-Path $restoreRoot 'Restore-PBL6Data.ps1'
-            if (-not (Test-Path -LiteralPath $restore -PathType Leaf)) {
-                throw "Restore-PBL6Data.ps1 was not found in $savedArchive."
-            }
-            Write-Host 'Restoring the six PostgreSQL databases ...'
-            & $restore -Container $container
-            Invoke-Checked docker.exe @(
-                'exec', '--user', 'postgres', $container, 'sh', '-c',
-                'echo $1 > $2.tmp && mv $2.tmp $2', 'sh', $hash, $markerPath
-            )
-        }
-    }
-
-    Write-Host 'Building and starting the PBL6 stack ...'
-    Invoke-Checked docker.exe ($appsCompose + @('up', '-d', '--build', '--wait', '--wait-timeout', '600'))
-    Write-Host "Project: $ProjectPath"
-    Write-Host 'Customer http://localhost:5173 | Operator http://localhost:5174 | Admin http://localhost:5175'
+    $dockerOptions = @{}
+    if ($EnvFile) { $dockerOptions.EnvFile = $EnvFile }
+    if ($archive) { $dockerOptions.BackupPath = $archive.FullName }
+    & (Join-Path $ProjectPath 'workspace\scripts\dev-docker.ps1') @dockerOptions
 } finally {
     $env:DOCKER_CONTEXT = $previousContext
 }

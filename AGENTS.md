@@ -6,4 +6,4 @@ Postman CLI is installed on this device, and can be used for API Engineering wor
 
 ## Local Docker data
 
-When asked to set up this project on a new Windows machine, use [Setup-PBL6.ps1](Setup-PBL6.ps1). Check `workspace/src/data-backup/` for the private snapshot so it can be imported before the seed/bootstrap service runs. Keep existing populated databases intact. If the machine only has a Git checkout, the private backup must be transferred separately. See [the restore procedure](workspace/src/data-backup/README.md).
+After cloning on Windows, use `workspace/scripts/dev-docker.ps1 -RestoreData` to import the private snapshot and start the Docker stack. Look for the ZIP in `workspace/src/data-backup/` or use `-BackupPath` if it is stored elsewhere. Keep existing populated databases intact. See [the restore procedure](workspace/src/data-backup/README.md).
