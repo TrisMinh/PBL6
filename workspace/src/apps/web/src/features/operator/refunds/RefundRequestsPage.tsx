@@ -1,6 +1,7 @@
 import { OperatorStatusBadge } from "../components/OperatorStatusBadge";
 import { displayCode } from "../components/displayCode";
 import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
+import { liveQueryKey } from "@/shared/api/liveRequest";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useRef, useState, type FormEvent, type ReactElement } from "react";
 import { useNavigate, useSearchParams } from "react-router";
@@ -15,6 +16,7 @@ import {
   REFUND_STATUSES,
   cancellationMinutes,
   refundLeadLabel,
+  refundLocalTime,
   refundLevel,
   refundFiltersSchema,
   type RefundFilters,
@@ -42,15 +44,20 @@ const NAV_ICONS = {
   "Hủy vé & hoàn tiền": navCancel,
 };
 const dateLabel = (date: string): string => date.split("-").reverse().join("/");
-const requestTime = (date: string): string =>
-  `${date.slice(8, 10)}/${date.slice(5, 7)} lúc ${date.slice(11, 16)}`;
+const requestTime = (date: string): string => {
+  const local = refundLocalTime(date);
+  return local
+    ? `${local.slice(8, 10)}/${local.slice(5, 7)} lúc ${local.slice(11, 16)}`
+    : "—";
+};
 function dateInput(value: string): string {
   const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(value.trim());
   return match ? `${match[3]}-${match[2]}-${match[1]}` : value.trim();
 }
 function leadDetail(item: RefundRequest, minutes: number): string {
   if (minutes >= 1440) return `${Math.floor(minutes / 60)} giờ`;
-  return item.requestedAt.slice(0, 10) === item.departureAt.slice(0, 10)
+  return refundLocalTime(item.requestedAt).slice(0, 10) ===
+    refundLocalTime(item.departureAt).slice(0, 10)
     ? "Cùng ngày"
     : "Qua ngày hôm sau";
 }
@@ -143,9 +150,10 @@ export function RefundRequestsPage(): ReactElement {
     [selected, setSelected] = useState("BK-0905-018");
   const focusReturn = useRef<HTMLElement | null>(null);
   const query = useQuery({
-    queryKey: ["operator-refund-requests", applied],
+    queryKey: liveQueryKey("operator-refund-requests", applied),
     queryFn: ({ signal }) => getRefundRequests(applied, signal),
     enabled: appliedResult.success,
+    refetchInterval: 15_000,
   });
   function apply(event: FormEvent): void {
     event.preventDefault();
@@ -267,7 +275,16 @@ export function RefundRequestsPage(): ReactElement {
           className="operator-refunds__card"
           aria-labelledby="refund-list-title"
         >
-          <h2 id="refund-list-title">Danh sách theo dõi</h2>
+          <div className="operator-refunds__list-heading">
+            <h2 id="refund-list-title">Danh sách theo dõi</h2>
+            <Button
+              variant="secondary"
+              disabled={query.isFetching || !appliedResult.success}
+              onClick={() => void query.refetch()}
+            >
+              Làm mới
+            </Button>
+          </div>
           {!appliedResult.success ? (
             <PageState
               title="Bộ lọc trên đường dẫn không hợp lệ"
@@ -297,7 +314,7 @@ export function RefundRequestsPage(): ReactElement {
                     Yêu cầu hủy vé và tiến độ hoàn tiền
                   </caption>
                   <colgroup>
-                    {[180, 90, 120, 162, 126, 126, 114, 124, 128].map(
+                    {[180, 100, 120, 162, 126, 126, 114, 124, 128, 128].map(
                       (width, index) => (
                         <col key={index} style={{ width }} />
                       ),
@@ -307,13 +324,14 @@ export function RefundRequestsPage(): ReactElement {
                     <tr>
                       {[
                         "Khách hàng",
-                        "Vé đặt / hủy",
+                        "Vé đặt / đã hủy",
                         "Xe",
                         "Chuyến",
                         "Yêu cầu hủy lúc",
                         "Xe khởi hành",
                         "Hủy trước",
                         "Mức chính sách",
+                        "Trạng thái hoàn tiền",
                         "Xử lý",
                       ].map((label) => (
                         <th scope="col" key={label}>
@@ -331,7 +349,7 @@ export function RefundRequestsPage(): ReactElement {
                         level = REFUND_LEVELS[refundLevel(minutes)];
                       return (
                         <tr
-                          key={item.bookingCode}
+                          key={item.refundId ?? item.bookingCode}
                           data-selected={
                             item.bookingCode === selected || undefined
                           }
@@ -345,7 +363,7 @@ export function RefundRequestsPage(): ReactElement {
                             <strong>
                               {item.bookedTickets} vé / {item.seats.length} vé
                             </strong>
-                            <small>{item.seats.join(", ")}</small>
+                            <small>{item.seats.join(", ") || "—"}</small>
                           </td>
                           <td>
                             <strong>{item.plate}</strong>
@@ -357,11 +375,20 @@ export function RefundRequestsPage(): ReactElement {
                           </td>
                           <td>
                             <strong>{requestTime(item.requestedAt)}</strong>
-                            <small>Năm {item.requestedAt.slice(0, 4)}</small>
+                            <small>
+                              {refundLocalTime(item.requestedAt).slice(0, 4)}
+                            </small>
                           </td>
                           <td>
                             <strong>{requestTime(item.departureAt)}</strong>
-                            <small>Năm {item.departureAt.slice(0, 4)}</small>
+                            <small>
+                              {refundLocalTime(item.departureAt).slice(0, 4)}
+                            </small>
+                          </td>
+                          <td>
+                            <OperatorStatusBadge state={item.status}>
+                              {REFUND_STATUSES[item.status]}
+                            </OperatorStatusBadge>
                           </td>
                           <td>
                             <strong className="operator-refunds__lead">
@@ -380,7 +407,7 @@ export function RefundRequestsPage(): ReactElement {
                               onClick={() => {
                                 setSelected(item.bookingCode);
                                 navigate(
-                                  `/operator/refund-requests/${encodeURIComponent(item.bookingCode)}?${new URLSearchParams({ returnTo: "/operator/refund-requests" + (params.toString() ? "?" + params.toString() : "") })}`,
+                                  `/operator/refund-requests/${encodeURIComponent(item.refundId ?? item.bookingCode)}?${new URLSearchParams({ returnTo: "/operator/refund-requests" + (params.toString() ? "?" + params.toString() : "") })}`,
                                 );
                               }}
                             >

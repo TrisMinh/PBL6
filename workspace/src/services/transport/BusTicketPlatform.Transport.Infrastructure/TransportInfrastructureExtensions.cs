@@ -12,6 +12,7 @@ public static class TransportInfrastructureExtensions
 {
     public static IServiceCollection AddTransportInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
+        services.AddSingleton<PublicTransportCache>();
         var options = new TransportDatabaseOptions
         {
             ConnectionString = configuration.GetConnectionString(TransportDatabaseOptions.ConnectionStringName) ?? ""

@@ -7,6 +7,7 @@ function Set-PlatformEnv {
   $env:ASPNETCORE_ENVIRONMENT = "Development"
   $env:ConnectionStrings__Identity = "Host=localhost;Port=5432;Database=identity;Username=platform;Password=$pg"
   $env:ConnectionStrings__Transport = "Host=localhost;Port=5432;Database=transport;Username=platform;Password=$pg"
+  $env:ConnectionStrings__Redis = if ($env:REDIS_CONNECTION) { $env:REDIS_CONNECTION } else { "127.0.0.1:6379" }
   $env:ConnectionStrings__Booking = "Host=localhost;Port=5432;Database=booking;Username=platform;Password=$pg"
   $env:ConnectionStrings__Payment = "Host=localhost;Port=5432;Database=payment;Username=platform;Password=$pg"
   $env:ConnectionStrings__Notification = "Host=localhost;Port=5432;Database=notification;Username=platform;Password=$pg"

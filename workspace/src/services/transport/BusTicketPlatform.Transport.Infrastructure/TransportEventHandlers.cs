@@ -6,11 +6,11 @@ namespace BusTicketPlatform.Transport.Infrastructure;
 
 public static class TransportEventHandlers
 {
-    public static Task HandleInventoryReadyAsync(IServiceProvider services, EventMessage message, CancellationToken cancellationToken)
+    public static async Task HandleInventoryReadyAsync(IServiceProvider services, EventMessage message, CancellationToken cancellationToken)
     {
         if (message.EventType != "TripInventoryReady")
         {
-            return Task.CompletedTask;
+            return;
         }
 
         if (!EventPayload.TryGuid(message.Payload, "tripId", out var tripId) || tripId == Guid.Empty)
@@ -18,6 +18,7 @@ public static class TransportEventHandlers
             tripId = message.AggregateId;
         }
 
-        return services.GetRequiredService<TransportService>().MarkInventoryReadyAsync(tripId, cancellationToken);
+        await services.GetRequiredService<TransportService>().MarkInventoryReadyAsync(tripId, cancellationToken);
+        await services.GetRequiredService<PublicTransportCache>().InvalidateAsync(cancellationToken);
     }
 }

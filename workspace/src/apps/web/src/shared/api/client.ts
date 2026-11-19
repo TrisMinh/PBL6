@@ -3,18 +3,21 @@ import { ApiError, responseError } from "./error";
 import {
   backendSessionSchema,
   clearApiSession,
+  expireApiSession,
   readApiSession,
   saveApiSession,
   refreshAttemptKey,
 } from "./session";
 
-let refreshInFlight: Promise<string> | undefined;
+let refreshInFlight:
+  { refreshToken: string; request: Promise<string> } | undefined;
 export async function refreshAccessToken(): Promise<string> {
-  if (refreshInFlight) return refreshInFlight;
   const session = readApiSession();
   if (!session)
     throw new ApiError("AUTHENTICATION_REQUIRED", 401, "Vui lòng đăng nhập.");
-  refreshInFlight = (async () => {
+  if (refreshInFlight?.refreshToken === session.refreshToken)
+    return refreshInFlight.request;
+  const request = (async () => {
     const response = await globalThis.fetch(
       `${apiBaseUrl}/api/v1/auth/refresh`,
       {
@@ -35,7 +38,8 @@ export async function refreshAccessToken(): Promise<string> {
         "Phiên đăng nhập đã thay đổi.",
       );
     if (!response.ok) {
-      if (response.status === 401 || response.status === 403) clearApiSession();
+      if (response.status === 401 || response.status === 403)
+        expireApiSession(session.accessToken);
       throw await responseError(response);
     }
     let next;
@@ -65,9 +69,10 @@ export async function refreshAccessToken(): Promise<string> {
       );
     })
     .finally(() => {
-      refreshInFlight = undefined;
+      if (refreshInFlight?.request === request) refreshInFlight = undefined;
     });
-  return refreshInFlight;
+  refreshInFlight = { refreshToken: session.refreshToken, request };
+  return request;
 }
 
 export interface ApiOptions extends RequestInit {
@@ -98,10 +103,6 @@ export async function apiFetch(
     );
   const { auth = true, ...init } = options;
   let session = auth ? readApiSession() : null;
-  if (session && session.expiresAt <= Date.now() + 30_000) {
-    await refreshAccessToken();
-    session = readApiSession();
-  }
   const headers = new Headers(init.headers);
   headers.delete("X-Mock-Session-Token");
   headers.delete("X-Ticket-Access-Token");
@@ -118,6 +119,22 @@ export async function apiFetch(
     });
   };
   try {
+    if (session && session.expiresAt <= Date.now() + 30_000) {
+      const token = await refreshAccessToken();
+      const refreshed = readApiSession();
+      if (
+        refreshed?.accessToken !== token ||
+        refreshed.user.id !== session.user.id
+      )
+        throw new ApiError(
+          "SESSION_CHANGED",
+          401,
+          "Phiên đăng nhập đã thay đổi.",
+        );
+      session = refreshed;
+    }
+    if (init.signal?.aborted)
+      throw new ApiError("ABORTED", 0, "Yêu cầu đã được hủy.");
     let response = await send(session?.accessToken);
     if (
       response.status === 401 &&
@@ -125,12 +142,20 @@ export async function apiFetch(
       !value.startsWith("/api/v1/auth/")
     ) {
       const current = readApiSession();
+      if (!current || current.user.id !== session.user.id)
+        throw new ApiError(
+          "SESSION_CHANGED",
+          401,
+          "Phiên đăng nhập đã thay đổi.",
+        );
       const token =
-        current && current.accessToken !== session.accessToken
+        current.accessToken !== session.accessToken
           ? current.accessToken
           : await refreshAccessToken();
+      if (init.signal?.aborted)
+        throw new ApiError("ABORTED", 0, "Yêu cầu đã được hủy.");
       response = await send(token); // At most one retry, preserving body and idempotency key.
-      if (response.status === 401) clearApiSession();
+      if (response.status === 401) expireApiSession(token);
     }
     return response;
   } catch (error) {

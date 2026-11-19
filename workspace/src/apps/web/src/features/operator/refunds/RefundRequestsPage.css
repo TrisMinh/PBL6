@@ -110,10 +110,14 @@
   border-radius: 12px;
   background: white;
 }
-.operator-refunds__card > h2 {
+.operator-refunds__list-heading {
   display: flex;
   align-items: center;
-  height: 48px;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 48px;
+}
+.operator-refunds__list-heading h2 {
   font-size: 20px;
   font-weight: 600;
   line-height: 30px;
@@ -127,7 +131,7 @@
   table-layout: fixed;
   border-spacing: 0;
   width: 100%;
-  min-width: 1170px;
+  min-width: 1280px;
   text-align: left;
 }
 .operator-refunds th {

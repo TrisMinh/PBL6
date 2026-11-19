@@ -3,7 +3,12 @@ import { z } from "zod";
 vi.hoisted(() => vi.resetModules());
 vi.mock("./config", () => ({ isMockApi: false, apiBaseUrl: "" }));
 import { apiFetch, apiJson, logoutApi, refreshAccessToken } from "./client";
-import { readApiSession, saveApiSession, type BackendSession } from "./session";
+import {
+  API_SESSION_EXPIRED,
+  readApiSession,
+  saveApiSession,
+  type BackendSession,
+} from "./session";
 
 const session: BackendSession = {
   accessToken: "old.jwt.token",
@@ -119,6 +124,48 @@ describe("live API transport", () => {
     });
     expect(readApiSession()).toBeNull();
     expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+  it("notifies once when concurrent requests encounter a rejected refresh", async () => {
+    saveApiSession(session);
+    const notice = vi.fn();
+    window.addEventListener(API_SESSION_EXPIRED, notice);
+    try {
+      fetchMock.mockImplementation(
+        async () => new Response(null, { status: 401 }),
+      );
+      await Promise.allSettled([
+        apiFetch("/api/v1/tickets"),
+        apiFetch("/api/v1/bookings"),
+      ]);
+      expect(readApiSession()).toBeNull();
+      expect(notice).toHaveBeenCalledTimes(1);
+      expect(
+        fetchMock.mock.calls.filter(([url]) =>
+          String(url).endsWith("/auth/refresh"),
+        ),
+      ).toHaveLength(1);
+    } finally {
+      window.removeEventListener(API_SESSION_EXPIRED, notice);
+    }
+  });
+  it("leaves an account signed in when its refresh request has a network failure", async () => {
+    saveApiSession(session);
+    fetchMock.mockRejectedValueOnce(new TypeError("offline"));
+    await expect(refreshAccessToken()).rejects.toMatchObject({
+      code: "NETWORK_ERROR",
+    });
+    expect(readApiSession()?.accessToken).toBe(session.accessToken);
+  });
+  it("does not expire a replacement session when the retried request returns a late 401", async () => {
+    saveApiSession(session);
+    fetchMock.mockResolvedValueOnce(new Response(null, { status: 401 }));
+    fetchMock.mockResolvedValueOnce(Response.json(rotated));
+    fetchMock.mockImplementationOnce(async () => {
+      saveApiSession({ ...session, accessToken: "another.jwt.token" });
+      return new Response(null, { status: 401 });
+    });
+    expect((await apiFetch("/api/v1/bookings")).status).toBe(401);
+    expect(readApiSession()?.accessToken).toBe("another.jwt.token");
   });
   it("exposes backend error envelopes and correlation IDs", async () => {
     fetchMock.mockResolvedValue(

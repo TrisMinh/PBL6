@@ -8,7 +8,7 @@ export async function getRefundTracking(
   signal?: AbortSignal,
 ): Promise<RefundTracking | null> {
   const item = (await operatorRefundRows(signal)).find(
-    (r) => r.bookingCode === code || r.source.id === code,
+    (r) => r.bookingCode === code || r.refundId === code,
   );
   return item ? refundTrackingSchema.parse(item) : null;
 }

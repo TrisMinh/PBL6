@@ -3,6 +3,7 @@ import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import type { ReactElement } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router";
 import { useQuery } from "@tanstack/react-query";
+import { liveQueryKey } from "@/shared/api/liveRequest";
 import { OperatorSidebar } from "../components/OperatorSidebar";
 import { Button } from "@/shared/ui/Button/Button";
 import { PageState } from "@/shared/ui/PageState/PageState";
@@ -10,6 +11,7 @@ import {
   REFUND_LEVELS,
   cancellationMinutes,
   refundLeadLabel,
+  refundLocalTime,
   refundLevel,
 } from "./refunds.schema";
 import {
@@ -49,8 +51,12 @@ const NAV_ICONS = {
   "Tổ chức & thành viên": members,
   "Hủy vé & hoàn tiền": cancel,
 };
-const time = (iso: string): string =>
-  `${iso.slice(8, 10)}/${iso.slice(5, 7)}/${iso.slice(0, 4)} lúc ${iso.slice(11, 16)}`;
+const time = (iso: string): string => {
+  const local = refundLocalTime(iso);
+  return local
+    ? `${local.slice(8, 10)}/${local.slice(5, 7)}/${local.slice(0, 4)} lúc ${local.slice(11, 16)}`
+    : "—";
+};
 const money = (value: number): string => `${value.toLocaleString("vi-VN")}đ`;
 const progress = (status: RefundTracking["status"]): string =>
   status === "processing"
@@ -135,8 +141,11 @@ function TrackingContent({
           <SectionTitle icon={cancelIcon}>Yêu cầu hủy vé</SectionTitle>
           <dl className="refund-tracking__three">
             <Fact label="Số vé đã đặt" value={`${item.bookedTickets} vé`} />
-            <Fact label="Số vé muốn hủy" value={`${item.seats.length} vé`} />
-            <Fact label="Vị trí muốn hủy" value={item.seats.join(", ")} />
+            <Fact
+              label="Số vé đã hủy trong đơn"
+              value={`${item.seats.length} vé`}
+            />
+            <Fact label="Ghế đã hủy" value={item.seats.join(", ") || "—"} />
             <Fact
               className="refund-tracking__time"
               label="Khách yêu cầu hủy lúc"
@@ -152,8 +161,8 @@ function TrackingContent({
               <dd>{refundLeadLabel(minutes)}</dd>
               <p>
                 {item.progressLayout === "timeline"
-                  ? item.requestedAt.slice(0, 10) ===
-                    item.departureAt.slice(0, 10)
+                  ? refundLocalTime(item.requestedAt).slice(0, 10) ===
+                    refundLocalTime(item.departureAt).slice(0, 10)
                     ? "Cùng ngày"
                     : "Qua ngày hôm sau"
                   : `Tương đương ${Math.round((minutes / 60) * 100) / 100} giờ`}
@@ -168,7 +177,7 @@ function TrackingContent({
               <>
                 <Fact
                   label="Yêu cầu hủy"
-                  value={`Đã ghi nhận lúc ${item.requestedAt.slice(11, 16)}`}
+                  value={`Đã ghi nhận lúc ${refundLocalTime(item.requestedAt).slice(11, 16)}`}
                 />
                 <Fact
                   label="Vé"
@@ -194,7 +203,7 @@ function TrackingContent({
                   value={
                     item.cancelledTickets
                       ? `Đã hủy ${item.cancelledTickets} vé`
-                      : `Chờ xử lý ${item.seats.length} vé`
+                      : "Chưa có vé đã hủy"
                   }
                 />
                 <Fact
@@ -268,19 +277,27 @@ function TrackingContent({
           <img src={amountIcon} width={18} height={18} alt="" />
           <div>
             <p>
-              {levelKey === "exception"
-                ? "Kết quả đối chiếu"
-                : "Số tiền hoàn dự kiến"}
+              {item.recordedRefundAmount !== undefined
+                ? item.status === "completed"
+                  ? "Đã hoàn"
+                  : "Số tiền yêu cầu hoàn"
+                : levelKey === "exception"
+                  ? "Kết quả đối chiếu"
+                  : "Số tiền hoàn dự kiến"}
             </p>
             <strong>
-              {levelKey === "exception"
-                ? "Không đủ điều kiện hoàn tiền"
-                : amounts
-                  ? money(amounts.refund)
-                  : "Chưa xác định"}
+              {item.recordedRefundAmount !== undefined
+                ? money(item.recordedRefundAmount)
+                : levelKey === "exception"
+                  ? "Không đủ điều kiện hoàn tiền"
+                  : amounts
+                    ? money(amounts.refund)
+                    : "Chưa xác định"}
             </strong>
             <small>
-              {amounts && item.cancellationValue !== null ? (
+              {item.recordedRefundAmount !== undefined ? (
+                progress(item.status)
+              ) : amounts && item.cancellationValue !== null ? (
                 <>
                   <span>Giá trị {money(item.cancellationValue)}</span>
                   <span>Phí hủy {money(amounts.fee)}</span>
@@ -304,7 +321,8 @@ function TrackingContent({
                   : "Tiến độ hoàn tiền"}
             </h3>
             <p>
-              {levelKey === "exception" ? (
+              {levelKey === "exception" &&
+              item.recordedRefundAmount === undefined ? (
                 <span>Chuyển xử lý ngoại lệ</span>
               ) : (
                 <>
@@ -336,8 +354,9 @@ export function RefundTrackingPage(): ReactElement {
       );
     };
   const query = useQuery({
-    queryKey: ["operator-refund-tracking", bookingCode],
+    queryKey: liveQueryKey("operator-refund-tracking", bookingCode),
     queryFn: ({ signal }) => getRefundTracking(bookingCode, signal),
+    refetchInterval: 15_000,
   });
   return (
     <div className="operator-schedule operator-refunds refund-tracking">

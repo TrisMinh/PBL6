@@ -62,8 +62,8 @@ interface FormProps {
 
 interface RefundAmounts {
   fare: number;
-  fee: number;
-  refund: number;
+  fee: number | null;
+  refund: number | null;
 }
 
 function money(value: number): string {
@@ -231,7 +231,6 @@ function PolicyCard({ policyLabel }: { policyLabel: string }): ReactElement {
               : "Phí và điều kiện được xác nhận bởi hệ thống"}
           </small>
         </div>
-        <button type="button">Xem policy</button>
       </div>
       <div className="cancellation-page__policy-row">
         <img alt="" aria-hidden="true" src={quoteIcon} />
@@ -261,12 +260,12 @@ function ConsentNote({
         <strong>
           {reviewing
             ? `Vé ${seatCopy} và mã QR tương ứng sẽ mất hiệu lực khi xác nhận.`
-            : "Bạn có thể hủy một vé hoặc chọn cả hai vé trong đặt chỗ."}
+            : "Hãy chọn vé bạn muốn hủy."}
         </strong>
         <small>
           {reviewing
-            ? `Vé còn lại được giữ nguyên. Số tiền hoàn cho vé đã chọn là ${money(seats.length * 288_000)}.`
-            : "Chưa có vé nào bị hủy ở bước này. Bạn sẽ xác nhận ở bước tiếp theo."}
+            ? "Chỉ những vé được chọn mới bị hủy."
+            : "Vé chỉ bị hủy sau khi bạn xác nhận ở bước tiếp theo."}
         </small>
       </div>
     </section>
@@ -295,10 +294,10 @@ export function Heading({
 }
 
 function SummaryRoute({
-  seats,
+  tickets,
   journey,
 }: {
-  seats: readonly string[];
+  tickets: readonly TicketDetail[];
   journey: Journey;
 }): ReactElement {
   return (
@@ -310,7 +309,6 @@ function SummaryRoute({
         <div>
           <span>NHÀ XE VẬN HÀNH</span>
           <strong>{journey.operatorName}</strong>
-          <small>Đối tác vận hành · {journey.tripCode}</small>
         </div>
       </section>
       <section className="cancellation-page__summary-route">
@@ -319,8 +317,8 @@ function SummaryRoute({
         </strong>
         <small>{journey.serviceDateLabel}</small>
         <span>
-          {seats.length
-            ? `${seats.join(", ")} — ${seats.length === 2 ? "2 hành khách" : seats[0] === "A01" ? "Nguyễn Minh Anh" : "Trần Gia Huy"}`
+          {tickets.length
+            ? `${tickets.map((ticket) => ticket.seatCode).join(", ")} — ${tickets.length === 1 ? tickets[0].passenger.fullName : `${tickets.length} vé`}`
             : "Chưa chọn vé"}
         </span>
       </section>
@@ -329,7 +327,7 @@ function SummaryRoute({
 }
 
 function RefundSummary({
-  seats,
+  tickets,
   amounts,
   journey,
   reviewing,
@@ -341,7 +339,7 @@ function RefundSummary({
   onKeep,
   reviewTriggerId,
 }: {
-  seats: readonly string[];
+  tickets: readonly TicketDetail[];
   amounts: RefundAmounts;
   journey: Journey;
   reviewing: boolean;
@@ -362,23 +360,19 @@ function RefundSummary({
         <h2>Tóm tắt hoàn tiền</h2>
         <span>{isMockApi ? "09:42" : journey.requestedAtLabel}</span>
       </div>
-      <SummaryRoute seats={seats} journey={journey} />
+      <SummaryRoute tickets={tickets} journey={journey} />
       <dl className="cancellation-page__amounts">
         <div>
-          <dt>Giá trị {seats.length || 0} vé</dt>
+          <dt>Giá trị {tickets.length} vé</dt>
           <dd>{money(amounts.fare)}</dd>
         </div>
         <div>
           <dt>{isMockApi ? "Phí hủy 10%" : "Phí hủy theo báo giá"}</dt>
-          <dd>{money(amounts.fee)}</dd>
+          <dd>{amounts.fee === null ? "—" : money(amounts.fee)}</dd>
         </div>
         <div>
-          <dt>Bạn sẽ được hoàn</dt>
-          <dd>{money(amounts.refund)}</dd>
-        </div>
-        <div>
-          <dt>{isMockApi ? "Hoàn về SePay" : "Tiền hoàn theo chính sách"}</dt>
-          <dd>{money(amounts.refund)}</dd>
+          <dt>Tiền hoàn dự kiến</dt>
+          <dd>{amounts.refund === null ? "—" : money(amounts.refund)}</dd>
         </div>
       </dl>
       <section className="cancellation-page__payment-method">
@@ -401,7 +395,7 @@ function RefundSummary({
             isLoading={isPending}
             onClick={onConfirm}
           >
-            Xác nhận hủy {seats.length} vé
+            Xác nhận hủy {tickets.length} vé
           </Button>
           <Dialog.Close asChild>
             <Button variant="secondary" onClick={onKeep}>
@@ -412,7 +406,7 @@ function RefundSummary({
       ) : (
         <>
           <Button
-            disabled={!seats.length || reviewDisabled}
+            disabled={!tickets.length || reviewDisabled}
             id={reviewTriggerId}
             onClick={onReview}
           >
@@ -443,7 +437,6 @@ function SelectedTicketsReview({
     <section className="cancellation-page__selected-review">
       <div className="cancellation-page__section-heading">
         <h2>Vé được chọn để hủy</h2>
-        <button type="button">Xem chi tiết</button>
       </div>
       <div className="cancellation-page__selected-list">
         {tickets.map((ticket) => (
@@ -488,7 +481,7 @@ function SelectionLeft({
     ]),
   );
   return (
-    <main className="cancellation-page__review-panel">
+    <div className="cancellation-page__review-panel">
       <JourneyCard journey={options.journey} />
       <CancellationSelector
         tickets={options.tickets}
@@ -498,7 +491,7 @@ function SelectionLeft({
       />
       <PolicyCard policyLabel={options.policyLabel} />
       <ConsentNote reviewing={false} seats={[]} />
-    </main>
+    </div>
   );
 }
 
@@ -539,7 +532,7 @@ function ConfirmationView({
         </p>
       )}
       <div className="cancellation-page__grid">
-        <main className="cancellation-page__review-panel">
+        <div className="cancellation-page__review-panel">
           <JourneyCard journey={options.journey} />
           <SelectedTicketsReview
             tickets={chosen}
@@ -548,9 +541,9 @@ function ConfirmationView({
           />
           <PolicyCard policyLabel={options.policyLabel} />
           <ConsentNote reviewing seats={seats} />
-        </main>
+        </div>
         <RefundSummary
-          seats={seats}
+          tickets={chosen}
           amounts={amounts}
           journey={options.journey}
           reviewing
@@ -791,8 +784,8 @@ function CancellationForm({
     if (!isMockApi)
       return {
         fare,
-        fee: quote.data?.fee ?? 0,
-        refund: quote.data?.refundAmount ?? 0,
+        fee: quote.data?.fee ?? null,
+        refund: quote.data?.refundAmount ?? null,
       };
     const fee = Math.round(fare * (options.feeRatePercent / 100));
     return { fare, fee, refund: fare - fee };
@@ -837,7 +830,6 @@ function CancellationForm({
     return (
       <RefundProcessing refund={mutation.data} journey={options.journey} />
     );
-  const seats = chosen.map((ticket) => ticket.seatCode);
   const quoteIssue = quote.error ? cancellationIssue(quote.error) : undefined;
   return (
     <>
@@ -845,7 +837,7 @@ function CancellationForm({
       <div className="cancellation-page__grid">
         <SelectionLeft options={options} selected={selected} toggle={toggle} />
         <RefundSummary
-          seats={seats}
+          tickets={chosen}
           amounts={amounts}
           journey={options.journey}
           reviewing={false}

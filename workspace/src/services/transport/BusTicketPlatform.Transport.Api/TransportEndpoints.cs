@@ -2,6 +2,7 @@ using BusTicketPlatform.BuildingBlocks.AspNetCore.Http;
 using BusTicketPlatform.BuildingBlocks.Errors;
 using BusTicketPlatform.BuildingBlocks.Idempotency;
 using BusTicketPlatform.Transport.Application;
+using BusTicketPlatform.Transport.Infrastructure;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -12,18 +13,17 @@ public static class TransportEndpoints
 {
     public static IEndpointRouteBuilder MapTransportEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapGet("/api/v1/explore/routes", async (HttpContext context, TransportService service) =>
-            Results.Json(await service.ListExploreRoutesAsync(context.RequestAborted), PlatformHttp.Json));
+        endpoints.MapGet("/api/v1/explore/routes", ExploreRoutesAsync);
         endpoints.MapGet("/api/v1/trips", SearchAsync);
         endpoints.MapGet("/api/v1/trips/{tripId:guid}", GetTripAsync);
         endpoints.MapGet("/api/v1/trips/{tripId:guid}/stops", GetStopsAsync);
 
-        var admin = endpoints.MapGroup("/api/v1/admin").RequireAuthorization();
+        var admin = endpoints.MapGroup("/api/v1/admin").RequireAuthorization().AddEndpointFilter(InvalidatePublicCacheAsync);
         admin.MapPost("/organizations", CreateOrgAsync);
         admin.MapGet("/organizations", ListOrgsAsync);
         admin.MapGet("/organizations/{organizationId:guid}", GetOrgAdminAsync);
 
-        var op = endpoints.MapGroup("/api/v1/operator").RequireAuthorization();
+        var op = endpoints.MapGroup("/api/v1/operator").RequireAuthorization().AddEndpointFilter(InvalidatePublicCacheAsync);
         op.MapGet("/organization", GetMyOrgAsync);
         op.MapPatch("/organization", UpdateOrgAsync);
         op.MapGet("/buses", ListBusesAsync);
@@ -53,8 +53,18 @@ public static class TransportEndpoints
         op.MapDelete("/trips/{tripId:guid}", RejectHardDeleteAsync);
 
         endpoints.MapGet("/api/v1/driver/assignments", GetAssignmentsAsync).RequireAuthorization();
-        endpoints.MapPost("/internal/trips/{tripId:guid}/inventory-ready", InventoryReadyAsync);
+        endpoints.MapPost("/internal/trips/{tripId:guid}/inventory-ready", InventoryReadyAsync)
+            .AddEndpointFilter(InvalidatePublicCacheAsync);
         return endpoints;
+    }
+
+    private static async ValueTask<object?> InvalidatePublicCacheAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
+    {
+        var result = await next(context);
+        if (!HttpMethods.IsGet(context.HttpContext.Request.Method)
+            && result is IStatusCodeHttpResult { StatusCode: >= 200 and < 300 })
+            await context.HttpContext.RequestServices.GetRequiredService<PublicTransportCache>().InvalidateAsync(CancellationToken.None);
+        return result;
     }
 
     private static Actor? ActorOf(HttpContext context)
@@ -67,12 +77,40 @@ public static class TransportEndpoints
 
     private static IResult NeedUser(Guid correlationId) => PlatformHttp.Error(PlatformErrors.AuthenticationRequired(), correlationId);
 
-    private static async Task<IResult> SearchAsync(HttpContext context, TransportService service, string? origin, string? destination, DateOnly? departureDate, int passengerCount, long? minPrice, long? maxPrice, TimeOnly? departureTimeFrom, TimeOnly? departureTimeTo, Guid? organizationId, string? busType, Guid? pickupStopId, Guid? dropoffStopId, string? amenities, string? sort, int page = 0, int size = 20)
+    private static async Task<IResult> ExploreRoutesAsync(HttpContext context, TransportService service, PublicTransportCache cache)
+    {
+        var ct = context.RequestAborted;
+        var key = await cache.ResolveKeyAsync("routes", ct);
+        var routes = await cache.ReadAsync<ExploreRouteDto[]>(key, ct);
+        if (routes is null)
+        {
+            routes = (await service.ListExploreRoutesAsync(ct)).ToArray();
+            await cache.WriteAsync(key, routes, TimeSpan.FromSeconds(30), ct);
+        }
+        return Results.Json(routes, PlatformHttp.Json);
+    }
+
+    private static async Task<IResult> SearchAsync(HttpContext context, TransportService service, PublicTransportCache cache, string? origin, string? destination, DateOnly? departureDate, int passengerCount, long? minPrice, long? maxPrice, TimeOnly? departureTimeFrom, TimeOnly? departureTimeTo, Guid? organizationId, string? busType, Guid? pickupStopId, Guid? dropoffStopId, string? amenities, string? sort, int page = 0, int size = 20)
     {
         var amenityList = string.IsNullOrWhiteSpace(amenities) ? null : amenities.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        var result = await service.SearchAsync(
-            new TripSearchQuery(origin, destination, departureDate, passengerCount, minPrice, maxPrice, departureTimeFrom, departureTimeTo, organizationId, busType, pickupStopId, dropoffStopId, amenityList, sort, page, size),
-            context.RequestAborted);
+        var query = new TripSearchQuery(origin, destination, departureDate, passengerCount, minPrice, maxPrice, departureTimeFrom, departureTimeTo, organizationId, busType, pickupStopId, dropoffStopId, amenityList, sort, page, size);
+        var ct = context.RequestAborted;
+        // Keep ad hoc searches and deep pages from filling the shared cache.
+        if (page is < 0 or >= 10 || (context.Request.QueryString.Value?.Length ?? 0) > 1024)
+            return (await service.SearchAsync(query, ct)).ToHttp(context.CorrelationId());
+
+        var key = await cache.ResolveKeyAsync("search:" + PlatformHttp.HashPayload(query), ct);
+        var cached = await cache.ReadAsync<TripPageDto>(key, ct);
+        if (cached is not null && cached.Items.All(trip => trip.DepartureAt > DateTimeOffset.UtcNow))
+            return Results.Json(cached, PlatformHttp.Json);
+
+        var result = await service.SearchAsync(query, ct);
+        if (result.IsSuccess)
+        {
+            var now = DateTimeOffset.UtcNow;
+            var expiresAt = result.Value!.Items.Select(trip => trip.DepartureAt).Append(now.AddSeconds(10)).Min();
+            await cache.WriteAsync(key, result.Value, expiresAt - now, ct);
+        }
         return result.ToHttp(context.CorrelationId());
     }
 

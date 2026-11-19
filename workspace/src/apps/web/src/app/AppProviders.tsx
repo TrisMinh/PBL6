@@ -6,12 +6,8 @@ import {
   useEffect,
 } from "react";
 import { isMockApi } from "@/shared/api/config";
-import { useAccountSession } from "@/features/auth/hooks/useAccountSession";
-
-function SessionLifecycle(): null {
-  useAccountSession();
-  return null;
-}
+import { SessionLifecycle } from "@/features/auth/components/SessionLifecycle";
+import { ApiError } from "@/shared/api/error";
 function DemoHistoryLifecycle({ client }: { client: QueryClient }): null {
   useEffect(() => {
     if (
@@ -43,7 +39,12 @@ export function AppProviders({ children }: PropsWithChildren): ReactElement {
     () =>
       new QueryClient({
         defaultOptions: {
-          queries: { retry: 1, staleTime: 30_000 },
+          queries: {
+            retry: (failures, error) =>
+              failures < 1 &&
+              !(error instanceof ApiError && error.status === 401),
+            staleTime: 30_000,
+          },
           mutations: { retry: 0 },
         },
       }),

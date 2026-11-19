@@ -82,6 +82,7 @@ services:
     environment:
       <<: *api-env
       ConnectionStrings__Transport: Host=postgres;Port=5432;Database=transport;Username=platform;Password=${POSTGRES_PASSWORD:-postgres}
+      ConnectionStrings__Redis: "${REDIS_CONNECTION:-redis:6379}"
     ports:
       - "5082:8080"
 

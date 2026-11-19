@@ -3,6 +3,7 @@ import { z } from "zod";
 const KEY = "blue-api-session";
 const REFRESH_KEY = "blue-api-refresh-attempt";
 const UI_KEY = "blue-mock-session"; // Existing UI subscribers; no mock credentials in live mode.
+export const API_SESSION_EXPIRED = "blue:api-session-expired";
 export const backendSessionSchema = z.object({
   accessToken: z.string().min(1),
   refreshToken: z.string().min(1),
@@ -88,4 +89,10 @@ export function clearApiSession(): void {
       window.sessionStorage.removeItem(key);
   }
   window.dispatchEvent(new StorageEvent("storage", { key: UI_KEY }));
+}
+
+export function expireApiSession(expectedAccessToken: string): void {
+  if (readApiSession()?.accessToken !== expectedAccessToken) return;
+  clearApiSession();
+  window.dispatchEvent(new Event(API_SESSION_EXPIRED));
 }

@@ -1,4 +1,8 @@
 import { z } from "zod";
+import { localDateTime } from "../liveOriginalApi";
+
+export const refundLocalTime = (iso: string): string =>
+  Number.isFinite(Date.parse(iso)) ? localDateTime(iso) : "";
 export const REFUND_STATUSES = {
   pending: "Chờ xử lý",
   processing: "Đang hoàn tiền",
@@ -44,11 +48,12 @@ export function refundLeadLabel(minutes: number): string {
 }
 export const refundRequestSchema = z
   .object({
+    refundId: z.string().optional(),
     bookingCode: z.string().min(1),
     customer: z.string().min(1),
     phone: z.string(),
     bookedTickets: z.number().int().positive(),
-    seats: z.array(z.string()).min(1),
+    seats: z.array(z.string()),
     plate: z.string(),
     vehicleType: z.string(),
     tripCode: z.string(),

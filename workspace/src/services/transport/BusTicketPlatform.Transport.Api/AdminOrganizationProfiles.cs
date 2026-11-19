@@ -21,7 +21,7 @@ public static class AdminOrganizationProfiles
             await using var db = new NpgsqlConnection(options.ConnectionString); await db.OpenAsync(context.RequestAborted);
             return await Read(db, id, context.RequestAborted);
         });
-        group.MapPatch("/{id:guid}/profile", async (Guid id, AdminOrganizationProfile body, HttpContext context, TransportDatabaseOptions options) => {
+        group.MapPatch("/{id:guid}/profile", async (Guid id, AdminOrganizationProfile body, HttpContext context, TransportDatabaseOptions options, PublicTransportCache cache) => {
             if (!context.User.IsInRole("PLATFORM_ADMIN")) return Results.Forbid();
             if (string.IsNullOrWhiteSpace(body.Name) || body.Name.Length > 120 || !System.Net.Mail.MailAddress.TryCreate(body.ContactEmail, out _) || !System.Text.RegularExpressions.Regex.IsMatch(body.ContactPhone,@"^\+?[0-9]{10,15}$") || body.Status is not("active" or "inactive")) return Results.BadRequest();
             if ((body.LegalName?.Length ?? 0) > 160 || (body.TaxId?.Length ?? 0) > 30 || (body.Address?.Length ?? 0) > 240 || (body.ContactName?.Length ?? 0) > 120) return Results.BadRequest();
@@ -35,6 +35,7 @@ public static class AdminOrganizationProfiles
                 metadata.Parameters.AddWithValue("id",id); metadata.Parameters.AddWithValue("data",NpgsqlDbType.Jsonb,JsonSerializer.Serialize(new { legalName=body.LegalName,taxId=body.TaxId,address=body.Address,contactName=body.ContactName })); await metadata.ExecuteNonQueryAsync(context.RequestAborted);
             }
             await transaction.CommitAsync(context.RequestAborted);
+            await cache.InvalidateAsync(CancellationToken.None);
             return await Read(db,id,context.RequestAborted);
         });
     }

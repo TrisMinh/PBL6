@@ -8,6 +8,7 @@ import {
 } from "react-router";
 
 import { GuardLoading } from "@/app/guards/GuardLoading";
+import { useMockSession } from "@/features/auth/hooks/useMockSession";
 import { useBookingDraftHydration } from "@/features/booking/hooks/useBookingDraftHydration";
 import {
   selectBookingSession,
@@ -22,9 +23,14 @@ export function BookingSessionRoute(): ReactElement {
   const location = useLocation();
   const draft = useBookingDraftStore(selectBookingSession);
   const isHydrated = useBookingDraftHydration();
+  const account = useMockSession();
   const nowMs = useSessionClock(draft?.expiresAt);
-  // Live checkout reloads the booking from BE; ownership is enforced by its JWT API.
-  if (!isMockApi && bookingId) return <Outlet />;
+  if (!isMockApi) {
+    if (!account.isHydrated) return <GuardLoading />;
+    if (!account.session) return <Navigate replace to={ROUTES.login} />;
+    // Checkout can reload an existing order from its authenticated API.
+    if (bookingId) return <Outlet />;
+  }
   const hasMatchingRoute =
     draft &&
     (sessionId

@@ -11,6 +11,7 @@
     <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" />
     <PackageReference Include="Microsoft.Extensions.Hosting" />
     <PackageReference Include="Npgsql" />
+    <PackageReference Include="StackExchange.Redis" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="..\..\..\..\..\docs\database\_shared\000_integration_tables.sql" LogicalName="sql.shared" />

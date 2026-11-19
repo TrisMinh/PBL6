@@ -58,7 +58,9 @@ export function useMockSession(): MockSessionState {
     session: null,
     isHydrated: false,
   });
-  const nowMs = useSessionClock(state.session?.expiresAt);
+  const nowMs = useSessionClock(
+    isMockApi ? state.session?.expiresAt : undefined,
+  );
 
   useEffect(() => {
     const hydrate = (): void =>
@@ -72,10 +74,13 @@ export function useMockSession(): MockSessionState {
     return () => window.removeEventListener("storage", onStorage);
   }, []);
 
+  // Live refresh rotates the access token without changing sign-in state.
+  if (!isMockApi) return state;
+
   const session =
     state.session &&
     nowMs !== null &&
-    (!isMockApi || Date.parse(state.session.expiresAt) > nowMs)
+    Date.parse(state.session.expiresAt) > nowMs
       ? state.session
       : null;
   return { session, isHydrated: state.isHydrated && nowMs !== null };

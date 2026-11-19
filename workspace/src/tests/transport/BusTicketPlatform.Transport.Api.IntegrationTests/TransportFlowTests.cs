@@ -4,6 +4,8 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using BusTicketPlatform.Transport.Domain;
 using BusTicketPlatform.Transport.Infrastructure;
+using BusTicketPlatform.Transport.Application;
+using DotNet.Testcontainers.Builders;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -82,6 +84,44 @@ public sealed class TransportFlowTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var body = await response.Content.ReadFromJsonAsync<JsonElement>();
         Assert.Equal(JsonValueKind.Array, body.GetProperty("items").ValueKind);
+    }
+
+    [Fact]
+    public async Task Public_routes_cache_is_invalidated_after_a_successful_transport_write()
+    {
+        await using var redis = new ContainerBuilder()
+            .WithImage("redis:7-alpine")
+            .WithPortBinding(6379, assignRandomHostPort: true)
+            .WithWaitStrategy(Wait.ForUnixContainer().UntilCommandIsCompleted("redis-cli", "ping"))
+            .Build();
+        await redis.StartAsync();
+        await using var factory = _fixture.Factory.WithWebHostBuilder(builder =>
+            builder.UseSetting("ConnectionStrings:Redis", $"{redis.Hostname}:{redis.GetMappedPublicPort(6379)}"));
+        using var client = factory.CreateClient();
+        var cache = factory.Services.GetRequiredService<PublicTransportCache>();
+        var oldKey = await cache.ResolveKeyAsync("routes", CancellationToken.None);
+        Assert.NotNull(oldKey);
+
+        Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/api/v1/explore/routes")).StatusCode);
+        Assert.NotNull(await cache.ReadAsync<ExploreRouteDto[]>(oldKey, CancellationToken.None));
+
+        var token = TestJwt.Mint(Guid.CreateVersion7(), [Roles.PlatformAdmin]);
+        var change = await SendAsync(client, HttpMethod.Post, "/api/v1/admin/organizations", new
+        {
+            code = "CACHE" + Guid.NewGuid().ToString("N")[..6].ToUpperInvariant(),
+            name = "Cache test operator",
+            contactEmail = "cache@example.test",
+            contactPhone = "0900000000",
+            expectedVersion = 0
+        }, token, Idempotency());
+        Assert.Equal(HttpStatusCode.Created, change.Response.StatusCode);
+
+        var newKey = await cache.ResolveKeyAsync("routes", CancellationToken.None);
+        Assert.NotNull(newKey);
+        Assert.NotEqual(oldKey, newKey);
+        Assert.Null(await cache.ReadAsync<ExploreRouteDto[]>(newKey, CancellationToken.None));
+        Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/api/v1/explore/routes")).StatusCode);
+        Assert.NotNull(await cache.ReadAsync<ExploreRouteDto[]>(newKey, CancellationToken.None));
     }
 
     [Fact]

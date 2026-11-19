@@ -1,7 +1,6 @@
 import { useBookingDraftStore } from "@/features/booking/store/bookingDraftStore";
 import { isMockApi } from "@/shared/api/config";
-import { logoutApi, refreshAccessToken } from "@/shared/api/client";
-import { readApiSession } from "@/shared/api/session";
+import { logoutApi } from "@/shared/api/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef } from "react";
 
@@ -43,17 +42,5 @@ export function useAccountSession(): MockSessionState & { revoke: () => void } {
     }
     previous.current = state.session?.token;
   }, [state.isHydrated, state.session?.token, state.session, revoke, client]);
-  useEffect(() => {
-    if (isMockApi) return;
-    const session = readApiSession();
-    if (!session) return;
-    const timer = window.setTimeout(
-      () => {
-        void refreshAccessToken().catch(() => undefined);
-      },
-      Math.max(1000, session.expiresAt - Date.now() - 60_000),
-    );
-    return () => window.clearTimeout(timer);
-  }, [state.session?.token]);
   return { ...state, revoke };
 }

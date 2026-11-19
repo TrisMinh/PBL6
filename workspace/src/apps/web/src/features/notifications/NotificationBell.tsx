@@ -14,7 +14,6 @@ import type { ReactElement } from "react";
 
 import { useAccountSession } from "@/features/auth/hooks/useAccountSession";
 import { isMockApi } from "@/shared/api/config";
-import { liveQueryKey } from "@/shared/api/liveRequest";
 
 import {
   listNotifications,
@@ -130,7 +129,7 @@ function LiveNotificationBell(): ReactElement | null {
   const { session } = useAccountSession();
   const client = useQueryClient();
   const enabled = Boolean(session);
-  const queryKey = liveQueryKey("notifications");
+  const queryKey = ["live-api", session?.userId, "notifications"] as const;
 
   const query = useInfiniteQuery({
     queryKey,

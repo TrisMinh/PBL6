@@ -25,6 +25,7 @@ export const refundTrackingSchema = refundRequestSchema
     cancellationValue: z.number().int().nonnegative().nullable(),
     paymentMethod: z.string().nullable(),
     refundReference: z.string().min(1).nullable(),
+    recordedRefundAmount: z.number().int().nonnegative().optional(),
   })
   .refine(
     (v) => v.cancelledTickets <= v.seats.length,

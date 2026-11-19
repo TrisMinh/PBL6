@@ -86,8 +86,10 @@ Services:
 |---|---|---|
 | postgres | 5432 | Six logical databases: identity, transport, booking, payment, notification, reporting |
 | rabbitmq | 5672 / 15672 | vhost `bus-ticket`, topic exchanges from AsyncAPI |
-| redis | 6379 | Booking hold/cache later |
+| redis | 6379 | Shared cache for public Transport search and explore routes |
 | mailpit | 1025 / 8025 | SMTP capture |
+
+Transport caches successful public trip searches for up to 10 seconds and the explore route list for 30 seconds. Search keys include all filters, sorting and pagination. Transport advances the cache generation when relevant API writes succeed and when it processes inventory-ready events. Cache misses and Redis outages fall back to PostgreSQL. The customer web still fetches current seat availability separately from Booking. Docker defaults to `redis:6379`. Set `REDIS_CONNECTION` to override that endpoint. A standalone Transport API uses PostgreSQL directly when `ConnectionStrings:Redis` is unset.
 
 Credentials are local-dev only (`platform` / `postgres` or `.env`). Do not use production secrets.
 
