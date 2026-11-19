@@ -12,6 +12,8 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\workspace\scripts\dev-
 
 Script dùng bản sao riêng mới nhất theo tên nếu có, hoặc dùng ZIP mẫu của repo. Script khởi động PostgreSQL, nạp sáu database rồi build và chạy toàn bộ Docker Compose. Lần nạp đầu cần volume PostgreSQL trống. Nếu cùng bản sao đã được nạp, script dùng lại dữ liệu hiện có. Nếu PostgreSQL có dữ liệu khác, script dừng trước khi nạp.
 
+PostgreSQL của lệnh này dùng mạng nội bộ Docker. Khi cần mở cổng để Power BI gateway trên Windows kết nối, dùng [cấu hình Docker dành cho Power BI](../infra/README.md#báo-cáo-operator-và-power-bi-trên-docker).
+
 Dùng `-BackupPath` để chọn một ZIP cụ thể hoặc `-EnvFile` để truyền cấu hình SePay và Power BI. Chỉ dùng ZIP tin cậy vì bước khôi phục chạy `Restore-PBL6Data.ps1` bên trong. Bản sao dữ liệu từ máy cá nhân được bỏ qua khi commit và cần chuyển riêng nếu muốn khôi phục dữ liệu đó.
 
 - Customer `http://localhost:5173`

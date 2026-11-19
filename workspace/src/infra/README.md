@@ -66,6 +66,8 @@ Stop the stack without removing database volumes with
 `docker compose -f docker-compose.yml -f docker-compose.apps.yml down`.
 
 Or from `workspace/`: `./scripts/dev-docker.ps1`.
+This script runs PostgreSQL on the Compose network only. Host-based tools such
+as the Power BI gateway use the dedicated compose configuration below.
 
 Contract and Sprint 0 backend gates (from `workspace/`):
 

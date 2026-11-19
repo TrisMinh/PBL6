@@ -42,7 +42,7 @@ Push-Location $infra
 try {
     $compose = @('compose')
     if ($EnvFile) { $compose += @('--env-file', $EnvFile) }
-    $compose += @('-f', 'docker-compose.yml')
+    $compose += @('-f', 'docker-compose.yml', '-f', 'docker-compose.internal-postgres.yml')
     $appsCompose = $compose + @('-f', 'docker-compose.apps.yml')
     if ($archive) { $env:DOCKER_CONTEXT = 'desktop-linux' }
     Invoke-Docker @appsCompose config --quiet
