@@ -1,12 +1,17 @@
 #requires -Version 5.1
-[CmdletBinding(DefaultParameterSetName = 'Snapshot')]
+[CmdletBinding(DefaultParameterSetName = 'Default')]
 param(
     [Parameter(ParameterSetName = 'Snapshot')]
     [string]$BackupPath,
+    [Parameter(ParameterSetName = 'Snapshot')]
+    [switch]$RestoreData,
     [Parameter(Mandatory, ParameterSetName = 'Seed')]
     [switch]$SeedOnly,
     [string]$ProjectPath,
-    [string]$EnvFile
+    [string]$EnvFile,
+    [ValidatePattern('^[a-z0-9][a-z0-9_-]*$')]
+    [string]$ProjectName = 'pbl6-operating',
+    [string]$ComposeOverride
 )
 
 $ErrorActionPreference = 'Stop'
@@ -14,7 +19,6 @@ $PSNativeCommandUseErrorActionPreference = $false
 $repoUrl = 'https://github.com/TrisMinh/PBL6.git'
 $branch = 'codex/baseline-sepay-merged-general-fixes'
 $infraPath = 'workspace\src\infra'
-$backupDirectory = 'workspace\src\data-backup'
 
 function Invoke-Checked {
     param([string]$Program, [string[]]$Arguments)
@@ -59,24 +63,16 @@ if (-not $ProjectPath) {
 }
 $ProjectPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($ProjectPath)
 $infra = Join-Path $ProjectPath $infraPath
-$backups = Join-Path $ProjectPath $backupDirectory
 
 if ($EnvFile) {
     $EnvFile = (Get-Item -LiteralPath $EnvFile).FullName
 }
 
-$archive = $null
-if (-not $SeedOnly) {
-    if ($BackupPath) {
-        $archive = Get-Item -LiteralPath $BackupPath
-    } else {
-        $archive = Get-ChildItem -LiteralPath @($PSScriptRoot, $backups) -Filter 'PBL6-data-*.zip' -File -ErrorAction SilentlyContinue |
-            Sort-Object -Property @{ Expression = { $_.Name -ne 'PBL6-data-sample.zip' } }, Name -Descending |
-            Select-Object -First 1
-    }
-    if (-not $archive -or $archive.PSIsContainer -or $archive.Extension -ne '.zip') {
-        throw 'Place the PBL6-data-*.zip snapshot beside the script, pass -BackupPath, or use -SeedOnly.'
-    }
+if ($BackupPath) {
+    $BackupPath = (Get-Item -LiteralPath $BackupPath).FullName
+}
+if ($ComposeOverride) {
+    $ComposeOverride = (Get-Item -LiteralPath $ComposeOverride).FullName
 }
 
 Add-ToolPaths
@@ -131,9 +127,19 @@ try {
         }
     }
 
-    $dockerOptions = @{}
+    $composeVersion = & docker.exe compose version --short
+    if ($LASTEXITCODE -ne 0 -or $composeVersion -notmatch '^v?(\d+\.\d+\.\d+)') {
+        throw 'Docker Compose is unavailable. Repair or update Docker Desktop, then rerun setup.'
+    }
+    if ([version]$Matches[1] -lt [version]'2.24.4') {
+        throw 'Update Docker Desktop to obtain Docker Compose 2.24.4 or newer.'
+    }
+
+    $dockerOptions = @{ ProjectName = $ProjectName }
     if ($EnvFile) { $dockerOptions.EnvFile = $EnvFile }
-    if ($archive) { $dockerOptions.BackupPath = $archive.FullName }
+    if ($BackupPath) { $dockerOptions.BackupPath = $BackupPath }
+    if ($RestoreData) { $dockerOptions.RestoreData = $true }
+    if ($ComposeOverride) { $dockerOptions.ComposeOverride = $ComposeOverride }
     & (Join-Path $ProjectPath 'workspace\scripts\dev-docker.ps1') @dockerOptions
 } finally {
     $env:DOCKER_CONTEXT = $previousContext

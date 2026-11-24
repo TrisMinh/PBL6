@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -9,11 +10,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using BusTicketPlatform.Payment.Application;
 using BusTicketPlatform.Payment.Infrastructure;
+using Xunit.Abstractions;
 
 namespace BusTicketPlatform.Payment.Api.IntegrationTests;
 
 [Collection("PaymentApi")]
-public sealed class SePayFlowTests(PaymentPostgresFixture fixture)
+public sealed class SePayFlowTests(PaymentPostgresFixture fixture, ITestOutputHelper output)
 {
     [Theory]
     [InlineData("http://127.0.0.1:5173", "sandbox", "http://127.0.0.1:5173")]
@@ -214,6 +216,134 @@ public sealed class SePayFlowTests(PaymentPostgresFixture fixture)
         Assert.Equal(scenario == "expired" ? 1 : 0, await Count("refunds", paymentId));
     }
 
+    [Theory]
+    [InlineData("active", "SUCCEEDED")]
+    [InlineData("concurrent", "SUCCEEDED")]
+    [InlineData("expired", "REFUND_PENDING")]
+    [InlineData("outage", "PROCESSING")]
+    public async Task Scheduled_reconciliation_recovers_missing_ipn_without_rechecking_on_two_instances(
+        string scenario, string expectedStatus)
+    {
+        using var primary = fixture.CreateClient();
+        var customer = Guid.NewGuid();
+        var due = await Create(primary, customer);
+        var fresh = await Create(primary);
+        var olderExpired = scenario == "active" ? await Create(primary) : default;
+        var id = due.GetProperty("id").GetGuid();
+        var invoice = due.GetProperty("providerAction").GetProperty("order_invoice_number").GetString()!;
+        var freshInvoice = fresh.GetProperty("providerAction").GetProperty("order_invoice_number").GetString()!;
+        var transactionId = Guid.NewGuid().ToString();
+        var checks = 0;
+        var freshChecks = 0;
+        var lookupStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var releaseLookup = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        await using (var connection = new NpgsqlConnection(fixture.Container.GetConnectionString()))
+        {
+            await connection.OpenAsync();
+            await using var age = new NpgsqlCommand("""
+                UPDATE payments SET created_at = NOW() - INTERVAL '2 minutes',
+                    expires_at = CASE WHEN @expired THEN NOW() - INTERVAL '1 minute' ELSE expires_at END
+                WHERE id = @id
+                """, connection);
+            age.Parameters.AddWithValue("id", id);
+            age.Parameters.AddWithValue("expired", scenario == "expired");
+            await age.ExecuteNonQueryAsync();
+            if (scenario == "active")
+            {
+                await using var expireOlder = new NpgsqlCommand("""
+                    UPDATE payments SET created_at = NOW() - INTERVAL '10 minutes', expires_at = NOW() - INTERVAL '7 minutes'
+                    WHERE id = @id
+                    """, connection);
+                expireOlder.Parameters.AddWithValue("id", olderExpired.GetProperty("id").GetGuid());
+                await expireOlder.ExecuteNonQueryAsync();
+                var store = fixture.Factory.Services.GetRequiredService<ISePayPaymentStore>();
+                Assert.Equal([id], await store.FindDueReconciliationsAsync(1, default));
+            }
+        }
+
+        await using var replica = fixture.Factory.WithWebHostBuilder(builder =>
+        {
+            builder.UseSetting("SePay:AutomaticReconciliationEnabled", scenario == "active" ? "true" : "false");
+            builder.ConfigureTestServices(services =>
+                services.AddHttpClient<ISePayOrderLookup, SePayOrderLookup>().ConfigurePrimaryHttpMessageHandler(() =>
+                new OrderHandler(async request =>
+                {
+                    var requested = request.RequestUri!.Segments[^1];
+                    if (requested == freshInvoice) Interlocked.Increment(ref freshChecks);
+                    if (requested != invoice)
+                        return new HttpResponseMessage(HttpStatusCode.NotFound);
+
+                    Interlocked.Increment(ref checks);
+                    if (scenario == "outage")
+                    {
+                        lookupStarted.TrySetResult();
+                        await releaseLookup.Task.WaitAsync(TimeSpan.FromSeconds(4));
+                    }
+                    if (scenario == "concurrent")
+                    {
+                        using var ipn = await Ipn(primary, Notification(due, transactionId));
+                        Assert.Equal(HttpStatusCode.OK, ipn.StatusCode);
+                    }
+                    return scenario == "outage" ? new HttpResponseMessage(HttpStatusCode.BadGateway)
+                        : new HttpResponseMessage(HttpStatusCode.OK)
+                        {
+                            Content = JsonContent.Create(new { data = new {
+                                order_invoice_number = invoice, order_status = "CAPTURED",
+                                order_amount = "280000", order_currency = "VND",
+                                transactions = new[] { new { id = transactionId, transaction_type = "PAYMENT",
+                                    transaction_status = "APPROVED", transaction_amount = "280000", transaction_currency = "VND" } }
+                            } })
+                        };
+                })));
+        });
+        using var replicaClient = replica.CreateClient();
+        if (scenario == "active")
+        {
+            using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(24));
+            while (await Status(id) == "PROCESSING")
+                await Task.Delay(100, deadline.Token);
+        }
+        else
+        {
+            await using var secondReplica = replica.WithWebHostBuilder(_ => { });
+            var first = replica.Services.GetRequiredService<SePayReconciliation>();
+            var second = secondReplica.Services.GetRequiredService<SePayReconciliation>();
+            if (scenario == "outage")
+            {
+                var running = first.CheckDueAsync(default);
+                try
+                {
+                    await lookupStarted.Task.WaitAsync(TimeSpan.FromSeconds(4));
+                    var manual = await second.CheckAsync(customer, id, Guid.NewGuid(), default);
+                    Assert.Equal("RATE_LIMITED", manual.Error?.Code);
+                    await second.CheckDueAsync(default);
+                }
+                finally
+                {
+                    releaseLookup.TrySetResult();
+                    await running;
+                }
+            }
+            else
+            {
+                await Task.WhenAll(first.CheckDueAsync(default), second.CheckDueAsync(default));
+            }
+        }
+
+        Assert.Equal(1, checks);
+        Assert.Equal(0, freshChecks);
+        Assert.Equal(expectedStatus, await Status(id));
+        Assert.Equal("PROCESSING", await Status(fresh.GetProperty("id").GetGuid()));
+        if (scenario != "outage")
+        {
+            using var lateIpn = await Ipn(primary, Notification(due, transactionId));
+            Assert.Equal(HttpStatusCode.OK, lateIpn.StatusCode);
+            Assert.Equal(1, await Count("webhook_receipts", id));
+        }
+        Assert.Equal(expectedStatus == "SUCCEEDED" ? 1 : 0, await Count("outbox_messages", id, "PaymentSucceeded"));
+        Assert.Equal(scenario == "expired" ? 1 : 0, await Count("refunds", id));
+    }
+
     private sealed class OrderHandler(Func<HttpRequestMessage, Task<HttpResponseMessage>> respond) : HttpMessageHandler
     {
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) =>
@@ -320,13 +450,20 @@ public sealed class SePayFlowTests(PaymentPostgresFixture fixture)
     {
         var client = fixture.CreateClient(); var payment = await Create(client); var id = payment.GetProperty("id").GetGuid();
         var notification = Notification(payment, Guid.NewGuid().ToString());
-        var results = await Task.WhenAll(Enumerable.Range(0, 8).Select(_ => Ipn(client, notification)));
+        var results = await Task.WhenAll(Enumerable.Range(0, 8).Select(async _ =>
+        {
+            var started = Stopwatch.GetTimestamp();
+            var result = await Ipn(client, notification);
+            return (result.StatusCode, Elapsed: Stopwatch.GetElapsedTime(started).TotalMilliseconds);
+        }));
         Assert.All(results, result => Assert.Equal(HttpStatusCode.OK, result.StatusCode));
+        output.WriteLine($"SePay IPN p95 ({results.Length} duplicate deliveries): {results.Max(result => result.Elapsed):F0} ms");
         Assert.Equal("SUCCEEDED", await Status(id));
         Assert.Equal(1, await Count("webhook_receipts", id));
         Assert.Equal(1, await Count("booking_settlements", id));
         Assert.Equal(1, await Count("outbox_messages", id, "PaymentSucceeded"));
         Assert.Equal(2, await Count("outbox_messages", id, "RevenueMovementRecorded"));
+        Assert.Equal(1, await Count("outbox_messages", id, "PaymentBookingLinked"));
     }
 
     [Fact]

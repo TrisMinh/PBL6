@@ -1,21 +1,48 @@
 # Dữ liệu PostgreSQL local
 
-Repo có sẵn `PBL6-data-sample.zip`, tạo từ các migration và seed trong `docs/database` trên một PostgreSQL 17 mới. ZIP chứa sáu database (Identity, Transport, Booking, Payment, Notification và Reporting), checksum và script `Restore-PBL6Data.ps1`. Bộ seed có bốn tài khoản `example.test`, nhà xe, tuyến, chuyến và ghế mẫu.
+Setup mặc định khởi tạo project Docker `pbl6-operating` và nạp dữ liệu vận hành giả lập vào sáu database. Repo giữ `PBL6-data-sample.zip` để khôi phục bộ seed kỹ thuật khi cần tái hiện ca kiểm thử cũ.
 
-## Build Docker và nạp data sau khi clone
+## Setup một lệnh trên Windows
 
-Mở Docker Desktop ở chế độ Linux containers và chạy tại gốc repo:
+Giải nén gói mã nguồn đầy đủ hoặc lấy đúng phiên bản repo, rồi chạy từ thư mục chứa `Setup-PBL6.ps1`.
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\workspace\scripts\dev-docker.ps1 -RestoreData
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Setup-PBL6.ps1
 ```
 
-Script dùng bản sao riêng mới nhất theo tên nếu có, hoặc dùng ZIP mẫu của repo. Script khởi động PostgreSQL, nạp sáu database rồi build và chạy toàn bộ Docker Compose. Lần nạp đầu cần volume PostgreSQL trống. Nếu cùng bản sao đã được nạp, script dùng lại dữ liệu hiện có. Nếu PostgreSQL có dữ liệu khác, script dừng trước khi nạp.
+Trên máy đã có Docker Desktop, lệnh kiểm tra Linux engine, phiên bản Compose và các tệp nguồn trước khi build. Docker tải các image và thư viện build còn thiếu. .NET, Node.js, pnpm và PostgreSQL chạy trong Docker. Script đợi các dịch vụ khởi động, nạp bộ dữ liệu vận hành vào sáu database và kiểm tra Gateway cùng ba cổng web. Nếu Docker Desktop cần hoàn tất thiết lập hoặc khởi động lại Windows, chạy lại cùng lệnh sau khi hoàn tất.
 
-PostgreSQL của lệnh này dùng mạng nội bộ Docker. Khi cần mở cổng để Power BI gateway trên Windows kết nối, dùng [cấu hình Docker dành cho Power BI](../infra/README.md#báo-cáo-operator-và-power-bi-trên-docker).
+Chạy lại để build và cập nhật dịch vụ trên volume hiện có. Bộ dữ liệu đã nạp thành công được nhận diện và bỏ qua. Nếu nạp bị gián đoạn, script tiếp tục với cùng mốc lịch.
 
-Dùng `-BackupPath` để chọn một ZIP cụ thể hoặc `-EnvFile` để truyền cấu hình SePay và Power BI. Chỉ dùng ZIP tin cậy vì bước khôi phục chạy `Restore-PBL6Data.ps1` bên trong. Bản sao dữ liệu từ máy cá nhân được bỏ qua khi commit và cần chuyển riêng nếu muốn khôi phục dữ liệu đó.
+Nếu Docker đang chạy project cũ `pbl6-local` trên cùng cổng, dừng project đó trong Docker Desktop rồi chạy setup. Volume của project cũ vẫn giữ nguyên.
+
+PostgreSQL, Redis và RabbitMQ dùng mạng nội bộ Docker. Các cổng web của setup mặc định chỉ mở trên localhost. Nếu cần truy cập PostgreSQL từ Power BI gateway trên Windows, dùng [cấu hình Docker dành cho Power BI](../infra/README.md#báo-cáo-operator-và-power-bi-trên-docker).
+
+Để khôi phục snapshot cũ vào volume riêng, dùng `-ProjectName pbl6-legacy -RestoreData` hoặc thay `-RestoreData` bằng `-BackupPath` với đường dẫn ZIP. Các project dùng cùng cổng localhost cần chạy lần lượt. Nếu database dịch vụ đã có bảng, setup giữ dữ liệu đó và tiếp tục. Chỉ dùng ZIP tin cậy vì bước khôi phục chạy `Restore-PBL6Data.ps1` bên trong. Thêm `-EnvFile` nếu cần SePay Sandbox hoặc Power BI nhúng.
 
 - Customer `http://localhost:5173`
 - Operator `http://localhost:5174`
 - Admin `http://localhost:5175`
+
+## Dữ liệu vận hành quy mô lớn
+
+Bộ dữ liệu được nạp tự động qua `Setup-PBL6.ps1` hoặc `workspace/scripts/dev-docker.ps1`. Để chạy riêng bộ nạp sau khi stack đã khởi động và các service đã áp dụng migration, dùng lệnh sau.
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\workspace\scripts\load-operating-demo.ps1
+```
+
+Dữ liệu giả lập gồm 16 nhà xe, 12.000 khách, 320 xe, 320 hồ sơ tài xế, 96 tuyến hai chiều theo từng nhà xe và hơn 11.000 chuyến. Lịch tính theo giờ Việt Nam, từ 90 ngày trước đến 30 ngày sau lần nạp đầu tiên. Lịch sử có đặt một hoặc nhiều ghế, trả trước và trả tại nhà xe, vé có mã QR, check-in, hủy vé, hoàn tiền, bảng kê doanh thu và đối soát tuần.
+
+| Cổng | Tài khoản | Mật khẩu |
+|---|---|---|
+| Customer | `customer.00001@demo.blue.example.test` | `CustomerPass1` |
+| Operator · Hải Vân Lam | `operator.01@demo.blue.example.test` | `CustomerPass1` |
+| Operator · Cánh Buồm Sông Hàn | `operator.02@demo.blue.example.test` | `CustomerPass1` |
+| Operator · Đường Mây Kinh Bắc | `operator.03@demo.blue.example.test` | `CustomerPass1` |
+| Operator · Tài chính Hải Vân Lam | `finance.01@demo.blue.example.test` | `CustomerPass1` |
+| Admin | `admin@demo.blue.example.test` | `CustomerPass1` |
+
+Trong Customer, mở **Vé của tôi** để xem lịch sử hoặc tìm **Đà Nẵng → Huế** trong 30 ngày sau lần nạp. Trong Operator, mở lịch chuyến, danh sách hành khách, báo cáo và đối soát của Hải Vân Lam. Trong Admin, tìm các nhà xe có mã `DEMO01` đến `DEMO16`.
+
+Script chỉ nạp vào PostgreSQL của Docker local. Bản ghi được tạo bằng định danh cố định và lệnh nạp thêm giữ dữ liệu hiện có. Nếu quá trình bị ngắt, chạy lại cùng lệnh để tiếp tục với mốc lịch cũ. Thêm `-DryRun` để chạy các phép kiểm tra và rollback từng database. Tài khoản, giấy phép, biển số, chứng từ và thông báo đều giả lập. Dữ liệu lịch sử không gửi thông báo hoặc tạo giao dịch với nhà cung cấp thanh toán. Các đơn mới tạo qua giao diện dùng cấu hình thanh toán của stack đang chạy.

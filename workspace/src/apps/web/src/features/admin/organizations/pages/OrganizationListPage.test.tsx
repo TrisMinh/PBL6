@@ -165,10 +165,9 @@ describe("OrganizationListPage", () => {
     await waitFor(() =>
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
     );
-    expect(screen.getByText("Đã tạo tổ chức.")).toHaveAttribute(
-      "role",
-      "status",
-    );
+    expect(
+      screen.getByText("Đã tạo tổ chức.").closest(".app-toast"),
+    ).toHaveAttribute("role", "status");
     expect(invalidate).toHaveBeenCalledWith({
       queryKey: ["admin", "organizations"],
     });

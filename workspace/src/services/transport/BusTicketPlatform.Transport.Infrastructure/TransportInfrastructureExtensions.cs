@@ -5,6 +5,7 @@ using BusTicketPlatform.Transport.Infrastructure.Persistence;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Npgsql;
 
 namespace BusTicketPlatform.Transport.Infrastructure;
 
@@ -13,9 +14,13 @@ public static class TransportInfrastructureExtensions
     public static IServiceCollection AddTransportInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddSingleton<PublicTransportCache>();
+        var connectionString = configuration.GetConnectionString(TransportDatabaseOptions.ConnectionStringName);
+        var connection = string.IsNullOrWhiteSpace(connectionString) ? null : new NpgsqlConnectionStringBuilder(connectionString);
+        if (connection is not null && !connection.ShouldSerialize("MaxPoolSize"))
+            connection.MaxPoolSize = 24;
         var options = new TransportDatabaseOptions
         {
-            ConnectionString = configuration.GetConnectionString(TransportDatabaseOptions.ConnectionStringName) ?? ""
+            ConnectionString = connection?.ConnectionString ?? ""
         };
         services.AddSingleton(options);
         services.AddSingleton<SqlBaselineMigrator>();

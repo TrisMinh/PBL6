@@ -25,6 +25,9 @@ public sealed class SqlBaselineMigrator(BookingDatabaseOptions options)
         await ApplyFileAsync(connection, "sql.booking", "001_initial.sql", cancellationToken);
         await ApplyFileAsync(connection, "sql.coupons", "002_coupons.sql", cancellationToken);
         await ApplyFileAsync(connection, "sql.booking-analytics", "003_operator_booking_analytics.sql", cancellationToken);
+        await ApplyFileAsync(connection, "sql.revenue-booking-context", "004_revenue_booking_context.sql", cancellationToken);
+        await ApplyFileAsync(connection, "sql.booking-admin-lookup", "005_admin_lookup.sql", cancellationToken);
+        await ApplyFileAsync(connection, "sql.booking-operator-paging", "006_operator_booking_paging.sql", cancellationToken);
     }
 
     private static async Task ApplyFileAsync(

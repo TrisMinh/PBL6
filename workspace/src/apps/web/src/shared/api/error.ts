@@ -54,3 +54,27 @@ export async function responseError(response: Response): Promise<ApiError> {
     nested.details,
   );
 }
+
+export function publicActionError(error: unknown): string {
+  if (error instanceof ApiError) {
+    switch (error.status) {
+      case 400:
+      case 422:
+        return "Thông tin chưa hợp lệ. Vui lòng kiểm tra lại.";
+      case 401:
+        return "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.";
+      case 403:
+        return "Bạn không có quyền thực hiện thao tác này.";
+      case 404:
+        return "Không tìm thấy dữ liệu cần xử lý.";
+      case 409:
+        return "Dữ liệu đã thay đổi hoặc xung đột. Vui lòng kiểm tra lại.";
+      case 429:
+        return "Bạn thao tác quá nhanh. Vui lòng thử lại sau.";
+      default:
+        if (error.status >= 500)
+          return "Dịch vụ đang bận. Vui lòng thử lại sau.";
+    }
+  }
+  return "Không thể thực hiện thao tác. Vui lòng thử lại.";
+}

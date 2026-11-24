@@ -168,7 +168,9 @@ describe("StaffDetailPage", () => {
     expect(invalidate).toHaveBeenCalledWith({
       queryKey: ["admin", "memberships"],
     });
-    expect(screen.getByText("Đã cập nhật nhân viên.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Đã cập nhật nhân viên.").closest(".app-toast"),
+    ).toHaveAttribute("role", "status");
   });
 
   it("manages platform support role without creating an operator membership", async () => {

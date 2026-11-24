@@ -24,6 +24,7 @@ public sealed class SqlBaselineMigrator(ReportingDatabaseOptions options)
         await ApplyFileAsync(connection, "sql.shared", "000_integration_tables.sql", cancellationToken);
         await ApplyFileAsync(connection, "sql.reporting", "001_initial.sql", cancellationToken);
         await ApplyFileAsync(connection, "sql.revenue-analytics", "002_revenue_analytics.sql", cancellationToken);
+        await ApplyFileAsync(connection, "sql.revenue-by-booking", "003_revenue_by_booking.sql", cancellationToken);
     }
 
     private static async Task ApplyFileAsync(

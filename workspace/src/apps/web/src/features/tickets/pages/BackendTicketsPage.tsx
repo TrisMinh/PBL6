@@ -1,3 +1,4 @@
+import { Toast } from "@/shared/ui/Toast/Toast";
 import { livePaymentPath } from "@/features/payment/checkoutAction";
 import type { ReactElement } from "react";
 import { useSessionClock } from "@/shared/lib/useSessionClock";
@@ -53,7 +54,9 @@ export function BackendTicketsPage(): ReactElement {
             label: "Thanh toán",
             render: (row) =>
               row.status === "PENDING_PAYMENT" ? (
-                <Link to={livePaymentPath(String(row.id))}>Tiếp tục thanh toán</Link>
+                <Link to={livePaymentPath(String(row.id))}>
+                  Tiếp tục thanh toán
+                </Link>
               ) : (
                 "—"
               ),
@@ -101,10 +104,10 @@ export function BackendTicketDetailPage(): ReactElement {
       const trip = await getBackendTrip(ticket.tripId, signal);
       return { ticket, trip };
     },
-    enabled: z.string().uuid().safeParse(ticketCode).success,
+    enabled: z.guid().safeParse(ticketCode).success,
     retry: false,
   });
-  if (!z.string().uuid().safeParse(ticketCode).success)
+  if (!z.guid().safeParse(ticketCode).success)
     return (
       <section className="live-api">
         <h1>Chi tiết vé</h1>
@@ -196,7 +199,7 @@ export function BackendCancellationPage(): ReactElement {
       }
       return { booking, tickets };
     },
-    enabled: z.string().uuid().safeParse(bookingCode).success,
+    enabled: z.guid().safeParse(bookingCode).success,
     retry: false,
   });
   const preview = useMutation({
@@ -233,7 +236,7 @@ export function BackendCancellationPage(): ReactElement {
     },
   });
   const now = useSessionClock(preview.data?.expiresAt);
-  if (!z.string().uuid().safeParse(bookingCode).success)
+  if (!z.guid().safeParse(bookingCode).success)
     return <p role="alert">Vui lòng mở chức năng hủy từ vé trong tài khoản.</p>;
   return (
     <section className="live-api">
@@ -307,13 +310,10 @@ export function BackendCancellationPage(): ReactElement {
           )}
         </>
       )}
-      {preview.isError && <ApiFailure error={preview.error} />}
-      {cancel.isError && <ApiFailure error={cancel.error} />}
+      {preview.isError && <ApiFailure error={preview.error} popup />}
+      {cancel.isError && <ApiFailure error={cancel.error} popup />}
       {cancel.isSuccess && (
-        <p role="status">
-          Yêu cầu hủy đã được tiếp nhận. Việc hoàn tiền sẽ được xử lý theo trạng
-          thái của hệ thống.
-        </p>
+        <Toast message="Yêu cầu hủy đã được tiếp nhận. Việc hoàn tiền sẽ được xử lý theo trạng thái của hệ thống." />
       )}
       <Link to="/account/tickets">Vé của tôi</Link>
     </section>

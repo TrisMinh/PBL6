@@ -9,6 +9,9 @@ export const scheduleTripSchema = z
     date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     departure: z.string().regex(/^\d{2}:\d{2}$/),
     arrival: z.string().regex(/^\d{2}:\d{2}$/),
+    arrivalDate: z.string().optional(),
+    pickupStops: z.array(z.string()).optional(),
+    dropoffStops: z.array(z.string()).optional(),
     vehicleLabel: z.string(),
     crew: z.string(),
     photo: driverAttachmentSchema.optional(),
@@ -30,9 +33,24 @@ export const scheduleTripSchema = z
       "scheduled",
       "draft",
       "departed",
+      "in_transit",
+      "arrived",
       "completed",
       "cancelled",
     ]),
+    scheduleStatus: z
+      .enum([
+        "draft",
+        "scheduled",
+        "boarding",
+        "departed",
+        "in_transit",
+        "arrived",
+        "completed",
+        "cancelled",
+        "needs_update",
+      ])
+      .optional(),
     assignment: z.enum(["complete", "missing", "conflict"]),
   })
   .strict();
@@ -41,6 +59,7 @@ export const scheduleResponseSchema = z
   .strict();
 export type ScheduleTrip = z.infer<typeof scheduleTripSchema>;
 export interface ScheduleCriteria {
+  scope?: "active" | "history" | "all";
   origin?: string;
   destination?: string;
   date?: string;

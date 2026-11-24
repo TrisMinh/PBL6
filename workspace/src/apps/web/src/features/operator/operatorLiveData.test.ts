@@ -158,31 +158,31 @@ it("reads backend driver records with international phone and legacy license for
 });
 
 it("paid bookings are confirmed and paid, and the unbounded range includes historical records", async () => {
-  api.rows.mockImplementation(async (path) =>
-    path.endsWith("/bookings")
-      ? [
-          {
-            id: "booking",
-            code: "BK",
-            tripId: "trip",
-            status: "PAID",
-            paymentChannel: "PREPAID",
-            total: 100000,
-            createdAt: "2025-01-01T00:00:00Z",
-            contact: { fullName: "Passenger", phone: "0901234567" },
-            items: [{ seatId: "seat" }],
-          },
-        ]
-      : [
-          {
-            id: "trip",
-            departureAt: "2026-11-17T01:00:00Z",
-            origin: "A",
-            destination: "B",
-          },
-        ],
-  );
-  api.request.mockResolvedValue({ seats: [{ id: "seat", code: "A01" }] });
+  api.request.mockResolvedValue({
+    totalElements: 42,
+    items: [
+      {
+        id: "booking",
+        code: "BK",
+        tripId: "trip",
+        status: "PAID",
+        paymentChannel: "PREPAID",
+        total: 100000,
+        createdAt: "2025-01-01T00:00:00Z",
+        contact: { fullName: "Passenger", phone: "0901234567" },
+        items: [{ seatId: "seat" }],
+        seatCodes: ["A01"],
+      },
+    ],
+  });
+  api.rows.mockResolvedValue([
+    {
+      id: "trip",
+      departureAt: "2026-11-17T01:00:00Z",
+      origin: "A",
+      destination: "B",
+    },
+  ]);
   const result = await getOperatorBookings(
     bookingFiltersSchema.parse({
       from: "",
@@ -191,7 +191,17 @@ it("paid bookings are confirmed and paid, and the unbounded range includes histo
       payment: "paid",
     }),
   );
-  expect(result.total).toBe(1);
+  expect(result.total).toBe(42);
+  expect(api.request).toHaveBeenCalledExactlyOnceWith(
+    "/api/v1/operator/bookings?page=0&size=10&operatorStatus=confirmed&operatorPayment=paid",
+    "GET",
+    undefined,
+    undefined,
+  );
+  expect(api.rows).toHaveBeenCalledExactlyOnceWith(
+    "/api/v1/operator/trips?tripId=trip",
+    undefined,
+  );
   expect(result.items[0]).toMatchObject({
     status: "confirmed",
     payment: "paid",

@@ -219,7 +219,7 @@ function PowerBI({ active }: { active: boolean }): ReactElement {
             Tải báo cáo mẫu (.pbix)
           </a>
           <a href="/analytics/operator-dashboard.zip" download>
-            Tải dự án để chỉnh sửa (.zip)
+            Tải dự án có chi tiết đơn hàng (.zip)
           </a>
         </div>
       </details>
@@ -372,9 +372,9 @@ export function OperatorRevenuePage(): ReactElement {
     retry: false,
   });
   const prior = useQuery({
-    queryKey: liveQueryKey("operator-revenue", comparison.from, comparison.to),
+    queryKey: liveQueryKey("operator-revenue", comparison.from, comparison.to, false),
     queryFn: ({ signal }) => fetchRevenue(comparison, signal),
-    enabled: enabled && finance && !allTime && current.isSuccess,
+    enabled: enabled && finance && !allTime,
     retry: false,
   });
   const comparisonReady = !allTime && prior.isSuccess;

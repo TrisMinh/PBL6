@@ -9,13 +9,45 @@ namespace BusTicketPlatform.Payment.Infrastructure.Persistence;
 
 public sealed partial class PaymentRepository
 {
-    public async Task<bool> TryStartReconciliationAsync(Guid paymentId, CancellationToken cancellationToken)
+    private const string ReconciliationStatuses =
+        "provider = 'SEPAY' AND status IN ('PENDING', 'PROCESSING', 'FAILED', 'CANCELLED')";
+
+    private const string AutomaticReconciliationDue = """
+        created_at <= NOW() - INTERVAL '1 minute'
+        AND expires_at > NOW() - INTERVAL '1 day'
+        AND (sepay_checked_at IS NULL OR sepay_checked_at <= NOW() - CASE
+            WHEN expires_at > NOW() THEN INTERVAL '1 minute'
+            WHEN expires_at > NOW() - INTERVAL '1 hour' THEN INTERVAL '10 minutes'
+            ELSE INTERVAL '4 hours'
+        END)
+        """;
+
+    public async Task<IReadOnlyList<Guid>> FindDueReconciliationsAsync(int limit, CancellationToken cancellationToken)
     {
         await using var connection = await OpenAsync(cancellationToken);
-        await using var command = new NpgsqlCommand("""
+        await using var command = new NpgsqlCommand($"""
+            SELECT id FROM payments
+            WHERE {ReconciliationStatuses} AND {AutomaticReconciliationDue}
+            ORDER BY (expires_at <= NOW()), CASE WHEN expires_at > NOW() THEN expires_at END,
+                     COALESCE(sepay_checked_at, created_at), id
+            LIMIT @limit
+            """, connection);
+        command.Parameters.AddWithValue("limit", limit);
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        var due = new List<Guid>(limit);
+        while (await reader.ReadAsync(cancellationToken))
+            due.Add(reader.GetGuid(0));
+        return due;
+    }
+
+    public async Task<bool> TryStartReconciliationAsync(Guid paymentId, bool automatic, CancellationToken cancellationToken)
+    {
+        await using var connection = await OpenAsync(cancellationToken);
+        var due = automatic ? AutomaticReconciliationDue
+            : "(sepay_checked_at IS NULL OR sepay_checked_at <= NOW() - INTERVAL '30 seconds')";
+        await using var command = new NpgsqlCommand($"""
             UPDATE payments SET sepay_checked_at = NOW()
-            WHERE id = @id AND provider = 'SEPAY' AND status IN ('PENDING', 'PROCESSING', 'FAILED', 'CANCELLED')
-                AND (sepay_checked_at IS NULL OR sepay_checked_at <= NOW() - INTERVAL '30 seconds');
+            WHERE id = @id AND {ReconciliationStatuses} AND {due};
             """, connection);
         command.Parameters.AddWithValue("id", paymentId);
         return await command.ExecuteNonQueryAsync(cancellationToken) == 1;

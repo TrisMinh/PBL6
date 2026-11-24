@@ -6,6 +6,8 @@ export const TRIP_LIST_STATUS = {
   conflict: "Có xung đột",
   departing: "Sắp khởi hành",
   departed: "Đã khởi hành",
+  in_transit: "Đang chạy",
+  arrived: "Đã đến nơi",
   completed: "Hoàn thành",
   cancelled: "Đã hủy",
 };
@@ -26,6 +28,8 @@ export const tripListSchema = z.object({
     "conflict",
     "departing",
     "departed",
+    "in_transit",
+    "arrived",
     "completed",
     "cancelled",
   ]),
@@ -43,6 +47,8 @@ export const tripListFiltersSchema = z.object({
       "conflict",
       "departing",
       "departed",
+      "in_transit",
+      "arrived",
       "completed",
       "cancelled",
     ])

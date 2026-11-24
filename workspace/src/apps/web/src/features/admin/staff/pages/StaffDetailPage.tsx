@@ -1,3 +1,4 @@
+import { Toast } from "@/shared/ui/Toast/Toast";
 import { useState, type ReactElement } from "react";
 import { Link, useSearchParams } from "react-router";
 
@@ -223,7 +224,10 @@ function StaffDetailContent({ staff }: { staff: Staff }): ReactElement {
   const saveMembership = useSaveMembership();
   const dialog = useDetailDialog();
   const [searchParams] = useSearchParams();
-  const [notice, setNotice] = useState("");
+  const [notice, setNotice] = useState<{
+    message: string;
+    tone?: "error";
+  } | null>(null);
   const organization = organizations.data?.items.find(
     (item) => item.id === staff.organizationId,
   );
@@ -241,9 +245,12 @@ function StaffDetailContent({ staff }: { staff: Staff }): ReactElement {
           status: staff.status === "active" ? "inactive" : "active",
         },
       });
-      setNotice("Đã cập nhật trạng thái tài khoản.");
+      setNotice({ message: "Đã cập nhật trạng thái tài khoản." });
     } catch {
-      setNotice("Không cập nhật được trạng thái tài khoản. Vui lòng thử lại.");
+      setNotice({
+        message: "Không cập nhật được trạng thái tài khoản. Vui lòng thử lại.",
+        tone: "error",
+      });
     }
   };
   if (organizations.isPending || memberships.isPending)
@@ -277,13 +284,14 @@ function StaffDetailContent({ staff }: { staff: Staff }): ReactElement {
     <StaffDetailView
       dialog={dialog}
       notice={notice}
+      onNoticeClose={() => setNotice(null)}
       organization={organization}
       organizations={organizations}
       staff={displayStaff}
       toggleStatus={toggleStatus}
       membership={membership}
       saveMembership={saveMembership}
-      onMembershipSaved={() => setNotice("Đã cập nhật nhân viên.")}
+      onMembershipSaved={() => setNotice({ message: "Đã cập nhật nhân viên." })}
     />
   );
 }
@@ -291,6 +299,7 @@ function StaffDetailContent({ staff }: { staff: Staff }): ReactElement {
 function StaffDetailView({
   dialog,
   notice,
+  onNoticeClose,
   organization,
   organizations,
   staff,
@@ -300,7 +309,8 @@ function StaffDetailView({
   onMembershipSaved,
 }: {
   dialog: ReturnType<typeof useDetailDialog>;
-  notice: string;
+  notice: { message: string; tone?: "error" } | null;
+  onNoticeClose: () => void;
   organization?: Organization;
   organizations: ReturnType<typeof useStaffOrganizations>;
   staff: Staff;
@@ -328,9 +338,7 @@ function StaffDetailView({
           organizations={organizations.data?.items ?? []}
         />
       )}
-      <p aria-live="polite" className="staff-page__notice" role="status">
-        {notice}
-      </p>
+      {notice && <Toast {...notice} onClose={onNoticeClose} />}
       <EditStaffDialog
         dialog={dialog}
         organizations={organizations}

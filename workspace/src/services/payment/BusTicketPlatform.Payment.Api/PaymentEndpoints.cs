@@ -38,6 +38,20 @@ public static class PaymentEndpoints
         api.MapGet("/refunds/{refundId:guid}", GetRefundAsync);
         api.MapGet("/admin/payments", SearchPaymentsAsync);
         api.MapGet("/admin/refunds", SearchRefundsAsync);
+        api.MapPost("/admin/payments", async (HttpContext context, PaymentService service, FinanceListFilter filter, int page = 0, int size = 20) =>
+        {
+            context.Response.Headers.CacheControl = "no-store";
+            var actor = ActorOf(context);
+            return actor is null ? PlatformHttp.Error(PlatformErrors.AuthenticationRequired(), context.CorrelationId())
+                : (await service.SearchPaymentsAsync(actor, page, size, context.RequestAborted, filter)).ToHttp(context.CorrelationId());
+        });
+        api.MapPost("/admin/refunds", async (HttpContext context, PaymentService service, FinanceListFilter filter, int page = 0, int size = 20) =>
+        {
+            context.Response.Headers.CacheControl = "no-store";
+            var actor = ActorOf(context);
+            return actor is null ? PlatformHttp.Error(PlatformErrors.AuthenticationRequired(), context.CorrelationId())
+                : (await service.SearchAdminRefundsAsync(actor, filter, page, size, context.RequestAborted)).ToHttp(context.CorrelationId());
+        });
         api.MapGet("/operator/refunds", SearchRefundsAsync);
         api.MapGet("/operator/refunds/{refundId:guid}", GetRefundAsync);
         api.MapGet("/operator/settlements", OperatorSettlementsAsync);
@@ -152,16 +166,21 @@ public static class PaymentEndpoints
         return actor is null ? PlatformHttp.Error(PlatformErrors.AuthenticationRequired(), context.CorrelationId()) : (await service.SearchPaymentsAsync(actor, page, size, context.RequestAborted)).ToHttp(context.CorrelationId());
     }
 
-    private static async Task<IResult> SearchRefundsAsync(HttpContext context, PaymentService service, int page = 0, int size = 20)
+    private static async Task<IResult> SearchRefundsAsync(HttpContext context, PaymentService service, int page = 0, int size = 20,
+        Guid? bookingId = null, Guid? paymentId = null, string? status = null, DateOnly? date = null)
     {
         var actor = ActorOf(context);
-        return actor is null ? PlatformHttp.Error(PlatformErrors.AuthenticationRequired(), context.CorrelationId()) : (await service.SearchRefundsAsync(actor, page, size, context.RequestAborted)).ToHttp(context.CorrelationId());
+        return actor is null ? PlatformHttp.Error(PlatformErrors.AuthenticationRequired(), context.CorrelationId())
+            : (await service.SearchRefundsAsync(actor, page, size, context.RequestAborted, bookingId, paymentId, status, date)).ToHttp(context.CorrelationId());
     }
 
-    private static async Task<IResult> OperatorSettlementsAsync(HttpContext context, PaymentService service, int page = 0, int size = 20)
+    private static async Task<IResult> OperatorSettlementsAsync(HttpContext context, PaymentService service, int page = 0, int size = 20, bool export = false)
     {
         var actor = ActorOf(context);
-        return actor is null ? PlatformHttp.Error(PlatformErrors.AuthenticationRequired(), context.CorrelationId()) : (await service.ListSettlementsAsync(actor, false, page, size, context.RequestAborted)).ToHttp(context.CorrelationId());
+        if (actor is null) return PlatformHttp.Error(PlatformErrors.AuthenticationRequired(), context.CorrelationId());
+        return export
+            ? (await service.ListSettlementExportAsync(actor, context.RequestAborted)).ToHttp(context.CorrelationId())
+            : (await service.ListSettlementsAsync(actor, false, page, size, context.RequestAborted)).ToHttp(context.CorrelationId());
     }
 
     private static async Task<IResult> ConfirmSettlementReceiptAsync(HttpContext context, PaymentService service,

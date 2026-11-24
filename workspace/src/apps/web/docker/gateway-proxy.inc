@@ -1,0 +1,10 @@
+proxy_pass $blue_gateway;
+proxy_http_version 1.1;
+proxy_set_header Host $host;
+proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+proxy_set_header X-Forwarded-Proto $scheme;
+proxy_set_header Authorization $http_authorization;
+proxy_set_header Idempotency-Key $http_idempotency_key;
+proxy_set_header X-Correlation-Id $http_x_correlation_id;
+proxy_connect_timeout 5s;
+proxy_read_timeout 60s;

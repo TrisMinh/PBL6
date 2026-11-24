@@ -59,11 +59,12 @@ test("Explore has distinct destination content and keeps province lookup usable"
   await expect(
     page.getByRole("region", { name: "Bến xe khách" }).getByRole("link"),
   ).toHaveCount(4);
+  await expect(page.locator('a[href$="#ben-xe-dia-phuong"]')).toHaveCount(0);
   await expect(
     page.getByRole("region", { name: "Cẩm nang đi xe" }).getByRole("article"),
   ).toHaveCount(3);
   const artwork = page.locator(".explore-landing img");
-  await expect(artwork).toHaveCount(19);
+  await expect(artwork).toHaveCount(15);
   for (const image of await artwork.all()) {
     await image.locator("..").scrollIntoViewIfNeeded();
     await expect
@@ -135,17 +136,10 @@ test("Explore has distinct destination content and keeps province lookup usable"
   ).toBeVisible();
   await page.goBack();
 
-  await page.getByRole("link", { name: /Bến Thông Đà Lạt/ }).click();
-  await expect(page).toHaveURL(/\/explore\/lam-dong#ben-xe-dia-phuong$/);
-  await expect(
-    page.getByRole("heading", { name: "Bến Thông Đà Lạt" }),
-  ).toBeVisible();
-  await page.goBack();
-
-  await page.getByRole("link", { name: /Hướng dẫn thanh toán VNPay/ }).click();
+  await page.getByRole("link", { name: /Hướng dẫn thanh toán SePay/ }).click();
   await expect(page).toHaveURL(/\/offers#thanh-toan$/);
   await expect(
-    page.getByRole("heading", { name: "Thanh toán VNPay" }),
+    page.getByRole("heading", { name: "Thanh toán SePay" }),
   ).toBeVisible();
   await page.goBack();
   await page

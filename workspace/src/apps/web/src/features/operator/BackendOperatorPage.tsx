@@ -52,7 +52,7 @@ function PublishTrip({ row }: { row: ApiRow }): ReactElement {
           Công bố chuyến
         </Button>
       )}
-      {mutation.isError && <ApiFailure error={mutation.error} />}
+      {mutation.isError && <ApiFailure error={mutation.error} popup />}
     </>
   );
 }
@@ -383,7 +383,7 @@ export function BackendManifestPage(): ReactElement {
 /** The route keeps its old :bookingCode parameter for the mock UI; live URLs use a refund UUID. */
 export function BackendOperatorRefundDetailPage(): ReactElement {
   const { bookingCode = "" } = useParams();
-  if (!z.string().uuid().safeParse(bookingCode).success)
+  if (!z.guid().safeParse(bookingCode).success)
     return (
       <section className="live-api">
         <h1>Chi tiết hoàn tiền</h1>

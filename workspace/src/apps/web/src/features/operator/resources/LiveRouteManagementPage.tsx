@@ -199,7 +199,9 @@ export function LiveRouteManagementPage(): ReactElement {
                   </Button>
                 )}
               </footer>
-              {deactivate.isError && <ApiFailure error={deactivate.error} />}
+              {deactivate.isError && (
+                <ApiFailure error={deactivate.error} popup />
+              )}
             </section>
           )}
         </div>

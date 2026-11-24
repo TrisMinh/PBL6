@@ -169,7 +169,26 @@ paths:
       operationId: listUsers
       summary: List platform users in the permitted scope
       x-permission: platform.user.read
-      parameters: [{$ref: '#/components/parameters/Page'}, {$ref: '#/components/parameters/Size'}]
+      parameters:
+        - {$ref: '#/components/parameters/Page'}
+        - {$ref: '#/components/parameters/Size'}
+        - {name: organizationId, in: query, schema: {type: string, format: uuid}}
+        - name: search
+          in: query
+          description: Case-insensitive substring of name, email, or phone.
+          schema: {type: string, maxLength: 254}
+        - name: staffOnly
+          in: query
+          description: Include staff roles only, scoped to the organization when supplied.
+          schema: {type: boolean, default: false}
+        - name: active
+          in: query
+          description: Filter by whether the account is active.
+          schema: {type: boolean}
+        - name: membershipActive
+          in: query
+          description: Filter by whether membership is active. Requires organizationId.
+          schema: {type: boolean}
       responses:
         '200':
           description: User page
@@ -253,9 +272,9 @@ paths:
       summary: Search sellable trips
       security: []
       parameters:
-        - {name: origin, in: query, required: true, schema: {type: string, minLength: 1}}
-        - {name: destination, in: query, required: true, schema: {type: string, minLength: 1}}
-        - {name: departureDate, in: query, required: true, schema: {type: string, format: date}}
+        - {name: origin, in: query, schema: {type: string, minLength: 1}}
+        - {name: destination, in: query, schema: {type: string, minLength: 1}}
+        - {name: departureDate, in: query, schema: {type: string, format: date}}
         - {name: passengerCount, in: query, required: true, schema: {type: integer, minimum: 1, maximum: 10}}
         - {name: minPrice, in: query, schema: {type: integer, format: int64, minimum: 0}}
         - {name: maxPrice, in: query, schema: {type: integer, format: int64, minimum: 0}}
@@ -267,10 +286,32 @@ paths:
         - {name: dropoffStopId, in: query, schema: {$ref: '#/components/schemas/Id'}}
         - {name: amenities, in: query, schema: {type: array, uniqueItems: true, maxItems: 20, items: {type: string, minLength: 1, maxLength: 50}}, style: form, explode: false}
         - {name: sort, in: query, schema: {$ref: '#/components/schemas/TripSort'}}
+        - name: cards
+          in: query
+          description: Returns compact card data for all matching trips with stops grouped by route. Page and size apply to the default representation.
+          schema: {type: boolean, default: false}
         - {$ref: '#/components/parameters/Page'}
         - {$ref: '#/components/parameters/Size'}
       responses:
-        '200': {description: Trip page, content: {application/json: {schema: {$ref: '#/components/schemas/TripPage'}}}}
+        '200':
+          description: Trip page, or compact card data when cards is true
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - {$ref: '#/components/schemas/TripPage'}
+                  - {$ref: '#/components/schemas/TripCards'}
+        default: {$ref: '#/components/responses/Error'}
+  /trips/details:
+    get:
+      tags: [Trips]
+      operationId: getPublicTripDetailsBatch
+      summary: Read public trip details for known trip IDs
+      security: []
+      parameters:
+        - {name: ids, in: query, required: true, style: form, explode: false, schema: {type: array, minItems: 1, maxItems: 100, items: {$ref: '#/components/schemas/Id'}}}
+      responses:
+        '200': {description: Existing public trip details, content: {application/json: {schema: {type: array, items: {$ref: '#/components/schemas/Trip'}}}}}
         default: {$ref: '#/components/responses/Error'}
   /trips/{tripId}:
     parameters: [{$ref: '#/components/parameters/TripId'}]
@@ -350,6 +391,16 @@ paths:
       parameters: [{$ref: '#/components/parameters/Page'}, {$ref: '#/components/parameters/Size'}]
       responses:
         '200': {description: Booking page, content: {application/json: {schema: {$ref: '#/components/schemas/BookingPage'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /bookings/by-code/{code}:
+    get:
+      tags: [Booking]
+      operationId: getMyBookingByCode
+      summary: Read an owned booking by its public code
+      parameters:
+        - {name: code, in: path, required: true, schema: {type: string, minLength: 1, maxLength: 80}}
+      responses:
+        '200': {description: Owned booking, content: {application/json: {schema: {$ref: '#/components/schemas/Booking'}}}}
         default: {$ref: '#/components/responses/Error'}
   /bookings/{bookingId}:
     parameters: [{$ref: '#/components/parameters/BookingId'}]
@@ -479,6 +530,25 @@ paths:
       summary: Get an owned ticket
       responses:
         '200': {description: Ticket, content: {application/json: {schema: {$ref: '#/components/schemas/Ticket'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /tickets/my-lookup:
+    post:
+      tags: [Tickets]
+      operationId: findMyTicketsByCode
+      summary: Find owned tickets by exact ticket or booking code
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code]
+              properties:
+                code: {type: string, minLength: 1, maxLength: 80}
+      responses:
+        '200':
+          description: Matching tickets without QR payload; empty for unknown or unowned codes.
+          content: {application/json: {schema: {type: array, items: {$ref: '#/components/schemas/Ticket'}}}}
         default: {$ref: '#/components/responses/Error'}
   /tickets/validate:
     post:
@@ -717,9 +787,23 @@ paths:
       operationId: listOperatorTrips
       summary: List trips in the current organization
       x-permission: tenant.trip.read
-      parameters: [{$ref: '#/components/parameters/Page'}, {$ref: '#/components/parameters/Size'}]
+      parameters:
+        - {$ref: '#/components/parameters/Page'}
+        - {$ref: '#/components/parameters/Size'}
+        - name: tripId
+          in: query
+          description: Optional repeated trip IDs, restricted to the current organization.
+          schema: {type: array, maxItems: 100, items: {type: string, format: uuid}}
+        - {name: manifest, in: query, description: Compact trip data for the active operator's passenger list., schema: {type: boolean, default: false}}
       responses:
-        '200': {description: Trips, content: {application/json: {schema: {$ref: '#/components/schemas/TripPage'}}}}
+        '200':
+          description: Default page or the requested collection
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - {$ref: '#/components/schemas/TripPage'}
+                  - {type: array, items: {$ref: '#/components/schemas/ManifestTrip'}}
         default: {$ref: '#/components/responses/Error'}
     post:
       tags: [Operator]
@@ -804,15 +888,164 @@ paths:
       responses:
         '200': {description: Assignments, content: {application/json: {schema: {type: array, items: {$ref: '#/components/schemas/DriverAssignment'}}}}}
         default: {$ref: '#/components/responses/Error'}
+  /trips/availability:
+    post:
+      tags: [Booking]
+      operationId: listPublicTripAvailabilityBatch
+      summary: Read current available seat counts for up to 1000 trip IDs in one request
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [tripIds]
+              properties:
+                tripIds: {type: array, minItems: 1, maxItems: 1000, items: {type: string, format: uuid}}
+      responses:
+        '200':
+          description: Available seats keyed by trip ID
+          content: {application/json: {schema: {type: object, additionalProperties: {type: integer, minimum: 0}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /operator/trips/assignment-availability:
+    post:
+      tags: [Operator]
+      operationId: listAvailableTripAssignments
+      summary: List eligible vehicles and drivers for every selected occurrence
+      x-permission: tenant.trip.manage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [departureAt, arrivalAt]
+              properties:
+                departureAt: {type: string, format: date-time}
+                arrivalAt: {type: string, format: date-time}
+                endDate: {type: string, format: date, description: Inclusive end of a recurring schedule in Vietnam time.}
+                weekdays: {type: array, items: {type: integer, minimum: 0, maximum: 6}, description: Required with endDate. Sunday is 0.}
+      responses:
+        '200':
+          description: IDs in the caller's organization. Conflicts include one hour before and after each trip.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [busIds, driverIds]
+                properties:
+                  busIds: {type: array, items: {type: string, format: uuid}}
+                  driverIds: {type: array, items: {type: string, format: uuid}}
+        default: {$ref: '#/components/responses/Error'}
+  /operator/trips/schedule:
+    get:
+      tags: [Operator]
+      operationId: listOperatorSchedule
+      summary: Page the tenant schedule after applying local date, time, and assignment filters
+      description: Status filters apply to scheduleStatus. The stored lifecycle status remains available as status.
+      parameters:
+        - {name: scope, in: query, description: Active trips have a future planned arrival and are neither completed nor cancelled. History contains the remaining trips., schema: {type: string, enum: [active, history, all], default: all}}
+        - {$ref: '#/components/parameters/Page'}
+        - {$ref: '#/components/parameters/Size'}
+        - {name: origin, in: query, schema: {type: string}}
+        - {name: destination, in: query, schema: {type: string}}
+        - {name: date, in: query, schema: {type: string, format: date}}
+        - {name: status, in: query, schema: {type: array, items: {type: string}}}
+        - {name: period, in: query, schema: {type: array, items: {type: string, enum: [morning, afternoon, evening]}}}
+        - {name: assignment, in: query, schema: {type: array, items: {type: string, enum: [complete, missing, conflict]}}}
+        - {name: sort, in: query, schema: {type: string, enum: [earliest, latest]}}
+      responses:
+        '200': {description: Trip page, content: {application/json: {schema: {$ref: '#/components/schemas/TripPage'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /operator/trips/manifest-counts:
+    get:
+      tags: [Booking, Operator]
+      operationId: listManifestCounts
+      summary: Return booked and checked-in ticket counts per trip for the current tenant
+      responses:
+        '200':
+          description: Manifest totals
+          content: {application/json: {schema: {type: array, items: {type: object, properties: {tripId: {type: string, format: uuid}, booked: {type: integer}, checkedIn: {type: integer}}}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /operator/bookings/cancelled-seats:
+    get:
+      tags: [Booking, Operator]
+      operationId: listCancelledSeatCodes
+      summary: Return cancelled or refunded seat codes for bookings in the current tenant
+      parameters:
+        - {name: bookingId, in: query, required: true, schema: {type: array, minItems: 1, maxItems: 100, items: {type: string, format: uuid}}}
+      responses:
+        '200':
+          description: Cancelled seats
+          content: {application/json: {schema: {type: array, items: {type: object, properties: {bookingId: {type: string, format: uuid}, seatCode: {type: string}}}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /operator/bookings:
+    get:
+      tags: [Operator, Booking]
+      operationId: listOperatorBookings
+      summary: Filter and page bookings in the caller's authorized organization
+      parameters:
+        - {$ref: '#/components/parameters/Page'}
+        - {$ref: '#/components/parameters/Size'}
+        - {name: search, in: query, schema: {type: string, maxLength: 100}}
+        - {name: bookingId, in: query, schema: {type: array, maxItems: 100, items: {type: string, format: uuid}}}
+        - {name: from, in: query, description: Inclusive local creation date in Vietnam., schema: {type: string, format: date}}
+        - {name: to, in: query, description: Inclusive local creation date in Vietnam., schema: {type: string, format: date}}
+        - {name: operatorStatus, in: query, schema: {type: string, enum: [confirmed, pending, cancelled]}}
+        - {name: operatorPayment, in: query, schema: {type: string, enum: [paid, unpaid, refunded]}}
+        - {name: settlementReferences, in: query, description: Booking ID, code and creation time for the active operator's settlement list., schema: {type: boolean, default: false}}
+      responses:
+        '200':
+          description: Default page or the requested collection
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - {$ref: '#/components/schemas/BookingPage'}
+                  - {type: array, items: {$ref: '#/components/schemas/SettlementBookingReference'}}
+        default: {$ref: '#/components/responses/Error'}
   /admin/bookings:
     get:
       tags: [Booking]
       operationId: searchBookingsForSupport
       summary: Search bookings in the authorized support scope
       x-permission: tenant.booking.read-or-platform.support.read
-      parameters: [{$ref: '#/components/parameters/Page'}, {$ref: '#/components/parameters/Size'}]
+      parameters:
+        - {$ref: '#/components/parameters/Page'}
+        - {$ref: '#/components/parameters/Size'}
+        - {name: organizationId, in: query, schema: {type: string, format: uuid}}
+        - {name: status, in: query, schema: {type: string, maxLength: 30}}
+        - name: search
+          in: query
+          description: Case-insensitive substring of booking code, contact name, or ID.
+          schema: {type: string, maxLength: 100}
+        - name: matchingOrganizationId
+          in: query
+          description: Organization IDs matching the search text, combined with the text search within the authorized scope.
+          schema: {type: array, maxItems: 100, items: {type: string, format: uuid}}
       responses:
         '200': {description: Bookings, content: {application/json: {schema: {$ref: '#/components/schemas/BookingPage'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /admin/bookings/references:
+    post:
+      tags: [Booking]
+      operationId: findFinanceBookingReferences
+      summary: Find booking references by partial code or by IDs for platform finance
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                search: {type: string, maxLength: 100}
+                organizationId: {type: string, format: uuid}
+                ids: {type: array, maxItems: 100, items: {type: string, format: uuid}}
+      responses:
+        '200':
+          description: Matching booking IDs and codes
+          content: {application/json: {schema: {type: array, items: {type: object, properties: {id: {type: string, format: uuid}, code: {type: string}}}}}}
         default: {$ref: '#/components/responses/Error'}
   /admin/payments:
     get:
@@ -824,13 +1057,56 @@ paths:
       responses:
         '200': {description: Payments, content: {application/json: {schema: {$ref: '#/components/schemas/PaymentPage'}}}}
         default: {$ref: '#/components/responses/Error'}
+    post:
+      tags: [Payments]
+      operationId: listFilteredAdminPayments
+      summary: Page payments after applying organization, status, and text filters
+      parameters: [{$ref: '#/components/parameters/Page'}, {$ref: '#/components/parameters/Size'}]
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/FinanceListFilter'}}}
+      responses:
+        '200': {description: Filtered payments, content: {application/json: {schema: {$ref: '#/components/schemas/PaymentPage'}}}}
+        default: {$ref: '#/components/responses/Error'}
   /admin/refunds:
     get:
       tags: [Refunds]
       operationId: searchAdminRefunds
       summary: Search refunds in the authorized finance scope
       x-permission: tenant.refund.read-or-platform.refund.read
+      parameters:
+        - {$ref: '#/components/parameters/Page'}
+        - {$ref: '#/components/parameters/Size'}
+        - {name: bookingId, in: query, schema: {type: string, format: uuid}}
+        - {name: paymentId, in: query, schema: {type: string, format: uuid}}
+      responses:
+        '200': {description: Refunds, content: {application/json: {schema: {$ref: '#/components/schemas/RefundPage'}}}}
+        default: {$ref: '#/components/responses/Error'}
+    post:
+      tags: [Refunds]
+      operationId: listFilteredAdminRefunds
+      summary: Page refunds after applying organization, status, and text filters
       parameters: [{$ref: '#/components/parameters/Page'}, {$ref: '#/components/parameters/Size'}]
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/FinanceListFilter'}}}
+      responses:
+        '200':
+          description: Filtered refunds with parent payment references
+          content: {application/json: {schema: {$ref: '#/components/schemas/FilteredRefundPage'}}}
+        default: {$ref: '#/components/responses/Error'}
+  /operator/refunds:
+    get:
+      tags: [Refunds, Operator]
+      operationId: listOperatorRefunds
+      summary: List refunds in the caller's finance scope, newest first
+      parameters:
+        - {$ref: '#/components/parameters/Page'}
+        - {$ref: '#/components/parameters/Size'}
+        - {name: bookingId, in: query, schema: {type: string, format: uuid}}
+        - {name: paymentId, in: query, schema: {type: string, format: uuid}}
+        - {name: status, in: query, schema: {type: string, enum: [REQUESTED, PROCESSING, SUCCEEDED, FAILED]}}
+        - {name: date, in: query, description: Request date in Vietnam., schema: {type: string, format: date}}
       responses:
         '200': {description: Refunds, content: {application/json: {schema: {$ref: '#/components/schemas/RefundPage'}}}}
         default: {$ref: '#/components/responses/Error'}
@@ -840,9 +1116,19 @@ paths:
       operationId: listOperatorSettlements
       summary: List booking settlements for the current tenant
       x-permission: tenant.payment.read
-      parameters: [{$ref: '#/components/parameters/Page'}, {$ref: '#/components/parameters/Size'}]
+      parameters:
+        - {$ref: '#/components/parameters/Page'}
+        - {$ref: '#/components/parameters/Size'}
+        - {name: export, in: query, description: Full settlement list for the current operator, including receipts., schema: {type: boolean, default: false}}
       responses:
-        '200': {description: Settlements, content: {application/json: {schema: {$ref: '#/components/schemas/SettlementPage'}}}}
+        '200':
+          description: Default page or the requested collection
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - {$ref: '#/components/schemas/SettlementPage'}
+                  - {type: array, items: {$ref: '#/components/schemas/BookingSettlement'}}
         default: {$ref: '#/components/responses/Error'}
   /operator/settlements/{settlementId}/receipt:
     put:
@@ -1303,12 +1589,58 @@ components:
         destination: {type: string}
         fare: {$ref: '#/components/schemas/Money'}
         status: {$ref: '#/components/schemas/TripStatus'}
+        scheduleStatus: {type: string, description: Schedule display status. NEEDS_UPDATE indicates a trip past planned arrival that has not been confirmed as arrived or ended.}
         sellable: {type: boolean}
         availableSeatCount: {type: integer, minimum: 0}
         availabilityAsOf: {$ref: '#/components/schemas/DateTime'}
         policyVersion: {type: string}
         stops: {type: array, items: {$ref: '#/components/schemas/TripStop'}}
         rowVersion: {type: integer, format: int64}
+    ManifestTrip:
+      type: object
+      required: [id, busId, origin, destination, busType, departureAt, arrivalAt, status, availableSeatCount]
+      properties:
+        id: {$ref: '#/components/schemas/Id'}
+        busId: {$ref: '#/components/schemas/Id'}
+        origin: {type: string}
+        destination: {type: string}
+        busType: {type: string}
+        departureAt: {$ref: '#/components/schemas/DateTime'}
+        arrivalAt: {$ref: '#/components/schemas/DateTime'}
+        status: {$ref: '#/components/schemas/TripStatus'}
+        availableSeatCount: {type: integer, minimum: 0}
+    SettlementBookingReference:
+      type: object
+      required: [id, code, createdAt]
+      properties:
+        id: {$ref: '#/components/schemas/Id'}
+        code: {type: string}
+        createdAt: {$ref: '#/components/schemas/DateTime'}
+    TripCard:
+      type: object
+      required: [id, routeId, organizationId, operatorName, busType, amenities, departureAt, arrivalAt, origin, destination, fare, status, availableSeatCount]
+      properties:
+        id: {$ref: '#/components/schemas/Id'}
+        routeId: {$ref: '#/components/schemas/Id'}
+        organizationId: {$ref: '#/components/schemas/Id'}
+        operatorName: {type: string}
+        busType: {type: string}
+        amenities: {type: array, items: {type: string}}
+        departureAt: {$ref: '#/components/schemas/DateTime'}
+        arrivalAt: {$ref: '#/components/schemas/DateTime'}
+        origin: {type: string}
+        destination: {type: string}
+        fare: {$ref: '#/components/schemas/Money'}
+        status: {$ref: '#/components/schemas/TripStatus'}
+        availableSeatCount: {type: integer, minimum: 0, description: Vehicle capacity. Query trip availability for current remaining seats.}
+    TripCards:
+      type: object
+      required: [items, routeStops]
+      properties:
+        items: {type: array, items: {$ref: '#/components/schemas/TripCard'}}
+        routeStops:
+          type: object
+          additionalProperties: {type: array, items: {$ref: '#/components/schemas/TripStop'}}
     TripPage:
       allOf:
         - {$ref: '#/components/schemas/PageMeta'}
@@ -1507,6 +1839,7 @@ components:
         currency: {$ref: '#/components/schemas/Currency'}
         expiresAt: {$ref: '#/components/schemas/DateTime'}
         items: {type: array, items: {$ref: '#/components/schemas/PassengerInput'}}
+        seatCodes: {type: [array, 'null'], items: {type: string}, description: Seat labels recorded when booking.}
         rowVersion: {type: integer, format: int64}
     BookingPage:
       allOf:
@@ -1580,6 +1913,26 @@ components:
         currency: {$ref: '#/components/schemas/Currency'}
         status: {type: string, enum: [REQUESTED, PROCESSING, SUCCEEDED, FAILED]}
         reason: {type: string}
+    FinanceListFilter:
+      type: object
+      properties:
+        organizationId: {type: string, format: uuid}
+        statuses: {type: array, maxItems: 12, items: {type: string}}
+        search: {type: string, maxLength: 100}
+        matchingBookings: {type: array, maxItems: 200000, items: {type: string, format: uuid}}
+    FilteredRefundPage:
+      allOf:
+        - {$ref: '#/components/schemas/PageMeta'}
+        - type: object
+          properties:
+            items:
+              type: array
+              items:
+                type: object
+                properties:
+                  refund: {$ref: '#/components/schemas/Refund'}
+                  organizationId: {type: string, format: uuid}
+                  paymentReference: {type: string}
     RefundPage:
       allOf:
         - {$ref: '#/components/schemas/PageMeta'}
@@ -1653,6 +2006,15 @@ components:
         qrPayload: {type: [string, 'null'], description: Signed/opaque; only returned to authorized owner.}
         issuedAt: {$ref: '#/components/schemas/DateTime'}
         checkedInAt: {oneOf: [{$ref: '#/components/schemas/DateTime'}, {type: 'null'}]}
+        journey:
+          description: Booking and seat references returned in owner-scoped lists.
+          type: object
+          required: [bookingCode, seatId, pickupStopId, dropoffStopId]
+          properties:
+            bookingCode: {type: string}
+            seatId: {$ref: '#/components/schemas/Id'}
+            pickupStopId: {$ref: '#/components/schemas/Id'}
+            dropoffStopId: {$ref: '#/components/schemas/Id'}
         rowVersion: {type: integer, format: int64}
     TicketPage:
       allOf:

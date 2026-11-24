@@ -24,7 +24,7 @@ import "./LiveCancellationPage.css";
 
 const previewSchema = z.object({
   previewId: z.string().uuid(),
-  ticketIds: z.array(z.string().uuid()),
+  ticketIds: z.array(z.guid()),
   policyVersion: z.string(),
   fee: z.number().nonnegative(),
   refundAmount: z.number().nonnegative(),
@@ -46,7 +46,7 @@ const time = (date: string): string =>
 
 export function LiveCancellationPage(): ReactElement {
   const { bookingCode = "" } = useParams();
-  const valid = z.string().uuid().safeParse(bookingCode).success;
+  const valid = z.guid().safeParse(bookingCode).success;
   const session = readApiSession();
   const client = useQueryClient();
   const [selected, setSelected] = useState<string[]>([]);

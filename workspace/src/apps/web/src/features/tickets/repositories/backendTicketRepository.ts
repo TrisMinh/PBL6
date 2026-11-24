@@ -10,6 +10,7 @@ import { ApiError } from "@/shared/api/error";
 import { BookingRepositoryError } from "@/features/booking/repositories/bookingRepositoryError";
 import {
   getBackendTrip,
+  getBackendTrips,
   toTrip,
 } from "@/features/trips/repositories/backendTripRepository";
 import type { TicketDetail } from "../types/ticketAccess";
@@ -18,6 +19,16 @@ import { lookupAccessSchema, lookupFormSchema } from "../schemas/ticket.schema";
 import { TICKET_ACCESS_HEADER, TICKET_ACCESS_TTL_MS } from "../config/access";
 
 export type BackendTicket = z.infer<typeof backendTicketSchema>;
+export function lookupOwnedTickets(
+  code: string,
+  signal?: AbortSignal,
+): Promise<BackendTicket[]> {
+  return apiJson("/api/v1/tickets/my-lookup", z.array(backendTicketSchema), {
+    method: "POST",
+    body: { code },
+    signal,
+  });
+}
 export async function ownedTickets(
   signal?: AbortSignal,
 ): Promise<BackendTicket[]> {
@@ -32,42 +43,67 @@ export async function ownedTickets(
     if (page + 1 >= result.totalPages) return items;
   }
 }
-export async function ownedBooking(
+export function ownedBooking(
   code: string,
   signal?: AbortSignal,
 ): Promise<z.infer<typeof bookingSchema>> {
-  if (z.string().uuid().safeParse(code).success)
-    return apiJson(`/api/v1/bookings/${code}`, bookingSchema, { signal });
-  for (let page = 0; ; page++) {
-    const result = await apiJson(
-      `/api/v1/bookings?page=${page}&size=100`,
-      pageOf(bookingSchema),
-      { signal },
-    );
-    const match = result.items.find(
-      (v) => v.code.toUpperCase() === code.toUpperCase(),
-    );
-    if (match) return match;
-    if (page + 1 >= result.totalPages)
-      throw new BookingRepositoryError("NOT_FOUND", 404);
-  }
+  const prefix = z.guid().safeParse(code).success ? "" : "by-code/";
+  return apiJson(
+    `/api/v1/bookings/${prefix}${encodeURIComponent(code)}`,
+    bookingSchema,
+    { signal },
+  );
 }
 export async function hydrateBackendTicket(
   ticket: BackendTicket,
   signal?: AbortSignal,
 ): Promise<TicketDetail> {
+  return hydrateTicket(ticket, createTicketResources(signal));
+}
+
+function cacheById<T>(
+  load: (id: string) => Promise<T>,
+): (id: string) => Promise<T> {
+  const requests = new Map<string, Promise<T>>();
+  return (id) => {
+    const existing = requests.get(id);
+    if (existing) return existing;
+    const pending = load(id);
+    requests.set(id, pending);
+    return pending;
+  };
+}
+
+function createTicketResources(signal?: AbortSignal) {
+  return {
+    booking: cacheById((id) =>
+      apiJson(`/api/v1/bookings/${id}`, bookingSchema, { signal }),
+    ),
+    trip: cacheById((id) => getBackendTrip(id, signal)),
+    seats: cacheById((id) =>
+      apiJson(
+        `/api/v1/trips/${id}/seats`,
+        z.object({ seats: z.array(backendSeatSchema) }),
+        { signal },
+      ),
+    ),
+  };
+}
+
+async function hydrateTicket(
+  ticket: BackendTicket,
+  resources: ReturnType<typeof createTicketResources>,
+): Promise<TicketDetail> {
   const [booking, backendTrip] = await Promise.all([
-    apiJson(`/api/v1/bookings/${ticket.bookingId}`, bookingSchema, { signal }),
-    getBackendTrip(ticket.tripId, signal),
+    resources.booking(ticket.bookingId),
+    resources.trip(ticket.tripId),
   ]);
   // Match by seat, since two passengers can have the same name.
   let item = booking.items.length === 1 ? booking.items[0] : undefined;
+  const seatIndex = booking.seatCodes?.indexOf(ticket.seatCode) ?? -1;
+  if (!item && seatIndex >= 0) item = booking.items[seatIndex];
   if (!item) {
-    const seats = await apiJson(
-      `/api/v1/trips/${ticket.tripId}/seats`,
-      z.object({ seats: z.array(backendSeatSchema) }),
-      { signal },
-    );
+    const seats = await resources.seats(ticket.tripId);
     const seat = seats.seats.find((v) => v.code === ticket.seatCode);
     item = booking.items.find((v) => v.seatId === seat?.id);
   }
@@ -75,7 +111,7 @@ export async function hydrateBackendTicket(
   return ticketDetail(ticket, booking.code, item, backendTrip);
 }
 
-function ticketDetail(
+export function ticketDetail(
   ticket: BackendTicket,
   bookingCode: string,
   item: { seatId: string; pickupStopId: string; dropoffStopId: string },
@@ -115,12 +151,15 @@ export async function getBackendTicketDetail(
   code: string,
   signal?: AbortSignal,
 ): Promise<TicketDetail> {
-  const ticket = z.string().uuid().safeParse(code).success
-    ? await apiJson(`/api/v1/tickets/${code}`, backendTicketSchema, { signal })
-    : (await ownedTickets(signal)).find((v) => v.publicCode === code);
-  if (!ticket) throw new BookingRepositoryError("NOT_FOUND", 404);
+  const identifier = code.trim().toUpperCase();
+  const id = z.guid().safeParse(code).success
+    ? code
+    : (await lookupOwnedTickets(identifier, signal)).find(
+        (ticket) => ticket.publicCode === identifier,
+      )?.id;
+  if (!id) throw new BookingRepositoryError("NOT_FOUND", 404);
   return hydrateBackendTicket(
-    await apiJson(`/api/v1/tickets/${ticket.id}`, backendTicketSchema, {
+    await apiJson(`/api/v1/tickets/${id}`, backendTicketSchema, {
       signal,
     }),
     signal,
@@ -135,8 +174,23 @@ export const backendTicketRepository: TicketRepository = {
           ? t.status === "CANCELLED"
           : t.status !== "CANCELLED"),
     );
+    const resources = createTicketResources(signal);
+    const trips = await getBackendTrips(
+      tickets.filter((ticket) => ticket.journey).map((ticket) => ticket.tripId),
+      signal,
+    );
     const items = await Promise.all(
-      tickets.map((v) => hydrateBackendTicket(v, signal)),
+      tickets.map((ticket) => {
+        const trip = trips.get(ticket.tripId);
+        return trip && ticket.journey
+          ? ticketDetail(
+              ticket,
+              ticket.journey.bookingCode,
+              ticket.journey,
+              trip,
+            )
+          : hydrateTicket(ticket, resources);
+      }),
     );
     return { items, total: items.length };
   },
@@ -148,9 +202,9 @@ export const backendTicketRepository: TicketRepository = {
       z.object({
         ticket: backendTicketSchema,
         bookingCode: z.string(),
-        seatId: z.uuid(),
-        pickupStopId: z.uuid(),
-        dropoffStopId: z.uuid(),
+        seatId: z.guid(),
+        pickupStopId: z.guid(),
+        dropoffStopId: z.guid(),
       }),
       { auth: false, signal, headers: { [TICKET_ACCESS_HEADER]: token } },
     );

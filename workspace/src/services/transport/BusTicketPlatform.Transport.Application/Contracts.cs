@@ -23,6 +23,13 @@ public sealed record TripStopDto(Guid Id, string Name, string? Address, int Sequ
 public sealed record RouteInput(string Name, string Origin, string Destination, decimal? DistanceKm, int? DurationMinutes, long ExpectedVersion);
 public sealed record RouteDto(Guid Id, string Name, string Origin, string Destination, decimal? DistanceKm, int? DurationMinutes, long ExpectedVersion, string Status, IReadOnlyList<TripStopDto> Stops);
 public sealed record RecurringTripInput(TripInput Template, DateOnly EndDate, IReadOnlyList<int> Weekdays, Guid? SourceTripId = null);
+public sealed record TripAvailabilityInput(DateTimeOffset DepartureAt, DateTimeOffset ArrivalAt, DateOnly? EndDate = null, IReadOnlyList<int>? Weekdays = null);
+public sealed record TripWindow(DateTimeOffset DepartureAt, DateTimeOffset ArrivalAt)
+{
+    public DateTimeOffset Start => DepartureAt.AddHours(-1);
+    public DateTimeOffset End => ArrivalAt.AddHours(1);
+}
+public sealed record TripAvailabilityDto(IReadOnlyList<Guid> BusIds, IReadOnlyList<Guid> DriverIds);
 public sealed record TripDraftPlan(TripRecord Trip, DriverAssignmentRecord Assignment);
 public sealed record TripInput(Guid RouteId, Guid BusId, Guid DriverId, DateTimeOffset DepartureAt, DateTimeOffset ArrivalAt, MoneyDto Fare, string PolicyVersion, long ExpectedVersion);
 public sealed record TripDto(
@@ -45,6 +52,8 @@ public sealed record TripDto(
     long RowVersion)
 {
     public bool AllowPayLater { get; init; }
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public string? ScheduleStatus { get; init; }
 
     // Set only for authenticated operator inventory; not exposed by public trip searches.
     [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
@@ -55,6 +64,14 @@ public sealed record TripDto(
     public Guid? DriverId { get; init; }
 }
 public sealed record TripPageDto(int Page, int Size, long TotalElements, int TotalPages, IReadOnlyList<TripDto> Items);
+public sealed record TripCardDto(Guid Id, Guid RouteId, Guid OrganizationId, string OperatorName,
+    string BusType, IReadOnlyList<string> Amenities, DateTimeOffset DepartureAt, DateTimeOffset ArrivalAt,
+    string Origin, string Destination, MoneyDto Fare, string Status, int AvailableSeatCount);
+public sealed record TripCardsDto(IReadOnlyList<TripCardDto> Items, IReadOnlyDictionary<Guid, TripStopDto[]> RouteStops);
+public sealed record ManifestTripDto(Guid Id, Guid BusId, string Origin, string Destination, string BusType,
+    DateTimeOffset DepartureAt, DateTimeOffset ArrivalAt, string Status, int AvailableSeatCount);
+public sealed record ScheduleFilter(string? Origin, string? Destination, DateOnly? ServiceDate, string[] Statuses,
+    string[] Periods, string[] Assignments, string? Sort, string Scope = "all");
 public sealed record ExpectedVersionRequest(long ExpectedVersion);
 public sealed record VersionedReasonRequest(string Reason, long ExpectedVersion);
 public sealed record TripTransitionRequest(long ExpectedVersion, string TargetStatus, string? Reason);
@@ -108,10 +125,16 @@ public interface ITransportRepository
     Task PublishTripAsync(TripRecord trip, CancellationToken cancellationToken);
     Task UpdateTripAsync(TripRecord trip, CancellationToken cancellationToken);
     Task<TripRecord?> GetTripAsync(Guid tripId, CancellationToken cancellationToken);
-    Task<IReadOnlyList<TripRecord>> ListOperatorTripsAsync(Guid organizationId, int page, int size, CancellationToken cancellationToken);
-    Task<long> CountOperatorTripsAsync(Guid organizationId, CancellationToken cancellationToken);
+    Task<IReadOnlyList<TripRecord>> ListTripsByIdsAsync(Guid[] tripIds, CancellationToken cancellationToken);
+    Task<IReadOnlyList<ManifestTripDto>> ListManifestTripsAsync(Guid organizationId, CancellationToken cancellationToken);
+    Task<IReadOnlyList<TripRecord>> ListOperatorTripsAsync(Guid organizationId, int page, int size, Guid[] tripIds, CancellationToken cancellationToken);
+    Task<long> CountOperatorTripsAsync(Guid organizationId, Guid[] tripIds, CancellationToken cancellationToken);
+    Task<TripAvailabilityDto> ListAvailableResourcesAsync(Guid organizationId, IReadOnlyList<TripWindow> windows, CancellationToken cancellationToken);
+    Task<(IReadOnlyList<(TripRecord Trip, string ScheduleStatus)> Items, long Total)> SearchScheduleAsync(Guid organizationId, ScheduleFilter filter, int page, int size, CancellationToken cancellationToken);
     Task<(IReadOnlyList<TripRecord> Items, long Total)> SearchSellableAsync(TripSearchQuery query, CancellationToken cancellationToken);
+    Task<IReadOnlyList<TripCardDto>> SearchTripCardsAsync(TripSearchQuery query, CancellationToken cancellationToken);
     Task<IReadOnlyList<TripStopDto>> GetTripStopsAsync(Guid tripId, CancellationToken cancellationToken);
+    Task<ILookup<Guid, TripStopDto>> GetRouteStopsForTripsAsync(Guid[] routeIds, CancellationToken cancellationToken);
     Task<IReadOnlyList<DriverAssignmentDto>> ListAssignmentsForDriverAsync(Guid driverUserId, CancellationToken cancellationToken);
     Task<bool> IsDriverAssignedToTripAsync(Guid driverUserId, Guid tripId, CancellationToken cancellationToken);
     Task MarkSellableAsync(Guid tripId, bool sellable, CancellationToken cancellationToken);

@@ -1,3 +1,4 @@
+import { Toast } from "@/shared/ui/Toast/Toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent, type ReactElement } from "react";
 import { z } from "zod";
@@ -104,11 +105,12 @@ export function LivePayoutCreate(): ReactElement {
           Tạo chi trả
         </Button>
         {mutation.isSuccess ? (
-          <p role="status">
-            Đã tạo chi trả, trạng thái: {mutation.data.status}.
-          </p>
+          <Toast
+            message={`Đã tạo chi trả, trạng thái: ${mutation.data.status}.`}
+            onClose={mutation.reset}
+          />
         ) : null}
-        {mutation.isError ? <ApiFailure error={mutation.error} /> : null}
+        {mutation.isError ? <ApiFailure error={mutation.error} popup /> : null}
       </form>
     </details>
   );

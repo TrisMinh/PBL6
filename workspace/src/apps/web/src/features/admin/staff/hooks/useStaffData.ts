@@ -5,10 +5,11 @@ import {
   type UseMutationResult,
   type UseQueryResult,
 } from "@tanstack/react-query";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { isMockApi } from "@/shared/api/config";
 import {
   listBackendStaffCandidates,
+  listUserPage,
   updateBackendStaffStatus,
 } from "../../repositories/backendAdminRepository";
 
@@ -121,21 +122,34 @@ export function useSaveStaff(): UseMutationResult<
   });
 }
 
-export function useStaffCandidates(): UseQueryResult<
-  PagedResult<Staff>,
-  Error
-> {
+export function useStaffCandidates(
+  filters: { organizationId?: string; search?: string; enabled?: boolean } = {},
+): UseQueryResult<PagedResult<Staff>, Error> {
   const repository = useAdminRepository();
+  const rawSearch = filters.search?.trim() ?? "";
+  const [settledSearch, setSettledSearch] = useState("");
+  useEffect(() => {
+    if (isMockApi || filters.enabled === false || rawSearch.length < 2) return;
+    const timer = window.setTimeout(() => setSettledSearch(rawSearch), 300);
+    return () => window.clearTimeout(timer);
+  }, [filters.enabled, rawSearch]);
+  const search = rawSearch === settledSearch ? settledSearch : "";
   return useQuery({
-    queryKey: ["admin", "staff", "candidates"],
-    enabled: Boolean(repository),
+    queryKey: ["admin", "staff", "candidates", filters.organizationId, search],
+    enabled:
+      Boolean(repository) &&
+      (filters.enabled ?? true) &&
+      (isMockApi || search.length >= 2),
     queryFn: async ({ signal }) => {
       if (isMockApi)
         return requireRepository(repository).listStaff(
           { page: 1, pageSize: 100 },
           signal,
         );
-      const items = await listBackendStaffCandidates(signal);
+      const items = await listBackendStaffCandidates(signal, {
+        organizationId: filters.organizationId,
+        search,
+      });
       return {
         items,
         total: items.length,
@@ -143,6 +157,36 @@ export function useStaffCandidates(): UseQueryResult<
         pageSize: Math.max(1, items.length),
       };
     },
+    refetchOnWindowFocus: false,
+  });
+}
+
+export function useOrganizationMemberPage(
+  organizationId: string,
+  page: number,
+  active?: boolean,
+  search?: string,
+) {
+  const repository = useAdminRepository();
+  return useQuery({
+    queryKey: [
+      "admin",
+      "staff",
+      "organization-members",
+      organizationId,
+      page,
+      active,
+      search,
+    ],
+    enabled: Boolean(repository) && !isMockApi,
+    queryFn: ({ signal }) =>
+      listUserPage(
+        { organizationId, page, pageSize: 20, query: search },
+        signal,
+        {
+          membershipActive: active,
+        },
+      ),
     refetchOnWindowFocus: false,
   });
 }

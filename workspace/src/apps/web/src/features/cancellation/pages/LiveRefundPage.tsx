@@ -15,10 +15,10 @@ import "./CancellationPage.css";
 import "./LiveRefundPage.css";
 
 const refundSchema = z.object({
-  id: z.string().uuid(),
+  id: z.guid(),
   refundReference: z.string(),
-  paymentId: z.string().uuid(),
-  bookingId: z.string().uuid(),
+  paymentId: z.guid(),
+  bookingId: z.guid(),
   amount: z.number().nonnegative(),
   currency: z.literal("VND"),
   status: z.string(),
@@ -35,7 +35,7 @@ const states: Record<string, string> = {
 export function LiveRefundPage(): ReactElement {
   const { refundId = "" } = useParams();
   const session = readApiSession();
-  const valid = z.string().uuid().safeParse(refundId).success;
+  const valid = z.guid().safeParse(refundId).success;
   const query = useQuery({
     queryKey: ["live-api", session?.user.id, "customer-refund", refundId],
     enabled: !!session && valid,

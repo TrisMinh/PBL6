@@ -104,6 +104,7 @@ services:
       ConnectionStrings__Payment: Host=postgres;Port=5432;Database=payment;Username=platform;Password=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
       AllowedHosts: localhost;127.0.0.1;payment;payment-2;${API_ALLOWED_HOSTS:?API_ALLOWED_HOSTS is required}
       SePay__Environment: ${SEPAY_ENVIRONMENT:-production}
+      SePay__AutomaticReconciliationEnabled: ${SEPAY_AUTOMATIC_RECONCILIATION_ENABLED:-true}
       SePay__MerchantId: ${SEPAY_MERCHANT_ID:?SEPAY_MERCHANT_ID is required}
       SePay__SecretKey: ${SEPAY_SECRET_KEY:?SEPAY_SECRET_KEY is required}
       SePay__IpnSecretKey: ${SEPAY_IPN_SECRET_KEY:?SEPAY_IPN_SECRET_KEY is required}

@@ -16,17 +16,32 @@ public sealed record SeatHoldDto(string HoldToken, Guid TripId, string Status, I
 public sealed record BookingContact(string FullName, string Email, string Phone);
 public sealed record PassengerInput(Guid SeatId, string FullName, string? DocumentType, string? DocumentNumber, Guid PickupStopId, Guid DropoffStopId);
 public sealed record CreateBookingRequest(string HoldToken, BookingContact Contact, IReadOnlyList<PassengerInput> Passengers, long ExpectedTotal, string Currency, string PaymentChannel, string? CouponCode = null);
-public sealed record BookingDto(Guid Id, string Code, Guid CustomerId, Guid TripId, string Status, string PaymentChannel, BookingContact Contact, long Subtotal, long Discount, long Fee, long Total, string Currency, DateTimeOffset ExpiresAt, IReadOnlyList<PassengerInput> Items, long RowVersion, Guid? OrganizationId = null, DateTimeOffset? CreatedAt = null, string? CouponCode = null);
+public sealed record BookingDto(Guid Id, string Code, Guid CustomerId, Guid TripId, string Status, string PaymentChannel, BookingContact Contact, long Subtotal, long Discount, long Fee, long Total, string Currency, DateTimeOffset ExpiresAt, IReadOnlyList<PassengerInput> Items, long RowVersion, Guid? OrganizationId = null, DateTimeOffset? CreatedAt = null, string? CouponCode = null, IReadOnlyList<string>? SeatCodes = null);
 public sealed record BookingPageDto(int Page, int Size, long TotalElements, int TotalPages, IReadOnlyList<BookingDto> Items);
+public sealed record BookingListFilter(Guid? OrganizationId, string? Status, string? Search, Guid[] MatchingOrganizations,
+    DateTimeOffset? CreatedFrom = null, DateTimeOffset? CreatedBefore = null, string? OperatorStatus = null, string? OperatorPayment = null,
+    Guid[]? BookingIds = null);
+public sealed record BookingReference(Guid Id, string Code)
+{
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public DateTimeOffset? CreatedAt { get; init; }
+}
 public sealed record CancellationPreviewRequest(IReadOnlyList<Guid> TicketIds);
 public sealed record CancellationPreviewDto(Guid PreviewId, IReadOnlyList<Guid> TicketIds, string PolicyVersion, long Fee, long RefundAmount, string Currency, DateTimeOffset ExpiresAt);
 public sealed record CancelBookingRequest(Guid PreviewId, string Reason, long ExpectedVersion);
-public sealed record TicketDto(Guid Id, string PublicCode, Guid BookingId, Guid TripId, string PassengerName, string SeatCode, string Status, string PaymentChannel, string? QrPayload, DateTimeOffset IssuedAt, DateTimeOffset? CheckedInAt, long RowVersion, long UnitPrice = 0);
+public sealed record TicketJourney(string BookingCode, Guid SeatId, Guid PickupStopId, Guid DropoffStopId);
+public sealed record TicketDto(Guid Id, string PublicCode, Guid BookingId, Guid TripId, string PassengerName, string SeatCode, string Status, string PaymentChannel, string? QrPayload, DateTimeOffset IssuedAt, DateTimeOffset? CheckedInAt, long RowVersion, long UnitPrice = 0)
+{
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public TicketJourney? Journey { get; init; }
+}
 public sealed record TicketPageDto(int Page, int Size, long TotalElements, int TotalPages, IReadOnlyList<TicketDto> Items);
 public sealed record TicketScanRequest(Guid TripId, string ScannedToken, long ExpectedVersion);
 public sealed record TicketValidationDto(bool Valid, string? ReasonCode, TicketDto? Ticket);
 public sealed record ManifestPassengerDto(Guid TicketId, string PassengerName, string SeatCode, string PickupStopName, string Status);
 public sealed record ManifestDto(Guid TripId, DateTimeOffset GeneratedAt, IReadOnlyList<ManifestPassengerDto> Passengers);
+public sealed record ManifestCount(Guid TripId, int Booked, int CheckedIn);
+public sealed record CancelledSeat(Guid BookingId, string SeatCode);
 public sealed record TripPublishedMessage(
     Guid TripId,
     Guid OrganizationId,
@@ -72,8 +87,8 @@ public interface IBookingRepository
     Task<BookingRecord?> GetBookingByCodeAsync(string code, CancellationToken cancellationToken) => throw new NotSupportedException();
     Task<IReadOnlyList<BookingRecord>> ListBookingsForCustomerAsync(Guid customerId, int page, int size, CancellationToken cancellationToken);
     Task<long> CountBookingsForCustomerAsync(Guid customerId, CancellationToken cancellationToken);
-    Task<IReadOnlyList<BookingRecord>> SearchBookingsAsync(Guid? organizationId, int page, int size, CancellationToken cancellationToken);
-    Task<long> CountBookingsAsync(Guid? organizationId, CancellationToken cancellationToken);
+    Task<(IReadOnlyList<BookingRecord> Items, long Total)> SearchBookingsAsync(BookingListFilter filter, int page, int size, CancellationToken cancellationToken);
+    Task<IReadOnlyList<BookingReference>> FindBookingReferencesAsync(string? search, Guid[] ids, Guid? organizationId, CancellationToken cancellationToken);
     Task<bool> ApplyPaidAsync(Guid bookingId, IReadOnlyList<TicketRecord> tickets, CancellationToken cancellationToken, Guid correlationId = default);
     Task<CancellationPreviewRecord> InsertPreviewAsync(CancellationPreviewRecord preview, CancellationToken cancellationToken);
     Task<CancellationPreviewRecord?> GetPreviewAsync(Guid previewId, CancellationToken cancellationToken);
@@ -86,6 +101,8 @@ public interface IBookingRepository
     Task<TicketRecord?> GetTicketByPublicCodeAsync(string publicCode, CancellationToken cancellationToken);
     Task CheckInAsync(Guid ticketId, Guid actorId, CancellationToken cancellationToken);
     Task<ManifestDto> GetManifestAsync(Guid tripId, CancellationToken cancellationToken);
+    Task<IReadOnlyList<ManifestCount>> GetManifestCountsAsync(Guid organizationId, CancellationToken cancellationToken);
+    Task<IReadOnlyList<CancelledSeat>> GetCancelledSeatsAsync(Guid organizationId, Guid[] bookings, CancellationToken cancellationToken);
 }
 
 public sealed record InventorySeat(Guid Id, Guid TripId, Guid SourceSeatId, string Code, string Type, int Deck, int Row, int Column, long Price, string Status, long RowVersion);
@@ -97,8 +114,12 @@ public sealed record BookingRecord(
     Guid Id, string Code, Guid HoldId, Guid TripId, Guid OrganizationId, Guid CustomerId,
     string ContactName, string ContactEmail, string ContactPhone, string PaymentChannel, string Status,
     long Subtotal, long Discount, long Fee, long Total, string Currency, DateTimeOffset ExpiresAt, long RowVersion,
-    IReadOnlyList<PassengerInput> Items, DateTimeOffset? CreatedAt = null, string? CouponCode = null);
-public sealed record TicketRecord(Guid Id, Guid BookingId, Guid BookingItemId, Guid TripId, Guid CustomerId, string PublicCode, string QrHash, string? QrPlain, string PaymentChannel, string Status, string PassengerName, string SeatCode, long UnitPrice, DateTimeOffset IssuedAt, DateTimeOffset? CheckedInAt, long RowVersion);
+    IReadOnlyList<PassengerInput> Items, DateTimeOffset? CreatedAt = null, string? CouponCode = null,
+    IReadOnlyList<string>? SeatCodes = null);
+public sealed record TicketRecord(Guid Id, Guid BookingId, Guid BookingItemId, Guid TripId, Guid CustomerId, string PublicCode, string QrHash, string? QrPlain, string PaymentChannel, string Status, string PassengerName, string SeatCode, long UnitPrice, DateTimeOffset IssuedAt, DateTimeOffset? CheckedInAt, long RowVersion)
+{
+    public TicketJourney? Journey { get; init; }
+}
 public sealed record CancellationPreviewRecord(Guid Id, Guid BookingId, Guid RequestedBy, IReadOnlyList<Guid> BookingItemIds, IReadOnlyList<Guid> TicketIds, string PolicyVersion, long Eligible, decimal FeeRate, long Fee, long Refund, DateTimeOffset ExpiresAt, DateTimeOffset? ConsumedAt = null);
 
 public interface IBookingEvents

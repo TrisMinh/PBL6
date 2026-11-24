@@ -5,7 +5,7 @@ export const moneySchema = z.object({
   currency: z.literal("VND"),
 });
 export const stopSchema = z.object({
-  id: z.string().uuid(),
+  id: z.guid(),
   name: z.string(),
   address: z.string().nullish(),
   sequence: z.number(),
@@ -14,8 +14,8 @@ export const stopSchema = z.object({
   dropoffAllowed: z.boolean(),
 });
 export const backendTripSchema = z.object({
-  id: z.string().uuid(),
-  organizationId: z.string().uuid(),
+  id: z.guid(),
+  organizationId: z.guid(),
   operatorName: z.string(),
   busType: z.string(),
   amenities: z.array(z.string()),
@@ -55,7 +55,7 @@ export const pageOf = <T extends z.ZodType>(
     items: z.array(item),
   });
 export const backendSeatSchema = z.object({
-  id: z.string().uuid(),
+  id: z.guid(),
   code: z.string(),
   type: z.string(),
   status: z.string(),
@@ -64,7 +64,7 @@ export const backendSeatSchema = z.object({
 });
 export const holdSchema = z.object({
   holdToken: z.string(),
-  tripId: z.string().uuid(),
+  tripId: z.guid(),
   status: z.string(),
   seats: z.array(backendSeatSchema),
   expiresAt: z.string(),
@@ -72,10 +72,11 @@ export const holdSchema = z.object({
 });
 export const bookingSchema = z.object({
   couponCode: z.string().nullable().optional(),
-  id: z.string().uuid(),
+  seatCodes: z.array(z.string()).nullish(),
+  id: z.guid(),
   code: z.string(),
-  customerId: z.string().uuid(),
-  tripId: z.string().uuid(),
+  customerId: z.guid(),
+  tripId: z.guid(),
   status: z.string(),
   paymentChannel: z.string(),
   total: z.number(),
@@ -92,21 +93,29 @@ export const bookingSchema = z.object({
   }),
   items: z.array(
     z.object({
-      seatId: z.string().uuid(),
+      seatId: z.guid(),
       fullName: z.string(),
-      pickupStopId: z.string().uuid(),
-      dropoffStopId: z.string().uuid(),
+      pickupStopId: z.guid(),
+      dropoffStopId: z.guid(),
     }),
   ),
 });
 export const backendTicketSchema = z.object({
+  journey: z
+    .object({
+      bookingCode: z.string(),
+      seatId: z.guid(),
+      pickupStopId: z.guid(),
+      dropoffStopId: z.guid(),
+    })
+    .optional(),
   unitPrice: z.number().optional(),
-  seatId: z.string().uuid().optional(),
-  bookingItemId: z.string().uuid().optional(),
-  id: z.string().uuid(),
+  seatId: z.guid().optional(),
+  bookingItemId: z.guid().optional(),
+  id: z.guid(),
   publicCode: z.string(),
-  bookingId: z.string().uuid(),
-  tripId: z.string().uuid(),
+  bookingId: z.guid(),
+  tripId: z.guid(),
   passengerName: z.string(),
   seatCode: z.string(),
   status: z.string(),

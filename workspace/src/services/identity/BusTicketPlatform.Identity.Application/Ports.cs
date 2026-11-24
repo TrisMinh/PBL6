@@ -97,7 +97,8 @@ public interface IIdentityRepository
         string reasonCode,
         DateTimeOffset since,
         CancellationToken cancellationToken);
-    Task<(IReadOnlyList<UserRecord> Items, long Total)> ListUsersAsync(int page, int size, CancellationToken cancellationToken);
+    Task<(IReadOnlyList<UserProfileDto> Items, long Total)> ListUsersAsync(int page, int size, UserListFilter filter,
+        CancellationToken cancellationToken);
     Task<IReadOnlyList<MembershipRecord>> GetMembershipsForUserAsync(Guid userId, CancellationToken cancellationToken);
     Task<IReadOnlyList<MembershipRecord>> ListMembershipsAsync(Guid organizationId, CancellationToken cancellationToken);
     Task<MembershipRecord?> GetMembershipAsync(Guid organizationId, Guid membershipId, CancellationToken cancellationToken);

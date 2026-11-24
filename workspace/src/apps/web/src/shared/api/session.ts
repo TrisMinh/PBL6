@@ -11,7 +11,8 @@ export const backendSessionSchema = z.object({
   expiresIn: z.number().int().positive(),
   sessionId: z.string().uuid(),
   user: z.object({
-    id: z.string().uuid(),
+    // Entity IDs can predate RFC-versioned UUID generation. Session IDs remain strict UUIDs.
+    id: z.guid(),
     roles: z.array(z.string()),
     organizationMemberships: z
       .array(z.object({ status: z.string(), roleCodes: z.array(z.string()) }))

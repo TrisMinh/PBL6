@@ -9,6 +9,8 @@ import {
 } from "@/features/operator/vehicles/vehicles.schema";
 import { tripSchema, type Trip } from "@/features/operator/tripWorkflow";
 import type { ScheduleTrip } from "@/features/operator/schedule/schedule.schema";
+import { scheduleConflicts } from "@/features/operator/tripAvailability";
+import { recurringDates } from "@/features/operator/create/RecurringTrips";
 
 const KEY = "blue-operator-workflow-trips-v1";
 const inputSchema = z.object({
@@ -139,6 +141,69 @@ export const operatorWorkflowHandlers = [
   ),
   http.get("/api/v1/operator/trips", () =>
     HttpResponse.json({ items: readMockWorkflowTrips(), totalPages: 1 }),
+  ),
+  http.post(
+    "/api/v1/operator/trips/assignment-availability",
+    async ({ request }) => {
+      const parsed = inputSchema
+        .pick({ departureAt: true, arrivalAt: true })
+        .extend({
+          endDate: z.iso.date().optional(),
+          weekdays: z.array(z.number().int().min(0).max(6)).optional(),
+        })
+        .safeParse(await request.json());
+      if (!parsed.success) return error("Thông tin giờ chạy chưa hợp lệ.");
+      const { departureAt, arrivalAt, endDate, weekdays } = parsed.data;
+      const first = localParts(departureAt).date;
+      const dates = endDate
+        ? recurringDates(first, {
+            enabled: true,
+            endDate,
+            days: weekdays ?? [],
+          })
+        : [first];
+      const start = Date.parse(departureAt),
+        end = Date.parse(arrivalAt);
+      if (
+        end <= start ||
+        !dates.length ||
+        dates.some(
+          (date, index) =>
+            index > 0 &&
+            Date.parse(date) - Date.parse(dates[index - 1]) <
+              end - start + 7_200_000,
+        )
+      )
+        return error("Lịch chạy không hợp lệ.");
+      const trips = readMockWorkflowTrips();
+      const conflicts = dates.map((date) => {
+        const offset = Date.parse(date) - Date.parse(first);
+        return scheduleConflicts(trips, [start + offset, end + offset]);
+      });
+      const lastArrival = new Date(
+        end + Date.parse(dates.at(-1)!) - Date.parse(first),
+      )
+        .toISOString()
+        .slice(0, 10);
+      return HttpResponse.json({
+        busIds: buses()
+          .filter(
+            (bus) =>
+              bus.status === "ACTIVE" &&
+              bus.seats.some((seat) => seat.enabled) &&
+              conflicts.every((slot) => !slot.buses.has(bus.id)),
+          )
+          .map((bus) => bus.id),
+        driverIds: drivers()
+          .filter(
+            (driver) =>
+              driver.status === "ACTIVE" &&
+              driver.licenseExpiresOn >= lastArrival &&
+              conflicts.every((slot) => !slot.drivers.has(driver.id)),
+          )
+          .map((driver) => driver.id),
+      });
+    },
   ),
   http.post("/api/v1/operator/trips", async ({ request }) => {
     const parsed = inputSchema.safeParse(await request.json());

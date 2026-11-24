@@ -3,6 +3,7 @@ import { liveApiJson } from "@/shared/api/liveRequest";
 import {
   createBackendAdminRepository,
   createBackendMembershipRepository,
+  listBackendStaffCandidates,
   updateBackendStaffStatus,
 } from "./backendAdminRepository";
 vi.mock("@/shared/api/liveRequest", () => ({ liveApiJson: vi.fn() }));
@@ -34,14 +35,31 @@ const user = {
   ],
 };
 beforeEach(() => vi.mocked(liveApiJson).mockReset());
+it("loads only matching accounts in the organization for scoped candidates", async () => {
+  vi.mocked(liveApiJson).mockResolvedValue({ items: [user], totalPages: 2 });
+  await listBackendStaffCandidates(undefined, {
+    organizationId: "org2",
+    search: "Staff",
+  });
+  expect(vi.mocked(liveApiJson).mock.calls.map(([path]) => path)).toEqual([
+    "/api/v1/admin/users?page=0&size=50&organizationId=org2&search=Staff",
+  ]);
+});
 it("finds a staff member through their second membership", async () => {
-  vi.mocked(liveApiJson).mockResolvedValue({ items: [user], totalPages: 1 });
+  vi.mocked(liveApiJson).mockResolvedValue({
+    items: [user],
+    totalPages: 5,
+    totalElements: 81,
+  });
   const result = await createBackendAdminRepository().listStaff({
-    page: 1,
+    page: 3,
     pageSize: 20,
     organizationId: "org2",
   });
-  expect(result.total).toBe(1);
+  expect(result.total).toBe(81);
+  expect(vi.mocked(liveApiJson).mock.calls.map(([path]) => path)).toEqual([
+    "/api/v1/admin/users?page=2&size=20&organizationId=org2&staffOnly=true",
+  ]);
   expect(result.items[0]).toMatchObject({
     id: "user1",
     organizationId: "org2",

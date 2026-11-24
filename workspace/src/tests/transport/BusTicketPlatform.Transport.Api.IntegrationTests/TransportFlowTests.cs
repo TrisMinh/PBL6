@@ -214,11 +214,18 @@ public sealed class TransportFlowTests
         var ready = await SendAsync(client, HttpMethod.Post, $"/internal/trips/{tripId}/inventory-ready", new { });
         Assert.Equal(HttpStatusCode.Accepted, ready.Response.StatusCode);
 
-        var search = await client.GetAsync("/api/v1/trips?origin=Da%20Nang&destination=Hue&departureDate=2026-12-15&passengerCount=1");
+        const string searchPath = "/api/v1/trips?origin=Da%20Nang&destination=Hue&departureDate=2026-12-15&passengerCount=1";
+        var search = await client.GetAsync(searchPath);
         var searchBody = await search.Content.ReadAsStringAsync();
         Assert.True(search.StatusCode == HttpStatusCode.OK, searchBody);
         var page = JsonSerializer.Deserialize<JsonElement>(await search.Content.ReadAsStringAsync(), Json);
         Assert.True(page.GetProperty("totalElements").GetInt64() >= 1);
+
+        var cards = await SendAsync(client, HttpMethod.Get, searchPath + "&cards=true");
+        Assert.Equal(HttpStatusCode.OK, cards.Response.StatusCode);
+        var card = Assert.Single(cards.Body.GetProperty("items").EnumerateArray(), item => item.GetProperty("id").GetGuid() == tripId);
+        Assert.False(card.TryGetProperty("stops", out _));
+        Assert.NotEmpty(cards.Body.GetProperty("routeStops").GetProperty(card.GetProperty("routeId").GetString()!).EnumerateArray());
     }
 
     [Fact]
@@ -356,12 +363,51 @@ public sealed class TransportFlowTests
     }
 
     [Fact]
+    public async Task Assignment_availability_excludes_resources_reserved_on_a_later_occurrence()
+    {
+        var client = _fixture.CreateClient();
+        var resources = await CreateResourcesAsync(client);
+        var departure = resources.Departure;
+        var start = DateOnly.FromDateTime(departure.ToOffset(TimeSpan.FromHours(7)).DateTime);
+        var later = await CreateTripAsync(client, resources, resources.BusId, departure.AddDays(1));
+        Assert.Equal(HttpStatusCode.Created, later.Response.StatusCode);
+        var id = later.Body.GetProperty("id").GetGuid();
+        var published = await SendAsync(client, HttpMethod.Post, $"/api/v1/operator/trips/{id}/publish",
+            new { expectedVersion = 0 }, resources.OperatorToken, Idempotency());
+        Assert.Equal(HttpStatusCode.Accepted, published.Response.StatusCode);
+
+        const string path = "/api/v1/operator/trips/assignment-availability";
+        var first = await SendAsync(client, HttpMethod.Post, path,
+            new { departureAt = departure, arrivalAt = departure.AddHours(2) }, resources.OperatorToken);
+        Assert.Equal(HttpStatusCode.OK, first.Response.StatusCode);
+        Assert.Contains(first.Body.GetProperty("busIds").EnumerateArray(), item => item.GetGuid() == resources.BusId);
+        Assert.Contains(first.Body.GetProperty("driverIds").EnumerateArray(), item => item.GetGuid() == resources.DriverId);
+
+        var series = await SendAsync(client, HttpMethod.Post, path,
+            new { departureAt = departure, arrivalAt = departure.AddHours(2), endDate = start.AddDays(1), weekdays = new[] { (int)start.DayOfWeek, (int)start.AddDays(1).DayOfWeek } },
+            resources.OperatorToken);
+        Assert.Equal(HttpStatusCode.OK, series.Response.StatusCode);
+        Assert.DoesNotContain(series.Body.GetProperty("busIds").EnumerateArray(), item => item.GetGuid() == resources.BusId);
+        Assert.DoesNotContain(series.Body.GetProperty("driverIds").EnumerateArray(), item => item.GetGuid() == resources.DriverId);
+
+        var overlaps = await SendAsync(client, HttpMethod.Post, path,
+            new { departureAt = departure, arrivalAt = departure.AddHours(24), endDate = start.AddDays(1), weekdays = new[] { (int)start.DayOfWeek, (int)start.AddDays(1).DayOfWeek } },
+            resources.OperatorToken);
+        Assert.Equal(HttpStatusCode.BadRequest, overlaps.Response.StatusCode);
+    }
+
+    [Fact]
     public async Task Recurring_trips_validate_entire_range_before_creating_drafts()
     {
         var client = _fixture.CreateClient();
         var start = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(30));
         var fixture = await CreateResourcesAsync(client, start.AddDays(1));
         var departure = new DateTimeOffset(start.ToDateTime(new TimeOnly(8, 0)), TimeSpan.FromHours(7));
+        var available = await SendAsync(client, HttpMethod.Post, "/api/v1/operator/trips/assignment-availability",
+            new { departureAt = departure, arrivalAt = departure.AddHours(2), endDate = start.AddDays(3), weekdays = new[] { 0, 1, 2, 3, 4, 5, 6 } }, fixture.OperatorToken);
+        Assert.Equal(HttpStatusCode.OK, available.Response.StatusCode);
+        Assert.Contains(available.Body.GetProperty("busIds").EnumerateArray(), item => item.GetGuid() == fixture.BusId);
+        Assert.DoesNotContain(available.Body.GetProperty("driverIds").EnumerateArray(), item => item.GetGuid() == fixture.DriverId);
         var template = new { routeId = fixture.RouteId, busId = fixture.BusId, driverId = fixture.DriverId, departureAt = departure, arrivalAt = departure.AddHours(2), fare = new { amount = 150000, currency = "VND" }, policyVersion = "cancel-mvp-v1", expectedVersion = 0 };
         var invalid = await SendAsync(client, HttpMethod.Post, "/api/v1/operator/trips/recurring", new { template, endDate = start.AddDays(3).ToString("yyyy-MM-dd"), weekdays = new[] { 0, 1, 2, 3, 4, 5, 6 } }, fixture.OperatorToken, Idempotency());
         Assert.Equal(HttpStatusCode.BadRequest, invalid.Response.StatusCode);
@@ -588,6 +634,59 @@ public sealed class TransportFlowTests
             },
             owner.OperatorToken);
         Assert.Equal(HttpStatusCode.BadRequest, crossTenantReferences.Response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Schedule_uses_operational_time_and_keeps_completed_trips_in_history()
+    {
+        var client = _fixture.CreateClient();
+        var fixture = await CreateResourcesAsync(client);
+        var ids = new List<Guid>();
+        for (var day = 0; day < 3; day++)
+        {
+            var created = await CreateTripAsync(client, fixture, fixture.BusId, fixture.Departure.AddDays(day));
+            Assert.Equal(HttpStatusCode.Created, created.Response.StatusCode);
+            var id = created.Body.GetProperty("id").GetGuid();
+            ids.Add(id);
+            var published = await SendAsync(client, HttpMethod.Post, $"/api/v1/operator/trips/{id}/publish",
+                new { expectedVersion = created.Body.GetProperty("rowVersion").GetInt64() }, fixture.OperatorToken, Idempotency());
+            Assert.Equal(HttpStatusCode.Accepted, published.Response.StatusCode);
+        }
+
+        await using (var db = new Npgsql.NpgsqlConnection(_fixture.Container.GetConnectionString()))
+        {
+            await db.OpenAsync();
+            await using var command = new Npgsql.NpgsqlCommand("""
+                UPDATE trips SET status='BOARDING' WHERE id=@future;
+                UPDATE trips SET status='BOARDING', departure_at=now()-interval '24 hours', arrival_at=now()-interval '22 hours',
+                    operating_window=tstzrange(now()-interval '25 hours', now()-interval '21 hours', '[)') WHERE id=@overdue;
+                UPDATE trips SET status='COMPLETED', departure_at=now()-interval '48 hours', arrival_at=now()-interval '46 hours',
+                    operating_window=tstzrange(now()-interval '49 hours', now()-interval '45 hours', '[)') WHERE id=@completed;
+                """, db);
+            command.Parameters.AddWithValue("future", ids[0]);
+            command.Parameters.AddWithValue("overdue", ids[1]);
+            command.Parameters.AddWithValue("completed", ids[2]);
+            await command.ExecuteNonQueryAsync();
+        }
+
+        const string path = "/api/v1/operator/trips/schedule";
+        var active = await SendAsync(client, HttpMethod.Get, path + "?scope=active", bearer: fixture.OperatorToken);
+        Assert.Equal(HttpStatusCode.OK, active.Response.StatusCode);
+        var upcoming = Assert.Single(active.Body.GetProperty("items").EnumerateArray());
+        Assert.Equal(ids[0], upcoming.GetProperty("id").GetGuid());
+        Assert.Equal("BOARDING", upcoming.GetProperty("status").GetString());
+        Assert.Equal("SCHEDULED", upcoming.GetProperty("scheduleStatus").GetString());
+
+        var history = await SendAsync(client, HttpMethod.Get, path + "?scope=history&size=1", bearer: fixture.OperatorToken);
+        Assert.Equal(2, history.Body.GetProperty("totalElements").GetInt32());
+        var overdue = Assert.Single(history.Body.GetProperty("items").EnumerateArray());
+        Assert.Equal(ids[1], overdue.GetProperty("id").GetGuid());
+        Assert.Equal("NEEDS_UPDATE", overdue.GetProperty("scheduleStatus").GetString());
+
+        var completed = await SendAsync(client, HttpMethod.Get, path + "?scope=history&status=completed", bearer: fixture.OperatorToken);
+        var finished = Assert.Single(completed.Body.GetProperty("items").EnumerateArray());
+        Assert.Equal(ids[2], finished.GetProperty("id").GetGuid());
+        Assert.Equal("COMPLETED", finished.GetProperty("scheduleStatus").GetString());
     }
 
     [Fact]

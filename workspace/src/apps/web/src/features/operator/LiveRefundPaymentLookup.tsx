@@ -8,7 +8,7 @@ import { liveQueryKey } from "@/shared/api/liveRequest";
 import { ApiFailure } from "@/shared/api/ResourcePage";
 
 const paymentSchema = z.object({
-  id: z.string().uuid(),
+  id: z.guid(),
   status: z.string(),
   amount: z.number(),
 });

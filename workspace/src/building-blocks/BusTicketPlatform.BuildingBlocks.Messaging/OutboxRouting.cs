@@ -20,7 +20,7 @@ public static class OutboxRouting
         "RefundRequested" => Topology.RefundRequestedRoutingKey,
         "PaymentSucceeded" => Topology.PaymentSucceededRoutingKey,
         "PaymentFailed" => Topology.PaymentFailedRoutingKey,
-        "RevenueMovementRecorded" => Topology.RevenueMovementRoutingKey,
+        "RevenueMovementRecorded" or "PaymentBookingLinked" or "BookingRevenueContextRecorded" => Topology.RevenueMovementRoutingKey,
         "RefundSucceeded" => Topology.RefundSucceededRoutingKey,
         "RefundFailed" => Topology.RefundFailedRoutingKey,
         _ => throw new InvalidOperationException($"No routing key mapped for '{messageType}'.")

@@ -64,6 +64,7 @@ public sealed record MembershipDto(
     DateTimeOffset? CreatedAt = null);
 
 public sealed record UserPageDto(int Page, int Size, long TotalElements, int TotalPages, IReadOnlyList<UserProfileDto> Items);
+public sealed record UserListFilter(Guid? OrganizationId, string? Search, bool StaffOnly, bool? Active, bool? MembershipActive);
 
 public sealed record UserRecord(
     Guid Id,

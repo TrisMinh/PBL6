@@ -55,6 +55,7 @@
   color: var(--color-text-secondary);
   line-height: 18px;
 }
+.membership-dialog__form input[type="search"],
 .membership-dialog__form select,
 .membership-dialog__form textarea,
 .membership-dialog__fixed {
@@ -68,6 +69,12 @@
   font-size: 15px;
   line-height: 22px;
   font-weight: 400;
+}
+.membership-dialog__form [aria-invalid="true"] {
+  border-color: var(--color-status-error);
+}
+.membership-dialog__form label > [role="alert"] {
+  color: var(--color-status-error);
 }
 .membership-dialog__reason,
 .membership-dialog__hint,

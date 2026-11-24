@@ -9,7 +9,7 @@ docker compose ps
 docker compose down -v   # reset volumes; local/test only
 ```
 
-Full platform (APIs + BLUE web):
+Use [Windows setup](../data-backup/README.md) for the full platform with the operating dataset. The following command starts the legacy fixture stack for development:
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.apps.yml up -d --build --wait
@@ -26,8 +26,8 @@ They have independent routes, login and build artifacts. The old temporary backo
 Configure SePay with the variables in the root `.env.example`. The Docker stack uses SePay for live checkout.
 
 The Docker admin app uses live APIs through the gateway, including organization
-lists, profiles and updates stored in PostgreSQL. Sign in with the local seed
-account `admin.seed@example.test` / `AdminPass1234`. Customer and operator build
+lists, profiles and updates stored in PostgreSQL. Sign in to the operating stack
+with `admin@demo.blue.example.test` / `CustomerPass1`. Customer and operator build
 modes are configured separately in `docker-compose.apps.yml`.
 
 Admin lists, filters, staff profiles/memberships and transaction details use live

@@ -13,11 +13,27 @@ export const catalogueSearch = {
 };
 export function useLiveCatalogue(
   enabled = true,
+  options: {
+    originId?: string;
+    destinationId?: string;
+    departureDate?: string;
+    passengerCount?: number;
+    includeAvailability?: boolean;
+  } = {},
 ): UseQueryResult<readonly Trip[]> {
+  const { includeAvailability = true, ...criteria } = options;
+  const search = { ...catalogueSearch, ...criteria };
   return useQuery({
-    queryKey: ["live-api", "public-trip-catalogue"],
+    queryKey: [
+      "live-api",
+      "public-trip-catalogue",
+      search,
+      includeAvailability,
+    ],
     queryFn: ({ signal }) =>
-      backendTripRepository.search(catalogueSearch, signal),
+      backendTripRepository.search(search, signal, includeAvailability, {
+        cards: true,
+      }),
     enabled,
   });
 }

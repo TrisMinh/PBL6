@@ -105,7 +105,7 @@ export function SePayCheckoutPage(): ReactElement {
     draft && draft.bookingId === bookingId
       ? bookingReviewPath(draft.sessionId)
       : ROUTES.accountTickets;
-  const validId = z.uuid().safeParse(bookingId).success;
+  const validId = z.guid().safeParse(bookingId).success;
   const booking = useQuery({
     queryKey: liveQueryKey("booking", bookingId),
     queryFn: ({ signal }) =>

@@ -1,3 +1,4 @@
+import { Toast } from "@/shared/ui/Toast/Toast";
 import { useState, type ReactElement } from "react";
 import { Link, useSearchParams } from "react-router";
 
@@ -11,12 +12,14 @@ import plusIcon from "@/assets/admin/plus.svg";
 import viewIcon from "@/assets/admin/view.svg";
 
 import { AdminListState } from "@/features/admin/components/AdminDataTable/AdminListState";
+import { AdminPagination } from "@/features/admin/components/AdminFilters/AdminFilters";
 import { OrganizationDialog } from "@/features/admin/organizations/components/OrganizationDialog";
 import { OrganizationPageHeader } from "@/features/admin/organizations/components/OrganizationPageHeader";
 import { MembershipDialog } from "@/features/admin/staff/components/MembershipDialog";
 import {
+  useOrganizationMemberPage,
   useStaffCandidates,
-  useStaffOrganizations,
+  useStaffMember,
 } from "@/features/admin/staff/hooks/useStaffData";
 import {
   useMemberships,
@@ -32,6 +35,7 @@ import type {
   OrganizationInput,
 } from "@/features/admin/types/admin";
 import { ROUTES } from "@/shared/config/routes";
+import { isMockApi } from "@/shared/api/config";
 import { Button } from "@/shared/ui/Button/Button";
 
 import "./OrganizationPages.css";
@@ -239,15 +243,54 @@ function OrganizationDetailContent({
   const dialog = useDetailDialog();
   const [notice, setNotice] = useState("");
   const [searchParams, setSearchParams] = useSearchParams();
-  const availableStaff = useStaffCandidates();
-  const organizations = useStaffOrganizations();
-  const memberships = useMemberships({ organizationId: organization.id });
+  const [staffSearch, setStaffSearch] = useState("");
+  const dialogType = searchParams.get("dialog");
+  const isMemberView = searchParams.get("view") === "members";
+  const memberStatus =
+    searchParams.get("status") === "inactive" ? "inactive" : "active";
+  const memberSearch = isMemberView
+    ? searchParams.get("query")?.trim().slice(0, 100)
+    : undefined;
+  const requestedPage = Number(searchParams.get("page"));
+  const page =
+    Number.isSafeInteger(requestedPage) &&
+    requestedPage > 0 &&
+    requestedPage <= 2147483647
+      ? requestedPage
+      : 1;
+  const memberPage = useOrganizationMemberPage(
+    organization.id,
+    page,
+    isMemberView ? memberStatus === "active" : undefined,
+    memberSearch,
+  );
+  const availableStaff = useStaffCandidates({
+    organizationId: organization.id,
+    enabled: isMockApi,
+  });
+  const candidateSearch = useStaffCandidates({
+    search: staffSearch.trim(),
+    enabled:
+      !isMockApi &&
+      dialogType === "create-member" &&
+      staffSearch.trim().length >= 2,
+  });
+  const memberships = useMemberships(
+    { organizationId: organization.id },
+    isMockApi,
+  );
   const saveMembership = useSaveMembership();
-  const members = (memberships.data ?? []).flatMap((membership) => {
-    const staff = availableStaff.data?.items.find(
-      (item) => item.id === membership.staffId,
+  const accounts = isMockApi
+    ? availableStaff.data?.items
+    : memberPage.data?.items;
+  const memberFor = (staff: NonNullable<typeof accounts>[number]) =>
+    (isMockApi ? memberships.data : staff.memberships)?.find(
+      (item) =>
+        item.staffId === staff.id && item.organizationId === organization.id,
     );
-    return staff
+  const members = (accounts ?? []).flatMap((staff) => {
+    const membership = memberFor(staff);
+    return membership
       ? [
           {
             ...staff,
@@ -258,17 +301,21 @@ function OrganizationDetailContent({
         ]
       : [];
   });
-  const dialogType = searchParams.get("dialog");
-  const isMemberView = searchParams.get("view") === "members";
-  const memberStatus =
-    searchParams.get("status") === "inactive" ? "inactive" : "active";
-  const selectedStaff = members.find(
-    (item) => item.id === searchParams.get("staffId"),
+  const selectedId =
+    dialogType === "edit-member" ? searchParams.get("staffId") : null;
+  const selectedOnPage = members.find((item) => item.id === selectedId);
+  const selectedDetail = useStaffMember(
+    !isMockApi && !selectedOnPage ? (selectedId ?? "") : "",
   );
-  const selectedMembership = memberships.data?.find(
-    (item) => item.staffId === selectedStaff?.id,
+  const selectedStaff = selectedOnPage ?? selectedDetail.data;
+  const selectedMembership = selectedStaff && memberFor(selectedStaff);
+  const total = isMockApi ? members.length : (memberPage.data?.total ?? 0);
+  const totalPages = Math.max(
+    1,
+    Math.ceil(total / (memberPage.data?.pageSize ?? 20)),
   );
   const setMemberDialog = (value?: string, staffId?: string): void => {
+    setStaffSearch("");
     const next = new URLSearchParams(searchParams);
     if (value) next.set("dialog", value);
     else next.delete("dialog");
@@ -282,21 +329,26 @@ function OrganizationDetailContent({
     setNotice("Đã cập nhật tổ chức.");
   };
   if (
-    memberships.isPending ||
-    availableStaff.isPending ||
-    organizations.isPending
+    isMockApi
+      ? memberships.isPending || availableStaff.isPending
+      : memberPage.isPending
   )
     return <AdminListState label="Đang tải thành viên" state="loading" />;
-  if (memberships.isError || availableStaff.isError || organizations.isError)
+  if (
+    isMockApi
+      ? memberships.isError || availableStaff.isError
+      : memberPage.isError
+  )
     return (
       <AdminListState
         title="Tải dữ liệu thất bại"
         description="Không thể tải thành viên tổ chức."
         state="error"
         onRetry={() => {
-          void memberships.refetch();
-          void availableStaff.refetch();
-          void organizations.refetch();
+          if (isMockApi) {
+            void memberships.refetch();
+            void availableStaff.refetch();
+          } else void memberPage.refetch();
         }}
       />
     );
@@ -318,7 +370,7 @@ function OrganizationDetailContent({
         <>
           <DetailHeader
             organization={organization}
-            memberCount={members.length}
+            memberCount={total}
             onEdit={dialog.open}
           />
           <DetailCards organization={organization} />
@@ -361,6 +413,7 @@ function OrganizationDetailContent({
                 onChange={(event) => {
                   const next = new URLSearchParams(searchParams);
                   next.set("status", event.target.value);
+                  next.delete("page");
                   setSearchParams(next);
                 }}
               >
@@ -368,6 +421,37 @@ function OrganizationDetailContent({
                 <option value="inactive">Tạm ngưng</option>
               </select>
             </label>
+            {!isMockApi && (
+              <form
+                className="organization-page__member-search"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  const query = String(
+                    new FormData(event.currentTarget).get("query") ?? "",
+                  ).trim();
+                  const next = new URLSearchParams(searchParams);
+                  if (query) next.set("query", query);
+                  else next.delete("query");
+                  next.delete("page");
+                  setSearchParams(next);
+                }}
+              >
+                <label className="organization-page__member-organization">
+                  Tìm thành viên
+                  <input
+                    key={memberSearch}
+                    name="query"
+                    type="search"
+                    maxLength={100}
+                    defaultValue={memberSearch}
+                    placeholder="Tên, email hoặc số điện thoại"
+                  />
+                </label>
+                <Button type="submit" variant="secondary">
+                  Tìm
+                </Button>
+              </form>
+            )}
             <Button
               type="button"
               onClick={() => setMemberDialog("create-member")}
@@ -493,15 +577,41 @@ function OrganizationDetailContent({
               ))}
           </tbody>
         </table>
+        {!isMockApi && members.length === 0 && (
+          <AdminListState
+            state="empty"
+            title="Chưa có thành viên phù hợp"
+            description="Thử đổi từ khóa hoặc trạng thái."
+          />
+        )}
+        {!isMockApi && (totalPages > 1 || page > 1) && (
+          <AdminPagination
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={(value) => {
+              const next = new URLSearchParams(searchParams);
+              if (value > 1) next.set("page", String(value));
+              else next.delete("page");
+              setSearchParams(next);
+            }}
+          />
+        )}
       </section>
       {(dialogType === "create-member" ||
-        (dialogType === "edit-member" && selectedStaff)) && (
+        (dialogType === "edit-member" &&
+          selectedStaff &&
+          selectedMembership)) && (
         <MembershipDialog
           fixedOrganization={organization}
           fixedStaff={selectedStaff}
           membership={selectedMembership}
-          organizations={organizations.data?.items ?? [organization]}
-          staff={availableStaff.data?.items ?? []}
+          organizations={[organization]}
+          staff={
+            (isMockApi ? availableStaff.data : candidateSearch.data)?.items ??
+            []
+          }
+          onStaffSearch={isMockApi ? undefined : setStaffSearch}
+          isStaffSearching={candidateSearch.isFetching}
           isPending={saveMembership.isPending}
           onClose={() => setMemberDialog()}
           onSubmit={async (input, key) => {
@@ -514,15 +624,15 @@ function OrganizationDetailContent({
             setNotice("Đã cập nhật thành viên.");
           }}
           errorMessage={
-            saveMembership.isError
-              ? "Không thể lưu thành viên. Vui lòng thử lại."
-              : undefined
+            candidateSearch.isError && dialogType === "create-member"
+              ? "Không thể tìm tài khoản. Vui lòng thử lại."
+              : saveMembership.isError
+                ? "Không thể lưu thành viên. Vui lòng thử lại."
+                : undefined
           }
         />
       )}
-      <p aria-live="polite" className="organization-page__notice" role="status">
-        {notice}
-      </p>
+      {notice && <Toast message={notice} onClose={() => setNotice("")} />}
       <EditOrganizationDialog
         dialog={dialog}
         organization={organization}

@@ -62,7 +62,9 @@ export const exploreRepository = {
       ? (await request("/api/v1/explore/provinces", provinceListSchema, signal))
           .items
       : catalogueProvinces(
-          await backendTripRepository.search(catalogueSearch, signal),
+          await backendTripRepository.search(catalogueSearch, signal, false, {
+            cards: true,
+          }),
         ),
   detail: async (
     slug: string,
@@ -72,7 +74,9 @@ export const exploreRepository = {
       throw new ExploreRepositoryError("INVALID_INPUT");
     if (!isMockApi) {
       const detail = catalogueProvinces(
-        await backendTripRepository.search(catalogueSearch, signal),
+        await backendTripRepository.search(catalogueSearch, signal, false, {
+          cards: true,
+        }),
       ).find((p) => p.slug === slug);
       if (!detail) throw new ExploreRepositoryError("HTTP_ERROR", 404);
       return detail;

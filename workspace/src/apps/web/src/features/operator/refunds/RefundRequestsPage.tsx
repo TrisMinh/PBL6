@@ -22,7 +22,7 @@ import {
   type RefundFilters,
   type RefundRequest,
 } from "./refunds.schema";
-import { getRefundRequests } from "./refundsRepository";
+import { getRefundRequests, REFUND_PAGE_SIZE } from "./refundsRepository";
 import navTrips from "@/assets/operator/refunds/imgFrame.svg";
 import navBookings from "@/assets/operator/refunds/imgFrame1.svg";
 import navRoutes from "@/assets/operator/refunds/imgFrame2.svg";
@@ -149,9 +149,16 @@ export function RefundRequestsPage(): ReactElement {
   const [detail, setDetail] = useState<Detail | null>(null),
     [selected, setSelected] = useState("BK-0905-018");
   const focusReturn = useRef<HTMLElement | null>(null);
+  const requestedPage = Number(params.get("page") ?? "1");
+  const page =
+    Number.isSafeInteger(requestedPage) &&
+    requestedPage > 0 &&
+    requestedPage <= 2147483647
+      ? requestedPage
+      : 1;
   const query = useQuery({
-    queryKey: liveQueryKey("operator-refund-requests", applied),
-    queryFn: ({ signal }) => getRefundRequests(applied, signal),
+    queryKey: liveQueryKey("operator-refund-requests", applied, page),
+    queryFn: ({ signal }) => getRefundRequests(applied, signal, page),
     enabled: appliedResult.success,
     refetchInterval: 15_000,
   });
@@ -176,6 +183,15 @@ export function RefundRequestsPage(): ReactElement {
     setParams(new URLSearchParams(next));
   }
   const items = query.data?.items ?? [];
+  const currentPage = query.data?.page ?? page;
+  const total = query.data?.total ?? 0;
+  const pages = Math.max(1, Math.ceil(total / REFUND_PAGE_SIZE));
+  const changePage = (value: number) => {
+    const next = new URLSearchParams(params);
+    if (value > 1) next.set("page", String(value));
+    else next.delete("page");
+    setParams(next, { preventScrollReset: true });
+  };
   return (
     <div className="operator-schedule operator-refunds">
       <a className="operator-schedule__skip" href="#refunds-main">
@@ -421,7 +437,29 @@ export function RefundRequestsPage(): ReactElement {
                 </table>
               </div>
               <footer className="operator-refunds__count">
-                Hiển thị 1–{items.length} trong {query.data?.total ?? 0} yêu cầu
+                <p>
+                  Hiển thị {(currentPage - 1) * REFUND_PAGE_SIZE + 1}–
+                  {(currentPage - 1) * REFUND_PAGE_SIZE + items.length} trong{" "}
+                  {total} yêu cầu
+                </p>
+                {pages > 1 && (
+                  <nav aria-label="Phân trang yêu cầu hoàn tiền">
+                    <Button
+                      variant="secondary"
+                      disabled={currentPage <= 1}
+                      onClick={() => changePage(currentPage - 1)}
+                    >
+                      Trang trước
+                    </Button>{" "}
+                    <Button
+                      variant="secondary"
+                      disabled={currentPage >= pages}
+                      onClick={() => changePage(currentPage + 1)}
+                    >
+                      Trang sau
+                    </Button>
+                  </nav>
+                )}
               </footer>
             </>
           ) : (

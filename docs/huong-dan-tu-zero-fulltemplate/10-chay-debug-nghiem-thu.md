@@ -95,9 +95,8 @@ Invoke-WebRequest http://localhost:8025
 | `verify-contracts.ps1` | chạy contract gates |
 | `verify-s0.ps1` | build/test gate Sprint 0 |
 | `hash-password.cs` | tạo hash seed local |
-| `gen_service_skeleton.py` | sinh skeleton service |
 
-Không hard-code đường dẫn máy người tạo trong script. Đặc biệt kiểm tra và sửa `ROOT` của `gen_service_skeleton.py` thành đường dẫn tương đối trước khi chia sẻ.
+Không hard-code đường dẫn máy người tạo trong script.
 
 ## 7. Debug theo lớp
 

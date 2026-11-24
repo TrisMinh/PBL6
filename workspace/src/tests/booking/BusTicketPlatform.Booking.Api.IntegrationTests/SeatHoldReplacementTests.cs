@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
+using Npgsql;
 
 namespace BusTicketPlatform.Booking.Api.IntegrationTests;
 
@@ -53,5 +54,26 @@ public sealed class SeatHoldReplacementTests(BookingPostgresFixture fixture)
         Assert.Equal(HttpStatusCode.OK,replaced.Response.StatusCode);
         Assert.Equal(2,replaced.Body.GetProperty("seats").GetArrayLength());
         Assert.Equal(held.Body.GetProperty("expiresAt").GetString(),replaced.Body.GetProperty("expiresAt").GetString());
+
+        var full = await Send(HttpMethod.Get, $"/api/v1/trips/availability?ids={trip}", owner);
+        Assert.Equal(0, full.Body.GetProperty(trip.ToString()).GetInt32());
+        await using var connection = new NpgsqlConnection(fixture.Container.GetConnectionString());
+        await connection.OpenAsync();
+        await using var expire = new NpgsqlCommand("""
+            UPDATE seat_holds SET created_at = now() - interval '11 minutes', expires_at = now() - interval '1 minute'
+            WHERE id = (SELECT active_hold_id FROM trip_seats WHERE id = @seat);
+            """, connection);
+        expire.Parameters.AddWithValue("seat", seats[2]);
+        Assert.Equal(1, await expire.ExecuteNonQueryAsync());
+        var available = await Send(HttpMethod.Get, $"/api/v1/trips/availability?ids={trip}", owner);
+        Assert.Equal(1, available.Body.GetProperty(trip.ToString()).GetInt32());
+        var batch = await Send(HttpMethod.Post, "/api/v1/trips/availability", owner, new { tripIds = new[] { trip, trip } });
+        Assert.Equal(HttpStatusCode.OK, batch.Response.StatusCode);
+        Assert.Equal(1, batch.Body.GetProperty(trip.ToString()).GetInt32());
+        await using var status = new NpgsqlCommand("SELECT status FROM trip_seats WHERE id = @seat", connection);
+        status.Parameters.AddWithValue("seat", seats[2]);
+        Assert.Equal("HELD", await status.ExecuteScalarAsync());
+        var reclaimed = await Send(HttpMethod.Post, $"/api/v1/trips/{trip}/seat-holds", owner, Selection(seats[2]));
+        Assert.Equal(HttpStatusCode.Created, reclaimed.Response.StatusCode);
     }
 }

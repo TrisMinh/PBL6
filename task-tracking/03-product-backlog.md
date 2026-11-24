@@ -118,14 +118,14 @@ Trace: [repository structure](../docs/implementation/01-repository-structure.md)
 
 ### `PAY-REC-01` — Khôi phục xác nhận SePay khi mất IPN
 
-**Trạng thái** Đã triển khai tra cứu theo nút **Kiểm tra giao dịch** · **Ưu tiên** P1 · **Phụ trách** BE-2 và FE
+**Trạng thái** Đã triển khai tra cứu theo nút và tra cứu tự động, chờ nghiệm thu SePay Sandbox · **Ưu tiên** P1 · **Phụ trách** BE-2 và FE
 
-API `POST /api/v1/payments/{paymentId}/reconcile` giới hạn một lần tra cứu mỗi 30 giây cho mỗi hóa đơn trên cả hai instance Payment. Còn nghiệm thu trực tiếp với SePay Sandbox và tra cứu tự động cho đơn chờ quá lâu.
+API `POST /api/v1/payments/{paymentId}/reconcile` giới hạn một lần tra cứu mỗi 30 giây cho mỗi hóa đơn trên cả hai instance Payment. Tác vụ tự động chọn các hóa đơn đã tạo ít nhất một phút, giảm tần suất sau khi hết hạn và dừng tra cứu tự động sau 24 giờ kể từ lúc hết hạn.
 
 - Khi khách bấm **Kiểm tra giao dịch** trên đơn còn chờ, backend xác minh quyền sở hữu đơn rồi tra cứu hóa đơn qua [API chi tiết đơn hàng SePay](https://developer.sepay.vn/vi/cong-thanh-toan/API/don-hang/chi-tiet-don-hang). Giới hạn tần suất tra cứu và giữ nguyên trạng thái nếu SePay chưa xác nhận hoặc API bị lỗi.
 - Chỉ ghi nhận khi hóa đơn, mã giao dịch, số tiền và loại tiền khớp. Dùng chung luồng xử lý với IPN để tránh ghi nhận hoặc phát hành vé hai lần khi IPN đến muộn hay người dùng bấm nhiều lần.
 - Phát hành vé nếu đơn còn hiệu lực và ghế vẫn được giữ. Nếu đơn hết hạn hoặc ghế đã nhả, chuyển khoản đã thu sang quy trình xử lý hoàn tiền.
-- Nghiệm thu trên Sandbox với IPN bị mất, IPN đến đồng thời với tra cứu, giao dịch không khớp, API SePay tạm lỗi và đơn hết hạn. Sau đó bổ sung tra cứu tự động cho các đơn chờ quá lâu.
+- Nghiệm thu trên Sandbox với IPN bị mất, IPN đến đồng thời với tra cứu, giao dịch không khớp, API SePay tạm lỗi và đơn hết hạn. Kiểm thử tích hợp chạy với PostgreSQL thật và mô phỏng phản hồi SePay.
 
 ## EP-05 — Cancellation, Refund & Notification (`S5`)
 

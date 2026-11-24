@@ -26,7 +26,7 @@ public static class ReportingInfrastructureExtensions
             options.ConnectionString,
             ["booking.booking.*.v1", "payment.payment.*.v1", "payment.refund.*.v1", Topology.RevenueMovementRoutingKey],
             ReportingEventHandlers.HandleAsync,
-            new HashSet<string>(StringComparer.Ordinal) { "RevenueMovementRecorded" }));
+            new HashSet<string>(StringComparer.Ordinal) { "RevenueMovementRecorded", "PaymentBookingLinked", "BookingRevenueContextRecorded" }));
         return services;
     }
 

@@ -1,4 +1,5 @@
-import { request, type Row } from "../liveOriginalApi";
+import { request, rows, type Row } from "../liveOriginalApi";
+import { isMockApi } from "@/shared/api/config";
 import {
   scheduleResources,
   adaptSchedule,
@@ -10,18 +11,13 @@ import {
   type ManifestPassenger,
   type TripPassengersResponse,
 } from "./tripLists.schema";
-function tripRow(
-  t: Row,
-  buses: Row[],
-  drivers: Row[],
-  passengers: Row[] = [],
-): Row {
+function tripRow(t: Row, buses: Row[], drivers: Row[], counts?: Row): Row {
   const s = adaptSchedule(t, buses, drivers);
   return {
     ...s,
     vehicle: s.vehicleLabel,
-    booked: passengers.length || s.passengers,
-    checkedIn: passengers.filter((p) => p.status === "CHECKED_IN").length,
+    booked: counts?.booked || s.passengers,
+    checkedIn: counts?.checkedIn ?? 0,
     status: s.status === "draft" ? "scheduled" : s.status,
   };
 }
@@ -29,20 +25,19 @@ export async function getPassengerTrips(
   filters: TripListFilters,
   signal?: AbortSignal,
 ): Promise<import("zod").infer<typeof tripListsResponseSchema>> {
-  const { trips, buses, drivers } = await scheduleResources(signal);
-  const items = await Promise.all(
-    trips
-      .filter((t) => t.status !== "DRAFT" && t.status !== "CANCELLED")
-      .map(async (t) => {
-        const manifest = await request(
-          `/api/v1/operator/trips/${t.id}/manifest`,
-          "GET",
-          undefined,
-          signal,
-        );
-        return tripRow(t, buses, drivers, manifest.passengers);
-      }),
-  );
+  const [{ trips, buses, drivers }, counts] = await Promise.all([
+    isMockApi
+      ? scheduleResources(signal)
+      : Promise.all([
+          rows("/api/v1/operator/trips?manifest=true", signal),
+          rows("/api/v1/operator/buses", signal),
+        ]).then(([trips, buses]) => ({ trips, buses, drivers: [] })),
+    rows("/api/v1/operator/trips/manifest-counts", signal),
+  ]);
+  const byTrip = new Map(counts.map((count) => [count.tripId, count]));
+  const items = trips
+    .filter((t) => t.status !== "DRAFT" && t.status !== "CANCELLED")
+    .map((t) => tripRow(t, buses, drivers, byTrip.get(t.id)));
   const routes = [
     ...new Set(items.map((t) => `${t.origin} → ${t.destination}`)),
   ];
@@ -64,7 +59,7 @@ export async function getPassengerTrip(
   id: string,
   signal?: AbortSignal,
 ): Promise<TripPassengersResponse["trip"]> {
-  const { trips, buses, drivers } = await scheduleResources(signal);
+  const { trips, buses, drivers } = await scheduleResources(signal, id);
   const trip = trips.find((item) => item.id === id);
   if (!trip) throw Error("Không tìm thấy chuyến này.");
 

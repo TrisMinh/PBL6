@@ -12,6 +12,83 @@ namespace BusTicketPlatform.Reporting.Api.IntegrationTests;
 public sealed class RevenueReportTests(ReportingPostgresFixture fixture)
 {
     [Fact]
+    public async Task Operator_booking_revenue_keeps_refund_dates_and_excludes_other_operators()
+    {
+        using var client = fixture.CreateClient();
+        var organization = Guid.NewGuid();
+        var otherOrganization = Guid.NewGuid();
+        var booking = Guid.NewGuid();
+        var payment = Guid.NewGuid();
+        var secondPayment = Guid.NewGuid();
+        var route = Guid.NewGuid();
+        var beforeMidnight = new DateTimeOffset(2026, 11, 17, 16, 59, 59, TimeSpan.Zero);
+
+        Task Send(string type, string producer, Guid aggregateId, Guid tenant, object payload) =>
+            ReportingEventHandlers.HandleAsync(fixture.Factory.Services,
+                new EventMessage(Guid.NewGuid(), type, 1, beforeMidnight, producer, Guid.NewGuid(), aggregateId,
+                    JsonSerializer.SerializeToElement(payload, EventMessageJson.Options), TenantId: tenant), default);
+
+        var capture = new RevenueMovement($"capture:{payment}", "CAPTURE", payment, organization, "VND",
+            beforeMidnight, 400000, 0, 0);
+        var refund = capture with { MovementKey = $"refund:{payment}", Kind = "REFUND",
+            EffectiveAt = beforeMidnight.AddSeconds(2), Amount = 90000 };
+        var secondCapture = capture with { PaymentId = secondPayment, MovementKey = $"capture:{secondPayment}",
+            EffectiveAt = refund.EffectiveAt, Amount = 150000 };
+        foreach (var movement in new[] { refund, capture, secondCapture, refund,
+                     capture with { MovementKey = $"foreign:{payment}", OrganizationId = otherOrganization } })
+        {
+            await Send("RevenueMovementRecorded", "payment", movement.PaymentId, movement.OrganizationId, movement);
+        }
+
+        foreach (var paymentId in new[] { payment, secondPayment, payment })
+        {
+            await Send("PaymentBookingLinked", "payment", paymentId, organization,
+                new { paymentId, bookingId = booking });
+        }
+        await Send("BookingRevenueContextRecorded", "booking", booking, organization,
+            new { bookingId = booking, bookingCode = "BKDRILLTEST", routeId = route, routeName = "Đà Nẵng – Hà Nội" });
+
+        await using var connection = new NpgsqlConnection(fixture.ConnectionString);
+        await connection.OpenAsync();
+        var role = $"bi_drill_{Guid.NewGuid():N}";
+        await using var transaction = await connection.BeginTransactionAsync();
+        await using var setup = new NpgsqlCommand($"""
+            CREATE ROLE {role};
+            GRANT USAGE ON SCHEMA bi TO {role};
+            GRANT SELECT ON bi.operator_revenue_by_booking TO {role};
+            INSERT INTO bi.operator_reader_scope VALUES ('{role}', @org);
+            SET SESSION AUTHORIZATION {role};
+            """, connection, transaction);
+        setup.Parameters.AddWithValue("org", organization);
+        await setup.ExecuteNonQueryAsync();
+        try
+        {
+            await using var read = new NpgsqlCommand("""
+                SELECT period_date, booking_code, route_name, gross_revenue, refund_amount, net_revenue
+                FROM bi.operator_revenue_by_booking WHERE currency = 'VND'
+                ORDER BY period_date
+                """, connection, transaction);
+            await using var rows = await read.ExecuteReaderAsync();
+            Assert.True(await rows.ReadAsync());
+            Assert.Equal(new DateOnly(2026, 11, 17), rows.GetFieldValue<DateOnly>(0));
+            Assert.Equal("BKDRILLTEST", rows.GetString(1));
+            Assert.Equal("Đà Nẵng – Hà Nội", rows.GetString(2));
+            Assert.Equal(400000, rows.GetInt64(5));
+            Assert.True(await rows.ReadAsync());
+            Assert.Equal(new DateOnly(2026, 11, 18), rows.GetFieldValue<DateOnly>(0));
+            Assert.Equal("BKDRILLTEST", rows.GetString(1));
+            Assert.Equal(150000, rows.GetInt64(3));
+            Assert.Equal(90000, rows.GetInt64(4));
+            Assert.Equal(60000, rows.GetInt64(5));
+            Assert.False(await rows.ReadAsync());
+        }
+        finally
+        {
+            await transaction.RollbackAsync();
+        }
+    }
+
+    [Fact]
     public async Task Operator_revenue_matches_bi_after_out_of_order_movements_and_replay()
     {
         using var client = fixture.CreateClient();

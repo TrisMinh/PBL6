@@ -45,7 +45,7 @@ export const driverInputSchema = z
     },
   );
 export const driverAttachmentSchema = z.object({
-  id: z.uuid(),
+  id: z.guid(),
   name: z.string().min(1).max(255),
   type: z.enum(["image/jpeg", "image/png", "application/pdf"]),
   size: z

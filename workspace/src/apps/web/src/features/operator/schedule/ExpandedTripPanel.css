@@ -14,7 +14,7 @@
   font-family: var(--font-body);
   color: var(--color-text-primary);
   position: fixed;
-  inset: 5vh max(24px, calc((100vw - 1440px) / 2));
+  inset: 5vh max(24px, calc((100vw - 1200px) / 2));
   z-index: 61;
   display: flex;
   flex-direction: column;
@@ -107,6 +107,33 @@
 .operator-trip-expanded__editor {
   min-width: 0;
 }
+.operator-trip-expanded__history {
+  padding: 20px;
+  border: 1px solid var(--op-border);
+  border-radius: 16px;
+  background: var(--op-white);
+}
+.operator-trip-expanded__history h3 {
+  margin: 0 0 16px;
+}
+.operator-trip-expanded__history dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 16px;
+  margin: 0;
+}
+.operator-trip-expanded__history dt {
+  color: var(--op-muted);
+  font-size: 13px;
+}
+.operator-trip-expanded__history dd {
+  margin: 4px 0 0;
+  font-weight: 600;
+}
+.operator-trip-expanded__history p {
+  margin: 16px 0 0;
+  color: var(--op-muted);
+}
 .operator-trip-expanded__technical {
   font-size: 11px;
   color: var(--color-text-secondary);
@@ -148,13 +175,8 @@
 .operator-trip-expanded .operator-create__steps {
   display: none;
 }
-.operator-trip-expanded .operator-create__columns {
+.operator-trip-expanded .operator-trip-workflow .operator-create__columns {
   grid-template-columns: minmax(0, 1fr);
-  gap: 16px;
-}
-.operator-trip-expanded .operator-create__columns > aside {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
 }
 .operator-trip-editor__fields {
@@ -164,8 +186,7 @@
   min-width: 0;
 }
 .operator-trip-expanded .operator-create__actions {
-  position: sticky;
-  bottom: -24px;
+  position: static;
   background: white;
   padding: 16px;
   border: 1px solid var(--color-border-shell);
@@ -173,8 +194,7 @@
   margin-top: 16px;
 }
 @media (width < 850px) {
-  .operator-trip-expanded,
-  .operator-trip-expanded__editor {
+  .operator-trip-expanded {
     inset: 16px;
   }
   .operator-trip-expanded__body {
@@ -200,9 +220,6 @@
   .operator-trip-expanded__identity h3,
   .operator-trip-expanded__identity p {
     margin: 0;
-  }
-  .operator-trip-expanded .operator-create__columns > aside {
-    grid-template-columns: minmax(0, 1fr);
   }
   .operator-trip-expanded__header {
     padding: 16px;

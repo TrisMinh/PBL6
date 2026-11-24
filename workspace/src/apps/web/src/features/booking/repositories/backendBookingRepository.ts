@@ -20,8 +20,8 @@ import type { SeatLayout, SeatStatus } from "../types/seat";
 
 const metadataSchema = z.object({
   owner: z.string(),
-  pickupStopId: z.string().uuid().optional(),
-  dropoffStopId: z.string().uuid().optional(),
+  pickupStopId: z.guid().optional(),
+  dropoffStopId: z.guid().optional(),
   paymentChannel: z.enum(["PREPAID", "PAY_LATER"]).optional(),
   attempt: z.string().optional(),
   holdRequest: z

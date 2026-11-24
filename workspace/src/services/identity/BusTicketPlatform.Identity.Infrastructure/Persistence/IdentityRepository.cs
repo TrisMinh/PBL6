@@ -1,6 +1,7 @@
 using BusTicketPlatform.BuildingBlocks.Ids;
 using BusTicketPlatform.Identity.Application;
 using Npgsql;
+using NpgsqlTypes;
 
 namespace BusTicketPlatform.Identity.Infrastructure.Persistence;
 
@@ -357,51 +358,119 @@ public sealed class IdentityRepository(IdentityDatabaseOptions options, IIdGener
         return Convert.ToInt32(result);
     }
 
-    public async Task<(IReadOnlyList<UserRecord> Items, long Total)> ListUsersAsync(int page, int size, CancellationToken cancellationToken)
+    public async Task<(IReadOnlyList<UserProfileDto> Items, long Total)> ListUsersAsync(int page, int size, UserListFilter filters,
+        CancellationToken cancellationToken)
     {
+        const string filter = """
+            deleted_at IS NULL
+            AND (@active IS NULL OR (status = 'ACTIVE') = @active)
+            AND (@org IS NULL OR EXISTS (
+                SELECT 1 FROM organization_memberships m
+                WHERE m.organization_id_external = @org AND m.user_id = users.id
+                  AND (@membershipActive IS NULL OR (m.status = 'ACTIVE') = @membershipActive)
+                  AND (@membershipActive IS DISTINCT FROM FALSE OR m.status <> 'ENDED' OR NOT EXISTS (
+                      SELECT 1 FROM organization_memberships current_membership
+                      WHERE current_membership.organization_id_external = @org
+                        AND current_membership.user_id = m.user_id AND current_membership.status = 'ACTIVE'
+                  ))
+            ))
+            AND (NOT @staffOnly OR EXISTS (
+                SELECT 1 FROM user_roles ur JOIN roles r ON r.id = ur.role_id
+                WHERE ur.active AND ur.user_id = users.id AND (
+                    (@org IS NULL AND ur.organization_id_external IS NULL AND r.code = 'PLATFORM_SUPPORT')
+                    OR (r.code IN ('OPERATOR_ADMIN', 'OPERATOR_SCHEDULER', 'DRIVER') AND EXISTS (
+                        SELECT 1 FROM organization_memberships m
+                        WHERE m.user_id = ur.user_id AND m.organization_id_external = ur.organization_id_external
+                          AND (@org IS NULL OR m.organization_id_external = @org)
+                    ))
+                )
+            ))
+            AND (@search = '' OR strpos(lower(concat_ws(' ', full_name, email, phone)), lower(@search)) > 0)
+            """;
         await using var connection = await OpenAsync(cancellationToken);
-        await using var count = new NpgsqlCommand("SELECT COUNT(*) FROM users WHERE deleted_at IS NULL", connection);
-        var total = Convert.ToInt64(await count.ExecuteScalarAsync(cancellationToken));
+        await using var count = new NpgsqlCommand($"SELECT COUNT(*) FROM users WHERE {filter}", connection);
         await using var command = new NpgsqlCommand($"""
-            SELECT {UserColumns}
-            FROM users WHERE deleted_at IS NULL
-            ORDER BY created_at DESC
-            OFFSET @offset LIMIT @limit;
+            WITH page_users AS (
+                SELECT id, full_name, email, phone, status, row_version, created_at
+                FROM users WHERE {filter}
+                ORDER BY created_at DESC, id DESC
+                OFFSET @offset LIMIT @limit
+            )
+            SELECT u.*, {RoleArray("u.id", "ur.organization_id_external IS NULL")}
+            FROM page_users u
+            ORDER BY u.created_at DESC, u.id DESC;
             """, connection);
-        command.Parameters.AddWithValue("offset", page * size);
+        foreach (var query in new[] { count, command })
+        {
+            query.Parameters.AddWithValue("org", NpgsqlDbType.Uuid, (object?)filters.OrganizationId ?? DBNull.Value);
+            query.Parameters.AddWithValue("search", filters.Search ?? "");
+            query.Parameters.AddWithValue("staffOnly", filters.StaffOnly);
+            query.Parameters.AddWithValue("active", NpgsqlDbType.Boolean, (object?)filters.Active ?? DBNull.Value);
+            query.Parameters.AddWithValue("membershipActive", NpgsqlDbType.Boolean, (object?)filters.MembershipActive ?? DBNull.Value);
+        }
+        var total = Convert.ToInt64(await count.ExecuteScalarAsync(cancellationToken));
+        command.Parameters.AddWithValue("offset", (long)page * size);
         command.Parameters.AddWithValue("limit", size);
-        var items = await ReadUsersAsync(command, cancellationToken);
-        return (items, total);
+        var items = new List<UserProfileDto>();
+        await using (var reader = await command.ExecuteReaderAsync(cancellationToken))
+        {
+            while (await reader.ReadAsync(cancellationToken))
+            {
+                items.Add(new UserProfileDto(reader.GetGuid(0), reader.GetString(1), reader.GetString(2),
+                    reader.GetString(3), reader.GetString(4), reader.GetFieldValue<string[]>(7), [],
+                    reader.GetInt64(5), reader.GetFieldValue<DateTimeOffset>(6)));
+            }
+        }
+
+        if (items.Count == 0) return (items, total);
+        await using var membershipsCommand = new NpgsqlCommand($"""
+            {MembershipSelect} WHERE m.user_id = ANY(@ids)
+            ORDER BY (m.status = 'ENDED'), m.created_at DESC, m.id;
+            """, connection);
+        membershipsCommand.Parameters.AddWithValue("ids", items.Select(item => item.Id).ToArray());
+        var memberships = (await ReadMembershipsAsync(membershipsCommand, cancellationToken)).ToLookup(item => item.UserId);
+        return (items.Select(item => item with
+        {
+            OrganizationMemberships = memberships[item.Id].Select(m =>
+                new MembershipDto(m.Id, m.UserId, m.OrganizationId, m.Status, m.RoleCodes, m.RowVersion, m.CreatedAt)).ToArray()
+        }).ToArray(), total);
     }
+
+    private static string RoleArray(string userId, string scope) => $"""
+        ARRAY(SELECT r.code FROM user_roles ur JOIN roles r ON r.id = ur.role_id
+              WHERE ur.user_id = {userId} AND {scope} AND ur.active)
+        """;
+
+    private static readonly string MembershipSelect = $"""
+        SELECT m.id, m.user_id, m.organization_id_external, m.status, m.row_version, m.created_at,
+               {RoleArray("m.user_id", "ur.organization_id_external = m.organization_id_external")}
+        FROM organization_memberships m
+        """;
 
     public async Task<IReadOnlyList<MembershipRecord>> GetMembershipsForUserAsync(Guid userId, CancellationToken cancellationToken)
     {
         await using var connection = await OpenAsync(cancellationToken);
-        await using var command = new NpgsqlCommand("""
-            SELECT m.id, m.user_id, m.organization_id_external, m.status, m.row_version, m.created_at
-            FROM organization_memberships m
-            WHERE m.user_id = @userId;
-            """, connection);
+        await using var command = new NpgsqlCommand($"{MembershipSelect} WHERE m.user_id = @userId;", connection);
         command.Parameters.AddWithValue("userId", userId);
-        return await ReadMembershipsAsync(connection, command, cancellationToken);
+        return await ReadMembershipsAsync(command, cancellationToken);
     }
 
     public async Task<IReadOnlyList<MembershipRecord>> ListMembershipsAsync(Guid organizationId, CancellationToken cancellationToken)
     {
         await using var connection = await OpenAsync(cancellationToken);
-        await using var command = new NpgsqlCommand("""
-            SELECT m.id, m.user_id, m.organization_id_external, m.status, m.row_version, m.created_at
-            FROM organization_memberships m
-            WHERE m.organization_id_external = @org;
-            """, connection);
+        await using var command = new NpgsqlCommand($"{MembershipSelect} WHERE m.organization_id_external = @org;", connection);
         command.Parameters.AddWithValue("org", organizationId);
-        return await ReadMembershipsAsync(connection, command, cancellationToken);
+        return await ReadMembershipsAsync(command, cancellationToken);
     }
 
     public async Task<MembershipRecord?> GetMembershipAsync(Guid organizationId, Guid membershipId, CancellationToken cancellationToken)
     {
-        var all = await ListMembershipsAsync(organizationId, cancellationToken);
-        return all.FirstOrDefault(item => item.Id == membershipId);
+        await using var connection = await OpenAsync(cancellationToken);
+        await using var command = new NpgsqlCommand(
+            $"{MembershipSelect} WHERE m.organization_id_external = @org AND m.id = @id;", connection);
+        command.Parameters.AddWithValue("org", organizationId);
+        command.Parameters.AddWithValue("id", membershipId);
+        return (await ReadMembershipsAsync(command, cancellationToken)).SingleOrDefault();
     }
 
     public async Task InsertMembershipAsync(MembershipRecord membership, CancellationToken cancellationToken)
@@ -434,37 +503,17 @@ public sealed class IdentityRepository(IdentityDatabaseOptions options, IIdGener
         await command.ExecuteNonQueryAsync(cancellationToken);
     }
 
-    private async Task<IReadOnlyList<MembershipRecord>> ReadMembershipsAsync(
-        NpgsqlConnection connection,
+    private static async Task<IReadOnlyList<MembershipRecord>> ReadMembershipsAsync(
         NpgsqlCommand command,
         CancellationToken cancellationToken)
     {
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
-        var items = new List<(Guid Id, Guid UserId, Guid Org, string Status, long Version, DateTimeOffset CreatedAt)>();
+        var result = new List<MembershipRecord>();
         while (await reader.ReadAsync(cancellationToken))
         {
-            items.Add((reader.GetGuid(0), reader.GetGuid(1), reader.GetGuid(2), reader.GetString(3), reader.GetInt64(4), reader.GetFieldValue<DateTimeOffset>(5)));
-        }
-
-        await reader.CloseAsync();
-        var result = new List<MembershipRecord>();
-        foreach (var item in items)
-        {
-            await using var roles = new NpgsqlCommand("""
-                SELECT r.code FROM user_roles ur
-                JOIN roles r ON r.id = ur.role_id
-                WHERE ur.user_id = @userId AND ur.organization_id_external = @org AND ur.active;
-                """, connection);
-            roles.Parameters.AddWithValue("userId", item.UserId);
-            roles.Parameters.AddWithValue("org", item.Org);
-            await using var roleReader = await roles.ExecuteReaderAsync(cancellationToken);
-            var codes = new List<string>();
-            while (await roleReader.ReadAsync(cancellationToken))
-            {
-                codes.Add(roleReader.GetString(0));
-            }
-
-            result.Add(new MembershipRecord(item.Id, item.UserId, item.Org, item.Status, item.Version, codes, item.CreatedAt));
+            result.Add(new MembershipRecord(reader.GetGuid(0), reader.GetGuid(1), reader.GetGuid(2),
+                reader.GetString(3), reader.GetInt64(4), reader.GetFieldValue<string[]>(6),
+                reader.GetFieldValue<DateTimeOffset>(5)));
         }
 
         return result;

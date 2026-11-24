@@ -3,12 +3,30 @@ import { z } from "zod";
 import {
   backendTripSchema,
   pageOf,
+  stopSchema,
   type BackendTrip,
 } from "@/shared/api/contracts";
 import type { TripRepository } from "./tripRepository";
 import type { Trip, Location } from "../types/trip";
 
-export function toTrip(trip: BackendTrip): Trip {
+const tripCardSchema = backendTripSchema
+  .omit({
+    sellable: true,
+    allowPayLater: true,
+    availabilityAsOf: true,
+    policyVersion: true,
+    stops: true,
+    rowVersion: true,
+  })
+  .extend({ routeId: z.guid() });
+const tripCardsSchema = z.object({
+  items: z.array(tripCardSchema),
+  routeStops: z.record(z.guid(), z.array(stopSchema)),
+});
+type TripPresentation = Omit<BackendTrip, "availabilityAsOf" | "rowVersion"> &
+  Partial<Pick<BackendTrip, "availabilityAsOf" | "rowVersion">>;
+
+export function toTrip(trip: TripPresentation): Trip {
   const location = (name: string): Location => ({
     id: name,
     name,
@@ -67,8 +85,27 @@ export function getBackendTrip(
     auth: false,
   });
 }
-export const backendTripRepository: TripRepository = {
-  getLocations: async (signal) => {
+export async function getBackendTrips(
+  ids: readonly string[],
+  signal?: AbortSignal,
+): Promise<Map<string, BackendTrip>> {
+  const unique = [...new Set(ids)];
+  const trips = new Map<string, BackendTrip>();
+  for (let offset = 0; offset < unique.length; offset += 100) {
+    const params = new URLSearchParams({
+      ids: unique.slice(offset, offset + 100).join(","),
+    });
+    const batch = await apiJson(
+      `/api/v1/trips/details?${params}`,
+      z.array(backendTripSchema),
+      { signal, auth: false },
+    );
+    for (const trip of batch) trips.set(trip.id, trip);
+  }
+  return trips;
+}
+export const backendTripRepository = {
+  getLocations: async (signal?: AbortSignal) => {
     const routes = await apiJson(
       "/api/v1/explore/routes",
       z.array(z.object({ origin: z.string(), destination: z.string() })),
@@ -97,7 +134,12 @@ export const backendTripRepository: TripRepository = {
       a.name.localeCompare(b.name, "vi"),
     );
   },
-  search: async (input, signal) => {
+  search: async (
+    input,
+    signal?: AbortSignal,
+    includeAvailability = true,
+    options: { cards?: boolean } = {},
+  ) => {
     const query = new URLSearchParams({
       ...(input.originId ? { origin: input.originId } : {}),
       ...(input.destinationId ? { destination: input.destinationId } : {}),
@@ -133,36 +175,67 @@ export const backendTripRepository: TripRepository = {
               : "DEPARTURE_ASC",
     );
     const items: Trip[] = [];
-    for (let page = 0; ; page++) {
-      query.set("page", String(page));
-      const result = await apiJson(
-        `/api/v1/trips?${query}`,
-        pageOf(backendTripSchema),
-        { signal, auth: false },
-      );
-      items.push(...result.items.map(toTrip));
-      if (page + 1 >= result.totalPages) break;
-    }
-    const batches: Trip[][] = [];
-    for (let offset = 0; offset < items.length; offset += 100)
-      batches.push(items.slice(offset, offset + 100));
-    const inventory = await Promise.all(
-      batches.map(async (batch) => {
-        const ids = new URLSearchParams({
-          ids: batch.map((trip) => trip.id).join(","),
-        });
-        const counts = await apiJson(
-          `/api/v1/trips/availability?${ids}`,
-          z.record(z.string(), z.number().int().nonnegative()),
+    if (options.cards) {
+      query.delete("page");
+      query.delete("size");
+      query.set("cards", "true");
+      const result = await apiJson(`/api/v1/trips?${query}`, tripCardsSchema, {
+        signal,
+        auth: false,
+      });
+      for (const { routeId, ...item } of result.items) {
+        items.push(
+          toTrip({
+            ...item,
+            sellable: true,
+            stops: result.routeStops[routeId] ?? [],
+          }),
+        );
+      }
+    } else {
+      for (let page = 0; ; page++) {
+        query.set("page", String(page));
+        const result = await apiJson(
+          `/api/v1/trips?${query}`,
+          pageOf(backendTripSchema),
           { signal, auth: false },
         );
-        return batch.map((trip) => ({
-          ...trip,
-          availableSeatCount: counts[trip.id] ?? 0,
-          seatCountIsCapacity: false,
-        }));
-      }),
-    );
-    return inventory.flat();
+        items.push(...result.items.map(toTrip));
+        if (page + 1 >= result.totalPages) break;
+      }
+    }
+    if (!includeAvailability) return items;
+    const batches: Trip[][] = [];
+    for (let offset = 0; offset < items.length; offset += 1000)
+      batches.push(items.slice(offset, offset + 1000));
+    const inventory: Trip[] = [];
+    const schema = z.record(z.string(), z.number().int().nonnegative());
+    for (let offset = 0; offset < batches.length; offset += 4) {
+      const loaded = await Promise.all(
+        batches.slice(offset, offset + 4).map(async (batch) => {
+          const tripIds = batch.map((trip) => trip.id);
+          const counts =
+            tripIds.length <= 100
+              ? await apiJson(
+                  `/api/v1/trips/availability?${new URLSearchParams({ ids: tripIds.join(",") })}`,
+                  schema,
+                  { signal, auth: false },
+                )
+              : await apiJson("/api/v1/trips/availability", schema, {
+                  method: "POST",
+                  body: { tripIds },
+                  signal,
+                  auth: false,
+                });
+          return batch.map((trip) => ({
+            ...trip,
+            availableSeatCount: counts[trip.id] ?? 0,
+            seatCountIsCapacity: false,
+          }));
+        }),
+      );
+      inventory.push(...loaded.flat());
+    }
+    return inventory;
   },
-};
+} satisfies TripRepository;

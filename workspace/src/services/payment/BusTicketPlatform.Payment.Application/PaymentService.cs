@@ -18,6 +18,9 @@ public sealed record PaymentPageDto(int Page, int Size, long TotalElements, int 
 public sealed record CreateRefundRequest(string RefundReference, Guid PaymentId, Guid BookingId, long Amount, string Currency, string Reason);
 public sealed record RefundDto(Guid Id, string RefundReference, Guid PaymentId, Guid BookingId, long Amount, string Currency, string Status, string Reason, DateTimeOffset? CreatedAt = null);
 public sealed record RefundPageDto(int Page, int Size, long TotalElements, int TotalPages, IReadOnlyList<RefundDto> Items);
+public sealed record FinanceListFilter(Guid? OrganizationId, string[]? Statuses, string? Search, Guid[]? MatchingBookings);
+public sealed record RefundListItem(RefundDto Refund, Guid OrganizationId, string PaymentReference);
+public sealed record AdminRefundPageDto(int Page, int Size, long TotalElements, int TotalPages, IReadOnlyList<RefundListItem> Items);
 public sealed record BookingQuote(Guid BookingId, Guid CustomerId, Guid OrganizationId, long Amount, string Currency, string PaymentChannel, decimal CommissionRate, DateTimeOffset? ExpiresAt = null);
 public sealed record BookingSettlementDto(Guid Id, Guid BookingId, Guid OrganizationId, Guid? PaymentId, string PaymentChannel, long GrossAmount, decimal CommissionRate, long CommissionAmount, long OperatorNet, string Currency, string CollectionStatus, long OriginalAmount, long RefundAmount, DateTimeOffset? CreatedAt, long RowVersion, SettlementReceipt? Receipt);
 public sealed record ConfirmSettlementReceiptRequest(string Reference, long Amount, string Currency, long ExpectedVersion);
@@ -43,15 +46,18 @@ public interface IPaymentRepository
     Task<bool> TryInsertWebhookAsync(string provider, string eventId, string payloadHash, CancellationToken cancellationToken);
     Task MarkWebhookProcessedAsync(string provider, string eventId, CancellationToken cancellationToken);
     Task<IReadOnlyList<PaymentRecord>> ListByBookingAsync(Guid bookingId, CancellationToken cancellationToken);
-    Task<(IReadOnlyList<PaymentRecord> Items, long Total)> SearchPaymentsAsync(Guid? orgId, int page, int size, CancellationToken cancellationToken);
+    Task<(IReadOnlyList<PaymentRecord> Items, long Total)> SearchPaymentsAsync(Guid? orgId, int page, int size, CancellationToken cancellationToken, FinanceListFilter? filter = null);
+    Task<(IReadOnlyList<RefundListItem> Items, long Total)> SearchAdminRefundsAsync(FinanceListFilter filter, int page, int size, CancellationToken cancellationToken);
     Task InsertRefundAsync(RefundRecord refund, CancellationToken cancellationToken);
     Task<RefundRecord?> GetRefundByReferenceAsync(Guid paymentId, string refundReference, CancellationToken cancellationToken);
     Task<long> SumSucceededRefundsAsync(Guid paymentId, CancellationToken cancellationToken);
     Task<bool> TryApplyRefundAsync(PaymentRecord payment, RefundRecord refund, decimal commissionRate, CancellationToken cancellationToken);
     Task<RefundRecord?> GetRefundAsync(Guid refundId, CancellationToken cancellationToken);
-    Task<(IReadOnlyList<RefundRecord> Items, long Total)> SearchRefundsAsync(Guid? orgId, int page, int size, CancellationToken cancellationToken);
+    Task<(IReadOnlyList<RefundRecord> Items, long Total)> SearchRefundsAsync(Guid? orgId, int page, int size, CancellationToken cancellationToken,
+        Guid? bookingId = null, Guid? paymentId = null, string? status = null, DateOnly? date = null);
     Task InsertSettlementAsync(SettlementRecord settlement, CancellationToken cancellationToken);
     Task<(IReadOnlyList<SettlementRecord> Items, long Total)> ListSettlementsAsync(Guid? orgId, int page, int size, CancellationToken cancellationToken);
+    Task<IReadOnlyList<SettlementRecord>> ListSettlementExportAsync(Guid orgId, CancellationToken cancellationToken);
     Task<Result<SettlementReceipt>> ConfirmSettlementReceiptAsync(Guid id, Guid organizationId, Guid actorId, ConfirmSettlementReceiptRequest request, CancellationToken cancellationToken);
     Task<PayoutRecord> InsertPayoutAsync(PayoutRecord payout, CancellationToken cancellationToken);
 }
@@ -362,31 +368,54 @@ public sealed class PaymentService(IPaymentRepository store, IPaymentEvents even
         return Result<RefundDto>.Success(Map(refund));
     }
 
-    public async Task<Result<PaymentPageDto>> SearchPaymentsAsync(Actor actor, int page, int size, CancellationToken cancellationToken)
+    public async Task<Result<PaymentPageDto>> SearchPaymentsAsync(Actor actor, int page, int size, CancellationToken cancellationToken, FinanceListFilter? filter = null)
     {
-        if (!actor.Has("PLATFORM_ADMIN", "PLATFORM_FINANCE", "OPERATOR_FINANCE", "OPERATOR_ADMIN"))
+        var platform = actor.Has("PLATFORM_ADMIN", "PLATFORM_FINANCE");
+        if (!platform && (filter is not null || !actor.Has("OPERATOR_FINANCE", "OPERATOR_ADMIN")
+            || actor.OrganizationId is null || actor.OrganizationId == Guid.Empty))
         {
             return Result<PaymentPageDto>.Failure(PlatformErrors.AccessDenied());
         }
 
-        if (page < 0 || size is < 1 or > 100) return Result<PaymentPageDto>.Failure(PlatformErrors.Validation("Page must be non-negative and size must be between 1 and 100."));
+        if (page < 0 || size is < 1 or > 100 || !ValidFinanceFilter(filter))
+            return Result<PaymentPageDto>.Failure(PlatformErrors.Validation("Payment filters or page bounds are invalid."));
 
-        var org = actor.Has("PLATFORM_ADMIN", "PLATFORM_FINANCE") ? (Guid?)null : actor.OrganizationId;
-        var (items, total) = await store.SearchPaymentsAsync(org, page, size, cancellationToken);
+        var org = platform ? filter?.OrganizationId : actor.OrganizationId;
+        var (items, total) = await store.SearchPaymentsAsync(org, page, size, cancellationToken, filter);
         return Result<PaymentPageDto>.Success(new PaymentPageDto(page, size, total, Pages(total, size), items.Select(item => Map(item, null)).ToArray()));
     }
 
-    public async Task<Result<RefundPageDto>> SearchRefundsAsync(Actor actor, int page, int size, CancellationToken cancellationToken)
+    private static bool ValidFinanceFilter(FinanceListFilter? filter) =>
+        (filter?.Search?.Length ?? 0) <= 100 && (filter?.Statuses?.Length ?? 0) <= 12
+        && (filter?.MatchingBookings?.Length ?? 0) <= 200_000;
+
+    public async Task<Result<AdminRefundPageDto>> SearchAdminRefundsAsync(
+        Actor actor, FinanceListFilter filter, int page, int size, CancellationToken cancellationToken)
     {
-        if (!actor.Has("PLATFORM_ADMIN", "PLATFORM_FINANCE", "OPERATOR_FINANCE", "OPERATOR_ADMIN"))
+        if (!actor.Has("PLATFORM_ADMIN", "PLATFORM_FINANCE"))
+            return Result<AdminRefundPageDto>.Failure(PlatformErrors.AccessDenied());
+        if (page < 0 || size is < 1 or > 100 || !ValidFinanceFilter(filter))
+            return Result<AdminRefundPageDto>.Failure(PlatformErrors.Validation("Refund filters or page bounds are invalid."));
+
+        var (items, total) = await store.SearchAdminRefundsAsync(filter, page, size, cancellationToken);
+        return Result<AdminRefundPageDto>.Success(new AdminRefundPageDto(page, size, total, Pages(total, size), items));
+    }
+
+    public async Task<Result<RefundPageDto>> SearchRefundsAsync(Actor actor, int page, int size, CancellationToken cancellationToken,
+        Guid? bookingId = null, Guid? paymentId = null, string? status = null, DateOnly? date = null)
+    {
+        var platform = actor.Has("PLATFORM_ADMIN", "PLATFORM_FINANCE");
+        if (!platform && (!actor.Has("OPERATOR_FINANCE", "OPERATOR_ADMIN")
+            || actor.OrganizationId is null || actor.OrganizationId == Guid.Empty))
         {
             return Result<RefundPageDto>.Failure(PlatformErrors.AccessDenied());
         }
 
-        if (page < 0 || size is < 1 or > 100) return Result<RefundPageDto>.Failure(PlatformErrors.Validation("Page must be non-negative and size must be between 1 and 100."));
+        if (page < 0 || size is < 1 or > 100 || status?.Length > 30)
+            return Result<RefundPageDto>.Failure(PlatformErrors.Validation("Refund filters or page bounds are invalid."));
 
-        var org = actor.Has("PLATFORM_ADMIN", "PLATFORM_FINANCE") ? (Guid?)null : actor.OrganizationId;
-        var (items, total) = await store.SearchRefundsAsync(org, page, size, cancellationToken);
+        var org = platform ? null : actor.OrganizationId;
+        var (items, total) = await store.SearchRefundsAsync(org, page, size, cancellationToken, bookingId, paymentId, status, date);
         return Result<RefundPageDto>.Success(new RefundPageDto(page, size, total, Pages(total, size), items.Select(Map).ToArray()));
     }
 
@@ -408,6 +437,15 @@ public sealed class PaymentService(IPaymentRepository store, IPaymentEvents even
     private static bool CanReconcile(Actor actor) =>
         actor.OrganizationId is Guid id && id != Guid.Empty &&
         actor.OrganizationRoles?.Any(role => role is "OPERATOR_ADMIN" or "OPERATOR_FINANCE") == true;
+
+    public async Task<Result<IReadOnlyList<BookingSettlementDto>>> ListSettlementExportAsync(Actor actor, CancellationToken cancellationToken)
+    {
+        if (!CanReconcile(actor))
+            return Result<IReadOnlyList<BookingSettlementDto>>.Failure(PlatformErrors.AccessDenied());
+
+        var items = await store.ListSettlementExportAsync(actor.OrganizationId!.Value, cancellationToken);
+        return Result<IReadOnlyList<BookingSettlementDto>>.Success(items.Select(Map).ToArray());
+    }
 
     public Task<Result<SettlementReceipt>> ConfirmSettlementReceiptAsync(Actor actor, Guid settlementId,
         ConfirmSettlementReceiptRequest request, CancellationToken cancellationToken)

@@ -34,6 +34,9 @@
   padding: 0 12px;
   font-size: 12px;
 }
+.booking-coupon__entry input[aria-invalid="true"] {
+  border-color: var(--color-status-error);
+}
 .booking-coupon__success,
 .booking-coupon__error {
   margin: 9px 0 0;

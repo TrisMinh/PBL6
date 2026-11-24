@@ -2,10 +2,7 @@ import type { ReactElement } from "react";
 import { useHoldCountdown } from "@/features/booking/hooks/useHoldCountdown";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import {
-  submitCheckoutAction,
-  livePaymentPath,
-} from "../checkoutAction";
+import { submitCheckoutAction, livePaymentPath } from "../checkoutAction";
 import { Link, useParams, useSearchParams } from "react-router";
 import { z } from "zod";
 import { liveApiJson as apiJson, liveQueryKey } from "@/shared/api/liveRequest";
@@ -22,15 +19,15 @@ import { LivePaymentRecovery } from "../components/LivePaymentRecovery";
 import { useSePayRecheck } from "../hooks/useSePayRecheck";
 
 const paymentSchema = z.object({
-  id: z.string().uuid(),
-  bookingId: z.string().uuid(),
+  id: z.guid(),
+  bookingId: z.guid(),
   status: z.string(),
   amount: z.number(),
   currency: z.string(),
   provider: z.string().optional(),
   providerAction: z.record(z.string(), z.string()).nullish(),
 });
-const guid = z.string().uuid();
+const guid = z.guid();
 export function BackendPaymentPage(): ReactElement {
   const { bookingId = "" } = useParams();
   const query = useQuery({
@@ -206,7 +203,7 @@ export function BackendPaymentPage(): ReactElement {
           )}
         </>
       )}
-      {mutation.isError && <ApiFailure error={mutation.error} />}
+      {mutation.isError && <ApiFailure error={mutation.error} popup />}
       {mutation.isSuccess && mutation.data === null && (
         <Link to="/account/tickets">Giao dịch đã hoàn tất. Xem vé</Link>
       )}
@@ -249,7 +246,7 @@ function CancelPaymentButton({
       >
         Hủy giao dịch
       </Button>
-      {mutation.isError && <ApiFailure error={mutation.error} />}
+      {mutation.isError && <ApiFailure error={mutation.error} popup />}
     </>
   );
 }
@@ -299,7 +296,7 @@ export function BackendPaymentReturnPage(): ReactElement {
       ? payment
       : undefined;
   const check = useSePayRecheck(() => query.refetch());
-  const recheck = async () => {
+  const recheck = async (): Promise<void> => {
     await check.recheck(payment).catch(() => {});
     if (captured) await tickets.refetch();
   };

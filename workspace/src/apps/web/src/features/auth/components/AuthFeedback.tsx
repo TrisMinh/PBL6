@@ -25,7 +25,16 @@ export function AuthError({
       : error.code === "STORAGE_UNAVAILABLE"
         ? "Trình duyệt chưa cho lưu phiên. Cho phép lưu trữ rồi thử lại."
         : "Chưa thể tiếp tục. Kiểm tra kết nối và thử lại.";
-  return <Toast tone="error" message={!isMockApi ? error.message : text} />;
+  return (
+    <Toast
+      tone="error"
+      message={
+        !isMockApi && error.code === "INVALID_CREDENTIALS"
+          ? "Email/số điện thoại hoặc mật khẩu không đúng."
+          : text
+      }
+    />
+  );
 }
 export function NeutralSuccess({
   reset = false,

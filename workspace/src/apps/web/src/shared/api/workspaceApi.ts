@@ -54,7 +54,7 @@ export function useApiRecord(
 }
 
 export function requiredId(value: unknown, label: string): string {
-  const result = z.string().uuid().safeParse(value);
+  const result = z.guid().safeParse(value);
   if (!result.success)
     throw new ApiError("VALIDATION_ERROR", 400, `${label} không hợp lệ.`);
   return result.data;

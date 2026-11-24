@@ -19,7 +19,7 @@ import "./AddDriverPage.css";
 import "./LiveDrivers.css";
 
 const inputSchema = z.object({
-  userId: z.uuid(),
+  userId: z.guid(),
   licenseNumber: z
     .string()
     .trim()

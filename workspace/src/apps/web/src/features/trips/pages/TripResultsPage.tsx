@@ -42,6 +42,9 @@ import { PageState } from "@/shared/ui/PageState/PageState";
 import "./TripResultsPage.css";
 
 type TripsQuery = ReturnType<typeof useTrips>;
+const CATALOGUE_DATE = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Asia/Ho_Chi_Minh",
+});
 const FILTER_AMENITIES = [
   "wifi",
   "charging",
@@ -584,11 +587,38 @@ function ValidResults({
   search: TripSearch;
   booking: CreateBookingSessionResult;
 }): ReactElement {
+  const {
+    organizationId,
+    pickupStopId,
+    dropoffStopId,
+    departureHour,
+    minFare,
+    maxFare,
+  } = parseFilterCriteria(searchParams);
+  const serverFilters = {
+    organizationId,
+    pickupStopId,
+    dropoffStopId,
+    departureHour,
+    minFare,
+    maxFare,
+  };
+  const hasServerFilters =
+    !isMockApi &&
+    Object.values(serverFilters).some((value) => value !== undefined);
+  const needsCatalog =
+    !isMockApi &&
+    (hasServerFilters ||
+      (search.sort !== "relevance" && search.sort !== "departure"));
   const query = useTrips({
     ...search,
-    ...(!isMockApi ? { filters: parseFilterCriteria(searchParams) } : {}),
+    ...(hasServerFilters ? { filters: serverFilters } : {}),
   });
-  const filterCatalog = useTrips({ ...search, sort: "relevance" }, !isMockApi);
+  const filterCatalog = useTrips(
+    { ...search, sort: "relevance" },
+    needsCatalog,
+    false,
+  );
   const locations = useLocations();
   const originLabel =
     locations.data?.find((location) => location.id === search.originId)
@@ -608,7 +638,9 @@ function ValidResults({
           key={searchParams.toString()}
           searchParams={searchParams}
           onChange={onChange}
-          trips={filterCatalog.data ?? query.data ?? []}
+          trips={
+            (needsCatalog ? filterCatalog.data : query.data) ?? query.data ?? []
+          }
         />
         <ResultsState
           query={query}
@@ -633,28 +665,35 @@ function TripCatalogue({
   onChange: (params: URLSearchParams) => void;
   booking: CreateBookingSessionResult;
 }): ReactElement {
-  const liveCatalogue = useLiveCatalogue(!isMockApi);
   const liveLocations = useLocations();
   const mockCatalogue = useMemo(() => (isMockApi ? createDemoTrips() : []), []);
-  const catalogue = isMockApi ? mockCatalogue : (liveCatalogue.data ?? []);
   const locations = isMockApi ? catalogueLocations : (liveLocations.data ?? []);
-  const [catalogueTime] = useState(() => Date.now());
   const effective = new URLSearchParams(params);
   effective.set("browse", "1");
   const parsedPassengers = tripSearchSchema.shape.passengerCount.safeParse(
     params.get("passengerCount") ?? "1",
   );
   const passengerCount = parsedPassengers.success ? parsedPassengers.data : 1;
+  const originId = params.get("originId") ?? "";
+  const destinationId = params.get("destinationId") ?? "";
+  const departureDate = params.get("departureDate") ?? "";
+  const parsedDate =
+    tripSearchSchema.shape.departureDate.safeParse(departureDate);
+  const liveCatalogue = useLiveCatalogue(!isMockApi, {
+    originId,
+    destinationId,
+    departureDate: parsedDate.data ?? "",
+    passengerCount,
+  });
+  const catalogue = isMockApi ? mockCatalogue : (liveCatalogue.data ?? []);
+  const catalogueTime = Date.now();
   const candidates = catalogue.filter(
     (trip) =>
-      (!params.get("originId") || trip.origin.id === params.get("originId")) &&
-      (!params.get("destinationId") ||
-        trip.destination.id === params.get("destinationId")) &&
-      (!params.get("departureDate") ||
-        new Intl.DateTimeFormat("en-CA", {
-          timeZone: "Asia/Ho_Chi_Minh",
-        }).format(new Date(trip.departureTime)) ===
-          params.get("departureDate")) &&
+      (!originId || trip.origin.id === originId) &&
+      (!destinationId || trip.destination.id === destinationId) &&
+      (!departureDate ||
+        CATALOGUE_DATE.format(new Date(trip.departureTime)) ===
+          departureDate) &&
       trip.availableSeatCount >= passengerCount &&
       Date.parse(trip.departureTime) > catalogueTime,
   );

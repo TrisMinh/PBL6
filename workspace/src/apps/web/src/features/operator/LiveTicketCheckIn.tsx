@@ -118,8 +118,8 @@ export function LiveTicketCheckIn({
           onClose={() => checkIn.reset()}
         />
       ) : null}
-      {validate.isError ? <ApiFailure error={validate.error} /> : null}
-      {checkIn.isError ? <ApiFailure error={checkIn.error} /> : null}
+      {validate.isError ? <ApiFailure error={validate.error} popup /> : null}
+      {checkIn.isError ? <ApiFailure error={checkIn.error} popup /> : null}
     </section>
   );
 }

@@ -7,7 +7,7 @@ export async function getRefundTracking(
   code: string,
   signal?: AbortSignal,
 ): Promise<RefundTracking | null> {
-  const item = (await operatorRefundRows(signal)).find(
+  const item = (await operatorRefundRows(signal, undefined, code)).items.find(
     (r) => r.bookingCode === code || r.refundId === code,
   );
   return item ? refundTrackingSchema.parse(item) : null;

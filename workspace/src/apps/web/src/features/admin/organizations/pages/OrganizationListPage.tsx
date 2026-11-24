@@ -1,3 +1,4 @@
+import { Toast } from "@/shared/ui/Toast/Toast";
 import { useState, type ReactElement } from "react";
 import { useSearchParams } from "react-router";
 
@@ -219,9 +220,7 @@ export function OrganizationListPage(): ReactElement {
         totalPages={totalPages}
         updateParams={updateParams}
       />
-      <p aria-live="polite" className="organization-page__notice" role="status">
-        {notice}
-      </p>
+      {notice && <Toast message={notice} onClose={() => setNotice("")} />}
       <CreateOrganizationDialog
         dialog={dialog}
         onCreated={() => setNotice("Đã tạo tổ chức.")}

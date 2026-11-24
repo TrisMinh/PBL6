@@ -208,7 +208,14 @@ public sealed partial class BookingRepository(BookingDatabaseOptions options, II
         await using var command = new NpgsqlCommand("""
             SELECT s.trip_id, COUNT(*)::int
             FROM trip_seats s
-            WHERE s.trip_id = ANY(@trips) AND s.status = 'AVAILABLE'
+            LEFT JOIN seat_holds h ON h.id = s.active_hold_id
+            LEFT JOIN booking_items i ON i.id = s.active_booking_item_id
+            LEFT JOIN bookings b ON b.id = i.booking_id
+            WHERE s.trip_id = ANY(@trips) AND (
+                s.status = 'AVAILABLE'
+                OR (h.status = 'ACTIVE' AND h.expires_at <= NOW())
+                OR (b.status = 'PENDING_PAYMENT' AND b.expires_at <= NOW())
+            )
             GROUP BY s.trip_id
             """, connection);
         command.Parameters.AddWithValue("trips", tripIds);
@@ -544,17 +551,70 @@ public sealed partial class BookingRepository(BookingDatabaseOptions options, II
     public Task<long> CountBookingsForCustomerAsync(Guid customerId, CancellationToken cancellationToken) =>
         CountAsync("SELECT COUNT(*) FROM bookings WHERE customer_id_external = @id", customerId, cancellationToken);
 
-    public Task<IReadOnlyList<BookingRecord>> SearchBookingsAsync(Guid? organizationId, int page, int size, CancellationToken cancellationToken) =>
-        QueryBookings(
-            BookingSelect + " WHERE (@org::uuid IS NULL OR b.organization_id_external = @org) ORDER BY b.created_at DESC OFFSET @offset LIMIT @limit",
-            organizationId ?? Guid.Empty,
-            page,
-            size,
-            cancellationToken,
-            organizationId);
+    public async Task<IReadOnlyList<BookingReference>> FindBookingReferencesAsync(
+        string? search, Guid[] ids, Guid? organizationId, CancellationToken cancellationToken)
+    {
+        await using var connection = await OpenAsync(cancellationToken);
+        await using var command = new NpgsqlCommand("""
+            SELECT id, booking_code, created_at FROM bookings
+            WHERE (@org::uuid IS NULL OR organization_id_external = @org)
+              AND (cardinality(@ids) = 0 OR id = ANY(@ids))
+              AND (@search = '' OR strpos(lower(booking_code), lower(@search)) > 0);
+            """, connection);
+        command.Parameters.AddWithValue("org", (object?)organizationId ?? DBNull.Value);
+        command.Parameters.AddWithValue("ids", ids);
+        command.Parameters.AddWithValue("search", search ?? "");
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        var items = new List<BookingReference>();
+        while (await reader.ReadAsync(cancellationToken))
+            items.Add(new BookingReference(reader.GetGuid(0), reader.GetString(1))
+            {
+                CreatedAt = reader.GetFieldValue<DateTimeOffset>(2)
+            });
+        return items;
+    }
 
-    public Task<long> CountBookingsAsync(Guid? organizationId, CancellationToken cancellationToken) =>
-        CountAsync("SELECT COUNT(*) FROM bookings WHERE (@org::uuid IS NULL OR organization_id_external = @org)", organizationId ?? Guid.Empty, cancellationToken, organizationId);
+    public async Task<(IReadOnlyList<BookingRecord> Items, long Total)> SearchBookingsAsync(
+        BookingListFilter filters, int page, int size, CancellationToken cancellationToken)
+    {
+        const string where = """
+             WHERE (@org::uuid IS NULL OR b.organization_id_external = @org)
+               AND (cardinality(@bookingIds) = 0 OR b.id = ANY(@bookingIds))
+               AND (@status = '' OR b.status = @status)
+               AND (@createdFrom IS NULL OR b.created_at >= @createdFrom)
+               AND (@createdBefore IS NULL OR b.created_at < @createdBefore)
+               AND (@operatorStatus = '' OR @operatorStatus = CASE
+                   WHEN b.status = 'CANCELLED' THEN 'cancelled'
+                   WHEN b.status IN ('CONFIRMED', 'PAID', 'COMPLETED', 'CHECKED_IN') THEN 'confirmed'
+                   ELSE 'pending' END)
+               AND (@operatorPayment = '' OR @operatorPayment = CASE
+                   WHEN b.status IN ('PAID', 'COMPLETED', 'CHECKED_IN')
+                        OR (b.status = 'CONFIRMED' AND b.payment_channel <> 'PAY_LATER') THEN 'paid'
+                   ELSE 'unpaid' END)
+               AND (@search = '' OR b.organization_id_external = ANY(@matchingOrgs)
+                    OR strpos(lower(concat_ws(' ', b.booking_code, b.contact_name, b.contact_phone, b.id)), lower(@search)) > 0)
+            """;
+        await using var connection = await OpenAsync(cancellationToken);
+        await using var count = new NpgsqlCommand("SELECT COUNT(*) FROM bookings b" + where, connection);
+        await using var select = new NpgsqlCommand(BookingSelect + where
+            + " ORDER BY b.created_at DESC, b.id DESC OFFSET @offset LIMIT @limit", connection);
+        foreach (var query in new[] { count, select })
+        {
+            query.Parameters.AddWithValue("org", (object?)filters.OrganizationId ?? DBNull.Value);
+            query.Parameters.AddWithValue("status", filters.Status ?? "");
+            query.Parameters.AddWithValue("search", filters.Search ?? "");
+            query.Parameters.AddWithValue("matchingOrgs", filters.MatchingOrganizations);
+            query.Parameters.AddWithValue("bookingIds", filters.BookingIds ?? Array.Empty<Guid>());
+            query.Parameters.AddWithValue("createdFrom", NpgsqlTypes.NpgsqlDbType.TimestampTz, (object?)filters.CreatedFrom ?? DBNull.Value);
+            query.Parameters.AddWithValue("createdBefore", NpgsqlTypes.NpgsqlDbType.TimestampTz, (object?)filters.CreatedBefore ?? DBNull.Value);
+            query.Parameters.AddWithValue("operatorStatus", filters.OperatorStatus ?? "");
+            query.Parameters.AddWithValue("operatorPayment", filters.OperatorPayment ?? "");
+        }
+        var total = Convert.ToInt64(await count.ExecuteScalarAsync(cancellationToken));
+        select.Parameters.AddWithValue("offset", (long)page * size);
+        select.Parameters.AddWithValue("limit", size);
+        return (await ReadBookings(select, cancellationToken), total);
+    }
 
     public async Task<bool> ApplyPaidAsync(Guid bookingId, IReadOnlyList<TicketRecord> tickets, CancellationToken cancellationToken, Guid correlationId = default)
     {
@@ -814,6 +874,47 @@ public sealed partial class BookingRepository(BookingDatabaseOptions options, II
         return new ManifestDto(tripId, DateTimeOffset.UtcNow, passengers);
     }
 
+    public async Task<IReadOnlyList<ManifestCount>> GetManifestCountsAsync(Guid organizationId, CancellationToken cancellationToken)
+    {
+        await using var connection = await OpenAsync(cancellationToken);
+        await using var command = new NpgsqlCommand("""
+            SELECT b.trip_id, count(*)::int, count(*) FILTER (WHERE t.status = 'CHECKED_IN')::int
+            FROM bookings b
+            JOIN trip_snapshots s ON s.trip_id = b.trip_id AND s.organization_id_external = @org
+            JOIN tickets t ON t.booking_id = b.id
+            JOIN passengers p ON p.booking_item_id = t.booking_item_id
+            WHERE b.organization_id_external = @org
+            GROUP BY b.trip_id;
+            """, connection);
+        command.Parameters.AddWithValue("org", organizationId);
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        var counts = new List<ManifestCount>();
+        while (await reader.ReadAsync(cancellationToken))
+            counts.Add(new ManifestCount(reader.GetGuid(0), reader.GetInt32(1), reader.GetInt32(2)));
+        return counts;
+    }
+
+    public async Task<IReadOnlyList<CancelledSeat>> GetCancelledSeatsAsync(
+        Guid organizationId, Guid[] bookings, CancellationToken cancellationToken)
+    {
+        await using var connection = await OpenAsync(cancellationToken);
+        await using var command = new NpgsqlCommand("""
+            SELECT b.id, i.seat_code FROM bookings b
+            JOIN tickets t ON t.booking_id = b.id
+            JOIN booking_items i ON i.id = t.booking_item_id
+            WHERE b.organization_id_external = @org AND b.id = ANY(@bookings)
+              AND t.status IN ('CANCELLED', 'REFUNDED')
+            ORDER BY b.id, t.issued_at DESC, t.id;
+            """, connection);
+        command.Parameters.AddWithValue("org", organizationId);
+        command.Parameters.AddWithValue("bookings", bookings);
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        var seats = new List<CancelledSeat>();
+        while (await reader.ReadAsync(cancellationToken))
+            seats.Add(new CancelledSeat(reader.GetGuid(0), reader.GetString(1)));
+        return seats;
+    }
+
     private const string BookingSelect = """
         SELECT b.id, b.booking_code, b.seat_hold_id, b.trip_id, b.organization_id_external, b.customer_id_external,
                b.contact_name, b.contact_email, b.contact_phone, b.payment_channel, b.status, b.subtotal_amount,
@@ -878,10 +979,8 @@ public sealed partial class BookingRepository(BookingDatabaseOptions options, II
     {
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
         var bookings = new List<BookingRecord>();
-        var ids = new List<Guid>();
         while (await reader.ReadAsync(cancellationToken))
         {
-            ids.Add(reader.GetGuid(0));
             bookings.Add(new BookingRecord(
                 reader.GetGuid(0),
                 reader.GetString(1),
@@ -905,36 +1004,43 @@ public sealed partial class BookingRepository(BookingDatabaseOptions options, II
         }
 
         await reader.CloseAsync();
+        if (bookings.Count == 0) return bookings;
+        var passengers = await LoadPassengers(command.Connection!, bookings.Select(booking => booking.Id).ToArray(), cancellationToken);
         for (var i = 0; i < bookings.Count; i++)
         {
-            bookings[i] = bookings[i] with { Items = await LoadPassengers(bookings[i].Id, cancellationToken) };
+            var details = passengers[bookings[i].Id];
+            bookings[i] = bookings[i] with
+            {
+                Items = details.Select(item => item.Passenger).ToArray(),
+                SeatCodes = details.Select(item => item.SeatCode).ToArray()
+            };
         }
 
         return bookings;
     }
 
-    private async Task<IReadOnlyList<PassengerInput>> LoadPassengers(Guid bookingId, CancellationToken cancellationToken)
+    private static async Task<ILookup<Guid, (PassengerInput Passenger, string SeatCode)>> LoadPassengers(
+        NpgsqlConnection connection, Guid[] bookingIds, CancellationToken cancellationToken)
     {
-        await using var connection = await OpenAsync(cancellationToken);
         await using var command = new NpgsqlCommand("""
-            SELECT i.trip_seat_id, p.full_name, p.document_type, p.pickup_stop_id_external, p.dropoff_stop_id_external
-            FROM booking_items i JOIN passengers p ON p.booking_item_id = i.id WHERE i.booking_id = @id;
+            SELECT i.trip_seat_id, p.full_name, p.document_type, p.pickup_stop_id_external, p.dropoff_stop_id_external, i.booking_id, i.seat_code
+            FROM booking_items i JOIN passengers p ON p.booking_item_id = i.id WHERE i.booking_id = ANY(@ids);
             """, connection);
-        command.Parameters.AddWithValue("id", bookingId);
+        command.Parameters.AddWithValue("ids", bookingIds);
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
-        var items = new List<PassengerInput>();
+        var items = new List<(Guid BookingId, (PassengerInput Passenger, string SeatCode) Detail)>();
         while (await reader.ReadAsync(cancellationToken))
         {
-            items.Add(new PassengerInput(
+            items.Add((reader.GetGuid(5), (new PassengerInput(
                 reader.GetGuid(0),
                 reader.GetString(1),
                 reader.IsDBNull(2) ? null : reader.GetString(2),
                 null,
                 reader.GetGuid(3),
-                reader.GetGuid(4)));
+                reader.GetGuid(4)), reader.GetString(6))));
         }
 
-        return items;
+        return items.ToLookup(item => item.BookingId, item => item.Detail);
     }
 
     private async Task<IReadOnlyList<TicketRecord>> QueryTickets(string where, Guid id, int page, int size, CancellationToken cancellationToken, string? hash = null, string? code = null)
@@ -942,7 +1048,8 @@ public sealed partial class BookingRepository(BookingDatabaseOptions options, II
         await using var connection = await OpenAsync(cancellationToken);
         await using var command = new NpgsqlCommand("""
             SELECT t.id, t.booking_id, t.booking_item_id, b.trip_id, b.customer_id_external, t.public_code, t.qr_token_hash,
-                   t.payment_channel, t.status, p.full_name, i.seat_code, i.line_total, t.issued_at, t.checked_in_at, t.row_version
+                   t.payment_channel, t.status, p.full_name, i.seat_code, i.line_total, t.issued_at, t.checked_in_at, t.row_version,
+                   b.booking_code, i.trip_seat_id, p.pickup_stop_id_external, p.dropoff_stop_id_external
             FROM tickets t
             JOIN bookings b ON b.id = t.booking_id
             JOIN booking_items i ON i.id = t.booking_item_id
@@ -973,7 +1080,10 @@ public sealed partial class BookingRepository(BookingDatabaseOptions options, II
                 reader.GetInt64(11),
                 new DateTimeOffset(DateTime.SpecifyKind(reader.GetDateTime(12), DateTimeKind.Utc)),
                 reader.IsDBNull(13) ? null : new DateTimeOffset(DateTime.SpecifyKind(reader.GetDateTime(13), DateTimeKind.Utc)),
-                reader.GetInt64(14)));
+                reader.GetInt64(14))
+            {
+                Journey = new TicketJourney(reader.GetString(15), reader.GetGuid(16), reader.GetGuid(17), reader.GetGuid(18))
+            });
         }
 
         return items;

@@ -344,7 +344,7 @@ function VehicleDetail({ vehicle }: { vehicle: Bus }): ReactElement {
         </p>
       )}
       {notice && <Toast message={notice} onClose={() => setNotice("")} />}
-      {mutation.isError && <ApiFailure error={mutation.error} />}
+      {mutation.isError && <ApiFailure error={mutation.error} popup />}
       <footer className="live-vehicles__footer">
         <OperatorStatusBadge state={vehicle.status}>
           {stateLabel(vehicle.status)}

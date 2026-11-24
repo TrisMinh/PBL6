@@ -364,6 +364,9 @@
   color: var(--color-text-secondary);
   font-size: 10px;
 }
+.operator-schedule__results-heading select + select {
+  margin-left: 0;
+}
 .operator-schedule__cards {
   display: grid;
   gap: 10px;

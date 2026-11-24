@@ -24,6 +24,8 @@ public interface IReportingRepository
     Task UpsertBookingAsync(BookingFact fact, CancellationToken cancellationToken);
     Task ApplyRefundAsync(Guid bookingId, long amount, CancellationToken cancellationToken);
     Task RecordRevenueAsync(RevenueMovement movement, CancellationToken cancellationToken);
+    Task RecordPaymentBookingAsync(Guid organizationId, Guid paymentId, Guid bookingId, CancellationToken cancellationToken);
+    Task RecordRevenueBookingAsync(Guid organizationId, Guid bookingId, string bookingCode, string routeName, CancellationToken cancellationToken);
     Task<IReadOnlyList<RevenueDay>> RevenueAsync(Guid? orgId, DateOnly from, DateOnly to, CancellationToken cancellationToken);
     Task<IReadOnlyList<IReadOnlyDictionary<string, object>>> BookingsAsync(Guid? orgId, DateTimeOffset from, DateTimeOffset to, CancellationToken cancellationToken);
     Task<IReadOnlyList<IReadOnlyDictionary<string, object>>> OccupancyAsync(Guid? orgId, DateTimeOffset from, DateTimeOffset to, CancellationToken cancellationToken);

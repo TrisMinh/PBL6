@@ -1,3 +1,4 @@
+import { publicActionError } from "@/shared/api/error";
 import { OperatorStatusBadge } from "../components/OperatorStatusBadge";
 import { Toast } from "@/shared/ui/Toast/Toast";
 import { displayCode } from "../components/displayCode";
@@ -285,7 +286,7 @@ export function RouteManagementPage(): ReactElement {
       setNotice("Đã lưu thay đổi trong dữ liệu mô phỏng của tab này.");
       setParams(new URLSearchParams({ ...applied, route: saved.id }));
     },
-    onError: (error) => setNotice(error.message),
+    onError: (error) => setNotice(publicActionError(error)),
   });
   const save: Save = (input, create = false) => {
     if (mutation.isPending) return;

@@ -1,3 +1,4 @@
+import { Toast } from "@/shared/ui/Toast/Toast";
 import { useState, type ReactElement } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "react-router";
@@ -27,8 +28,11 @@ const clock = (value: string): string =>
 export function LiveTicketDetailPage(): ReactElement {
   const { ticketCode = "" } = useParams();
   const session = readApiSession();
-  const valid = z.string().uuid().safeParse(ticketCode).success;
-  const [notice, setNotice] = useState("");
+  const valid = z.guid().safeParse(ticketCode).success;
+  const [notice, setNotice] = useState<{
+    message: string;
+    tone?: "error";
+  } | null>(null);
   const query = useQuery({
     queryKey: liveQueryKey("ticket-detail", ticketCode),
     enabled: !!session && valid,
@@ -143,15 +147,18 @@ export function LiveTicketDetailPage(): ReactElement {
         });
       else {
         await navigator.clipboard.writeText(window.location.href);
-        setNotice(
-          "Đã sao chép liên kết vé. Người nhận cần đăng nhập đúng tài khoản để xem.",
-        );
+        setNotice({
+          message:
+            "Đã sao chép liên kết vé. Người nhận cần đăng nhập đúng tài khoản để xem.",
+        });
       }
     } catch (error) {
       if (!(error instanceof DOMException && error.name === "AbortError"))
-        setNotice(
-          "Không thể chia sẻ tự động. Bạn có thể sao chép đường dẫn trên thanh địa chỉ.",
-        );
+        setNotice({
+          message:
+            "Không thể chia sẻ tự động. Bạn có thể sao chép đường dẫn trên thanh địa chỉ.",
+          tone: "error",
+        });
     }
   };
   return (
@@ -287,7 +294,7 @@ export function LiveTicketDetailPage(): ReactElement {
           </aside>
         </div>
       </article>
-      {notice && <p role="status">{notice}</p>}
+      {notice && <Toast {...notice} onClose={() => setNotice(null)} />}
       <nav className="live-ticket__navigation">
         <Link to="/account/tickets">← Vé của tôi</Link>
         {issued && (

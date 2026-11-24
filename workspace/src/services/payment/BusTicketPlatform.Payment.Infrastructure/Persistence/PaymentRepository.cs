@@ -145,8 +145,24 @@ public sealed partial class PaymentRepository(PaymentDatabaseOptions options) : 
         return items;
     }
 
-    public Task<(IReadOnlyList<PaymentRecord> Items, long Total)> SearchPaymentsAsync(Guid? orgId, int page, int size, CancellationToken cancellationToken) =>
-        SearchAsync(PaymentCols, "payments p", orgId, page, size, ReadPayment, cancellationToken);
+    public Task<(IReadOnlyList<PaymentRecord> Items, long Total)> SearchPaymentsAsync(Guid? orgId, int page, int size,
+        CancellationToken cancellationToken, FinanceListFilter? filter = null) =>
+        SearchAsync(PaymentCols, "payments p", orgId, page, size, ReadPayment, cancellationToken,
+            " ORDER BY p.created_at DESC, p.id DESC", finance: filter);
+
+    public Task<(IReadOnlyList<RefundListItem> Items, long Total)> SearchAdminRefundsAsync(
+        FinanceListFilter filter, int page, int size, CancellationToken cancellationToken) =>
+        SearchAsync("""
+            r.id, r.payment_id, r.booking_id_external, r.requested_by_external, r.refund_reference,
+            r.amount, r.currency, r.reason_code, r.status, r.created_at, p.organization_id_external, p.logical_reference
+            """, "refunds r JOIN payments p ON p.id = r.payment_id", filter.OrganizationId, page, size,
+            reader =>
+            {
+                var refund = ReadRefund(reader);
+                return new RefundListItem(new RefundDto(refund.Id, refund.RefundReference, refund.PaymentId,
+                    refund.BookingId, refund.Amount, refund.Currency, refund.Status, refund.Reason, refund.CreatedAt),
+                    reader.GetGuid(10), reader.GetString(11));
+            }, cancellationToken, " ORDER BY r.created_at DESC, r.id DESC", finance: filter, refundSearch: true);
 
     public async Task InsertRefundAsync(RefundRecord refund, CancellationToken cancellationToken)
     {
@@ -281,8 +297,12 @@ public sealed partial class PaymentRepository(PaymentDatabaseOptions options) : 
         return true;
     }
 
-    public Task<(IReadOnlyList<RefundRecord> Items, long Total)> SearchRefundsAsync(Guid? orgId, int page, int size, CancellationToken cancellationToken) =>
-        SearchAsync("r.id, r.payment_id, r.booking_id_external, r.requested_by_external, r.refund_reference, r.amount, r.currency, r.reason_code, r.status, r.created_at", "refunds r JOIN payments p ON p.id = r.payment_id", orgId, page, size, ReadRefund, cancellationToken);
+    public Task<(IReadOnlyList<RefundRecord> Items, long Total)> SearchRefundsAsync(Guid? orgId, int page, int size,
+        CancellationToken cancellationToken, Guid? bookingId = null, Guid? paymentId = null, string? status = null, DateOnly? date = null) =>
+        SearchAsync("r.id, r.payment_id, r.booking_id_external, r.requested_by_external, r.refund_reference, r.amount, r.currency, r.reason_code, r.status, r.created_at",
+            "refunds r JOIN payments p ON p.id = r.payment_id", orgId, page, size, ReadRefund, cancellationToken,
+            " ORDER BY r.created_at DESC, r.id DESC", bookingId, paymentId,
+            finance: status is null ? null : new FinanceListFilter(orgId, [status], null, null), refundSearch: true, refundDate: date);
 
     public async Task InsertSettlementAsync(SettlementRecord settlement, CancellationToken cancellationToken)
     {
@@ -322,6 +342,22 @@ public sealed partial class PaymentRepository(PaymentDatabaseOptions options) : 
 
     public Task<(IReadOnlyList<SettlementRecord> Items, long Total)> ListSettlementsAsync(Guid? orgId, int page, int size, CancellationToken cancellationToken) =>
         SearchAsync(SettlementColumns, SettlementSource, orgId, page, size, ReadSettlement, cancellationToken, " ORDER BY s.created_at DESC, s.id DESC");
+
+    public async Task<IReadOnlyList<SettlementRecord>> ListSettlementExportAsync(Guid orgId, CancellationToken cancellationToken)
+    {
+        await using var connection = await OpenAsync(cancellationToken);
+        await using var command = new NpgsqlCommand($"""
+            SELECT {SettlementColumns} FROM {SettlementSource}
+            WHERE s.organization_id_external = @org
+            ORDER BY s.created_at DESC, s.id DESC
+            """, connection);
+        command.Parameters.AddWithValue("org", orgId);
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        var items = new List<SettlementRecord>();
+        while (await reader.ReadAsync(cancellationToken))
+            items.Add(ReadSettlement(reader));
+        return items;
+    }
 
     public async Task<Result<SettlementReceipt>> ConfirmSettlementReceiptAsync(Guid id, Guid organizationId, Guid actorId,
         ConfirmSettlementReceiptRequest request, CancellationToken cancellationToken)
@@ -411,20 +447,54 @@ public sealed partial class PaymentRepository(PaymentDatabaseOptions options) : 
         return await reader.ReadAsync(cancellationToken) ? ReadPayment(reader) : null;
     }
 
-    private async Task<(IReadOnlyList<T> Items, long Total)> SearchAsync<T>(string cols, string from, Guid? orgId, int page, int size, Func<NpgsqlDataReader, T> map, CancellationToken cancellationToken, string orderBy = "")
+    private async Task<(IReadOnlyList<T> Items, long Total)> SearchAsync<T>(string cols, string from, Guid? orgId, int page, int size,
+        Func<NpgsqlDataReader, T> map, CancellationToken cancellationToken, string orderBy = "", Guid? bookingId = null,
+        Guid? paymentId = null, FinanceListFilter? finance = null, bool refundSearch = false, DateOnly? refundDate = null)
     {
         await using var connection = await OpenAsync(cancellationToken);
-        var orgFilter = orgId is not null && from.Contains("booking_settlements", StringComparison.Ordinal)
-            ? " WHERE s.organization_id_external = @org"
-            : orgId is not null && from.Contains("payments p", StringComparison.Ordinal)
-                ? " WHERE p.organization_id_external = @org"
-            : "";
+        var filters = new List<string>();
+        if (orgId.HasValue)
+            filters.Add(from.Contains("booking_settlements", StringComparison.Ordinal)
+                ? "s.organization_id_external = @org" : "p.organization_id_external = @org");
+        if (bookingId.HasValue) filters.Add("r.booking_id_external = @booking");
+        if (paymentId.HasValue) filters.Add("r.payment_id = @payment");
+        if (refundDate.HasValue) filters.Add("""
+            r.created_at >= (@refundDate::timestamp AT TIME ZONE 'Asia/Ho_Chi_Minh')
+            AND r.created_at < ((@refundDate + 1)::timestamp AT TIME ZONE 'Asia/Ho_Chi_Minh')
+            """);
+        if (finance?.Statuses is { Length: > 0 })
+            filters.Add(refundSearch ? "r.status = ANY(@statuses)" : "p.status = ANY(@statuses)");
+        var search = finance?.Search?.Trim();
+        if (!string.IsNullOrEmpty(search))
+        {
+            filters.Add(refundSearch ? """
+                (r.booking_id_external = ANY(@matchingBookings) OR strpos(lower(concat_ws(' ',
+                  r.id, r.refund_reference, r.booking_id_external, p.logical_reference, r.reason_code,
+                  CASE WHEN r.reason_code IN ('CUSTOMER_CANCELLATION', 'CUSTOMER_CANCEL') THEN 'Khách hủy vé'
+                       WHEN r.reason_code IN ('OPERATOR_CANCELLATION', 'OPERATOR_CANCEL', 'TRIP_CANCELLED') THEN 'Nhà xe hủy chuyến' END)), lower(@search)) > 0)
+                """ : """
+                (p.booking_id_external = ANY(@matchingBookings) OR strpos(lower(concat_ws(' ',
+                  p.id, p.logical_reference, p.booking_id_external, p.provider)), lower(@search)) > 0)
+                """);
+        }
+        var where = filters.Count == 0 ? "" : " WHERE " + string.Join(" AND ", filters);
 
-        await using var count = new NpgsqlCommand($"SELECT COUNT(*) FROM {from}{orgFilter}", connection);
-        count.Parameters.AddWithValue("org", (object?)orgId ?? DBNull.Value);
+        await using var count = new NpgsqlCommand($"SELECT COUNT(*) FROM {from}{where}", connection);
+        await using var select = new NpgsqlCommand($"SELECT {cols} FROM {from}{where}{orderBy} OFFSET @offset LIMIT @limit", connection);
+        foreach (var query in new[] { count, select })
+        {
+            if (orgId.HasValue) query.Parameters.AddWithValue("org", orgId.Value);
+            if (bookingId.HasValue) query.Parameters.AddWithValue("booking", bookingId.Value);
+            if (paymentId.HasValue) query.Parameters.AddWithValue("payment", paymentId.Value);
+            if (refundDate.HasValue) query.Parameters.AddWithValue("refundDate", refundDate.Value);
+            if (finance?.Statuses is { Length: > 0 } statuses) query.Parameters.AddWithValue("statuses", statuses);
+            if (!string.IsNullOrEmpty(search))
+            {
+                query.Parameters.AddWithValue("search", search);
+                query.Parameters.AddWithValue("matchingBookings", finance?.MatchingBookings ?? Array.Empty<Guid>());
+            }
+        }
         var total = Convert.ToInt64(await count.ExecuteScalarAsync(cancellationToken));
-        await using var select = new NpgsqlCommand($"SELECT {cols} FROM {from}{orgFilter}{orderBy} OFFSET @offset LIMIT @limit", connection);
-        select.Parameters.AddWithValue("org", (object?)orgId ?? DBNull.Value);
         select.Parameters.AddWithValue("offset", (long)page * Math.Max(size, 1));
         select.Parameters.AddWithValue("limit", size <= 0 ? 20 : size);
         await using var reader = await select.ExecuteReaderAsync(cancellationToken);

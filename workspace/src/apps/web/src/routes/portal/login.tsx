@@ -64,9 +64,9 @@ export default function PortalLogin(): ReactElement {
       });
     } catch (reason) {
       setError(
-        reason instanceof Error
+        isMockApi && reason instanceof Error
           ? reason.message
-          : "Đăng nhập chưa thành công. Hãy thử lại.",
+          : "Đăng nhập chưa thành công. Kiểm tra thông tin và thử lại.",
       );
     } finally {
       setPending(false);

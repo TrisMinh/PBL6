@@ -8,6 +8,33 @@ public static class ReportingEventHandlers
 {
     public static Task HandleAsync(IServiceProvider services, EventMessage message, CancellationToken cancellationToken)
     {
+        if (message is { EventType: "PaymentBookingLinked", Producer: "payment", Version: 1 })
+        {
+            var link = EventPayload.Deserialize<PaymentBookingLink>(message.Payload);
+            if (link is null || link.PaymentId == Guid.Empty || link.PaymentId != message.AggregateId
+                || link.BookingId == Guid.Empty || message.TenantId is not Guid organization || organization == Guid.Empty)
+            {
+                throw new InvalidOperationException("Payment booking link is missing source identity.");
+            }
+
+            return services.GetRequiredService<IReportingRepository>()
+                .RecordPaymentBookingAsync(organization, link.PaymentId, link.BookingId, cancellationToken);
+        }
+
+        if (message is { EventType: "BookingRevenueContextRecorded", Producer: "booking", Version: 1 })
+        {
+            var context = EventPayload.Deserialize<BookingRevenueContext>(message.Payload);
+            if (context is null || context.BookingId == Guid.Empty || context.BookingId != message.AggregateId
+                || string.IsNullOrWhiteSpace(context.BookingCode) || string.IsNullOrWhiteSpace(context.RouteName)
+                || message.TenantId is not Guid organization || organization == Guid.Empty)
+            {
+                throw new InvalidOperationException("Booking revenue context is missing order or route information.");
+            }
+
+            return services.GetRequiredService<IReportingRepository>()
+                .RecordRevenueBookingAsync(organization, context.BookingId, context.BookingCode, context.RouteName, cancellationToken);
+        }
+
         if (message is { EventType: "RevenueMovementRecorded", Producer: "payment", Version: 1 })
         {
             var movement = EventPayload.Deserialize<RevenueMovement>(message.Payload);
@@ -71,6 +98,9 @@ public static class ReportingEventHandlers
 
         return services.GetRequiredService<ReportingService>().IngestAsync(fact, cancellationToken);
     }
+
+    private sealed record PaymentBookingLink(Guid PaymentId, Guid BookingId);
+    private sealed record BookingRevenueContext(Guid BookingId, string BookingCode, string RouteName);
 
     private static long ReadLong(System.Text.Json.JsonElement payload, string name)
     {

@@ -2,7 +2,7 @@ import { useId, useState, type ReactElement } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Tag } from "@phosphor-icons/react/dist/csr/Tag";
 import { apiJson } from "@/shared/api/client";
-import { ApiError } from "@/shared/api/error";
+import { ApiError, publicActionError } from "@/shared/api/error";
 import {
   couponQuoteSchema,
   type CouponQuote,
@@ -11,6 +11,7 @@ import { formatCurrencyVnd } from "@/shared/lib/formatCurrencyVnd";
 import { keyFor } from "../repositories/backendBookingRepository";
 import type { BookingDraft } from "../types/booking";
 import { Button } from "@/shared/ui/Button/Button";
+import { Toast } from "@/shared/ui/Toast/Toast";
 import "./CouponReview.css";
 
 export function CouponReview({
@@ -58,6 +59,9 @@ export function CouponReview({
     },
     onSettled: () => onPending(false),
   });
+  const invalidCode =
+    apply.error instanceof ApiError &&
+    [400, 404, 409, 422].includes(apply.error.status);
   return (
     <div className="booking-coupon">
       <label htmlFor={id}>
@@ -66,6 +70,8 @@ export function CouponReview({
       <div className="booking-coupon__entry">
         <input
           id={id}
+          aria-invalid={invalidCode}
+          aria-describedby={invalidCode ? `${id}-error` : undefined}
           value={code}
           maxLength={32}
           placeholder="Nhập mã ưu đãi"
@@ -101,16 +107,28 @@ export function CouponReview({
         )}
       </div>
       {coupon && (
-        <p className="booking-coupon__success" role="status">
-          Đã áp dụng {coupon.code} · Giảm {formatCurrencyVnd(coupon.discount)}
+        <p className="booking-coupon__success">
+          {coupon.code} · Giảm {formatCurrencyVnd(coupon.discount)}
         </p>
       )}
-      {apply.isError && (
-        <p className="booking-coupon__error" role="alert">
-          {apply.error instanceof ApiError || apply.error instanceof Error
-            ? apply.error.message
-            : "Chưa thể áp dụng mã. Vui lòng thử lại."}
+      {apply.isSuccess && coupon && (
+        <Toast
+          message={`Đã áp dụng mã ${coupon.code}.`}
+          onClose={apply.reset}
+        />
+      )}
+      {invalidCode && (
+        <p className="booking-coupon__error" id={`${id}-error`} role="alert">
+          Mã giảm giá không hợp lệ, đã hết hạn hoặc không áp dụng được cho đơn
+          này.
         </p>
+      )}
+      {apply.isError && !invalidCode && (
+        <Toast
+          tone="error"
+          message={publicActionError(apply.error)}
+          onClose={apply.reset}
+        />
       )}
     </div>
   );

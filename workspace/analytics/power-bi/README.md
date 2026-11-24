@@ -1,6 +1,8 @@
 # Power BI cho báo cáo doanh thu nhà xe
 
-Trong portal Operator, mục **Power BI** có tệp `operator-dashboard-demo.pbix` đã nạp dữ liệu mẫu. Mở trực tiếp bằng Power BI Desktop. Nếu cần sửa các tệp nguồn của report và semantic model, tải `operator-dashboard.zip`, giải nén, mở `OperatorDashboard.pbip` và chọn **Refresh**. Dự án có hai trang. Trang **Vận hành** có KPI khách, đơn, vé, vé đã check-in và ma trận **ngày đặt × tuyến × kênh thanh toán**. Trang **Tài chính** có số liệu thu, hoàn và đối soát theo ngày giao dịch và tiền tệ.
+Trong portal Operator, mục **Power BI** có tệp `operator-dashboard-demo.pbix` đã nạp dữ liệu mẫu và gói nguồn `operator-dashboard.zip`. Để dùng gói nguồn, giải nén, mở `OperatorDashboard.pbip` trong Power BI Desktop và chọn **Refresh**. Trang **Vận hành** có KPI khách, đơn, vé và vé đã check-in. Trang **Tài chính** có số liệu thu, hoàn và đối soát theo ngày giao dịch và tiền tệ.
+
+Trong **Tài chính**, chọn ngày giao dịch và một loại tiền tệ. Chọn một thanh trong **Doanh thu theo tuyến · Thu ròng**, rồi bấm **Xem đơn của tuyến đã chọn**. Trang **Chi tiết đơn hàng** giữ bộ lọc và cộng các khoản thu, hoàn của từng mã đơn trong khoảng ngày đã chọn. Nút **Quay lại Tài chính** trở về trang nguồn. Dữ liệu mẫu VND của tuyến **Đà Nẵng – Hà Nội** từ 17–18/11/2026 gồm hai đơn với tổng thu ròng 399.999 ₫.
 
 Tạo lại gói mẫu bằng `python workspace/analytics/power-bi/build_operator_dashboard.py`. Để tạo dự án riêng chỉ đọc PostgreSQL, chạy từ gốc repository trong PowerShell.
 
@@ -10,13 +12,13 @@ python workspace/analytics/power-bi/build_operator_dashboard.py --live `
   --output "$env:LOCALAPPDATA/BLUE/PowerBI/operator-dashboard-live.zip"
 ```
 
-Đổi máy chủ và các tham số `--booking-db`, `--reporting-db` theo môi trường. Bản live luôn đọc `bi.operator_booking_activity` và `bi.operator_revenue_daily`. ZIP chỉ chứa định nghĩa báo cáo, mô hình và địa chỉ kết nối. Power BI lưu thông tin xác thực của nguồn dữ liệu riêng. Với PostgreSQL nội bộ, cấu hình gateway và thông tin xác thực riêng của đúng nhà xe trước khi bật lịch refresh. Chỉ đổi URL nhúng sau khi đã xác nhận lần refresh đầu tiên và quyền xem ở Power BI Service.
+Đổi máy chủ và các tham số `--booking-db`, `--reporting-db` theo môi trường. Bản live đọc `bi.operator_booking_activity` và `bi.operator_revenue_by_booking`. ZIP chỉ chứa định nghĩa báo cáo, mô hình và địa chỉ kết nối. Power BI lưu thông tin xác thực của nguồn dữ liệu riêng. Với PostgreSQL nội bộ, cấu hình gateway và thông tin xác thực riêng của đúng nhà xe trước khi bật lịch refresh. Chỉ đổi URL nhúng sau khi đã xác nhận lần refresh đầu tiên và quyền xem ở Power BI Service.
 
 Khi chạy Docker local bằng `scripts/start-frontend.ps1` hoặc `scripts/start-sepay-local.ps1`, gateway vẫn kết nối PostgreSQL qua `127.0.0.1:55474`. Dùng cùng địa chỉ này cho hai kết nối Booking và Reporting trong Power BI Service.
 
-Trang `/operator/reports` và Power BI dùng cùng số liệu tổng hợp theo **nhà xe, ngày nghiệp vụ tại Việt Nam và tiền tệ**. API đọc `bi.revenue_daily`, còn kết nối Power BI của từng nhà xe đọc `bi.operator_revenue_daily`. Payment và Reporting tự áp dụng các migration khi khởi động. Migration Payment tạo sự kiện cho giao dịch lịch sử và gửi qua outbox. Báo cáo được cập nhật khi Reporting xử lý xong các sự kiện.
+Trang `/operator/reports` và Power BI dùng cùng sổ giao dịch theo **nhà xe, ngày nghiệp vụ tại Việt Nam và tiền tệ**. API đọc `bi.revenue_daily`. Power BI đọc số liệu theo ngày giao dịch, tiền tệ và mã đơn từ `bi.operator_revenue_by_booking`. Khi chưa nhận được thông tin đơn, khoản thu hoặc hoàn vẫn xuất hiện trong nhóm **Chưa xác định tuyến**. Khi Reporting xử lý xong dữ liệu đơn, lần refresh tiếp theo sẽ gắn khoản đó với đúng tuyến và mã đơn.
 
-Chạy cổng Operator với `VITE_API_MODE=live` để mở báo cáo tài chính. Khởi động lại Identity, Payment và Reporting khi triển khai phiên bản này, rồi đăng nhập lại để phiên nhận vai trò của đúng nhà xe đang hoạt động. Quyền xem báo cáo dành cho `OPERATOR_ADMIN` và `OPERATOR_FINANCE` của nhà xe đó. Chế độ mock của cổng vẫn dùng màn hình minh họa.
+Triển khai Reporting trước Booking và Payment để consumer có thể xử lý sự kiện bổ sung cho các đơn và giao dịch lịch sử. Chờ Reporting xử lý xong đợt backfill trước khi refresh mô hình. Chạy cổng Operator với `VITE_API_MODE=live` để mở báo cáo tài chính. Quyền xem báo cáo dành cho `OPERATOR_ADMIN` và `OPERATOR_FINANCE` của nhà xe đang hoạt động.
 
 ## Cấp tài khoản đọc
 
@@ -26,12 +28,12 @@ DBA tạo một PostgreSQL login chuyên dụng cho mỗi nhà xe trong database
 CREATE ROLE pbi_operator_a LOGIN;
 GRANT CONNECT ON DATABASE reporting TO pbi_operator_a;
 GRANT USAGE ON SCHEMA bi TO pbi_operator_a;
-GRANT SELECT ON bi.operator_revenue_daily TO pbi_operator_a;
+GRANT SELECT ON bi.operator_revenue_by_booking TO pbi_operator_a;
 INSERT INTO bi.operator_reader_scope(login_name, organization_id_external)
 VALUES ('pbi_operator_a', '00000000-0000-0000-0000-000000000001');
 ```
 
-Trong database `booking`, cấp thêm `CONNECT`, `USAGE ON SCHEMA bi` và `SELECT ON bi.operator_booking_activity` cho login này, rồi thêm cùng ánh xạ vào `bi.operator_reader_scope` của Booking. Dữ liệu vận hành không chứa thông tin liên hệ. Khóa khách trong semantic model là mã giả danh theo nhà xe để tính khách duy nhất trên toàn bộ bộ lọc. Số khách là số tài khoản đặt có ít nhất một vé hợp lệ. Vé đã check-in là số vé ở trạng thái check-in hoặc đã sử dụng trong nhóm đơn theo ngày đặt.
+Với tài khoản đã cấp từ trước, thêm quyền `SELECT` trên view mới trước khi chuyển báo cáo sang mô hình drill-through. View `bi.operator_revenue_daily` vẫn phục vụ các báo cáo tổng hợp đang dùng. Trong database `booking`, cấp thêm `CONNECT`, `USAGE ON SCHEMA bi` và `SELECT ON bi.operator_booking_activity` cho login này, rồi thêm cùng ánh xạ vào `bi.operator_reader_scope` của Booking. Khóa khách trong semantic model là mã giả danh theo nhà xe để tính khách duy nhất. Vé đã check-in là số vé ở trạng thái check-in hoặc đã sử dụng.
 
 Nếu cần nhúng trong portal, publish dự án lên Power BI Service, lấy URL từ **Embed report → Website or portal**, rồi đặt `VITE_OPERATOR_POWER_BI_EMBED_URL` khi build frontend. URL chỉ cấu hình vị trí báo cáo; quyền xem phải được cấp và kiểm tra trong Power BI. Vì cấu hình URL dùng chung cho bản triển khai frontend, khi có nhiều nhà xe hãy dùng semantic model áp dụng RLS cho các tài khoản Power BI hoặc triển khai URL riêng cho mỗi nhà xe. [Nhúng Power BI có xác thực](https://learn.microsoft.com/en-us/power-bi/service-embed-secure)
 
@@ -98,6 +100,8 @@ Payment phát `RevenueMovementRecorded` từ cùng giao dịch ghi thanh toán, 
 Sau khi xuất bản dự án PostgreSQL-only vào workspace riêng của nhà xe và đăng ký hai kết nối PostgreSQL trong gateway, dùng `Enable-OperatorPowerBIRefresh.ps1` với các tham số `WorkspaceId`, `DatasetId`, `ReportId`, `GatewayId`, `BookingDatasourceId` và `ReportingDatasourceId`. Truyền token Power BI REST API của chủ semantic model qua biến môi trường `BLUE_POWERBI_ACCESS_TOKEN` trong phiên PowerShell. Xác minh các kết nối gateway dùng login PostgreSQL chỉ đọc đã ánh xạ đúng nhà xe trước khi chạy.
 
 Script kiểm tra report trỏ đúng model, gắn hai nguồn gateway, gọi refresh và đối chiếu request ID trong lịch sử. Chỉ sau khi refresh hoàn tất, script bật lịch hằng ngày lúc 06:00 giờ Việt Nam (đổi bằng `-RefreshTime`) và in URL nhúng. Đối soát số liệu và quyền xem trước khi đưa URL này vào cấu hình của bản triển khai Operator dành cho nhà xe đó.
+
+Khi nâng cấp báo cáo nhúng lên phiên bản có drill-through, tạo tên mới khi gọi `Publish-OperatorPowerBI.ps1`, chẳng hạn `-Name 'BLUE Operator Live Drill-through'`. Script dùng lại các item trùng tên trong workspace. Kiểm tra thao tác mở đơn và quay lại với báo cáo ở URL mới trước khi cấu hình Operator dùng URL đó.
 
 ## Bản live DirectQuery
 

@@ -19,7 +19,7 @@ import { PaymentResultContent } from "./VnPayReturnPage";
 export function SePayReturnPage(): ReactElement {
   const [params] = useSearchParams();
   const bookingId = params.get("bookingId") ?? "";
-  const valid = z.uuid().safeParse(bookingId).success;
+  const valid = z.guid().safeParse(bookingId).success;
   const result = useQuery({
     queryKey: liveQueryKey("sepay-return", bookingId),
     enabled: valid,

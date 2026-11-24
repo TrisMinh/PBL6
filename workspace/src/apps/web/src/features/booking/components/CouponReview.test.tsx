@@ -70,14 +70,28 @@ it("uses only the server quote and sends code plus held-seat proof", async () =>
 it("rejects invalid or expired coupons without changing the price", async () => {
   vi.spyOn(globalThis, "fetch").mockResolvedValue(
     Response.json(
-      { error: { code: "VALIDATION_ERROR", message: "Mã đã hết hạn." } },
+      {
+        error: {
+          code: "VALIDATION_ERROR",
+          message: "internal-provider-secret",
+        },
+      },
       { status: 400 },
     ),
   );
   const { onChange } = mount();
   await userEvent.type(screen.getByLabelText("Mã giảm giá"), "EXPIRED");
   await userEvent.click(screen.getByRole("button", { name: "Áp dụng" }));
-  expect(await screen.findByRole("alert")).toHaveTextContent("Mã đã hết hạn.");
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    "Mã giảm giá không hợp lệ",
+  );
+  expect(screen.getByLabelText("Mã giảm giá")).toHaveAttribute(
+    "aria-invalid",
+    "true",
+  );
+  expect(
+    screen.queryByText(/internal-provider-secret/),
+  ).not.toBeInTheDocument();
   expect(onChange).not.toHaveBeenCalled();
 });
 it("blocks coupon edits while a booking request is unresolved", () => {

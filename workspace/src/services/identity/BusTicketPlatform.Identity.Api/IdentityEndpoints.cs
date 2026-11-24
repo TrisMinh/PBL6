@@ -143,14 +143,18 @@ public static class IdentityEndpoints
             : Results.Json(result.Value.Profile);
     }
 
-    private static async Task<IResult> ListUsersAsync(AdminIdentityService admin, HttpContext http, [FromQuery] int page = 0, [FromQuery] int size = 20)
+    private static async Task<IResult> ListUsersAsync(AdminIdentityService admin, HttpContext http,
+        [FromQuery] int page = 0, [FromQuery] int size = 20, [FromQuery] Guid? organizationId = null,
+        [FromQuery] string? search = null, [FromQuery] bool staffOnly = false, [FromQuery] bool? active = null,
+        [FromQuery] bool? membershipActive = null)
     {
         if (!http.User.IsPlatformAdmin())
         {
             return HttpResults.Error(IdentityErrors.AccessDenied(), http.CorrelationId());
         }
 
-        var result = await admin.ListUsersAsync(page, size, http.RequestAborted);
+        var filter = new UserListFilter(organizationId, search, staffOnly, active, membershipActive);
+        var result = await admin.ListUsersAsync(page, size, filter, http.RequestAborted);
         return result.ToHttp(http.CorrelationId());
     }
 

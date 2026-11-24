@@ -15,7 +15,6 @@ import {
   ExploreGuides,
   ExploreOffers,
   ExplorePayments,
-  ExploreStations,
   FeaturedRoutes,
 } from "./ExploreDiscovery";
 import { ExplorePromoTicker } from "./ExplorePromoTicker";
@@ -62,9 +61,11 @@ function ProvinceCard({
       className="explore__province-card"
       to={exploreProvincePath(province.slug)}
     >
-      <div className="explore__province-card-region">
-        <MapPin size={18} weight="duotone" aria-hidden /> {province.region}
-      </div>
+      {province.region !== province.name && (
+        <div className="explore__province-card-region">
+          <MapPin size={18} weight="duotone" aria-hidden /> {province.region}
+        </div>
+      )}
       <div>
         <h3>{province.name}</h3>
         <p>
@@ -135,10 +136,9 @@ function ProvinceCatalog({
           <Button type="submit">Tìm kiếm</Button>
         </div>
       </form>
-      <div className="explore__section-heading">
-        <h2>Điểm hẹn cho hành trình</h2>
-        <p role="status">{filtered.length} tỉnh, thành</p>
-      </div>
+      <p className="explore__result-count" role="status">
+        {filtered.length} tỉnh, thành
+      </p>
       {filtered.length ? (
         <div className="explore__province-grid">
           {filtered.map((province) => (
@@ -182,12 +182,14 @@ export function ExplorePage(): ReactElement {
       <ExploreOffers />
       <ExplorePayments />
       <ExploreGuides />
-      <ExploreStations />
       <section
         id="tinh-thanh"
         className="explore explore--catalog"
-        aria-label="Tra cứu điểm đón, trả"
+        aria-labelledby="ben-xe"
       >
+        <h2 id="ben-xe" className="explore__catalog-title">
+          Bến xe khách
+        </h2>
         {result.isPending ? (
           <BrandLoading compact title="Đang tải danh mục tỉnh, thành…" />
         ) : result.isError ? (

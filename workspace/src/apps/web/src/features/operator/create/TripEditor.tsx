@@ -38,6 +38,7 @@ import {
   tripSchema,
   useOperatorTrip,
   useTripResources,
+  vietnamIso,
   vietnamLocal,
   type TripForm,
   type Route,
@@ -63,11 +64,8 @@ import {
 } from "./tripTiming";
 import { getVietnamTodayDate } from "@/shared/lib/getVietnamTodayDate";
 import {
-  conflictLabel,
-  conflictReason,
   localTripWindow,
-  scheduleConflicts,
-  useOperatorSchedule,
+  useAssignmentAvailability,
 } from "../tripAvailability";
 
 function Field({
@@ -393,100 +391,103 @@ export function CreateTripPage({
   const driver = resources.drivers.data?.find((d) => d.id === form.driverId);
   const window = localTripWindow(form.departureAt, form.arrivalAt);
   const invalidTimeOrder = hasInvalidTimeOrder(form);
-  const serviceDate = window
-    ? new Date(window[1]).toISOString().slice(0, 10)
-    : "";
-  const driverExpired =
-    !!driver && !!serviceDate && driver.licenseExpiresOn < serviceDate;
-  const schedule = useOperatorSchedule(
-    !!window && !preview,
-    JSON.stringify([
-      tripId,
-      form.departureAt,
-      form.arrivalAt,
-      form.busId,
-      form.driverId,
-    ]),
+  const repeatedWindowsOverlap =
+    !!window &&
+    recurrenceEnabled &&
+    dates.some(
+      (date, index) =>
+        index > 0 &&
+        Date.parse(date) - Date.parse(dates[index - 1]) <
+          window[1] - window[0] + 2 * 60 * 60 * 1000,
+    );
+  const readOnly =
+    embedded &&
+    !preview &&
+    mode === "edit" &&
+    existing.data?.status !== "DRAFT";
+  const schedule = useAssignmentAvailability(
+    window &&
+      !preview &&
+      !readOnly &&
+      (!wizard || step > 0) &&
+      (!recurrenceEnabled || (dates.length > 0 && !repeatedWindowsOverlap))
+      ? {
+          departureAt: vietnamIso(form.departureAt),
+          arrivalAt: vietnamIso(form.arrivalAt),
+          ...(recurrenceEnabled
+            ? {
+                endDate: recurrence.endDate,
+                weekdays: [...recurrence.days].sort(),
+              }
+            : {}),
+        }
+      : null,
   );
-
-  const conflicts =
-    window && schedule.data && !preview
-      ? scheduleConflicts(schedule.data, window, tripId)
-      : null;
-  const busConflicts = conflicts?.buses.get(form.busId) ?? [];
-  const driverConflicts = conflicts?.drivers.get(form.driverId) ?? [];
+  const availabilityReady =
+    !!preview || (schedule.isSuccess && !!schedule.data);
+  const busIds = new Set(schedule.data?.busIds);
+  const driverIds = new Set(schedule.data?.driverIds);
+  const busOptions: ResourceOption[] = (resources.buses.data ?? [])
+    .filter((item) =>
+      readOnly
+        ? item.id === form.busId
+        : item.status === "ACTIVE" &&
+          item.seats.some((seat) => seat.enabled) &&
+          availabilityReady &&
+          (preview || busIds.has(item.id)),
+    )
+    .map((item) => ({
+      id: item.id,
+      label: item.plateNumber,
+      description: `${busLabel(item)} · ${item.seats.length} chỗ`,
+      conflicts: [],
+    }));
+  const driverOptions: ResourceOption[] = (resources.drivers.data ?? [])
+    .filter((item) =>
+      readOnly
+        ? item.id === form.driverId
+        : item.status === "ACTIVE" &&
+          availabilityReady &&
+          (preview
+            ? item.licenseExpiresOn >= form.arrivalAt.slice(0, 10)
+            : driverIds.has(item.id)),
+    )
+    .map((item) => ({
+      id: item.id,
+      label: driverLabel(item),
+      description: "",
+      conflicts: [],
+    }));
   const hasConflict =
-    schedule.isSuccess &&
-    (busConflicts.length > 0 || driverConflicts.length > 0);
+    availabilityReady &&
+    !preview &&
+    ((!!form.busId && !busOptions.some((item) => item.id === form.busId)) ||
+      (!!form.driverId &&
+        !driverOptions.some((item) => item.id === form.driverId)));
   const assignmentStatus = preview
     ? { state: "demo", label: "Bản minh họa" }
     : !window
       ? { state: "waiting", label: "Chờ giờ chạy" }
-      : schedule.isFetching
-        ? { state: "checking", label: "Đang kiểm tra" }
-        : schedule.isError
-          ? { state: "error", label: "Chưa kiểm tra được" }
-          : driverExpired
-            ? { state: "conflict", label: "GPLX hết hạn" }
-            : hasConflict
-              ? { state: "conflict", label: "Trùng lịch" }
-              : !bus || !driver
-                ? { state: "waiting", label: "Chờ phân công" }
-                : conflicts?.incompleteDrivers
-                  ? { state: "warning", label: "Cần kiểm tra thêm" }
-                  : { state: "ready", label: "Sẵn sàng" };
-  const busOptions: ResourceOption[] = (resources.buses.data ?? [])
-    .filter((b) => b.status === "ACTIVE")
-    .map((b) => {
-      const matches = schedule.isSuccess
-        ? (conflicts?.buses.get(b.id) ?? [])
-        : [];
-      const noSeats = !b.seats.some((s) => s.enabled);
-      return {
-        id: b.id,
-        label: b.plateNumber,
-        description: `${busLabel(b)} · ${b.seats.length} chỗ`,
-        disabled: noSeats || matches.length > 0,
-        disabledReason: noSeats
-          ? "Chưa có ghế bán"
-          : conflictReason(matches, window),
-        conflicts: matches,
-      };
-    });
-  const driverOptions: ResourceOption[] = (resources.drivers.data ?? [])
-    .filter(
-      (d) =>
-        d.status === "ACTIVE" &&
-        (!serviceDate || d.licenseExpiresOn >= serviceDate),
-    )
-    .map((d) => {
-      const matches = schedule.isSuccess
-        ? (conflicts?.drivers.get(d.id) ?? [])
-        : [];
-      return {
-        id: d.id,
-        label: driverLabel(d),
-        description: "",
-        disabled: matches.length > 0,
-        disabledReason: conflictReason(matches, window),
-        conflicts: matches,
-      };
-    });
+      : schedule.isError
+        ? { state: "error", label: "Chưa tải được danh sách" }
+        : !availabilityReady
+          ? { state: "checking", label: "Đang tìm xe và tài xế phù hợp" }
+          : hasConflict
+            ? { state: "conflict", label: "Cần chọn lại" }
+            : !form.busId || !form.driverId
+              ? { state: "waiting", label: "Chờ phân công" }
+              : { state: "ready", label: "Sẵn sàng" };
   const mutation = useMutation({
     mutationFn: async (action: "save" | "review") => {
       if (!canPublishTrip())
         throw Error("Bạn không có quyền tạo hoặc sửa chuyến.");
-      if (
-        !preview &&
-        action === "review" &&
-        (!schedule.isSuccess || schedule.isFetching)
-      )
+      if (!preview && !availabilityReady)
         throw Error(
-          "Chờ hệ thống kiểm tra xong lịch xe và tài xế trước khi kiểm tra chuyến.",
+          "Chờ hệ thống tải xe và tài xế phù hợp trước khi lưu chuyến.",
         );
-      if (action === "review" && hasConflict)
+      if (hasConflict)
         throw Error(
-          `Xe hoặc tài xế đã chọn: ${conflictReason([...busConflicts, ...driverConflicts], window)}. Vui lòng chọn lại; bạn vẫn có thể lưu bản nháp.`,
+          "Xe hoặc tài xế đã chọn không còn phù hợp với lịch này. Quay lại bước Phân công để chọn lại.",
         );
       const input = tripInput(form);
       const issues = resourceIssues(bus, driver, input.arrivalAt, route);
@@ -693,6 +694,12 @@ export function CreateTripPage({
         );
         return;
       }
+      if (repeatedWindowsOverlap) {
+        setStepError(
+          "Các ngày chạy trùng nhau khi tính cả khoảng đệm một giờ trước và sau chuyến. Chọn ngày cách xa hơn hoặc điều chỉnh giờ đi và giờ đến.",
+        );
+        return;
+      }
       const invalidTiming = timingError(
         form.departureAt,
         form.arrivalAt,
@@ -729,7 +736,7 @@ export function CreateTripPage({
         setStepError(issues.join(" "));
         return;
       }
-      if (!preview && (!schedule.isSuccess || schedule.isFetching)) {
+      if (!preview && !availabilityReady) {
         setStepError(
           "Hệ thống đang tự kiểm tra lịch xe và tài xế. Vui lòng đợi kiểm tra thành công trước khi tiếp tục.",
         );
@@ -785,11 +792,6 @@ export function CreateTripPage({
   const pending =
     resources.pending || (mode === "edit" && !!tripId && existing.isPending);
   const error = resources.error ?? (preview ? null : existing.error);
-  const readOnly =
-    embedded &&
-    !preview &&
-    mode === "edit" &&
-    existing.data?.status !== "DRAFT";
   const retry = (): void => {
     void resources.routes.refetch();
     void resources.buses.refetch();
@@ -1002,16 +1004,25 @@ export function CreateTripPage({
                   className="operator-create__panel operator-create__crew"
                 >
                   <h2>Xe &amp; nhân sự</h2>
-                  <p>Phân công xe và tài xế cho chuyến đi.</p>
+                  <p>
+                    {readOnly
+                      ? "Xe và tài xế đã phân công cho chuyến."
+                      : "Phân công xe và tài xế cho chuyến đi."}
+                  </p>
                   <div className="operator-crew__resources">
                     <div className="operator-crew__resource">
                       <ResourcePicker
                         label="Xe"
-                        placeholder="Chọn phương tiện"
-                        value={form.busId}
-                        selectedLabel={bus?.plateNumber}
+                        placeholder={
+                          readOnly ? "Chưa có thông tin xe" : "Chọn phương tiện"
+                        }
+                        value={
+                          busOptions.some((item) => item.id === form.busId)
+                            ? form.busId
+                            : ""
+                        }
                         options={busOptions}
-                        disabled={!window}
+                        disabled={readOnly || !window || !availabilityReady}
                         onChange={(v) => change("busId", v)}
                       />
                       <dl className="operator-crew__facts">
@@ -1030,11 +1041,18 @@ export function CreateTripPage({
                     <div className="operator-crew__resource">
                       <ResourcePicker
                         label="Tài xế"
-                        placeholder="Chọn tài xế"
-                        value={form.driverId}
-                        selectedLabel={driver ? driverLabel(driver) : undefined}
+                        placeholder={
+                          readOnly ? "Chưa có thông tin tài xế" : "Chọn tài xế"
+                        }
+                        value={
+                          driverOptions.some(
+                            (item) => item.id === form.driverId,
+                          )
+                            ? form.driverId
+                            : ""
+                        }
                         options={driverOptions}
-                        disabled={!window}
+                        disabled={readOnly || !window || !availabilityReady}
                         onChange={(v) => change("driverId", v)}
                       />
                       <dl className="operator-crew__facts">
@@ -1052,85 +1070,68 @@ export function CreateTripPage({
                       </dl>
                     </div>
                   </div>
-                  {driverExpired && (
-                    <p className="operator-trip-workflow__warning" role="alert">
-                      GPLX của tài xế đang chọn không còn đủ hạn cho chuyến này.
-                      Vui lòng chọn tài xế khác.
-                    </p>
-                  )}
                   {hasConflict && (
-                    <div
-                      className="operator-trip-workflow__warning"
-                      role="alert"
-                    >
-                      {busConflicts.length > 0 && (
-                        <p>
-                          Xe {bus?.plateNumber}:{" "}
-                          {conflictReason(busConflicts, window)} ·{" "}
-                          {conflictLabel(busConflicts)}.
-                        </p>
-                      )}
-                      {driverConflicts.length > 0 && (
-                        <p>
-                          Tài xế {driver ? driverLabel(driver) : ""}:{" "}
-                          {conflictReason(driverConflicts, window)} ·{" "}
-                          {conflictLabel(driverConflicts)}.
-                        </p>
-                      )}
-                      <p>
-                        Vui lòng chọn lại nguồn lực hoặc đổi thời gian. Thông
-                        tin đang chọn được giữ để bạn kiểm tra; vẫn có thể lưu
-                        nháp.
-                      </p>
-                    </div>
-                  )}
-                  {conflicts?.incompleteDrivers && schedule.isSuccess && (
-                    <p className="operator-trip-workflow__warning">
-                      Một số chuyến chưa có đủ thông tin tài xế. Kết quả đối
-                      chiếu tài xế có thể chưa đầy đủ.
-                    </p>
-                  )}
-                  <div className="operator-crew__availability">
-                    <div className="operator-crew__availability-copy">
-                      <p>
-                        Lưu bản nháp trước khi kiểm tra và xác nhận phát hành.
-                      </p>
-                      <small>
-                        {preview ? (
-                          "DEMO · Không cập nhật lịch vận hành thật."
-                        ) : !window ? (
-                          "Nhập giờ đi và giờ đến để tự kiểm tra lịch."
-                        ) : (
-                          <>
-                            Tự đối chiếu lịch · Khoảng đệm 1 giờ trước và sau
-                            chuyến
-                            {schedule.dataUpdatedAt > 0
-                              ? ` · ${new Date(schedule.dataUpdatedAt).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit", second: "2-digit", timeZone: "Asia/Ho_Chi_Minh" })}`
-                              : ""}
-                          </>
-                        )}
-                      </small>
-                    </div>
-                    <span
-                      className="operator-crew__status"
-                      data-state={assignmentStatus.state}
-                      role="status"
-                      aria-atomic="true"
-                    >
-                      <span
-                        className="operator-crew__status-dot"
-                        aria-hidden="true"
-                      />
-                      {assignmentStatus.label}
-                    </span>
-                  </div>
-                  {!preview && schedule.isError && (
                     <p className="operator-trip-workflow__warning" role="alert">
-                      Chưa kiểm tra được lịch. Hệ thống sẽ tự thử lại; bạn chưa
-                      thể tiếp tục đến khi kiểm tra thành công.
+                      Xe hoặc tài xế đã chọn không còn phù hợp với lịch này. Vui
+                      lòng chọn lại.
                     </p>
                   )}
-                  {mode === "edit" && !form.driverId && (
+                  {availabilityReady &&
+                    !preview &&
+                    (!busOptions.length || !driverOptions.length) && (
+                      <p
+                        className="operator-trip-workflow__warning"
+                        role="status"
+                      >
+                        {!busOptions.length && !driverOptions.length
+                          ? "Không có xe và tài xế"
+                          : !busOptions.length
+                            ? "Không có xe"
+                            : "Không có tài xế"}{" "}
+                        phù hợp cho toàn bộ lịch. Hãy đổi giờ hoặc ngày chạy.
+                      </p>
+                    )}
+                  {!readOnly && (
+                    <div className="operator-crew__availability">
+                      <div className="operator-crew__availability-copy">
+                        <p>
+                          Lưu bản nháp trước khi kiểm tra và xác nhận phát hành.
+                        </p>
+                        <small>
+                          {preview
+                            ? "DEMO · Không cập nhật lịch vận hành thật."
+                            : !window
+                              ? "Nhập giờ đi và giờ đến để tự kiểm tra lịch."
+                              : "Danh sách đã tính mọi ngày chạy và khoảng đệm 1 giờ trước và sau từng chuyến."}
+                        </small>
+                      </div>
+                      <span
+                        className="operator-crew__status"
+                        data-state={assignmentStatus.state}
+                        role="status"
+                        aria-atomic="true"
+                      >
+                        <span
+                          className="operator-crew__status-dot"
+                          aria-hidden="true"
+                        />
+                        {assignmentStatus.label}
+                      </span>
+                    </div>
+                  )}
+                  {!readOnly && !preview && schedule.isError && (
+                    <p className="operator-trip-workflow__warning" role="alert">
+                      Chưa tải được xe và tài xế phù hợp.{" "}
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={() => void schedule.refetch()}
+                      >
+                        Thử lại
+                      </Button>
+                    </p>
+                  )}
+                  {!readOnly && mode === "edit" && !form.driverId && (
                     <p className="operator-trip-workflow__warning">
                       Vui lòng chọn lại tài xế trước khi lưu bản nháp này.
                     </p>
@@ -1253,7 +1254,9 @@ export function CreateTripPage({
                   value="next"
                   disabled={
                     !canPublishTrip() ||
-                    (!preview && step === 1 && schedule.isFetching)
+                    (!preview &&
+                      step === 1 &&
+                      (!availabilityReady || hasConflict))
                   }
                 >
                   Tiếp theo →
@@ -1266,7 +1269,7 @@ export function CreateTripPage({
                     !canPublishTrip() ||
                     mutation.isPending ||
                     hasConflict ||
-                    schedule.isFetching
+                    !availabilityReady
                   }
                   isLoading={mutation.isPending}
                 >
@@ -1280,7 +1283,12 @@ export function CreateTripPage({
                     type="submit"
                     value="save"
                     variant={preview ? "primary" : "secondary"}
-                    disabled={!canPublishTrip() || mutation.isPending}
+                    disabled={
+                      !canPublishTrip() ||
+                      mutation.isPending ||
+                      hasConflict ||
+                      !availabilityReady
+                    }
                   >
                     {preview ? "Lưu thay đổi demo" : "Lưu bản nháp"}
                   </Button>
@@ -1289,7 +1297,7 @@ export function CreateTripPage({
                       type="submit"
                       value="review"
                       disabled={
-                        !canPublishTrip() || hasConflict || schedule.isFetching
+                        !canPublishTrip() || hasConflict || !availabilityReady
                       }
                       isLoading={mutation.isPending}
                     >

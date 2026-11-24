@@ -21,14 +21,17 @@ function useRepository(): ReturnType<typeof createMembershipRepository> | null {
   );
 }
 
-export function useMemberships(filters: {
-  organizationId?: string;
-  staffId?: string;
-}): UseQueryResult<Membership[], Error> {
+export function useMemberships(
+  filters: {
+    organizationId?: string;
+    staffId?: string;
+  },
+  enabled = true,
+): UseQueryResult<Membership[], Error> {
   const repository = useRepository();
   return useQuery({
     queryKey: ["admin", "memberships", filters],
-    enabled: Boolean(repository),
+    enabled: Boolean(repository) && enabled,
     queryFn: ({ signal }) => {
       if (!repository) throw new AdminRepositoryError("HTTP_ERROR", 401);
       return repository.list(filters, signal);

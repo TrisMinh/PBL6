@@ -7,6 +7,7 @@ import { getBackendTrip } from "@/features/trips/repositories/backendTripReposit
 import {
   hydrateBackendTicket,
   ownedBooking,
+  ticketDetail,
 } from "@/features/tickets/repositories/backendTicketRepository";
 import type { CancellationRepository } from "./cancellationRepository";
 
@@ -77,10 +78,14 @@ export const backendCancellationRepository: CancellationRepository = {
       issued.map((ticket) => ticket.id),
       signal,
     );
-    const [trip, tickets] = await Promise.all([
-      getBackendTrip(booking.tripId, signal),
-      Promise.all(issued.map((ticket) => hydrateBackendTicket(ticket, signal))),
-    ]);
+    const trip = await getBackendTrip(booking.tripId, signal);
+    const tickets = await Promise.all(
+      issued.map((ticket) =>
+        ticket.journey
+          ? ticketDetail(ticket, booking.code, ticket.journey, trip)
+          : hydrateBackendTicket(ticket, signal),
+      ),
+    );
     const pickup = trip.stops.find(
       (s) => s.id === booking.items[0]?.pickupStopId,
     );

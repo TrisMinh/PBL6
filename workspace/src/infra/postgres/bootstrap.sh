@@ -52,16 +52,17 @@ apply payment /baseline/payment/002_sepay.sql
 apply payment /baseline/payment/003_legacy_payment_organization.sql
 apply notification /baseline/notification/001_initial.sql
 apply reporting /baseline/reporting/001_initial.sql
-apply reporting /baseline/reporting/011_seed_occupancy.sql
-
-apply identity /baseline/identity/010_synthetic_seed.sql
-apply identity /baseline/identity/011_dev_login_seed.sql
-apply transport /baseline/transport/010_synthetic_seed.sql
-apply transport /baseline/transport/011_more_seed_seats.sql
-apply transport /baseline/transport/012_seed_driver.sql
-apply transport /baseline/transport/013_seed_amenities.sql
-apply booking /baseline/booking/010_synthetic_seed.sql
-apply booking /baseline/booking/013_more_seed_seats.sql
+if [ "${PBL6_LEGACY_SEED:-1}" = "1" ]; then
+  apply reporting /baseline/reporting/011_seed_occupancy.sql
+  apply identity /baseline/identity/010_synthetic_seed.sql
+  apply identity /baseline/identity/011_dev_login_seed.sql
+  apply transport /baseline/transport/010_synthetic_seed.sql
+  apply transport /baseline/transport/011_more_seed_seats.sql
+  apply transport /baseline/transport/012_seed_driver.sql
+  apply transport /baseline/transport/013_seed_amenities.sql
+  apply booking /baseline/booking/010_synthetic_seed.sql
+  apply booking /baseline/booking/013_more_seed_seats.sql
+fi
 
 echo "bootstrap complete"
 touch /tmp/bootstrap-ok

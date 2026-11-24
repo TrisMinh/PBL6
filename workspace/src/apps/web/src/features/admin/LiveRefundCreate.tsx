@@ -1,3 +1,4 @@
+import { Toast } from "@/shared/ui/Toast/Toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent, type ReactElement } from "react";
 import { z } from "zod";
@@ -108,8 +109,8 @@ export function LiveRefundCreate({
           Tạo hoàn tiền
         </Button>
         {mutation.isSuccess ? (
-          <p role="status">
-            Đã gửi yêu cầu hoàn tiền.{" "}
+          <>
+            <Toast message="Đã gửi yêu cầu hoàn tiền." />
             {mutation.data.operationId && (
               <Link
                 to={`/refunds/${encodeURIComponent(mutation.data.operationId)}`}
@@ -117,9 +118,9 @@ export function LiveRefundCreate({
                 Theo dõi hoàn tiền
               </Link>
             )}
-          </p>
+          </>
         ) : null}
-        {mutation.isError ? <ApiFailure error={mutation.error} /> : null}
+        {mutation.isError ? <ApiFailure error={mutation.error} popup /> : null}
       </form>
     </details>
   );

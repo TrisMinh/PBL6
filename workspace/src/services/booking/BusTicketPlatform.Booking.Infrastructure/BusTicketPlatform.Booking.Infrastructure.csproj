@@ -17,5 +17,8 @@
     <EmbeddedResource Include="..\..\..\..\..\docs\database\booking\001_initial.sql" LogicalName="sql.booking" />
     <EmbeddedResource Include="..\..\..\..\..\docs\database\booking\002_coupons.sql" LogicalName="sql.coupons" />
     <EmbeddedResource Include="..\..\..\..\..\docs\database\booking\003_operator_booking_analytics.sql" LogicalName="sql.booking-analytics" />
+    <EmbeddedResource Include="..\..\..\..\..\docs\database\booking\004_revenue_booking_context.sql" LogicalName="sql.revenue-booking-context" />
+    <EmbeddedResource Include="..\..\..\..\..\docs\database\booking\005_admin_lookup.sql" LogicalName="sql.booking-admin-lookup" />
+    <EmbeddedResource Include="..\..\..\..\..\docs\database\booking\006_operator_booking_paging.sql" LogicalName="sql.booking-operator-paging" />
   </ItemGroup>
 </Project>

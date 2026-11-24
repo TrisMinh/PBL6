@@ -61,7 +61,8 @@ Set `VITE_API_MODE=live` for operator/admin too. Mock accounts, trips, tickets a
 - SePay cancellation refunds use the explicit `RefundRequested` event with an event-based deduplication reference. `BookingCancelled` alone cannot invent a full refund or bypass the cancellation fee.
 - Refund requests are persisted for finance handling. **Automatic bank refund execution is not implemented**; this integration never claims money has been returned without an actual refund. Do not mark refunds successful merely to make the UI green.
 - A void after capture/additional capture opens a reconciliation case without silently downgrading paid state or reissuing tickets.
-- If SePay IPN is not delivered, payment remains pending. Check provider logs/redelivery and local receipts; automated provider REST reconciliation is not implemented.
+- If an IPN is missed, **Kiểm tra giao dịch** can look up the invoice with SePay. Payment also checks eligible invoices automatically starting one minute after local creation. It repeats at most once a minute while the invoice is active, every ten minutes during the first hour after expiry, and every four hours thereafter until 24 hours after expiry. Both entry points share the database claim and the IPN capture transaction. Manual checks have a 30-second cooldown.
+- A lookup that cannot verify a capture leaves the local payment status unchanged. For invoices outside the 24-hour window, use the manual check or the operator's reconciliation process. To disable scheduled lookups, set `SEPAY_AUTOMATIC_RECONCILIATION_ENABLED=false` for Docker or `SePay__AutomaticReconciliationEnabled=false` for a native process.
 
 ## Verification
 

@@ -1,8 +1,8 @@
 import { z } from "zod";
 
 export const livePaymentSchema = z.object({
-  id: z.string().uuid(),
-  bookingId: z.string().uuid(),
+  id: z.guid(),
+  bookingId: z.guid(),
   status: z.string(),
   amount: z.number(),
   currency: z.literal("VND"),

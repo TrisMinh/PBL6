@@ -5,6 +5,7 @@ using BusTicketPlatform.BuildingBlocks.Messaging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Npgsql;
 
 namespace BusTicketPlatform.Booking.Infrastructure;
 
@@ -12,9 +13,13 @@ public static class BookingInfrastructureExtensions
 {
     public static IServiceCollection AddBookingInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
+        var connectionString = configuration.GetConnectionString(BookingDatabaseOptions.ConnectionStringName);
+        var connection = string.IsNullOrWhiteSpace(connectionString) ? null : new NpgsqlConnectionStringBuilder(connectionString);
+        if (connection is not null && !connection.ShouldSerialize("MaxPoolSize"))
+            connection.MaxPoolSize = 24;
         var options = new BookingDatabaseOptions
         {
-            ConnectionString = configuration.GetConnectionString(BookingDatabaseOptions.ConnectionStringName) ?? ""
+            ConnectionString = connection?.ConnectionString ?? ""
         };
         services.AddSingleton(options);
         services.AddSingleton<SqlBaselineMigrator>();

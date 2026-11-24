@@ -23,6 +23,7 @@ public sealed class SqlBaselineMigrator(IdentityDatabaseOptions options)
 
         await ApplyFileAsync(connection, "sql.shared", "000_integration_tables.sql", cancellationToken);
         await ApplyFileAsync(connection, "sql.identity", "001_initial.sql", cancellationToken);
+        await ApplyFileAsync(connection, "sql.identity.admin_lookup", "002_admin_lookup.sql", cancellationToken);
         await ExecuteAsync(connection, """
             CREATE TABLE IF NOT EXISTS customer_preferences (
                 user_id uuid PRIMARY KEY REFERENCES users(id),

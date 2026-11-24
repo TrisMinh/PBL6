@@ -1,6 +1,7 @@
 # Application source
 
-- `apps/`: Customer Web (`:5173`) and Back-office (`:5174`) talk to Gateway `:5080`.
+- `apps/`: Customer Web (`:5173`), Operator Web (`:5174`), Admin Web (`:5175`) and the mobile app use Gateway `:5080`.
+- [Docker setup and local accounts](../README.md)
 - `packages/`: shared UI tokens and Gateway API client.
 - `gateway/`: YARP edge for `/api/v1` and payment webhooks.
 - `services/`: Identity, Transport, Booking, Payment, Notification, Reporting.

@@ -22,11 +22,20 @@ const array = (value: unknown): Row[] =>
 async function get(path: string, signal?: AbortSignal): Promise<Row> {
   return object(await liveApiJson(path, z.unknown(), { signal }));
 }
-async function all(resource: string, signal?: AbortSignal): Promise<Row[]> {
+async function all(
+  resource: string,
+  signal?: AbortSignal,
+  filters?: Record<string, string>,
+): Promise<Row[]> {
   const items: Row[] = [];
   for (let page = 0; ; page++) {
+    const query = new URLSearchParams({
+      page: String(page),
+      size: "100",
+      ...filters,
+    });
     const result = await liveApiJson(
-      `/api/v1/admin/${resource}?page=${page}&size=100`,
+      `/api/v1/admin/${resource}?${query}`,
       z.unknown(),
       { signal },
     );
@@ -36,26 +45,10 @@ async function all(resource: string, signal?: AbortSignal): Promise<Row[]> {
     if (page + 1 >= number(body.totalPages)) return items;
   }
 }
-function page<T extends { live?: LiveTransactionDetails }>(
-  items: T[],
-  params: AdminListParams,
-): { items: T[]; page: number; pageSize: number; total: number } {
-  const filtered = items.filter(
-    (item) =>
-      (!params.status || item.live?.state === params.status) &&
-      (!params.organizationId ||
-        item.live?.organizationId === params.organizationId) &&
-      (!params.query ||
-        JSON.stringify(item)
-          .toLocaleLowerCase("vi")
-          .includes(params.query.toLocaleLowerCase("vi"))),
-  );
+function page<T>(items: T[], total: number, params: AdminListParams) {
   return {
-    items: filtered.slice(
-      (params.page - 1) * params.pageSize,
-      params.page * params.pageSize,
-    ),
-    total: filtered.length,
+    items,
+    total,
     page: params.page,
     pageSize: params.pageSize,
   };
@@ -96,6 +89,88 @@ export function createBackendTransactionRepository(): Pick<
   | "listRefunds"
   | "getRefund"
 > {
+  async function bookingReferences(
+    body: { ids?: string[]; search?: string; organizationId?: string },
+    signal?: AbortSignal,
+  ) {
+    const result = await liveApiJson(
+      "/api/v1/admin/bookings/references",
+      z.unknown(),
+      { method: "POST", body, signal },
+    );
+    return new Map(array(result).map((row) => [text(row.id), text(row.code)]));
+  }
+  async function financePage(
+    resource: "payments" | "refunds",
+    params: AdminListParams,
+    signal?: AbortSignal,
+  ) {
+    const search = params.query?.trim();
+    const raw =
+      resource === "payments"
+        ? [
+            "PENDING",
+            "PROCESSING",
+            "SUCCEEDED",
+            "FAILED",
+            "CANCELLED",
+            "REFUND_PENDING",
+            "PARTIALLY_REFUNDED",
+            "REFUNDED",
+          ]
+        : ["REQUESTED", "PROCESSING", "SUCCEEDED", "COMPLETED", "FAILED"];
+    const statuses = params.status
+      ? raw.filter(
+          (status) =>
+            liveTransactionStatus(resource, status).state === params.status,
+        )
+      : [];
+    if (params.status && !statuses.length)
+      return {
+        result: {},
+        codes: new Map<string, string>(),
+        orgs: new Map<string, string>(),
+      };
+    const orgsRequest = organizations(signal);
+    const resultRequest = (async () => {
+      const matches = search
+        ? await bookingReferences(
+            { search, organizationId: params.organizationId },
+            signal,
+          )
+        : new Map<string, string>();
+      const result = object(
+        await liveApiJson(
+          `/api/v1/admin/${resource}?page=${params.page - 1}&size=${params.pageSize}`,
+          z.unknown(),
+          {
+            method: "POST",
+            signal,
+            body: {
+              search,
+              statuses,
+              organizationId: params.organizationId,
+              matchingBookings: [...matches.keys()],
+            },
+          },
+        ),
+      );
+      const missing = [
+        ...new Set(
+          array(result.items).map((row) =>
+            text((resource === "refunds" ? object(row.refund) : row).bookingId),
+          ),
+        ),
+      ].filter((id) => id && !matches.has(id));
+      const codes = missing.length
+        ? await bookingReferences({ ids: missing }, signal)
+        : new Map<string, string>();
+      for (const [id, code] of matches) codes.set(id, code);
+      return { result, codes };
+    })();
+    const [orgs, result] = await Promise.all([orgsRequest, resultRequest]);
+    return { orgs, ...result };
+  }
   async function organizations(
     signal?: AbortSignal,
   ): Promise<Map<string, string>> {
@@ -213,7 +288,12 @@ export function createBackendTransactionRepository(): Pick<
       createdAt: text(value.createdAt),
       updatedAt: text(value.updatedAt),
       live: {
-        ...live("refunds", value, text(linkedBooking.organizationId), orgs),
+        ...live(
+          "refunds",
+          value,
+          text(value.organizationId) || text(linkedBooking.organizationId),
+          orgs,
+        ),
         reason: refundReason(text(value.reason)),
         bookingCode: text(linkedBooking.code),
         paymentCode: text(originalPayment.paymentReference),
@@ -237,23 +317,45 @@ export function createBackendTransactionRepository(): Pick<
       .reduce((sum, item) => sum + number(item.amount), 0);
   return {
     listBookings: async (params, signal) => {
-      const [values, orgs] = await Promise.all([
-        all("bookings", signal),
-        organizations(signal),
-      ]);
-      // Lists need no trip request per record; trip and ticket details load on demand.
-      return page(
-        values.map((value) => booking(value, orgs)),
-        params,
-      );
+      const orgs = await organizations(signal);
+      const query = new URLSearchParams({
+        page: String(params.page - 1),
+        size: String(params.pageSize),
+      });
+      if (params.organizationId)
+        query.set("organizationId", params.organizationId);
+      if (params.status) {
+        const status =
+          params.status === "awaiting-refund"
+            ? "REFUND_PENDING"
+            : params.status.replaceAll("-", "_").toUpperCase();
+        query.set("status", status);
+      }
+      if (params.query) {
+        query.set("search", params.query);
+        const search = params.query.toLocaleLowerCase("vi");
+        for (const [id, name] of orgs) {
+          if (name.toLocaleLowerCase("vi").includes(search))
+            query.append("matchingOrganizationId", id);
+        }
+      }
+      const result = await get(`/api/v1/admin/bookings?${query}`, signal);
+      return {
+        items: array(result.items).map((value) => booking(value, orgs)),
+        total: number(result.totalElements),
+        page: params.page,
+        pageSize: params.pageSize,
+      };
     },
     getBooking: async (id, signal) => {
       const [value, orgs, payments, refunds, audit, tickets] =
         await Promise.all([
           get(`/api/v1/bookings/${id}`, signal),
           organizations(signal),
-          all("payments", signal),
-          all("refunds", signal),
+          liveApiJson(`/api/v1/bookings/${id}/payments`, z.unknown(), {
+            signal,
+          }).then(array),
+          all("refunds", signal, { bookingId: id }),
           get(`/api/v1/admin/bookings/${id}/audit`, signal),
           liveApiJson(`/api/v1/bookings/${id}/tickets`, z.unknown(), {
             signal,
@@ -261,8 +363,8 @@ export function createBackendTransactionRepository(): Pick<
         ]);
       const trip = await get(`/api/v1/trips/${text(value.tripId)}`, signal);
       const result = booking(value, orgs, trip);
-      const relatedPayments = payments.filter((item) => item.bookingId === id),
-        relatedRefunds = refunds.filter((item) => item.bookingId === id);
+      const relatedPayments = payments,
+        relatedRefunds = refunds;
       result.updatedAt = text(audit.updatedAt);
       result.live = {
         ...details(result),
@@ -306,16 +408,16 @@ export function createBackendTransactionRepository(): Pick<
       return result;
     },
     listPayments: async (params, signal) => {
-      const [values, orgs, bookings] = await Promise.all([
-        all("payments", signal),
-        organizations(signal),
-        all("bookings", signal),
-      ]);
-      const byId = new Map(bookings.map((value) => [text(value.id), value]));
+      const { result, codes, orgs } = await financePage(
+        "payments",
+        params,
+        signal,
+      );
       return page(
-        values.map((value) =>
-          payment(value, orgs, byId.get(text(value.bookingId))),
+        array(result.items).map((value) =>
+          payment(value, orgs, { code: codes.get(text(value.bookingId)) }),
         ),
+        number(result.totalElements),
         params,
       );
     },
@@ -323,7 +425,7 @@ export function createBackendTransactionRepository(): Pick<
       const [value, orgs, refunds, audit] = await Promise.all([
         get(`/api/v1/payments/${id}`, signal),
         organizations(signal),
-        all("refunds", signal),
+        all("refunds", signal, { paymentId: id }),
         get(`/api/v1/admin/payments/${id}/audit`, signal),
       ]);
       const linkedBooking = await get(
@@ -331,7 +433,7 @@ export function createBackendTransactionRepository(): Pick<
         signal,
       );
       const result = payment(value, orgs, linkedBooking),
-        relatedRefunds = refunds.filter((item) => item.paymentId === id);
+        relatedRefunds = refunds;
       result.updatedAt = text(audit.updatedAt);
       result.live = {
         ...details(result),
@@ -350,25 +452,22 @@ export function createBackendTransactionRepository(): Pick<
       return result;
     },
     listRefunds: async (params, signal) => {
-      const [values, orgs, bookings, payments] = await Promise.all([
-        all("refunds", signal),
-        organizations(signal),
-        all("bookings", signal),
-        all("payments", signal),
-      ]);
-      const byId = new Map(bookings.map((value) => [text(value.id), value]));
-      const paymentById = new Map(
-        payments.map((value) => [text(value.id), value]),
+      const { result, codes, orgs } = await financePage(
+        "refunds",
+        params,
+        signal,
       );
       return page(
-        values.map((value) =>
-          refund(
-            value,
+        array(result.items).map((row) => {
+          const value = object(row.refund);
+          return refund(
+            { ...value, organizationId: row.organizationId },
             orgs,
-            byId.get(text(value.bookingId)),
-            paymentById.get(text(value.paymentId)),
-          ),
-        ),
+            { code: codes.get(text(value.bookingId)) },
+            { paymentReference: row.paymentReference },
+          );
+        }),
+        number(result.totalElements),
         params,
       );
     },

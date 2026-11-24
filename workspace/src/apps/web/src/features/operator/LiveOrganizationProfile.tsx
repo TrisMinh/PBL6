@@ -97,7 +97,7 @@ function OrganizationForm({
           onClose={() => mutation.reset()}
         />
       ) : null}
-      {mutation.isError ? <ApiFailure error={mutation.error} /> : null}
+      {mutation.isError ? <ApiFailure error={mutation.error} popup /> : null}
     </form>
   );
 }

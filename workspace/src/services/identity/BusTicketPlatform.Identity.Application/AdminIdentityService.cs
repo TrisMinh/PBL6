@@ -7,19 +7,20 @@ namespace BusTicketPlatform.Identity.Application;
 
 public sealed class AdminIdentityService(IIdentityRepository users, IClock clock, IIdGenerator ids)
 {
-    public async Task<Result<UserPageDto>> ListUsersAsync(int page, int size, CancellationToken cancellationToken)
+    public async Task<Result<UserPageDto>> ListUsersAsync(int page, int size, UserListFilter filter,
+        CancellationToken cancellationToken)
     {
         page = Math.Max(page, 0);
         size = Math.Clamp(size, 1, 100);
-        var (items, total) = await users.ListUsersAsync(page, size, cancellationToken);
-        var mapped = new List<UserProfileDto>();
-        foreach (var item in items)
-        {
-            mapped.Add(await ProfileMapper.MapAsync(item, users, cancellationToken));
-        }
+        var search = filter.Search?.Trim();
+        if (search?.Length > 254)
+            return Result<UserPageDto>.Failure(IdentityErrors.Validation("Search is too long.", "search"));
+        if (filter.MembershipActive.HasValue && !filter.OrganizationId.HasValue)
+            return Result<UserPageDto>.Failure(IdentityErrors.Validation("Organization is required for membership filtering.", "organizationId"));
+        var (items, total) = await users.ListUsersAsync(page, size, filter with { Search = search }, cancellationToken);
 
         var pages = (int)Math.Ceiling(total / (double)size);
-        return Result<UserPageDto>.Success(new UserPageDto(page, size, total, pages, mapped));
+        return Result<UserPageDto>.Success(new UserPageDto(page, size, total, pages, items));
     }
 
     public async Task<Result<UserProfileDto>> GetUserAsync(Guid userId, CancellationToken cancellationToken)

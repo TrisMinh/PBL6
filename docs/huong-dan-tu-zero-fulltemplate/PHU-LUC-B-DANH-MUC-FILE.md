@@ -250,7 +250,6 @@ scripts/apply-dev-seed.ps1
 scripts/dev-docker.ps1
 scripts/dev-env.ps1
 scripts/dev-host.ps1
-scripts/gen_service_skeleton.py
 scripts/hash-password.cs
 scripts/verify-contracts.ps1
 scripts/verify-s0.ps1

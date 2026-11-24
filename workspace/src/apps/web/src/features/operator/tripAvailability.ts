@@ -1,10 +1,6 @@
-import {
-  keepPreviousData,
-  useQuery,
-  type UseQueryResult,
-} from "@tanstack/react-query";
+import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 import { z } from "zod";
-import { getLiveRows, liveQueryKey } from "@/shared/api/liveRequest";
+import { liveApiJson, liveQueryKey } from "@/shared/api/liveRequest";
 import { vietnamIso, type Trip } from "./tripWorkflow";
 
 const scheduleSchema = z.object({
@@ -97,26 +93,33 @@ export function scheduleConflicts(
   return result;
 }
 
-export function useOperatorSchedule(
-  enabled: boolean,
-  selectionKey?: string,
-): UseQueryResult<ScheduleTrip[], Error> {
+export interface AssignmentAvailabilityInput {
+  departureAt: string;
+  arrivalAt: string;
+  endDate?: string;
+  weekdays?: number[];
+}
+const assignmentAvailabilitySchema = z.object({
+  busIds: z.array(z.string().min(1)),
+  driverIds: z.array(z.string().min(1)),
+});
+
+export function useAssignmentAvailability(
+  input: AssignmentAvailabilityInput | null,
+): UseQueryResult<z.infer<typeof assignmentAvailabilitySchema>, Error> {
   return useQuery({
-    queryKey:
-      selectionKey === undefined
-        ? liveQueryKey("operator-schedule-availability")
-        : liveQueryKey("operator-schedule-availability", selectionKey),
-    queryFn: async ({ signal }) =>
-      z
-        .array(scheduleSchema)
-        .parse(await getLiveRows("/api/v1/operator/trips", signal)),
-    enabled,
-    placeholderData: selectionKey === undefined ? undefined : keepPreviousData,
-    staleTime: selectionKey === undefined ? 15000 : 0,
+    queryKey: liveQueryKey("operator-assignment-availability", input),
+    queryFn: ({ signal }) =>
+      liveApiJson(
+        "/api/v1/operator/trips/assignment-availability",
+        assignmentAvailabilitySchema,
+        { method: "POST", body: input, signal },
+      ),
+    enabled: input !== null,
+    staleTime: 15_000,
     refetchInterval: 30000,
     refetchOnWindowFocus: "always",
-    retry: selectionKey === undefined ? false : 2,
-    retryDelay: 1000,
+    retry: false,
   });
 }
 

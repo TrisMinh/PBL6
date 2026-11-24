@@ -90,7 +90,7 @@ export function LiveOrganizationCreate(): ReactElement {
         <Button type="submit" isLoading={mutation.isPending}>
           Tạo tổ chức
         </Button>
-        {mutation.isError && <ApiFailure error={mutation.error} />}
+        {mutation.isError && <ApiFailure error={mutation.error} popup />}
       </form>
     </details>
   );
@@ -201,7 +201,7 @@ export function LiveUserActions({ userId }: { userId: string }): ReactElement {
               Thay thế vai trò
             </Button>
           </form>
-          {mutation.isError && <ApiFailure error={mutation.error} />}
+          {mutation.isError && <ApiFailure error={mutation.error} popup />}
         </>
       )}
     </section>
@@ -321,7 +321,7 @@ export function LiveOrganizationMembers({
           <Button type="submit" isLoading={mutation.isPending}>
             Thêm thành viên
           </Button>
-          {mutation.isError && <ApiFailure error={mutation.error} />}
+          {mutation.isError && <ApiFailure error={mutation.error} popup />}
         </form>
       </details>
     </section>
@@ -409,7 +409,7 @@ function LiveMemberEditor({
           </Button>
         </fieldset>
       </form>
-      {mutation.isError && <ApiFailure error={mutation.error} />}
+      {mutation.isError && <ApiFailure error={mutation.error} popup />}
     </details>
   );
 }

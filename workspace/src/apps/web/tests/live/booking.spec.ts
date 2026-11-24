@@ -78,20 +78,31 @@ test("live UI uses backend login, inventory, hold, booking and payment contracts
       return route.fulfill({
         json: { page: 0, size: 20, totalElements: 0, totalPages: 0, items: [] },
       });
+    if (path === "/api/v1/explore/routes")
+      return route.fulfill({
+        json: [{ origin: trip.origin, destination: trip.destination }],
+      });
     if (path === "/api/v1/trips") {
-      expect(url.searchParams.get("origin")).toBe("Hồ Chí Minh");
-      expect(url.searchParams.get("destination")).toBe("Đà Lạt");
+      expect(url.searchParams.get("cards")).toBe("true");
+      if (url.searchParams.has("origin")) {
+        expect(url.searchParams.get("origin")).toBe(trip.origin);
+        expect(url.searchParams.get("destination")).toBe(trip.destination);
+      }
+      const { stops, ...card } = trip;
       return route.fulfill({
         json: {
-          page: 0,
-          size: 100,
-          totalElements: 1,
-          totalPages: 1,
-          items: [trip],
+          routeStops: { [id(6)]: stops },
+          items: [{ ...card, routeId: id(6) }],
         },
       });
     }
     if (path === `/api/v1/trips/${id(1)}`) return route.fulfill({ json: trip });
+    if (path === "/api/v1/trips/availability") {
+      expect(url.searchParams.get("ids")).toBe(id(1));
+      return route.fulfill({ json: { [id(1)]: 1 } });
+    }
+    if (path === `/api/v1/trips/${id(1)}/coupons`)
+      return route.fulfill({ json: [] });
     expect(request.headers().authorization).toBe(
       "Bearer header.payload.signature",
     );
@@ -175,11 +186,13 @@ test("live UI uses backend login, inventory, hold, booking and payment contracts
   await expect(
     page.getByRole("heading", { name: "Vé của tôi", exact: true }),
   ).toBeVisible();
-  await page.goto("/");
-  await page.getByLabel("Điểm đi", { exact: true }).fill("Hồ Chí Minh");
-  await page.getByLabel("Điểm đến", { exact: true }).fill("Đà Lạt");
-  await page.getByLabel("Ngày đi", { exact: true }).fill(date);
-  await page.getByRole("button", { name: "Tìm chuyến", exact: true }).click();
+  const search = new URLSearchParams({
+    originId: trip.origin,
+    destinationId: trip.destination,
+    departureDate: date,
+    passengerCount: "1",
+  });
+  await page.goto(`/trips?${search}`);
   await page.getByRole("button", { name: "Chọn chuyến", exact: true }).click();
   await page.getByRole("button", { name: "Ghế 1A", exact: true }).click();
   await page.getByRole("button", { name: "Tiếp tục", exact: true }).click();

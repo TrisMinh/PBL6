@@ -7,7 +7,9 @@ import { Link, useNavigate, useSearchParams } from "react-router";
 import { OperatorSidebar } from "../components/OperatorSidebar";
 import { Button } from "@/shared/ui/Button/Button";
 import { PageState } from "@/shared/ui/PageState/PageState";
-import { getSchedule } from "./scheduleRepository";
+import { getSchedule, getSchedulePage } from "./scheduleRepository";
+import { rows } from "../liveOriginalApi";
+import { liveQueryKey } from "@/shared/api/liveRequest";
 import {
   selectSchedule,
   type ScheduleCriteria,
@@ -61,9 +63,13 @@ const STATUS = [
   ["scheduled", "Đã lên lịch"],
   ["boarding", "Đang đón khách"],
   ["departed", "Đã khởi hành"],
+  ["in_transit", "Đang di chuyển"],
+  ["arrived", "Đã đến nơi"],
   ["completed", "Hoàn thành"],
   ["cancelled", "Đã hủy"],
+  ["needs_update", "Quá giờ · cần cập nhật"],
 ] as const;
+const HISTORY_STATUS = new Set(["completed", "cancelled", "needs_update"]);
 const PERIODS = [
   ["morning", "06:00 — 12:00"],
   ["afternoon", "12:00 — 18:00"],
@@ -146,12 +152,14 @@ export function ScheduleCard({
   onOpen,
   displayCode,
   statusLabel,
+  historical,
   showPassengerCount = true,
 }: {
   trip: ScheduleTrip;
   onOpen: () => void;
   displayCode?: string;
   statusLabel?: string;
+  historical?: boolean;
   showPassengerCount?: boolean;
 }): ReactElement {
   const [driverOpen, setDriverOpen] = useState(false);
@@ -226,9 +234,11 @@ export function ScheduleCard({
         </div>
         <div className="operator-schedule__rail">
           <span className="operator-schedule__status">
-            <OperatorStatusBadge state={trip.status}>
+            <OperatorStatusBadge state={trip.scheduleStatus ?? trip.status}>
               {statusLabel ??
-                STATUS.find(([value]) => value === trip.status)?.[1]}
+                STATUS.find(
+                  ([value]) => value === (trip.scheduleStatus ?? trip.status),
+                )?.[1]}
             </OperatorStatusBadge>
           </span>
           <img
@@ -284,7 +294,7 @@ export function ScheduleCard({
         </p>
       </div>
       <div className="operator-schedule__card-actions">
-        {trip.status === "draft" && (
+        {trip.status === "draft" && !historical && (
           <Link
             className="button button--primary operator-schedule__publish-draft"
             to={`/operator/trips/review?tripId=${encodeURIComponent(trip.id)}`}
@@ -420,25 +430,64 @@ export function SchedulePage(): ReactElement {
   const period = params.get("period") ?? "";
   const assignment = params.get("assignment") ?? "";
   const statusCount = status.split(",").filter(Boolean).length;
+  const { page: rawPage, ...criteria }: ScheduleCriteria & { page?: string } =
+    Object.fromEntries(params);
+  const scope =
+    criteria.scope === "history" || criteria.scope === "all"
+      ? criteria.scope
+      : status.split(",").some((value) => HISTORY_STATUS.has(value))
+        ? "history"
+        : "active";
+  const statusOptions = STATUS.filter(([value]) =>
+    isMockApi
+      ? value !== "needs_update"
+      : scope !== "active" || !HISTORY_STATUS.has(value),
+  );
+  const requestedPage = Number(rawPage ?? "1");
+  const validPage =
+    Number.isSafeInteger(requestedPage) &&
+    requestedPage > 0 &&
+    requestedPage <= 2147483647
+      ? requestedPage
+      : 1;
   const query = useQuery({
-    queryKey: ["operator", "schedule-preview"],
-    queryFn: ({ signal }) => getSchedule(signal),
+    queryKey: liveQueryKey(
+      "operator-schedule",
+      isMockApi ? null : { ...criteria, scope },
+      isMockApi ? null : validPage,
+    ),
+    queryFn: async ({ signal }) => {
+      if (!isMockApi)
+        return getSchedulePage({ ...criteria, scope }, validPage, signal);
+      const items = await getSchedule(signal);
+      return { items, total: items.length, page: 1 };
+    },
   });
-  const criteria: ScheduleCriteria = Object.fromEntries(params);
-  const trips = selectSchedule(query.data ?? [], criteria);
+  const routes = useQuery({
+    queryKey: liveQueryKey("operator-schedule-routes"),
+    queryFn: ({ signal }) => rows("/api/v1/operator/routes", signal),
+    enabled: !isMockApi,
+    staleTime: 30_000,
+  });
+  const trips = isMockApi
+    ? selectSchedule(query.data?.items ?? [], criteria)
+    : (query.data?.items ?? []);
+  const total = isMockApi ? trips.length : (query.data?.total ?? 0);
   const cities = isMockApi
     ? CITIES
     : [
         ...new Set(
-          (query.data ?? []).flatMap((t) => [t.origin, t.destination]),
+          (routes.data ?? []).flatMap((t) => [
+            t.origin as string,
+            t.destination as string,
+          ]),
         ),
       ].sort((a, b) => a.localeCompare(b, "vi"));
-  const pages = Math.max(1, Math.ceil(trips.length / 5));
-  const requestedPage = Number(params.get("page") ?? "1");
-  const page =
-    Number.isInteger(requestedPage) && requestedPage > 0
-      ? Math.min(pages, requestedPage)
-      : 1;
+  const pages = Math.max(1, Math.ceil(total / 5));
+  const page = isMockApi
+    ? Math.min(pages, validPage)
+    : (query.data?.page ?? validPage);
+  const pageTrips = isMockApi ? trips.slice((page - 1) * 5, page * 5) : trips;
   const update = (patch: Record<string, string>): void => {
     setParams(
       (previous) => {
@@ -538,8 +587,11 @@ export function SchedulePage(): ReactElement {
               onChange={(value) => update({ status: value })}
               options={
                 statusCount > 1
-                  ? [[status, `${statusCount} trạng thái đã chọn`], ...STATUS]
-                  : STATUS
+                  ? [
+                      [status, `${statusCount} trạng thái đã chọn`],
+                      ...statusOptions,
+                    ]
+                  : statusOptions
               }
             />
             <Button type="submit">
@@ -563,7 +615,7 @@ export function SchedulePage(): ReactElement {
               label="Trạng thái"
               value={status}
               onChange={(value) => update({ status: value })}
-              options={STATUS}
+              options={statusOptions}
             />
             <FilterGroup
               label="Khung giờ"
@@ -584,27 +636,54 @@ export function SchedulePage(): ReactElement {
           >
             <div className="operator-schedule__results-heading">
               <h2 id="schedule-results-title">Lịch chuyến</h2>
-              <span role="status">{trips.length} kết quả</span>
+              <span role="status">{total} kết quả</span>
+              {!isMockApi && (
+                <select
+                  aria-label="Phạm vi lịch chuyến"
+                  value={scope}
+                  onChange={(event) =>
+                    update({
+                      scope:
+                        event.target.value === "active"
+                          ? ""
+                          : event.target.value,
+                      status: "",
+                    })
+                  }
+                >
+                  <option value="active">Đang vận hành</option>
+                  <option value="history">Lịch sử</option>
+                  <option value="all">Tất cả chuyến</option>
+                </select>
+              )}
               <select
                 aria-label="Sắp xếp lịch chuyến"
                 value={params.get("sort") ?? "reference"}
                 onChange={(event) => update({ sort: event.target.value })}
               >
-                <option value="reference">Thứ tự mẫu</option>
+                <option value="reference">
+                  {isMockApi
+                    ? "Thứ tự mẫu"
+                    : scope === "active"
+                      ? "Chuyến gần nhất trước"
+                      : "Mới nhất theo ngày chạy"}
+                </option>
                 <option value="earliest">Giờ khởi hành tăng dần</option>
                 <option value="latest">Giờ khởi hành giảm dần</option>
               </select>
             </div>
-            <details className="operator-schedule__driver-demo" open>
-              <summary>
-                Ví dụ chuyến có tài xế <span>DEMO</span>
-              </summary>
-              <ScheduleCard
-                trip={demoTrip}
-                displayCode="CHUYẾN MINH HỌA"
-                onOpen={() => openDetails(demoTrip)}
-              />
-            </details>
+            {isMockApi && (
+              <details className="operator-schedule__driver-demo" open>
+                <summary>
+                  Ví dụ chuyến có tài xế <span>DEMO</span>
+                </summary>
+                <ScheduleCard
+                  trip={demoTrip}
+                  displayCode="CHUYẾN MINH HỌA"
+                  onOpen={() => openDetails(demoTrip)}
+                />
+              </details>
+            )}
             <Dialog.Root
               open={expandedTrip !== null}
               onOpenChange={(open) => {
@@ -616,6 +695,14 @@ export function SchedulePage(): ReactElement {
                 {expandedTrip && (
                   <ExpandedTripPanel
                     trip={expandedTrip}
+                    historical={!isMockApi && scope === "history"}
+                    statusLabel={
+                      STATUS.find(
+                        ([value]) =>
+                          value ===
+                          (expandedTrip.scheduleStatus ?? expandedTrip.status),
+                      )?.[1]
+                    }
                     onClose={closeDetails}
                     onSaved={() => {
                       void query.refetch();
@@ -653,10 +740,11 @@ export function SchedulePage(): ReactElement {
               />
             ) : (
               <div className="operator-schedule__cards">
-                {trips.slice((page - 1) * 5, page * 5).map((trip) => (
+                {pageTrips.map((trip) => (
                   <ScheduleCard
                     key={trip.id}
                     trip={trip}
+                    historical={!isMockApi && scope === "history"}
                     onOpen={() => openDetails(trip)}
                   />
                 ))}
@@ -664,8 +752,8 @@ export function SchedulePage(): ReactElement {
             )}
             <footer className="operator-schedule__footer">
               <p>
-                Hiển thị {trips.length ? (page - 1) * 5 + 1 : 0}–
-                {Math.min(page * 5, trips.length)} trong {trips.length} chuyến
+                Hiển thị {pageTrips.length ? (page - 1) * 5 + 1 : 0}–
+                {Math.min(page * 5, total)} trong {total} chuyến
               </p>
               <nav aria-label="Phân trang lịch chuyến">
                 <button

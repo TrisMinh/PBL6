@@ -73,11 +73,8 @@ public sealed class BookingService(IBookingRepository store, IBookingEvents even
         return Result.Success();
     }
 
-    public async Task<IReadOnlyDictionary<Guid, int>> AvailableSeatsAsync(Guid[] tripIds, CancellationToken cancellationToken)
-    {
-        await store.ExpireHoldsAsync(cancellationToken);
-        return await store.AvailableSeatsAsync(tripIds, cancellationToken);
-    }
+    public Task<IReadOnlyDictionary<Guid, int>> AvailableSeatsAsync(Guid[] tripIds, CancellationToken cancellationToken) =>
+        store.AvailableSeatsAsync(tripIds, cancellationToken);
 
     public async Task<Result<TripSeatListDto>> GetSeatsAsync(Guid tripId, CancellationToken cancellationToken)
     {
@@ -360,7 +357,33 @@ public sealed class BookingService(IBookingRepository store, IBookingEvents even
         return Result<BookingPageDto>.Success(new BookingPageDto(page, size, total, Pages(total, size), items.Select(MapBooking).ToArray()));
     }
 
-    public async Task<Result<BookingPageDto>> SearchBookingsAsync(Actor actor, int page, int size, CancellationToken cancellationToken)
+    public async Task<Result<BookingDto>> GetMyBookingByCodeAsync(Actor actor, string code, CancellationToken cancellationToken)
+    {
+        code = code.Trim().ToUpperInvariant();
+        if (code.Length is < 1 or > 80)
+            return Result<BookingDto>.Failure(PlatformErrors.NotFound());
+
+        await store.ExpireHoldsAsync(cancellationToken);
+        var booking = await store.GetBookingByCodeAsync(code, cancellationToken);
+        return booking?.CustomerId == actor.UserId
+            ? Result<BookingDto>.Success(MapBooking(booking))
+            : Result<BookingDto>.Failure(PlatformErrors.NotFound());
+    }
+
+    public async Task<Result<IReadOnlyList<BookingReference>>> FindBookingReferencesAsync(
+        Actor actor, string? search, Guid[]? ids, Guid? organizationId, CancellationToken cancellationToken)
+    {
+        if (!actor.Has("PLATFORM_ADMIN", "PLATFORM_FINANCE"))
+            return Result<IReadOnlyList<BookingReference>>.Failure(PlatformErrors.AccessDenied());
+        search = search?.Trim();
+        ids ??= [];
+        if (search?.Length > 100 || ids.Length > 100 || (ids.Length == 0 && string.IsNullOrEmpty(search)))
+            return Result<IReadOnlyList<BookingReference>>.Failure(PlatformErrors.Validation("Booking reference filters are invalid."));
+        return Result<IReadOnlyList<BookingReference>>.Success(
+            await store.FindBookingReferencesAsync(search, ids, organizationId, cancellationToken));
+    }
+
+    public async Task<Result<BookingPageDto>> SearchBookingsAsync(Actor actor, int page, int size, BookingListFilter filter, CancellationToken cancellationToken)
     {
         var platform = actor.Has("PLATFORM_ADMIN", "PLATFORM_SUPPORT");
         if (!platform && (!actor.Has("OPERATOR_ADMIN", "OPERATOR_OPERATIONS")
@@ -369,16 +392,29 @@ public sealed class BookingService(IBookingRepository store, IBookingEvents even
             return Result<BookingPageDto>.Failure(PlatformErrors.AccessDenied());
         }
 
-        await store.ExpireHoldsAsync(cancellationToken);
         if (page < 0 || size is < 1 or > 100)
         {
             return Result<BookingPageDto>.Failure(PlatformErrors.Validation("Page bounds are invalid."));
         }
 
-        var org = platform ? null : actor.OrganizationId;
-        var items = await store.SearchBookingsAsync(org, page, size, cancellationToken);
-        var total = await store.CountBookingsAsync(org, cancellationToken);
+        if (!platform && filter.OrganizationId is not null && filter.OrganizationId != actor.OrganizationId)
+            return Result<BookingPageDto>.Failure(PlatformErrors.AccessDenied());
+        if (filter.Search?.Length > 100 || filter.Status?.Length > 30 || filter.MatchingOrganizations.Length > 100
+            || filter.OperatorStatus?.Length > 20 || filter.OperatorPayment?.Length > 20 || filter.BookingIds?.Length > 100)
+            return Result<BookingPageDto>.Failure(PlatformErrors.Validation("Booking filters exceed their limits."));
+
+        await store.ExpireHoldsAsync(cancellationToken);
+        var scopedFilter = filter with { OrganizationId = platform ? filter.OrganizationId : actor.OrganizationId, Search = filter.Search?.Trim() };
+        var (items, total) = await store.SearchBookingsAsync(scopedFilter, page, size, cancellationToken);
         return Result<BookingPageDto>.Success(new BookingPageDto(page, size, total, Pages(total, size), items.Select(MapBooking).ToArray()));
+    }
+
+    public async Task<Result<IReadOnlyList<BookingReference>>> ListSettlementBookingReferencesAsync(Actor actor, CancellationToken cancellationToken)
+    {
+        if (actor.OrganizationId is not Guid id || id == Guid.Empty || !actor.Has("OPERATOR_ADMIN", "OPERATOR_FINANCE"))
+            return Result<IReadOnlyList<BookingReference>>.Failure(PlatformErrors.AccessDenied());
+
+        return Result<IReadOnlyList<BookingReference>>.Success(await store.FindBookingReferencesAsync(null, [], id, cancellationToken));
     }
 
     public async Task<Result<CancellationPreviewDto>> PreviewAsync(Actor actor, Guid bookingId, CancellationPreviewRequest request, CancellationToken cancellationToken)
@@ -579,7 +615,29 @@ public sealed class BookingService(IBookingRepository store, IBookingEvents even
         var booking = await store.GetBookingAsync(bookingId, cancellationToken);
         if (booking is null || !CanRead(actor, booking)) return Result<IReadOnlyList<TicketDto>>.Failure(PlatformErrors.NotFound());
         var tickets = await store.ListTicketsForBookingAsync(bookingId, cancellationToken);
-        return Result<IReadOnlyList<TicketDto>>.Success(tickets.Select(ticket => MapTicket(ticket, includeQr: ticket.CustomerId == actor.UserId && ticket.Status == "ISSUED")).ToArray());
+        return Result<IReadOnlyList<TicketDto>>.Success(tickets.Select(ticket =>
+            MapTicket(ticket, includeQr: ticket.CustomerId == actor.UserId && ticket.Status == "ISSUED") with
+            {
+                Journey = booking.CustomerId == actor.UserId ? ticket.Journey : null
+            }).ToArray());
+    }
+
+    public async Task<Result<IReadOnlyList<TicketDto>>> FindMyTicketsAsync(Actor actor, string code, CancellationToken cancellationToken)
+    {
+        code = code.Trim().ToUpperInvariant();
+        if (code.Length is < 1 or > 80)
+            return Result<IReadOnlyList<TicketDto>>.Failure(PlatformErrors.Validation("A valid ticket or booking code is required.", "code"));
+
+        var ticket = await store.GetTicketByPublicCodeAsync(code, cancellationToken);
+        if (ticket?.CustomerId == actor.UserId)
+            return Result<IReadOnlyList<TicketDto>>.Success([MapTicket(ticket)]);
+
+        var booking = await store.GetBookingByCodeAsync(code, cancellationToken);
+        if (booking?.CustomerId != actor.UserId)
+            return Result<IReadOnlyList<TicketDto>>.Success([]);
+
+        var tickets = await store.ListTicketsForBookingAsync(booking.Id, cancellationToken);
+        return Result<IReadOnlyList<TicketDto>>.Success(tickets.Select(item => MapTicket(item)).ToArray());
     }
 
     public async Task<Result<TicketPageDto>> ListTicketsAsync(Actor actor, int page, int size, CancellationToken cancellationToken)
@@ -592,7 +650,8 @@ public sealed class BookingService(IBookingRepository store, IBookingEvents even
 
         var items = await store.ListTicketsForCustomerAsync(actor.UserId, page, size, cancellationToken);
         var total = await store.CountTicketsForCustomerAsync(actor.UserId, cancellationToken);
-        return Result<TicketPageDto>.Success(new TicketPageDto(page, size, total, Pages(total, size), items.Select(item => MapTicket(item, includeQr: item.Status == "ISSUED")).ToArray()));
+        return Result<TicketPageDto>.Success(new TicketPageDto(page, size, total, Pages(total, size),
+            items.Select(item => MapTicket(item, includeQr: item.Status == "ISSUED") with { Journey = item.Journey }).ToArray()));
     }
 
     public async Task<Result<TicketDto>> GetTicketAsync(Actor actor, Guid ticketId, CancellationToken cancellationToken)
@@ -697,6 +756,24 @@ public sealed class BookingService(IBookingRepository store, IBookingEvents even
         return Result<ManifestDto>.Success(await store.GetManifestAsync(tripId, cancellationToken));
     }
 
+    public async Task<Result<IReadOnlyList<ManifestCount>>> ManifestCountsAsync(Actor actor, CancellationToken cancellationToken)
+    {
+        if (!actor.Has("OPERATOR_ADMIN", "OPERATOR_OPERATIONS") || actor.OrganizationId is null || actor.OrganizationId == Guid.Empty)
+            return Result<IReadOnlyList<ManifestCount>>.Failure(PlatformErrors.AccessDenied());
+        return Result<IReadOnlyList<ManifestCount>>.Success(
+            await store.GetManifestCountsAsync(actor.OrganizationId.Value, cancellationToken));
+    }
+
+    public async Task<Result<IReadOnlyList<CancelledSeat>>> CancelledSeatsAsync(Actor actor, Guid[] bookings, CancellationToken cancellationToken)
+    {
+        if (!actor.Has("OPERATOR_ADMIN", "OPERATOR_OPERATIONS", "OPERATOR_FINANCE") || actor.OrganizationId is null || actor.OrganizationId == Guid.Empty)
+            return Result<IReadOnlyList<CancelledSeat>>.Failure(PlatformErrors.AccessDenied());
+        if (bookings.Length is < 1 or > 100)
+            return Result<IReadOnlyList<CancelledSeat>>.Failure(PlatformErrors.Validation("Booking count is invalid."));
+        return Result<IReadOnlyList<CancelledSeat>>.Success(
+            await store.GetCancelledSeatsAsync(actor.OrganizationId.Value, bookings, cancellationToken));
+    }
+
     private static IReadOnlyList<InventorySeat> ParseSeats(TripPublishedMessage message)
     {
         var json = message.BusSnapshot ?? "{}";
@@ -754,7 +831,7 @@ public sealed class BookingService(IBookingRepository store, IBookingEvents even
         new(hold.TokenPlain, hold.TripId, hold.Status, hold.Seats.Select(MapSeat).ToArray(), hold.ExpiresAt, DateTimeOffset.UtcNow);
 
     private static BookingDto MapBooking(BookingRecord booking) =>
-        new(booking.Id, booking.Code, booking.CustomerId, booking.TripId, booking.Status, booking.PaymentChannel, new BookingContact(booking.ContactName, booking.ContactEmail, booking.ContactPhone), booking.Subtotal, booking.Discount, booking.Fee, booking.Total, booking.Currency, booking.ExpiresAt, booking.Items, booking.RowVersion, booking.OrganizationId, booking.CreatedAt, booking.CouponCode);
+        new(booking.Id, booking.Code, booking.CustomerId, booking.TripId, booking.Status, booking.PaymentChannel, new BookingContact(booking.ContactName, booking.ContactEmail, booking.ContactPhone), booking.Subtotal, booking.Discount, booking.Fee, booking.Total, booking.Currency, booking.ExpiresAt, booking.Items, booking.RowVersion, booking.OrganizationId, booking.CreatedAt, booking.CouponCode, booking.SeatCodes);
 
     private TicketDto MapTicket(TicketRecord ticket, bool includeQr = false) =>
         new(

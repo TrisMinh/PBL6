@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -13,6 +14,7 @@ public sealed class PublicTransportCache : IAsyncDisposable
     private static readonly TimeSpan Budget = TimeSpan.FromMilliseconds(200);
     private readonly Lazy<Task<ConnectionMultiplexer>>? connection;
     private readonly ILogger<PublicTransportCache> logger;
+    private readonly ConcurrentDictionary<string, Lazy<Task<object?>>> inFlight = new();
 
     public PublicTransportCache(IConfiguration configuration, ILogger<PublicTransportCache> logger)
     {
@@ -50,6 +52,24 @@ public sealed class PublicTransportCache : IAsyncDisposable
         var payload = JsonSerializer.SerializeToUtf8Bytes(value, Json);
         if (payload.Length > 512 * 1024) return Task.CompletedTask;
         return UseAsync(false, db => db.StringSetAsync(key, payload, ttl), ct);
+    }
+
+    public async Task<T> ShareReadAsync<T>(string? key, Func<CancellationToken, Task<T>> read, CancellationToken ct)
+    {
+        if (key is null) return await read(ct);
+        var operation = inFlight.GetOrAdd(key, cacheKey => new Lazy<Task<object?>>(async () =>
+        {
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+            try
+            {
+                return await read(timeout.Token);
+            }
+            finally
+            {
+                inFlight.TryRemove(cacheKey, out _);
+            }
+        }));
+        return (T)(await operation.Value.WaitAsync(ct))!;
     }
 
     // Advance the generation so a read that started before a write cannot refill the current namespace.

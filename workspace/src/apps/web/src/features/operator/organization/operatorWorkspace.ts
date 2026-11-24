@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isMockApi } from "@/shared/api/config";
 import {
   rows,
   request,
@@ -176,8 +177,18 @@ export async function getSettlements(
   signal?: AbortSignal,
 ): Promise<Settlement[]> {
   const [values, bookings] = await Promise.all([
-    rows("/api/v1/operator/settlements", signal),
-    rows("/api/v1/operator/bookings", signal).catch((error: unknown) => {
+    rows(
+      isMockApi
+        ? "/api/v1/operator/settlements"
+        : "/api/v1/operator/settlements?export=true",
+      signal,
+    ),
+    rows(
+      isMockApi
+        ? "/api/v1/operator/bookings"
+        : "/api/v1/operator/bookings?settlementReferences=true",
+      signal,
+    ).catch((error: unknown) => {
       if (signal?.aborted) throw error;
       // Booking codes enrich the list. Payment data remains available without them.
       return [];
@@ -344,7 +355,10 @@ export function settlementTotals(items: Settlement[]): {
 }
 export function settlementCsv(items: Settlement[]): string {
   const cell = (value: string | number): string => {
-    const safe = typeof value === "string" && /^[=+@\-\t\r\n]/.test(value) ? `'${value}` : String(value);
+    const safe =
+      typeof value === "string" && /^[=+@\-\t\r\n]/.test(value)
+        ? `'${value}`
+        : String(value);
     return `"${safe.replaceAll('"', '""')}"`;
   };
   return (

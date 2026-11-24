@@ -12,7 +12,7 @@ export async function readTrip(
   id: string,
   signal?: AbortSignal,
 ): Promise<TripDetail> {
-  const { trips, buses, drivers } = await scheduleResources(signal);
+  const { trips, buses, drivers } = await scheduleResources(signal, id);
   const t = trips.find((v) => v.id === id);
   if (!t) throw Error("Không tìm thấy chuyến");
   const bus = buses.find((v) => v.id === t.busId),
@@ -63,7 +63,7 @@ export async function updateTrip(
   input: unknown,
 ): Promise<TripDetail> {
   const value = tripEditSchema.parse(input);
-  const { trips, buses, drivers } = await scheduleResources();
+  const { trips, buses, drivers } = await scheduleResources(undefined, id);
   const t = trips.find((v) => v.id === id);
   if (!t) throw Error("Không tìm thấy chuyến");
   if (t.status !== "DRAFT") throw Error("Chỉ có thể chỉnh sửa chuyến nháp.");

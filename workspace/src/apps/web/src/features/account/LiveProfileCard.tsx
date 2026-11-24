@@ -1,3 +1,4 @@
+import { Toast } from "@/shared/ui/Toast/Toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent, type ReactElement } from "react";
 import { z } from "zod";
@@ -72,8 +73,10 @@ function ProfileForm({ profile }: { profile: Profile }): ReactElement {
       >
         Lưu hồ sơ
       </Button>
-      {mutation.isSuccess ? <p role="status">Đã cập nhật hồ sơ.</p> : null}
-      {mutation.isError ? <ApiFailure error={mutation.error} /> : null}
+      {mutation.isSuccess ? (
+        <Toast message="Đã cập nhật hồ sơ." onClose={mutation.reset} />
+      ) : null}
+      {mutation.isError ? <ApiFailure error={mutation.error} popup /> : null}
       <p className="account-live__profile-footer">
         Thông tin liên hệ giúp nhà xe hỗ trợ bạn trong suốt hành trình.
       </p>

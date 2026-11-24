@@ -1,4 +1,4 @@
-import { getLiveReport } from "./liveReports";
+import { getLiveRevenue } from "./liveReports";
 import { apiJson } from "@/shared/api/client";
 import { isMockApi } from "@/shared/api/config";
 import { operatorBookingRows } from "../bookings/bookingsRepository";
@@ -20,28 +20,47 @@ export async function getOperatorReport(
       signal,
     });
   }
-  const [report, bookings, resources] = await Promise.all([
-    getLiveReport({ from, to }, signal),
-    operatorBookingRows(signal),
-    scheduleResources(signal),
+  const schedule = scheduleResources(signal);
+  const [report, filtered, resources] = await Promise.all([
+    getLiveRevenue({ from, to }, signal),
+    operatorBookingRows(
+      { from, to },
+      schedule.then(({ trips }) => trips),
+      signal,
+    ),
+    schedule,
   ]);
-  const filtered = bookings.filter(
-    (b) => b.createdDate && b.createdDate >= from && b.createdDate <= to,
-  );
-  const confirmed = filtered.filter((b) => b.status === "confirmed");
+  const ticketsByDay = new Map<string, number>();
+  let tickets = 0;
+  for (const booking of filtered) {
+    if (booking.status !== "confirmed") continue;
+    const count = booking.source.items.length;
+    ticketsByDay.set(
+      booking.createdDate,
+      (ticketsByDay.get(booking.createdDate) ?? 0) + count,
+    );
+    tickets += count;
+  }
+  const buses = new Map(resources.buses.map((bus) => [bus.id, bus]));
+  const runningByBus = new Map<string, (typeof resources.trips)[number]>();
+  for (const trip of resources.trips) {
+    if (
+      ["DEPARTED", "IN_TRANSIT", "BOARDING"].includes(trip.status) &&
+      !runningByBus.has(trip.busId)
+    )
+      runningByBus.set(trip.busId, trip);
+  }
   const series = report.revenue.map((day) => ({
     date: day.perioddate,
     revenue: day.grossrevenue,
-    tickets: confirmed
-      .filter((b) => b.createdDate === day.perioddate)
-      .reduce((sum, b) => sum + b.source.items.length, 0),
+    tickets: ticketsByDay.get(day.perioddate) ?? 0,
   }));
   return reportSchema.parse({
     range: { from, to },
     totals: {
       revenue: series.reduce((sum, r) => sum + r.revenue, 0),
       costs: null,
-      tickets: confirmed.reduce((sum, b) => sum + b.source.items.length, 0),
+      tickets,
       customers: new Set(filtered.map((b) => b.source.customerId)).size,
     },
     series,
@@ -52,16 +71,11 @@ export async function getOperatorReport(
       route: `${b.origin} → ${b.destination}`,
       departure: b.departureDate,
       time: b.departureTime,
-      vehicle:
-        resources.buses.find((v) => v.id === b.trip?.busId)?.plateNumber ?? "—",
+      vehicle: buses.get(b.trip?.busId)?.plateNumber ?? "—",
       seats: b.seat,
     })),
     vehicles: resources.buses.map((bus) => {
-      const trip = resources.trips.find(
-        (t) =>
-          t.busId === bus.id &&
-          ["DEPARTED", "IN_TRANSIT", "BOARDING"].includes(t.status),
-      );
+      const trip = runningByBus.get(bus.id);
       return {
         id: bus.id,
         name: bus.type,

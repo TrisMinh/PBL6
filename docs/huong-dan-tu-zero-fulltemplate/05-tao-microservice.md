@@ -130,11 +130,9 @@ public partial class Program;
 
 `partial Program` là để `WebApplicationFactory<Program>` trong integration test truy cập entry point.
 
-## 5. Dùng generator có sẵn
+## 5. Dùng service hiện có làm ví dụ
 
-`workspace/scripts/gen_service_skeleton.py` sinh skeleton cho Transport, Booking, Payment, Notification và Reporting. Trước khi chạy, sửa hằng `ROOT` vì script hiện chứa đường dẫn tuyệt đối của máy đã tạo template.
-
-Nên dùng script để học cấu trúc, không xem output là nghiệp vụ hoàn chỉnh. Sau khi sinh, vẫn phải:
+Đối chiếu cấu trúc project và integration test của Transport trong `workspace/src`. Khi thêm service, kiểm tra các bước sau:
 
 1. kiểm tra namespace và project reference;
 2. viết contract/use case;

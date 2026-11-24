@@ -120,6 +120,37 @@ public sealed class ReportingRepository(ReportingDatabaseOptions options) : IRep
         await command.ExecuteNonQueryAsync(cancellationToken);
     }
 
+    public async Task RecordPaymentBookingAsync(Guid organizationId, Guid paymentId, Guid bookingId, CancellationToken cancellationToken)
+    {
+        await using var connection = new NpgsqlConnection(options.ConnectionString);
+        await connection.OpenAsync(cancellationToken);
+        await using var command = new NpgsqlCommand("""
+            INSERT INTO revenue_payment_booking (organization_id_external, payment_id, booking_id)
+            VALUES (@organization, @payment, @booking)
+            ON CONFLICT (organization_id_external, payment_id) DO NOTHING
+            """, connection);
+        command.Parameters.AddWithValue("organization", organizationId);
+        command.Parameters.AddWithValue("payment", paymentId);
+        command.Parameters.AddWithValue("booking", bookingId);
+        await command.ExecuteNonQueryAsync(cancellationToken);
+    }
+
+    public async Task RecordRevenueBookingAsync(Guid organizationId, Guid bookingId, string bookingCode, string routeName, CancellationToken cancellationToken)
+    {
+        await using var connection = new NpgsqlConnection(options.ConnectionString);
+        await connection.OpenAsync(cancellationToken);
+        await using var command = new NpgsqlCommand("""
+            INSERT INTO revenue_booking_context (organization_id_external, booking_id, booking_code, route_name)
+            VALUES (@organization, @booking, @code, @route)
+            ON CONFLICT (organization_id_external, booking_id) DO NOTHING
+            """, connection);
+        command.Parameters.AddWithValue("organization", organizationId);
+        command.Parameters.AddWithValue("booking", bookingId);
+        command.Parameters.AddWithValue("code", bookingCode);
+        command.Parameters.AddWithValue("route", routeName);
+        await command.ExecuteNonQueryAsync(cancellationToken);
+    }
+
     public async Task<IReadOnlyList<RevenueDay>> RevenueAsync(Guid? orgId, DateOnly from, DateOnly to, CancellationToken cancellationToken)
     {
         await using var connection = new NpgsqlConnection(options.ConnectionString);

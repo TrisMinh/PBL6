@@ -21,15 +21,22 @@ const object = (v: unknown): Row =>
 const array = (v: unknown): Row[] => (Array.isArray(v) ? v.map(object) : []);
 const active = (v: unknown): "active" | "inactive" =>
   v === "ACTIVE" ? "active" : "inactive";
+const staffRoles = [
+  "OPERATOR_ADMIN",
+  "OPERATOR_SCHEDULER",
+  "DRIVER",
+  "PLATFORM_SUPPORT",
+];
+const membershipFormatter = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Asia/Ho_Chi_Minh",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
 function membershipDate(value: unknown): string {
   if (typeof value !== "string" || !Number.isFinite(Date.parse(value)))
     return "";
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Ho_Chi_Minh",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(new Date(value));
+  const parts = membershipFormatter.formatToParts(new Date(value));
   const part = (name: Intl.DateTimeFormatPartTypes): string =>
     parts.find((item) => item.type === name)?.value ?? "";
   return `${part("year")}-${part("month")}-${part("day")}`;
@@ -50,14 +57,6 @@ async function request(
 async function rows(path: string, signal?: AbortSignal): Promise<Row[]> {
   const result = await liveApiJson(path, z.unknown(), { signal });
   return array(result);
-}
-async function all(path: string, signal?: AbortSignal): Promise<Row[]> {
-  const result: Row[] = [];
-  for (let page = 0; ; page++) {
-    const body = await request(`${path}?page=${page}&size=100`, { signal });
-    result.push(...array(body.items));
-    if (page + 1 >= num(body.totalPages)) return result;
-  }
 }
 function paged<T extends { id: string; status: string }>(
   items: T[],
@@ -105,16 +104,19 @@ function staff(value: Row, organizationId?: string): Staff {
   const memberships = array(value.organizationMemberships);
   const selected =
     memberships.find((item) => item.organizationId === organizationId) ??
+    memberships.find(
+      (item) =>
+        Array.isArray(item.roleCodes) &&
+        item.roleCodes.some((role) => staffRoles.includes(role)),
+    ) ??
     memberships[0];
-  const roles = (selected?.roleCodes ?? value.roles) as string[] | undefined;
-  const role = roles?.find((r) =>
-    [
-      "OPERATOR_ADMIN",
-      "OPERATOR_SCHEDULER",
-      "DRIVER",
-      "PLATFORM_SUPPORT",
-    ].includes(r),
-  ) as Staff["role"];
+  const roles = (selected?.roleCodes ?? []) as string[];
+  const role = (roles.find((r) => staffRoles.includes(r)) ??
+    (!organizationId &&
+    Array.isArray(value.roles) &&
+    value.roles.includes("PLATFORM_SUPPORT")
+      ? "PLATFORM_SUPPORT"
+      : undefined)) as Staff["role"];
   return {
     id: text(value.id),
     fullName: text(value.fullName),
@@ -360,13 +362,8 @@ export function createBackendAdminRepository(): AdminRepository {
         ),
       );
     },
-    listStaff: async (params, signal) =>
-      paged(
-        (await all("/api/v1/admin/users", signal))
-          .map((value) => staff(value, params.organizationId))
-          .filter((user) => !!user.role),
-        params,
-      ),
+    listStaff: (params, signal) =>
+      listUserPage(params, signal, { staffOnly: true }),
     getStaff: async (id, signal) =>
       staff(
         await request(`/api/v1/admin/users/${encodeURIComponent(id)}`, {
@@ -379,12 +376,48 @@ export function createBackendAdminRepository(): AdminRepository {
   };
 }
 
-export async function listBackendStaffCandidates(
+export async function listUserPage(
+  params: AdminListParams,
   signal?: AbortSignal,
+  filters: { staffOnly?: boolean; membershipActive?: boolean } = {},
+): Promise<PagedResult<Staff>> {
+  const query = new URLSearchParams({
+    page: String(params.page - 1),
+    size: String(params.pageSize),
+  });
+  if (params.organizationId) query.set("organizationId", params.organizationId);
+  if (params.query?.trim()) query.set("search", params.query.trim());
+  if (filters.staffOnly) query.set("staffOnly", "true");
+  if (params.status === "active" || params.status === "inactive")
+    query.set("active", String(params.status === "active"));
+  if (filters.membershipActive !== undefined)
+    query.set("membershipActive", String(filters.membershipActive));
+  const result = await request(`/api/v1/admin/users?${query}`, { signal });
+  return {
+    items: array(result.items).map((value) =>
+      staff(value, params.organizationId),
+    ),
+    total: num(result.totalElements),
+    page: params.page,
+    pageSize: params.pageSize,
+  };
+}
+
+export function listBackendStaffCandidates(
+  signal?: AbortSignal,
+  filters: { organizationId?: string; search?: string } = {},
 ): Promise<Staff[]> {
-  return (await all("/api/v1/admin/users", signal)).map((value) =>
-    staff(value),
-  );
+  const search = filters.search?.trim();
+  if (!search || search.length < 2) return Promise.resolve([]);
+  return listUserPage(
+    {
+      page: 1,
+      pageSize: 50,
+      organizationId: filters.organizationId,
+      query: search,
+    },
+    signal,
+  ).then((result) => result.items);
 }
 
 export async function updateBackendStaffStatus(

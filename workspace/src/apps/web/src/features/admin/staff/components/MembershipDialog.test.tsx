@@ -25,6 +25,25 @@ const staff: Staff = {
   createdAt: "2026-11-01T00:00:00Z",
   updatedAt: "2026-11-01T00:00:00Z",
 };
+it("marks an empty required field and associates its inline error", async () => {
+  const onSubmit = vi.fn();
+  render(
+    <MembershipDialog
+      organizations={[organization]}
+      staff={[staff]}
+      fixedOrganization={organization}
+      fixedStaff={staff}
+      isPending={false}
+      onClose={vi.fn()}
+      onSubmit={onSubmit}
+    />,
+  );
+  await userEvent.click(screen.getByRole("button", { name: "Lưu thay đổi" }));
+  const reason = screen.getByRole("textbox", { name: "Lý do thay đổi" });
+  expect(reason).toHaveAttribute("aria-invalid", "true");
+  expect(reason).toHaveAccessibleDescription("Hãy nhập lý do.");
+  expect(onSubmit).not.toHaveBeenCalled();
+});
 it.each(["HAI-VAN-TRAVEL", undefined])(
   "shows the stored organization code (%s), never its ID, while submitting the original ID",
   async (code) => {

@@ -34,6 +34,7 @@ public sealed class PaymentPostgresFixture : IAsyncLifetime
             builder.UseSetting("SePay:MerchantId", "TEST_MERCHANT");
             builder.UseSetting("SePay:SecretKey", "test-only-merchant-key");
             builder.UseSetting("SePay:IpnSecretKey", "test-only-ipn-key");
+            builder.UseSetting("SePay:AutomaticReconciliationEnabled", "false");
             builder.UseSetting("SePay:CustomerOrigin", "https://blue.example.test");
             builder.ConfigureTestServices(services =>
             {

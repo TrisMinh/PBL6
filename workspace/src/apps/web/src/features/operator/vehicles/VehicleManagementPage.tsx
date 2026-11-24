@@ -1,3 +1,4 @@
+import { publicActionError } from "@/shared/api/error";
 import { Toast } from "@/shared/ui/Toast/Toast";
 import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import { VipSeatedSeatMap } from "./VipSeatedSeatMap";
@@ -347,7 +348,7 @@ export function VehicleManagementPage(): ReactElement {
         `${saved.plate} · ${input.code}: ${input.enabled ? "Đã bật" : "Đã tắt"} quyền đặt.`,
       );
     },
-    onError: (error: Error) => showNotice(error.message, "error"),
+    onError: (error: Error) => showNotice(publicActionError(error), "error"),
     onSettled: () => {
       lock.current = false;
     },
@@ -363,7 +364,7 @@ export function VehicleManagementPage(): ReactElement {
         `Đã lưu cấu hình hàng cuối ${saved.rearSeats} ${saved.type === 5 || saved.type === 6 || saved.type === 7 ? "giường / tầng" : "ghế"} · ${vehicleCapacity(saved)} chỗ.`,
       );
     },
-    onError: (error: Error) => showNotice(error.message, "error"),
+    onError: (error: Error) => showNotice(publicActionError(error), "error"),
     onSettled: () => {
       lock.current = false;
     },
@@ -377,7 +378,7 @@ export function VehicleManagementPage(): ReactElement {
       );
       showNotice(`Đã lưu cấu hình ${saved.cabinCapacity} phòng.`);
     },
-    onError: (error: Error) => showNotice(error.message, "error"),
+    onError: (error: Error) => showNotice(publicActionError(error), "error"),
     onSettled: () => {
       lock.current = false;
     },
@@ -393,7 +394,7 @@ export function VehicleManagementPage(): ReactElement {
         `Đã lưu ${saved.lowerRooms} dưới / ${21 - (saved.lowerRooms ?? 10)} trên.`,
       );
     },
-    onError: (error: Error) => showNotice(error.message, "error"),
+    onError: (error: Error) => showNotice(publicActionError(error), "error"),
     onSettled: () => {
       lock.current = false;
     },

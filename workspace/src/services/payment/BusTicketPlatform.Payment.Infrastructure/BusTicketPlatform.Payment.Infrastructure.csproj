@@ -20,5 +20,8 @@
     <EmbeddedResource Include="..\..\..\..\..\docs\database\payment\004_revenue_movements.sql" LogicalName="sql.revenue-movements" />
     <EmbeddedResource Include="..\..\..\..\..\docs\database\payment\005_operator_settlement_receipts.sql" LogicalName="sql.settlement-receipts" />
     <EmbeddedResource Include="..\..\..\..\..\docs\database\payment\006_sepay_reconciliation.sql" LogicalName="sql.sepay-reconciliation" />
+    <EmbeddedResource Include="..\..\..\..\..\docs\database\payment\007_revenue_payment_booking.sql" LogicalName="sql.revenue-payment-booking" />
+    <EmbeddedResource Include="..\..\..\..\..\docs\database\payment\008_sepay_reconciliation_schedule.sql" LogicalName="sql.sepay-reconciliation-schedule" />
+    <EmbeddedResource Include="..\..\..\..\..\docs\database\payment\009_finance_list_paging.sql" LogicalName="sql.finance-list-paging" />
   </ItemGroup>
 </Project>

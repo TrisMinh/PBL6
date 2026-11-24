@@ -146,7 +146,7 @@ export function useCreateBookingSession({
     const state = location.state as { bookingIntent?: unknown } | null;
     const intent = z
       .object({
-        tripId: z.string().uuid(),
+        tripId: z.guid(),
         passengerCount: z.number().int().min(1).max(6),
       })
       .safeParse(state?.bookingIntent);

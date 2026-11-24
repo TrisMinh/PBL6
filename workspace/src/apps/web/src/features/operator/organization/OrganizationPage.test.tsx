@@ -36,12 +36,12 @@ it("keeps the organization layout and shows a real API failure", async () => {
 it("reports a settlement failure instead of seeded rows", async () => {
   render(
     <MemoryRouter>
-      <SettlementsPage />
+      <QueryClientProvider client={new QueryClient()}>
+        <SettlementsPage />
+      </QueryClientProvider>
     </MemoryRouter>,
   );
-  await waitFor(() =>
-    expect(
-      screen.getByText("Máy chủ đối soát không khả dụng"),
-    ).toBeInTheDocument(),
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    "Chưa tải được đối soát. Hãy thử làm mới.",
   );
 });

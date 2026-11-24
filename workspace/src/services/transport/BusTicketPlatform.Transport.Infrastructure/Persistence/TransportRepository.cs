@@ -621,58 +621,190 @@ public sealed class TransportRepository(TransportDatabaseOptions options, IIdGen
             cmd.Parameters.AddWithValue("id", tripId);
         }, ReadTrip, cancellationToken);
 
-    public Task<IReadOnlyList<TripRecord>> ListOperatorTripsAsync(Guid organizationId, int page, int size, CancellationToken cancellationToken) =>
+    public Task<IReadOnlyList<TripRecord>> ListTripsByIdsAsync(Guid[] tripIds, CancellationToken cancellationToken) =>
         QueryListAsync(async cmd =>
         {
-            cmd.CommandText = TripSelect + " WHERE t.organization_id = @org ORDER BY t.departure_at DESC OFFSET @offset LIMIT @limit;";
+            cmd.CommandText = TripProjection + ", NULL::uuid " + TripBaseSource + " WHERE t.id = ANY(@ids);";
+            cmd.Parameters.AddWithValue("ids", tripIds);
+        }, ReadTrip, cancellationToken);
+
+    public Task<IReadOnlyList<TripRecord>> ListOperatorTripsAsync(Guid organizationId, int page, int size, Guid[] tripIds, CancellationToken cancellationToken) =>
+        QueryListAsync(async cmd =>
+        {
+            cmd.CommandText = TripSelect + " WHERE t.organization_id = @org AND (cardinality(@ids) = 0 OR t.id = ANY(@ids)) ORDER BY t.departure_at DESC, t.id DESC OFFSET @offset LIMIT @limit;";
             cmd.Parameters.AddWithValue("org", organizationId);
-            cmd.Parameters.AddWithValue("offset", page * size);
+            cmd.Parameters.AddWithValue("ids", tripIds);
+            cmd.Parameters.AddWithValue("offset", (long)page * size);
             cmd.Parameters.AddWithValue("limit", size);
         }, ReadTrip, cancellationToken);
 
-    public async Task<long> CountOperatorTripsAsync(Guid organizationId, CancellationToken cancellationToken)
+    public Task<IReadOnlyList<ManifestTripDto>> ListManifestTripsAsync(Guid organizationId, CancellationToken cancellationToken) =>
+        QueryListAsync(async cmd =>
+        {
+            cmd.CommandText = $"""
+                SELECT t.id, t.bus_id, os.name, ds.name, b.bus_type, t.departure_at, t.arrival_at, t.status, b.seat_count
+                {TripBaseSource}
+                WHERE t.organization_id = @org AND t.status NOT IN ('DRAFT', 'CANCELLED')
+                ORDER BY t.departure_at DESC, t.id DESC
+                """;
+            cmd.Parameters.AddWithValue("org", organizationId);
+        }, reader => new ManifestTripDto(reader.GetGuid(0), reader.GetGuid(1), reader.GetString(2), reader.GetString(3),
+            reader.GetString(4), reader.GetFieldValue<DateTimeOffset>(5), reader.GetFieldValue<DateTimeOffset>(6),
+            reader.GetString(7), reader.GetInt32(8)), cancellationToken);
+
+    public async Task<long> CountOperatorTripsAsync(Guid organizationId, Guid[] tripIds, CancellationToken cancellationToken)
     {
         await using var connection = await OpenAsync(cancellationToken);
-        await using var command = new NpgsqlCommand("SELECT COUNT(*) FROM trips WHERE organization_id = @org;", connection);
+        await using var command = new NpgsqlCommand(
+            "SELECT COUNT(*) FROM trips WHERE organization_id = @org AND (cardinality(@ids) = 0 OR id = ANY(@ids));", connection);
         command.Parameters.AddWithValue("org", organizationId);
+        command.Parameters.AddWithValue("ids", tripIds);
         var value = await command.ExecuteScalarAsync(cancellationToken);
         return Convert.ToInt64(value);
     }
 
+    public async Task<TripAvailabilityDto> ListAvailableResourcesAsync(
+        Guid organizationId, IReadOnlyList<TripWindow> windows, CancellationToken cancellationToken)
+    {
+        await using var connection = await OpenAsync(cancellationToken);
+        await using var command = new NpgsqlCommand("""
+            WITH windows AS (
+                SELECT tstzrange(start_at, end_at, '[)') AS slot
+                FROM unnest(@starts::timestamptz[], @ends::timestamptz[]) AS period(start_at, end_at)
+            )
+            SELECT 'bus', b.id
+            FROM buses b
+            WHERE b.organization_id = @org AND b.status = 'ACTIVE' AND b.deleted_at IS NULL
+              AND EXISTS (SELECT 1 FROM seats s WHERE s.bus_id = b.id AND s.active)
+              AND NOT EXISTS (
+                  SELECT 1 FROM windows w JOIN trips t ON t.operating_window && w.slot
+                  WHERE t.bus_id = b.id AND t.status IN ('SCHEDULED','BOARDING','DEPARTED','IN_TRANSIT','ARRIVED')
+              )
+            UNION ALL
+            SELECT 'driver', d.id
+            FROM driver_profiles d
+            WHERE d.organization_id = @org AND d.status = 'ACTIVE' AND d.deleted_at IS NULL
+              AND d.license_expires_on >= @arrivalDate
+              AND NOT EXISTS (
+                  SELECT 1 FROM windows w JOIN driver_assignments a ON a.assignment_window && w.slot
+                  WHERE a.driver_profile_id = d.id AND a.active
+              );
+            """, connection);
+        command.Parameters.AddWithValue("org", organizationId);
+        command.Parameters.AddWithValue("starts", windows.Select(window => window.Start.UtcDateTime).ToArray());
+        command.Parameters.AddWithValue("ends", windows.Select(window => window.End.UtcDateTime).ToArray());
+        command.Parameters.AddWithValue("arrivalDate", DateOnly.FromDateTime(windows[^1].ArrivalAt.UtcDateTime));
+        var buses = new List<Guid>();
+        var drivers = new List<Guid>();
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        while (await reader.ReadAsync(cancellationToken))
+            (reader.GetString(0) == "bus" ? buses : drivers).Add(reader.GetGuid(1));
+        return new TripAvailabilityDto(buses, drivers);
+    }
+
+    public async Task<(IReadOnlyList<(TripRecord Trip, string ScheduleStatus)> Items, long Total)> SearchScheduleAsync(
+        Guid organizationId, ScheduleFilter filter, int page, int size, CancellationToken cancellationToken)
+    {
+        const string localTime = "(t.departure_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::time";
+        const string classification = """
+            CROSS JOIN LATERAL (
+                SELECT
+                    (t.status IN ('COMPLETED','CANCELLED') OR t.arrival_at <= @asOf) AS history,
+                    CASE
+                        WHEN t.arrival_at <= @asOf
+                            AND t.status IN ('SCHEDULED','BOARDING','DEPARTED','IN_TRANSIT') THEN 'NEEDS_UPDATE'
+                        WHEN t.status = 'BOARDING' AND t.departure_at > @asOf + INTERVAL '1 hour' THEN 'SCHEDULED'
+                        ELSE t.status
+                    END AS display_status
+            ) schedule
+            """;
+        var where = $"""
+            WHERE t.organization_id = @org
+                AND (@origin = '' OR os.name = @origin)
+                AND (@destination = '' OR ds.name = @destination)
+                AND (@date IS NULL OR t.departure_at >= (@date::timestamp AT TIME ZONE 'Asia/Ho_Chi_Minh')
+                     AND t.departure_at < ((@date + 1)::timestamp AT TIME ZONE 'Asia/Ho_Chi_Minh'))
+                AND (@scope = 'all' OR schedule.history = (@scope = 'history'))
+                AND (cardinality(@statuses) = 0 OR schedule.display_status = ANY(@statuses))
+                AND (cardinality(@assignments) = 0 OR
+                     (CASE WHEN da.driver_profile_id IS NULL THEN 'missing' ELSE 'complete' END) = ANY(@assignments))
+                AND (cardinality(@periods) = 0 OR
+                     (CASE WHEN {localTime} >= TIME '18:00' THEN 'evening'
+                           WHEN {localTime} >= TIME '12:00' THEN 'afternoon'
+                           WHEN {localTime} >= TIME '06:00' THEN 'morning' ELSE '' END) = ANY(@periods))
+            """;
+        var ordering = filter.Sort switch
+        {
+            "earliest" => $"{localTime} ASC, ",
+            "latest" => $"{localTime} DESC, ",
+            _ => ""
+        };
+        var dateOrder = filter.Scope == "active" && string.IsNullOrEmpty(ordering) ? "ASC" : "DESC";
+        await using var connection = await OpenAsync(cancellationToken);
+        await using var count = new NpgsqlCommand($"SELECT count(*) {TripSource} {classification} {where}", connection);
+        await using var select = new NpgsqlCommand(
+            $"{TripProjection}, da.driver_profile_id, schedule.display_status {TripSource} {classification} {where} ORDER BY {ordering}t.departure_at {dateOrder}, t.id DESC OFFSET @offset LIMIT @limit", connection);
+        var asOf = DateTimeOffset.UtcNow;
+        foreach (var command in new[] { count, select })
+        {
+            command.Parameters.AddWithValue("org", organizationId);
+            command.Parameters.AddWithValue("scope", filter.Scope);
+            command.Parameters.AddWithValue("asOf", asOf);
+            command.Parameters.AddWithValue("origin", filter.Origin ?? "");
+            command.Parameters.AddWithValue("destination", filter.Destination ?? "");
+            command.Parameters.AddWithValue("date", NpgsqlTypes.NpgsqlDbType.Date, (object?)filter.ServiceDate ?? DBNull.Value);
+            command.Parameters.AddWithValue("statuses", filter.Statuses.Select(status => status.ToUpperInvariant()).ToArray());
+            command.Parameters.AddWithValue("assignments", filter.Assignments);
+            command.Parameters.AddWithValue("periods", filter.Periods);
+        }
+        var total = Convert.ToInt64(await count.ExecuteScalarAsync(cancellationToken));
+        select.Parameters.AddWithValue("offset", (long)page * size);
+        select.Parameters.AddWithValue("limit", size);
+        return (await ReadAllAsync(select, reader => (ReadTrip(reader), reader.GetString(25)), cancellationToken), total);
+    }
+
+    private const string TripSearchFilters = """
+        t.sellable = true AND t.status IN ('SCHEDULED','BOARDING')
+          AND o.name IS NOT NULL
+          AND lower(os.name) LIKE lower(@origin)
+          AND lower(ds.name) LIKE lower(@dest)
+          AND t.departure_at > NOW()
+          AND (@date IS NULL OR t.departure_at >= (@date::timestamp AT TIME ZONE 'Asia/Ho_Chi_Minh')
+                            AND t.departure_at < ((@date + 1)::timestamp AT TIME ZONE 'Asia/Ho_Chi_Minh'))
+          AND t.base_fare >= COALESCE(@minPrice, 0)
+          AND t.base_fare <= COALESCE(@maxPrice, 9223372036854775807)
+          AND (@org IS NULL OR t.organization_id = @org)
+          AND (@busType IS NULL OR b.bus_type = @busType)
+          AND (@timeFrom IS NULL OR (t.departure_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= @timeFrom)
+          AND (@timeTo IS NULL OR (t.departure_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::time <= @timeTo)
+          AND (@pickup IS NULL OR EXISTS (
+                SELECT 1 FROM route_stops rs
+                WHERE rs.route_id = t.route_id AND rs.stop_id = @pickup AND rs.pickup_allowed))
+          AND (@dropoff IS NULL OR EXISTS (
+                SELECT 1 FROM route_stops rs
+                WHERE rs.route_id = t.route_id AND rs.stop_id = @dropoff AND rs.dropoff_allowed))
+          AND (@amenitiesJson::jsonb IS NULL OR b.amenities @> @amenitiesJson::jsonb)
+          AND b.seat_count >= @passengers
+        """;
+
+    private static string TripSearchOrder(string? sort) => sort switch
+    {
+        "PRICE_ASC" => "t.base_fare ASC",
+        "PRICE_DESC" => "t.base_fare DESC",
+        "DEPARTURE_DESC" => "t.departure_at DESC",
+        "DURATION_ASC" => "(t.arrival_at - t.departure_at) ASC",
+        "DURATION_DESC" => "(t.arrival_at - t.departure_at) DESC",
+        _ => "t.departure_at ASC"
+    };
+
     public async Task<(IReadOnlyList<TripRecord> Items, long Total)> SearchSellableAsync(TripSearchQuery query, CancellationToken cancellationToken)
     {
         await using var connection = await OpenAsync(cancellationToken);
-        const string filters = """
-            t.sellable = true AND t.status IN ('SCHEDULED','BOARDING')
-              AND o.name IS NOT NULL
-              AND lower(os.name) LIKE lower(@origin)
-              AND lower(ds.name) LIKE lower(@dest)
-              AND t.departure_at > NOW()
-              AND (@date IS NULL OR (t.departure_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::date = @date)
-              AND t.base_fare >= COALESCE(@minPrice, 0)
-              AND t.base_fare <= COALESCE(@maxPrice, 9223372036854775807)
-              AND (@org IS NULL OR t.organization_id = @org)
-              AND (@busType IS NULL OR b.bus_type = @busType)
-              AND (@timeFrom IS NULL OR (t.departure_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= @timeFrom)
-              AND (@timeTo IS NULL OR (t.departure_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::time <= @timeTo)
-              AND (@pickup IS NULL OR EXISTS (
-                    SELECT 1 FROM route_stops rs
-                    WHERE rs.route_id = t.route_id AND rs.stop_id = @pickup AND rs.pickup_allowed))
-              AND (@dropoff IS NULL OR EXISTS (
-                    SELECT 1 FROM route_stops rs
-                    WHERE rs.route_id = t.route_id AND rs.stop_id = @dropoff AND rs.dropoff_allowed))
-              AND (@amenitiesJson::jsonb IS NULL OR b.amenities @> @amenitiesJson::jsonb)
-              AND b.seat_count >= @passengers
-            """;
         await using (var count = new NpgsqlCommand(
                          $"""
                           SELECT COUNT(*)
-                          FROM trips t
-                          JOIN organizations o ON o.id = t.organization_id
-                          JOIN buses b ON b.id = t.bus_id
-                          JOIN stops os ON os.id = t.origin_stop_id
-                          JOIN stops ds ON ds.id = t.destination_stop_id
-                          WHERE {filters}
+                          {TripBaseSource}
+                          WHERE {TripSearchFilters}
                           """,
                          connection))
         {
@@ -680,25 +812,16 @@ public sealed class TransportRepository(TransportDatabaseOptions options, IIdGen
             {
                 BindSearch(count, query);
                 var total = Convert.ToInt64(await count.ExecuteScalarAsync(cancellationToken));
-                var order = query.Sort switch
-                {
-                    "PRICE_ASC" => "t.base_fare ASC",
-                    "PRICE_DESC" => "t.base_fare DESC",
-                    "DEPARTURE_DESC" => "t.departure_at DESC",
-                    "DURATION_ASC" => "(t.arrival_at - t.departure_at) ASC",
-                    "DURATION_DESC" => "(t.arrival_at - t.departure_at) DESC",
-                    _ => "t.departure_at ASC"
-                };
                 await using var select = new NpgsqlCommand(
                     $"""
-                     {TripSelect}
-                     WHERE {filters}
-                     ORDER BY {order}, t.id
+                     {TripProjection}, NULL::uuid {TripBaseSource}
+                     WHERE {TripSearchFilters}
+                     ORDER BY {TripSearchOrder(query.Sort)}, t.id
                      OFFSET @offset LIMIT @limit
                      """,
                     connection);
                 BindSearch(select, query);
-                select.Parameters.AddWithValue("offset", query.Page * Math.Max(query.Size, 1));
+                select.Parameters.AddWithValue("offset", (long)query.Page * Math.Max(query.Size, 1));
                 select.Parameters.AddWithValue("limit", query.Size <= 0 ? 20 : query.Size);
                 var items = await ReadAllAsync(select, ReadTrip, cancellationToken);
                 return (items, total);
@@ -708,6 +831,25 @@ public sealed class TransportRepository(TransportDatabaseOptions options, IIdGen
                 throw new InvalidOperationException($"SearchSellable failed ({exception.SqlState} p{exception.Position}): {exception.MessageText}", exception);
             }
         }
+    }
+
+    public async Task<IReadOnlyList<TripCardDto>> SearchTripCardsAsync(TripSearchQuery query, CancellationToken cancellationToken)
+    {
+        await using var connection = await OpenAsync(cancellationToken);
+        await using var command = new NpgsqlCommand($"""
+            SELECT t.id, t.route_id, t.organization_id, o.name, b.bus_type, b.amenities::text,
+                   t.departure_at, t.arrival_at, os.name, ds.name, t.base_fare, t.currency, t.status, b.seat_count
+            {TripBaseSource}
+            WHERE {TripSearchFilters}
+            ORDER BY {TripSearchOrder(query.Sort)}, t.id
+            """, connection);
+        BindSearch(command, query);
+        return await ReadAllAsync(command, reader => new TripCardDto(
+            reader.GetGuid(0), reader.GetGuid(1), reader.GetGuid(2), reader.GetString(3), reader.GetString(4),
+            JsonSerializer.Deserialize<List<string>>(reader.GetString(5), Json) ?? [],
+            reader.GetFieldValue<DateTimeOffset>(6), reader.GetFieldValue<DateTimeOffset>(7),
+            reader.GetString(8), reader.GetString(9), new MoneyDto(reader.GetInt64(10), reader.GetString(11)),
+            reader.GetString(12), reader.GetInt32(13)), cancellationToken);
     }
 
     public async Task<IReadOnlyList<TripStopDto>> GetTripStopsAsync(Guid tripId, CancellationToken cancellationToken)
@@ -727,18 +869,36 @@ public sealed class TransportRepository(TransportDatabaseOptions options, IIdGen
         var items = new List<TripStopDto>();
         while (await reader.ReadAsync(cancellationToken))
         {
-            items.Add(new TripStopDto(
-                reader.GetGuid(0),
-                reader.GetString(1),
-                reader.IsDBNull(2) ? null : reader.GetString(2),
-                reader.GetInt32(3),
-                reader.GetInt32(4),
-                reader.GetBoolean(5),
-                reader.GetBoolean(6)));
+            items.Add(ReadTripStop(reader));
         }
 
         return items;
     }
+
+    public async Task<ILookup<Guid, TripStopDto>> GetRouteStopsForTripsAsync(Guid[] routeIds, CancellationToken cancellationToken)
+    {
+        var items = new List<(Guid RouteId, TripStopDto Stop)>();
+        if (routeIds.Length == 0)
+            return items.ToLookup(item => item.RouteId, item => item.Stop);
+        await using var connection = await OpenAsync(cancellationToken);
+        await using var command = new NpgsqlCommand("""
+            SELECT s.id, s.name, s.address, rs.sequence_no, COALESCE(rs.departure_offset_minutes, rs.arrival_offset_minutes, 0),
+                   rs.pickup_allowed, rs.dropoff_allowed, rs.route_id
+            FROM route_stops rs
+            JOIN stops s ON s.id = rs.stop_id
+            WHERE rs.route_id = ANY(@ids)
+            ORDER BY rs.route_id, rs.sequence_no;
+            """, connection);
+        command.Parameters.AddWithValue("ids", routeIds);
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        while (await reader.ReadAsync(cancellationToken))
+            items.Add((reader.GetGuid(7), ReadTripStop(reader)));
+        return items.ToLookup(item => item.RouteId, item => item.Stop);
+    }
+
+    private static TripStopDto ReadTripStop(NpgsqlDataReader reader) =>
+        new(reader.GetGuid(0), reader.GetString(1), reader.IsDBNull(2) ? null : reader.GetString(2),
+            reader.GetInt32(3), reader.GetInt32(4), reader.GetBoolean(5), reader.GetBoolean(6));
 
     public async Task<IReadOnlyList<DriverAssignmentDto>> ListAssignmentsForDriverAsync(Guid driverUserId, CancellationToken cancellationToken)
     {
@@ -800,17 +960,23 @@ public sealed class TransportRepository(TransportDatabaseOptions options, IIdGen
         JOIN stops d ON d.id = r.destination_stop_id
         """;
 
-    private const string TripSelect = """
+    private const string TripProjection = """
         SELECT t.id, t.organization_id, o.name, t.route_id, t.bus_id, t.origin_stop_id, t.destination_stop_id,
                t.departure_at, t.arrival_at, t.base_fare, t.currency, t.status, t.sellable, t.published_version,
                COALESCE(t.fare_policy_snapshot->>'policyVersion', 'cancel-mvp-v1'), b.bus_type, b.amenities::text,
                os.name, ds.name, b.seat_count, t.route_snapshot::text, t.bus_snapshot::text, t.fare_policy_snapshot::text,
-               t.row_version, da.driver_profile_id
+               t.row_version
+        """;
+    private const string TripSelect = TripProjection + ", da.driver_profile_id " + TripSource;
+
+    private const string TripBaseSource = """
         FROM trips t
         JOIN organizations o ON o.id = t.organization_id
         JOIN buses b ON b.id = t.bus_id
         JOIN stops os ON os.id = t.origin_stop_id
         JOIN stops ds ON ds.id = t.destination_stop_id
+        """;
+    private const string TripSource = TripBaseSource + " " + """
         LEFT JOIN LATERAL (
             SELECT a.driver_profile_id FROM driver_assignments a
             WHERE a.trip_id = t.id AND a.assignment_role = 'PRIMARY' AND (a.active OR t.status = 'DRAFT')

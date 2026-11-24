@@ -1,6 +1,7 @@
 using BusTicketPlatform.BuildingBlocks.AspNetCore.Http;
 using BusTicketPlatform.BuildingBlocks.Errors;
 using BusTicketPlatform.BuildingBlocks.Idempotency;
+using BusTicketPlatform.BuildingBlocks.Results;
 using BusTicketPlatform.Transport.Application;
 using BusTicketPlatform.Transport.Infrastructure;
 using Microsoft.AspNetCore.Builder;
@@ -15,6 +16,15 @@ public static class TransportEndpoints
     {
         endpoints.MapGet("/api/v1/explore/routes", ExploreRoutesAsync);
         endpoints.MapGet("/api/v1/trips", SearchAsync);
+        endpoints.MapGet("/api/v1/trips/details", async (HttpContext context, TransportService service, string ids) =>
+        {
+            var values = ids.Split(',');
+            if (values.Length is < 1 or > 100 || values.Any(value => !Guid.TryParse(value, out var id) || id == Guid.Empty))
+                return PlatformHttp.Error(PlatformErrors.Validation("Trip IDs are invalid."), context.CorrelationId());
+
+            var trips = await service.GetPublicTripsAsync(values.Select(Guid.Parse).Distinct().ToArray(), context.RequestAborted);
+            return Results.Json(trips, PlatformHttp.Json);
+        });
         endpoints.MapGet("/api/v1/trips/{tripId:guid}", GetTripAsync);
         endpoints.MapGet("/api/v1/trips/{tripId:guid}/stops", GetStopsAsync);
 
@@ -44,6 +54,23 @@ public static class TransportEndpoints
         op.MapPut("/routes/{routeId:guid}/stops", ReplaceStopsAsync);
         op.MapPost("/routes/{routeId:guid}/deactivate", DeactivateRouteAsync);
         op.MapGet("/trips", ListTripsAsync);
+        op.MapPost("/trips/assignment-availability", async (HttpContext context, TransportService service, TripAvailabilityInput input) =>
+        {
+            context.Response.Headers.CacheControl = "no-store";
+            var actor = ActorOf(context);
+            return actor is null ? NeedUser(context.CorrelationId())
+                : (await service.GetAssignmentAvailabilityAsync(actor, input, context.RequestAborted)).ToHttp(context.CorrelationId());
+        });
+        op.MapGet("/trips/schedule", async (HttpContext context, TransportService service,
+            [Microsoft.AspNetCore.Mvc.FromQuery] string[] status, [Microsoft.AspNetCore.Mvc.FromQuery] string[] period,
+            [Microsoft.AspNetCore.Mvc.FromQuery] string[] assignment, string? origin, string? destination,
+            DateOnly? date, string? sort, int page = 0, int size = 5, string scope = "all") =>
+        {
+            var actor = ActorOf(context);
+            return actor is null ? NeedUser(context.CorrelationId())
+                : (await service.SearchScheduleAsync(actor, new ScheduleFilter(origin, destination, date, status, period, assignment, sort, scope),
+                    page, size, context.RequestAborted)).ToHttp(context.CorrelationId());
+        });
         op.MapPost("/trips", CreateTripAsync);
         op.MapPost("/trips/recurring", CreateRecurringTripsAsync);
         op.MapPatch("/trips/{tripId:guid}", UpdateTripAsync);
@@ -90,32 +117,51 @@ public static class TransportEndpoints
         return Results.Json(routes, PlatformHttp.Json);
     }
 
-    private static async Task<IResult> SearchAsync(HttpContext context, TransportService service, PublicTransportCache cache, string? origin, string? destination, DateOnly? departureDate, int passengerCount, long? minPrice, long? maxPrice, TimeOnly? departureTimeFrom, TimeOnly? departureTimeTo, Guid? organizationId, string? busType, Guid? pickupStopId, Guid? dropoffStopId, string? amenities, string? sort, int page = 0, int size = 20)
+    private static async Task<IResult> SearchAsync(HttpContext context, TransportService service, PublicTransportCache cache, string? origin, string? destination, DateOnly? departureDate, int passengerCount, long? minPrice, long? maxPrice, TimeOnly? departureTimeFrom, TimeOnly? departureTimeTo, Guid? organizationId, string? busType, Guid? pickupStopId, Guid? dropoffStopId, string? amenities, string? sort, int page = 0, int size = 20, bool cards = false)
     {
         var amenityList = string.IsNullOrWhiteSpace(amenities) ? null : amenities.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         var query = new TripSearchQuery(origin, destination, departureDate, passengerCount, minPrice, maxPrice, departureTimeFrom, departureTimeTo, organizationId, busType, pickupStopId, dropoffStopId, amenityList, sort, page, size);
         var ct = context.RequestAborted;
+        if (cards)
+            return (await service.SearchTripCardsAsync(query, ct)).ToHttp(context.CorrelationId());
+
         // Keep ad hoc searches and deep pages from filling the shared cache.
-        if (page is < 0 or >= 10 || (context.Request.QueryString.Value?.Length ?? 0) > 1024)
+        if (page is < 0 or >= 25 || (context.Request.QueryString.Value?.Length ?? 0) > 1024)
             return (await service.SearchAsync(query, ct)).ToHttp(context.CorrelationId());
 
         var key = await cache.ResolveKeyAsync("search:" + PlatformHttp.HashPayload(query), ct);
-        var cached = await cache.ReadAsync<TripPageDto>(key, ct);
-        if (cached is not null && cached.Items.All(trip => trip.DepartureAt > DateTimeOffset.UtcNow))
-            return Results.Json(cached, PlatformHttp.Json);
-
-        var result = await service.SearchAsync(query, ct);
-        if (result.IsSuccess)
+        var result = await cache.ShareReadAsync(key, async loadToken =>
         {
-            var now = DateTimeOffset.UtcNow;
-            var expiresAt = result.Value!.Items.Select(trip => trip.DepartureAt).Append(now.AddSeconds(10)).Min();
-            await cache.WriteAsync(key, result.Value, expiresAt - now, ct);
-        }
+            var cached = await cache.ReadAsync<TripPageDto>(key, loadToken);
+            if (cached is not null && cached.Items.All(trip => trip.DepartureAt > DateTimeOffset.UtcNow))
+                return Result<TripPageDto>.Success(cached);
+
+            var loaded = await service.SearchAsync(query, loadToken);
+            if (loaded.IsSuccess)
+            {
+                var now = DateTimeOffset.UtcNow;
+                var expiresAt = loaded.Value!.Items.Select(trip => trip.DepartureAt).Append(now.AddSeconds(10)).Min();
+                await cache.WriteAsync(key, loaded.Value, expiresAt - now, loadToken);
+            }
+            return loaded;
+        }, ct);
         return result.ToHttp(context.CorrelationId());
     }
 
-    private static async Task<IResult> GetTripAsync(HttpContext context, TransportService service, Guid tripId) =>
-        (await service.GetPublicTripAsync(tripId, context.RequestAborted)).ToHttp(context.CorrelationId());
+    private static async Task<IResult> GetTripAsync(HttpContext context, TransportService service, PublicTransportCache cache, Guid tripId)
+    {
+        var ct = context.RequestAborted;
+        var key = await cache.ResolveKeyAsync($"trip:{tripId}", ct);
+        var result = await cache.ShareReadAsync(key, async loadToken =>
+        {
+            var cached = await cache.ReadAsync<TripDto>(key, loadToken);
+            if (cached is not null) return Result<TripDto>.Success(cached);
+            var loaded = await service.GetPublicTripAsync(tripId, loadToken);
+            if (loaded.IsSuccess) await cache.WriteAsync(key, loaded.Value!, TimeSpan.FromSeconds(5), loadToken);
+            return loaded;
+        }, ct);
+        return result.ToHttp(context.CorrelationId());
+    }
 
     private static async Task<IResult> GetStopsAsync(HttpContext context, TransportService service, Guid tripId) =>
         (await service.GetTripStopsAsync(tripId, context.RequestAborted)).ToHttp(context.CorrelationId());
@@ -322,10 +368,14 @@ public static class TransportEndpoints
         return await Mutate(context, store, "deactivate-route", routeId, () => service.DeactivateRouteAsync(actor, routeId, context.RequestAborted), 200);
     }
 
-    private static async Task<IResult> ListTripsAsync(HttpContext context, TransportService service, int page = 0, int size = 20)
+    private static async Task<IResult> ListTripsAsync(HttpContext context, TransportService service,
+        [Microsoft.AspNetCore.Mvc.FromQuery] Guid[] tripId, int page = 0, int size = 20, bool manifest = false)
     {
         var actor = ActorOf(context);
-        return actor is null ? NeedUser(context.CorrelationId()) : (await service.ListOperatorTripsAsync(actor, page, size, context.RequestAborted)).ToHttp(context.CorrelationId());
+        if (actor is null) return NeedUser(context.CorrelationId());
+        return manifest
+            ? (await service.ListManifestTripsAsync(actor, context.RequestAborted)).ToHttp(context.CorrelationId())
+            : (await service.ListOperatorTripsAsync(actor, page, size, tripId, context.RequestAborted)).ToHttp(context.CorrelationId());
     }
 
     private static async Task<IResult> CreateRecurringTripsAsync(HttpContext context, TransportService service, IIdempotencyStore store, RecurringTripInput body)

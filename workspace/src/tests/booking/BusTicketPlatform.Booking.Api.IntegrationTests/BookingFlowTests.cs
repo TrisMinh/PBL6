@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -11,6 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Npgsql;
 using Testcontainers.PostgreSql;
+using Xunit.Abstractions;
 
 namespace BusTicketPlatform.Booking.Api.IntegrationTests;
 
@@ -44,7 +46,12 @@ public sealed class BookingPostgresFixture : IAsyncLifetime
 public sealed class BookingFlowTests
 {
     private readonly BookingPostgresFixture _fixture;
-    public BookingFlowTests(BookingPostgresFixture fixture) => _fixture = fixture;
+    private readonly ITestOutputHelper _output;
+    public BookingFlowTests(BookingPostgresFixture fixture, ITestOutputHelper output)
+    {
+        _fixture = fixture;
+        _output = output;
+    }
 
     [Fact]
     public async Task Customer_can_hold_seat_and_pay_later_book()
@@ -72,7 +79,7 @@ public sealed class BookingFlowTests
             currency = "VND",
             status = "SCHEDULED",
             sourceTripVersion = 1L,
-            routeSnapshot = "{}",
+            routeSnapshot = JsonSerializer.Serialize(new { name = "Đà Nẵng – Hà Nội" }),
             busSnapshot = snapshot,
             farePolicySnapshot = fare
         });
@@ -111,6 +118,18 @@ public sealed class BookingFlowTests
         Assert.True(TicketQr.TryVerify(qrPayload!, TestJwt.SigningKey, out var signedId));
         Assert.Equal(ticketId, signedId);
         var bookingCode = booking.Body.GetProperty("code").GetString();
+        await using (var connection = new NpgsqlConnection(_fixture.Container.GetConnectionString()))
+        {
+            await connection.OpenAsync();
+            await using var context = new NpgsqlCommand("""
+                SELECT payload -> 'payload' ->> 'routeName' FROM outbox_messages
+                WHERE aggregate_id = @id AND message_type = 'BookingRevenueContextRecorded'
+                  AND payload -> 'payload' ->> 'bookingCode' = @code
+                """, connection);
+            context.Parameters.AddWithValue("id", booking.Body.GetProperty("id").GetGuid());
+            context.Parameters.AddWithValue("code", bookingCode!);
+            Assert.Equal("Đà Nẵng – Hà Nội", await context.ExecuteScalarAsync());
+        }
         var ticketCode = ticket.Body.GetProperty("publicCode").GetString();
         var deniedLookup = await client.PostAsJsonAsync("/api/v1/tickets/lookup", new
         {
@@ -206,15 +225,20 @@ public sealed class BookingFlowTests
     {
         var client = _fixture.CreateClient();
         var trip = await ImportTrip(client, seatCount: 2);
-        var customerA = TestJwt.Mint(Guid.CreateVersion7(), ["CUSTOMER"]);
         var customerB = TestJwt.Mint(Guid.CreateVersion7(), ["CUSTOMER"]);
 
-        var contenders = await Task.WhenAll(
-            Send(client, HttpMethod.Post, $"/api/v1/trips/{trip.TripId}/seat-holds", HoldBody(trip, [trip.SeatIds[0]]), customerA, Guid.CreateVersion7().ToString("N")),
-            Send(client, HttpMethod.Post, $"/api/v1/trips/{trip.TripId}/seat-holds", HoldBody(trip, [trip.SeatIds[0]]), customerB, Guid.CreateVersion7().ToString("N")));
+        var contenders = await Task.WhenAll(Enumerable.Range(0, 32).Select(async _ =>
+        {
+            var customer = TestJwt.Mint(Guid.CreateVersion7(), ["CUSTOMER"]);
+            var started = Stopwatch.GetTimestamp();
+            var response = await Send(client, HttpMethod.Post, $"/api/v1/trips/{trip.TripId}/seat-holds",
+                HoldBody(trip, [trip.SeatIds[0]]), customer, Guid.CreateVersion7().ToString("N"));
+            return (response.Response.StatusCode, Elapsed: Stopwatch.GetElapsedTime(started).TotalMilliseconds);
+        }));
 
-        Assert.Single(contenders, result => result.Response.StatusCode == HttpStatusCode.Created);
-        Assert.Single(contenders, result => result.Response.StatusCode == HttpStatusCode.Conflict);
+        Assert.Single(contenders, result => result.StatusCode == HttpStatusCode.Created);
+        Assert.Equal(31, contenders.Count(result => result.StatusCode == HttpStatusCode.Conflict));
+        _output.WriteLine($"Seat hold p95 ({contenders.Length} competing requests): {contenders.Select(result => result.Elapsed).Order().ElementAt(30):F0} ms");
 
         var atomicFailure = await Send(
             client,

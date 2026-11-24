@@ -493,28 +493,56 @@ public sealed class TransportService(ITransportRepository store, ITransportEvent
         return Result<RouteDto>.Success(Map(updated));
     }
 
-    public async Task<Result<TripPageDto>> ListOperatorTripsAsync(Actor actor, int page, int size, CancellationToken cancellationToken)
+    public async Task<Result<TripPageDto>> ListOperatorTripsAsync(Actor actor, int page, int size, Guid[] tripIds, CancellationToken cancellationToken)
     {
         if (!TryTenant(actor, ReadRoles, out var orgId, out var error))
         {
             return Fail<TripPageDto>(error);
         }
 
+        if (page < 0 || tripIds.Length > 100)
+            return Fail<TripPageDto>(PlatformErrors.Validation("Trip filters exceed their limits."));
+
         size = size is < 1 or > 100 ? 20 : size;
-        var items = await store.ListOperatorTripsAsync(orgId, page, size, cancellationToken);
-        var total = await store.CountOperatorTripsAsync(orgId, cancellationToken);
-        var mapped = new List<TripDto>();
-        foreach (var trip in items)
-        {
-            mapped.Add((await MapTripAsync(trip, cancellationToken)) with
+        var items = await store.ListOperatorTripsAsync(orgId, page, size, tripIds, cancellationToken);
+        var total = await store.CountOperatorTripsAsync(orgId, tripIds, cancellationToken);
+        var stops = await GetPageStopsAsync(items, cancellationToken);
+        var mapped = items.Select(trip => MapTrip(trip, stops[trip.RouteId]) with
             {
                 RouteId = trip.RouteId,
                 BusId = trip.BusId,
                 DriverId = trip.DriverId
-            });
-        }
+            }).ToArray();
 
         return Result<TripPageDto>.Success(Page(mapped, page, size, total));
+    }
+
+    public async Task<Result<TripPageDto>> SearchScheduleAsync(Actor actor, ScheduleFilter filter, int page, int size, CancellationToken cancellationToken)
+    {
+        if (!TryTenant(actor, ReadRoles, out var orgId, out var error))
+            return Fail<TripPageDto>(error);
+        if (page < 0 || size is < 1 or > 100 || filter.Statuses.Length > 10 || filter.Periods.Length > 3
+            || filter.Assignments.Length > 3 || filter.Origin?.Length > 200 || filter.Destination?.Length > 200
+            || filter.Scope is not ("active" or "history" or "all"))
+            return Fail<TripPageDto>(PlatformErrors.Validation("Schedule filters or page bounds are invalid."));
+
+        var (items, total) = await store.SearchScheduleAsync(orgId, filter, page, size, cancellationToken);
+        var stops = await GetPageStopsAsync(items.Select(item => item.Trip).ToArray(), cancellationToken);
+        return Result<TripPageDto>.Success(Page(items.Select(item => MapTrip(item.Trip, stops[item.Trip.RouteId]) with
+        {
+            RouteId = item.Trip.RouteId,
+            BusId = item.Trip.BusId,
+            DriverId = item.Trip.DriverId,
+            ScheduleStatus = item.ScheduleStatus
+        }).ToArray(), page, size, total));
+    }
+
+    public async Task<Result<IReadOnlyList<ManifestTripDto>>> ListManifestTripsAsync(Actor actor, CancellationToken cancellationToken)
+    {
+        if (!TryTenant(actor, ReadRoles, out var orgId, out var error))
+            return Fail<IReadOnlyList<ManifestTripDto>>(error);
+
+        return Result<IReadOnlyList<ManifestTripDto>>.Success(await store.ListManifestTripsAsync(orgId, cancellationToken));
     }
 
     public async Task<Result<TripDto>> CreateTripDraftAsync(Actor actor, TripInput input, CancellationToken cancellationToken)
@@ -526,18 +554,50 @@ public sealed class TransportService(ITransportRepository store, ITransportEvent
         return Result<TripDto>.Success(await MapTripAsync(plan.Trip, cancellationToken));
     }
 
+    public async Task<Result<TripAvailabilityDto>> GetAssignmentAvailabilityAsync(Actor actor, TripAvailabilityInput input, CancellationToken cancellationToken)
+    {
+        if (!TryTenant(actor, FleetRoles, out var orgId, out var error)) return Fail<TripAvailabilityDto>(error);
+        var windows = AssignmentWindows(input);
+        if (!windows.IsSuccess) return Fail<TripAvailabilityDto>(windows.Error!);
+        return Result<TripAvailabilityDto>.Success(await store.ListAvailableResourcesAsync(orgId, windows.Value!, cancellationToken));
+    }
+
+    private static Result<IReadOnlyList<TripWindow>> AssignmentWindows(TripAvailabilityInput input)
+    {
+        if (input.ArrivalAt <= input.DepartureAt || input.DepartureAt.Year is < 2 or > 9998
+            || input.ArrivalAt.Year > 9998)
+            return Fail<IReadOnlyList<TripWindow>>(PlatformErrors.Validation("Giờ đến phải sau giờ đi."));
+        var first = new TripWindow(input.DepartureAt, input.ArrivalAt);
+        if (input.EndDate is null)
+            return Result<IReadOnlyList<TripWindow>>.Success([first]);
+
+        var start = DateOnly.FromDateTime(input.DepartureAt.ToOffset(TimeSpan.FromHours(7)).DateTime);
+        var end = input.EndDate.Value;
+        if (end < start || end > start.AddMonths(3) || input.Weekdays is not { Count: > 0 }
+            || input.Weekdays.Any(day => day < 0 || day > 6) || input.DepartureAt <= DateTimeOffset.UtcNow)
+            return Fail<IReadOnlyList<TripWindow>>(PlatformErrors.Validation("Chọn giờ khởi hành trong tương lai, ngày kết thúc trong vòng 3 tháng và ít nhất một ngày chạy trong tuần."));
+        var windows = new List<TripWindow>();
+        for (var date = start; date <= end; date = date.AddDays(1))
+        {
+            if (!input.Weekdays.Contains((int)date.DayOfWeek)) continue;
+            var offset = date.DayNumber - start.DayNumber;
+            var window = new TripWindow(first.DepartureAt.AddDays(offset), first.ArrivalAt.AddDays(offset));
+            if (windows.Count > 0 && window.Start < windows[^1].End)
+                return Fail<IReadOnlyList<TripWindow>>(PlatformErrors.Validation("Các ngày chạy bị trùng nhau khi tính khoảng đệm một giờ trước và sau chuyến. Chọn các ngày cách nhau xa hơn."));
+            windows.Add(window);
+        }
+        return windows.Count > 0 ? Result<IReadOnlyList<TripWindow>>.Success(windows)
+            : Fail<IReadOnlyList<TripWindow>>(PlatformErrors.Validation("Không có ngày chạy phù hợp trong khoảng đã chọn."));
+    }
+
     public async Task<Result<IReadOnlyList<TripDto>>> CreateRecurringTripsAsync(Actor actor, RecurringTripInput input, CancellationToken cancellationToken)
     {
         if (!TryTenant(actor, FleetRoles, out _, out var error)) return Fail<IReadOnlyList<TripDto>>(error);
         if (input.Template is null || input.Weekdays is null)
             return Fail<IReadOnlyList<TripDto>>(PlatformErrors.Validation("Thiếu thông tin chuyến hoặc ngày chạy trong tuần."));
         var template = input.Template;
-        var localDeparture = template.DepartureAt.ToOffset(TimeSpan.FromHours(7));
-        var start = DateOnly.FromDateTime(localDeparture.DateTime);
-        if (input.EndDate < start || input.EndDate > start.AddMonths(3) || input.Weekdays.Count == 0 || input.Weekdays.Any(day => day < 0 || day > 6))
-            return Fail<IReadOnlyList<TripDto>>(PlatformErrors.Validation("Chọn ngày kết thúc trong vòng 3 tháng và ít nhất một ngày chạy trong tuần."));
-        if (template.DepartureAt <= DateTimeOffset.UtcNow || template.ArrivalAt <= template.DepartureAt)
-            return Fail<IReadOnlyList<TripDto>>(PlatformErrors.Validation("Giờ khởi hành phải ở tương lai và giờ đến phải sau giờ khởi hành."));
+        var windows = AssignmentWindows(new TripAvailabilityInput(template.DepartureAt, template.ArrivalAt, input.EndDate, input.Weekdays));
+        if (!windows.IsSuccess) return Fail<IReadOnlyList<TripDto>>(windows.Error!);
         TripDraftPlan? source = null;
         if (input.SourceTripId is { } sourceId)
         {
@@ -554,11 +614,9 @@ public sealed class TransportService(ITransportRepository store, ITransportEvent
             source = new TripDraftPlan(plan.Trip with { Id = existing.Id, RowVersion = existing.RowVersion + 1 }, plan.Assignment with { TripId = existing.Id });
         }
         var plans = new List<TripDraftPlan>();
-        for (var date = start; date <= input.EndDate; date = date.AddDays(1))
+        foreach (var window in windows.Value!)
         {
-            if (!input.Weekdays.Contains((int)date.DayOfWeek)) continue;
-            var offset = date.DayNumber - start.DayNumber;
-            var occurrence = template with { DepartureAt = template.DepartureAt.AddDays(offset), ArrivalAt = template.ArrivalAt.AddDays(offset) };
+            var occurrence = template with { DepartureAt = window.DepartureAt, ArrivalAt = window.ArrivalAt };
             TripDraftPlan plan;
             if (plans.Count == 0)
             {
@@ -570,15 +628,12 @@ public sealed class TransportService(ITransportRepository store, ITransportEvent
             {
                 var first = plans[0];
                 var trip = first.Trip with { Id = ids.NewUuidV7(), RowVersion = 0, DepartureAt = occurrence.DepartureAt, ArrivalAt = occurrence.ArrivalAt };
-                var assignment = first.Assignment with { Id = ids.NewUuidV7(), TripId = trip.Id, Start = trip.DepartureAt.AddHours(-1), End = trip.ArrivalAt.AddHours(1) };
+                var assignment = first.Assignment with { Id = ids.NewUuidV7(), TripId = trip.Id, Start = window.Start, End = window.End };
                 plan = new TripDraftPlan(trip, assignment);
             }
-            if (offset == 0 && source is not null) plan = source;
-            if (plans.Count > 0 && plan.Assignment.Start < plans[^1].Assignment.End)
-                return Fail<IReadOnlyList<TripDto>>(PlatformErrors.Validation("Các ngày chạy bị trùng lịch xe hoặc tài xế, gồm khoảng đệm một giờ trước và sau chuyến. Chọn các ngày cách nhau xa hơn."));
+            if (window.DepartureAt == template.DepartureAt && source is not null) plan = source;
             plans.Add(plan);
         }
-        if (plans.Count == 0) return Fail<IReadOnlyList<TripDto>>(PlatformErrors.Validation("Không có ngày chạy phù hợp trong khoảng đã chọn."));
         // The latest arrival determines licence validity for every occurrence.
         if (plans.Count > 1)
         {
@@ -770,14 +825,19 @@ public sealed class TransportService(ITransportRepository store, ITransportEvent
 
         var bus = await store.GetBusAsync(orgId, trip.BusId, cancellationToken);
         var route = await store.GetRouteAsync(orgId, trip.RouteId, cancellationToken);
+        var driver = trip.DriverId is { } driverId ? await store.GetDriverAsync(orgId, driverId, cancellationToken) : null;
+        if (route is null || route.Status != "ACTIVE" || bus is null || bus.Status != "ACTIVE"
+            || !bus.Seats.Any(seat => seat.Active) || driver is null || driver.Status != "ACTIVE"
+            || driver.LicenseExpiresOn < DateOnly.FromDateTime(trip.ArrivalAt.UtcDateTime))
+            return Fail<OperationAccepted>(PlatformErrors.Validation("Tuyến, xe hoặc tài xế không còn đủ điều kiện phát hành."));
         var published = trip with
         {
             Status = TripStatuses.Scheduled,
             PublishedVersion = 1,
-            RouteSnapshot = JsonSerializer.Serialize(new { route!.Id, route.Name, route.Stops }),
+            RouteSnapshot = JsonSerializer.Serialize(new { route.Id, route.Name, route.Stops }),
             BusSnapshot = JsonSerializer.Serialize(new
             {
-                bus!.Id,
+                bus.Id,
                 bus.Type,
                 bus.Amenities,
                 seats = bus.Seats.Select(seat => new { seat.Id, seat.Code, seat.Deck, row = seat.Row, column = seat.Column, seat.Type, seat.Active })
@@ -861,6 +921,19 @@ public sealed class TransportService(ITransportRepository store, ITransportEvent
     public Task<IReadOnlyList<ExploreRouteDto>> ListExploreRoutesAsync(CancellationToken cancellationToken) =>
         store.ListExploreRoutesAsync(cancellationToken);
 
+    public async Task<Result<TripCardsDto>> SearchTripCardsAsync(TripSearchQuery query, CancellationToken cancellationToken)
+    {
+        if (query.PassengerCount is < 1 or > 10 || !IsSearchSortAllowed(query.Sort))
+            return Fail<TripCardsDto>(PlatformErrors.Validation("Search query is invalid."));
+
+        var items = await store.SearchTripCardsAsync(query, cancellationToken);
+        var stops = await store.GetRouteStopsForTripsAsync(items.Select(trip => trip.RouteId).Distinct().ToArray(), cancellationToken);
+        return Result<TripCardsDto>.Success(new TripCardsDto(items, stops.ToDictionary(route => route.Key, route => route.ToArray())));
+    }
+
+    private static bool IsSearchSortAllowed(string? sort) =>
+        string.IsNullOrWhiteSpace(sort) || sort is "PRICE_ASC" or "PRICE_DESC" or "DEPARTURE_ASC" or "DEPARTURE_DESC" or "DURATION_ASC" or "DURATION_DESC";
+
     public async Task<Result<TripPageDto>> SearchAsync(TripSearchQuery query, CancellationToken cancellationToken)
     {
         if (query.PassengerCount is < 1 or > 10
@@ -870,18 +943,15 @@ public sealed class TransportService(ITransportRepository store, ITransportEvent
             return Fail<TripPageDto>(PlatformErrors.Validation("Search query is invalid."));
         }
 
-        if (!string.IsNullOrWhiteSpace(query.Sort) && query.Sort is not ("PRICE_ASC" or "PRICE_DESC" or "DEPARTURE_ASC" or "DEPARTURE_DESC" or "DURATION_ASC" or "DURATION_DESC"))
+        if (!IsSearchSortAllowed(query.Sort))
         {
             return Fail<TripPageDto>(PlatformErrors.Validation("Sort is not allowed.", "sort"));
         }
 
         query = query with { Size = query.Size <= 0 ? 20 : query.Size };
         var (items, total) = await store.SearchSellableAsync(query, cancellationToken);
-        var mapped = new List<TripDto>();
-        foreach (var trip in items)
-        {
-            mapped.Add(await MapTripAsync(trip, cancellationToken));
-        }
+        var stops = await GetPageStopsAsync(items, cancellationToken);
+        var mapped = items.Select(trip => MapTrip(trip, stops[trip.RouteId])).ToArray();
 
         return Result<TripPageDto>.Success(Page(mapped, query.Page, query.Size, total));
     }
@@ -890,6 +960,13 @@ public sealed class TransportService(ITransportRepository store, ITransportEvent
     {
         var trip = await store.GetTripAsync(tripId, cancellationToken);
         return trip is null ? Fail<TripDto>(PlatformErrors.NotFound()) : Result<TripDto>.Success(await MapTripAsync(trip, cancellationToken));
+    }
+
+    public async Task<IReadOnlyList<TripDto>> GetPublicTripsAsync(Guid[] tripIds, CancellationToken cancellationToken)
+    {
+        var trips = await store.ListTripsByIdsAsync(tripIds, cancellationToken);
+        var stops = await GetPageStopsAsync(trips, cancellationToken);
+        return trips.Select(trip => MapTrip(trip, stops[trip.RouteId])).ToArray();
     }
 
     public async Task<Result<IReadOnlyList<TripStopDto>>> GetTripStopsAsync(Guid tripId, CancellationToken cancellationToken)
@@ -909,9 +986,14 @@ public sealed class TransportService(ITransportRepository store, ITransportEvent
     public Task MarkInventoryReadyAsync(Guid tripId, CancellationToken cancellationToken) =>
         store.MarkSellableAsync(tripId, true, cancellationToken);
 
-    private async Task<TripDto> MapTripAsync(TripRecord trip, CancellationToken cancellationToken)
+    private Task<ILookup<Guid, TripStopDto>> GetPageStopsAsync(IReadOnlyList<TripRecord> trips, CancellationToken cancellationToken) =>
+        store.GetRouteStopsForTripsAsync(trips.Select(trip => trip.RouteId).Distinct().ToArray(), cancellationToken);
+
+    private async Task<TripDto> MapTripAsync(TripRecord trip, CancellationToken cancellationToken) =>
+        MapTrip(trip, await store.GetTripStopsAsync(trip.Id, cancellationToken));
+
+    private static TripDto MapTrip(TripRecord trip, IEnumerable<TripStopDto> stops)
     {
-        var stops = await store.GetTripStopsAsync(trip.Id, cancellationToken);
         var allowPayLater = false;
         if (!string.IsNullOrWhiteSpace(trip.FareSnapshot))
         {
@@ -935,7 +1017,7 @@ public sealed class TransportService(ITransportRepository store, ITransportEvent
             trip.SeatCount,
             DateTimeOffset.UtcNow,
             trip.PolicyVersion,
-            stops,
+            stops.ToArray(),
             trip.RowVersion) { AllowPayLater = allowPayLater };
     }
 

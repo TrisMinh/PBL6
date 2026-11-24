@@ -22,7 +22,8 @@ OPS_COLUMNS = {
     "status": "string", "customer_key": "string", "tickets": "int64", "boarded": "int64",
 }
 FIN_COLUMNS = {
-    "period_date": "dateTime", "currency": "string", "gross_revenue": "int64",
+    "period_date": "dateTime", "currency": "string", "booking_code": "string",
+    "route_name": "string", "gross_revenue": "int64",
     "refund_amount": "int64", "net_revenue": "int64", "platform_commission": "int64",
     "operator_payable": "int64", "unsettled_amount": "int64", "payment_count": "int64",
     "refund_count": "int64",
@@ -39,9 +40,11 @@ FIN_MEASURES = {
     "Chênh lệch đối soát": "unsettled_amount",
 }
 DEMO_FIN = [
-    ((2026, 11, 17), "VND", 150001, 0, 150001, 18000, 132001, 0, 1, 0),
-    ((2026, 11, 18), "VND", 300000, 50001, 249999, 24000, 225999, 0, 1, 1),
-    ((2026, 11, 19), "VND", 0, 300000, -300000, -30000, -270000, 0, 0, 1),
+    ((2026, 11, 17), "VND", "BKDEMO001", "Đà Nẵng – Hà Nội", 150001, 0, 150001, 18000, 132001, 0, 1, 0),
+    ((2026, 11, 18), "VND", "BKDEMO001", "Đà Nẵng – Hà Nội", 0, 50001, -50001, -6000, -44001, 0, 0, 1),
+    ((2026, 11, 18), "VND", "BKDEMO002", "Đà Nẵng – Hà Nội", 300000, 0, 300000, 30000, 270000, 0, 1, 0),
+    ((2026, 11, 19), "VND", "BKDEMO002", "Đà Nẵng – Hà Nội", 0, 300000, -300000, -30000, -270000, 0, 0, 1),
+    ((2026, 11, 19), "VND", "BKDEMO003", "Đà Nẵng – Huế", 225000, 0, 225000, 22500, 202500, 0, 1, 0),
 ]
 
 
@@ -130,6 +133,7 @@ def table(name, columns, measures, expression, mode="import"):
     labels = {
         "period_date": "Ngày", "route_name": "Tuyến", "payment_channel": "Kênh thanh toán",
         "status": "Trạng thái", "currency": "Tiền tệ",
+        "booking_code": "Mã đơn",
     }
     fields = [
         {"name": labels.get(key, key), "dataType": kind, "sourceColumn": key, "summarizeBy": "none",
@@ -154,14 +158,20 @@ def definition(kind, version, value):
     return schema(f"item/report/definition/{kind}/{version}", value)
 
 
+def column_field(entity, field):
+    return {"Column": {"Expression": {"SourceRef": {"Entity": entity}}, "Property": field}}
+
+
+def literal(value):
+    return {"expr": {"Literal": {"Value": value}}}
+
+
 def visual(name, kind, placement, entity, groups, title):
     def projection(field, field_type):
         return {"field": {field_type: {"Expression": {"SourceRef": {"Entity": entity}}, "Property": field}},
                 "queryRef": f"{entity}.{field}", "nativeQueryRef": field, "active": True}
 
     x, y, width, height = placement
-    def literal(value):
-        return {"expr": {"Literal": {"Value": value}}}
 
     document = definition("visualContainer", "2.0.0", {
         "name": name,
@@ -199,6 +209,10 @@ def visual(name, kind, placement, entity, groups, title):
         }
     elif kind == "slicer":
         visual_config["objects"] = {"header": [{"properties": {"show": literal("false")}}]}
+        if entity == FIN and title == "Ngày":
+            visual_config["objects"]["data"] = [{"properties": {"mode": literal("'Between'")}}]
+        elif entity == FIN and title == "Tiền tệ":
+            visual_config["objects"]["selection"] = [{"properties": {"singleSelect": literal("true")}}]
     elif kind in ("tableEx", "pivotTable"):
         visual_config["objects"] = {
             "grid": [{"properties": {"rowPadding": literal("6L")}}],
@@ -228,9 +242,36 @@ def finance_charts():
          {"Category": [("Mốc ngày", "Column")], "Y": [("Tiền thu", "Measure"), ("Tiền hoàn", "Measure")]}),
         ("ThuRong", "lineChart", (652, 308, 596, 282), "Thu ròng theo ngày",
          {"Category": [("Mốc ngày", "Column")], "Y": [("Thu ròng", "Measure")]}),
-        ("DoiSoat", "tableEx", (32, 616, 1216, 288), "Đối soát theo ngày",
+        ("DoanhThuTheoTuyen", "barChart", (32, 650, 1216, 282), "Doanh thu theo tuyến · Thu ròng",
+         {"Category": [("Tuyến", "Column")], "Y": [("Thu ròng", "Measure")]}),
+        ("DoiSoat", "tableEx", (32, 956, 1216, 288), "Đối soát theo ngày",
          {"Values": [("Ngày", "Column"), ("Tiền tệ", "Column")] + [(key, "Measure") for key in FIN_MEASURES]}),
     ]
+
+
+def action_button(name, title, placement, action, **destination):
+    x, y, width, height = placement
+    return definition("visualContainer", "2.0.0", {
+        "name": name,
+        "position": {"x": x, "y": y, "width": width, "height": height},
+        "visual": {
+            "visualType": "actionButton",
+            "objects": {
+                "text": [
+                    {"properties": {"show": literal("true")}},
+                    {"properties": {"text": literal(f"'{title}'"), "fontSize": literal("13D")},
+                     "selector": {"id": "default"}},
+                ],
+                "icon": [{"properties": {"show": literal("false")}}],
+            },
+            "visualContainerObjects": {"visualLink": [{"properties": {
+                "show": literal("true"), "type": literal(f"'{action}'"),
+                **{key: literal(f"'{value}'") for key, value in destination.items()},
+            }}]},
+            "drillFilterOtherVisuals": True,
+        },
+        "howCreated": "InsertVisualButton",
+    })
 
 
 def build(*, live=False, direct_query=False, server="localhost", booking="booking", reporting="reporting"):
@@ -253,10 +294,10 @@ def build(*, live=False, direct_query=False, server="localhost", booking="bookin
     mode = "directQuery" if direct_query else "import"
     if direct_query:
         ops = direct_query_partition(OPS_COLUMNS, "BookingDatabase", "operator_booking_activity", localize=True)
-        fin = direct_query_partition(FIN_COLUMNS, "ReportingDatabase", "operator_revenue_daily")
+        fin = direct_query_partition(FIN_COLUMNS, "ReportingDatabase", "operator_revenue_by_booking")
     else:
         ops = partition(OPS_COLUMNS, demo_operations(), "BookingDatabase", "operator_booking_activity", localize=True, live=live)
-        fin = partition(FIN_COLUMNS, DEMO_FIN, "ReportingDatabase", "operator_revenue_daily", live=live)
+        fin = partition(FIN_COLUMNS, DEMO_FIN, "ReportingDatabase", "operator_revenue_by_booking", live=live)
     files[f"{MODEL}/model.bim"] = {
         "name": "BLUE Operator Dashboard", "compatibilityLevel": 1601,
         "model": {
@@ -282,7 +323,7 @@ def build(*, live=False, direct_query=False, server="localhost", booking="bookin
     files[f"{report}/version.json"] = definition("versionMetadata", "1.0.0", {"version": "2.0.0"})
     files[f"{report}/report.json"] = definition("report", "2.0.0", {"themeCollection": {}})
     files[f"{report}/pages/pages.json"] = definition("pagesMetadata", "1.0.0", {
-        "pageOrder": ["VanHanh", "TaiChinh"], "activePageName": "VanHanh",
+        "pageOrder": ["VanHanh", "TaiChinh", "ChiTietDonHang"], "activePageName": "VanHanh",
     })
     for page_id, title, entity, slicers, kpis, charts in [
         ("VanHanh", "Vận hành · Khách, đơn và vé", OPS, ("Ngày", "Tuyến", "Kênh thanh toán"), list(OPS_MEASURES), ops_charts()),
@@ -290,7 +331,8 @@ def build(*, live=False, direct_query=False, server="localhost", booking="bookin
     ]:
         folder = f"{report}/pages/{page_id}"
         files[f"{folder}/page.json"] = definition("page", "2.0.0", {
-            "name": page_id, "displayName": title, "displayOption": "FitToWidth", "width": CANVAS_WIDTH, "height": CANVAS_HEIGHT,
+            "name": page_id, "displayName": title, "displayOption": "FitToWidth",
+            "width": CANVAS_WIDTH, "height": 1276 if page_id == "TaiChinh" else CANVAS_HEIGHT,
         })
         for i, field in enumerate(slicers):
             name = f"BoLoc{i}"
@@ -302,6 +344,35 @@ def build(*, live=False, direct_query=False, server="localhost", booking="bookin
                 entity, {"Values": [(field, "Measure")]}, field)
         for name, kind, placement, caption, groups in charts:
             files[f"{folder}/visuals/{name}/visual.json"] = visual(name, kind, placement, entity, groups, caption)
+
+    detail_id = "ChiTietDonHang"
+    detail = f"{report}/pages/{detail_id}"
+    route = column_field(FIN, "Tuyến")
+    route_filter = "BoLocTuyenChiTietDonHang"
+    files[f"{detail}/page.json"] = definition("page", "2.0.0", {
+        "name": detail_id, "displayName": "Chi tiết đơn hàng", "displayOption": "FitToWidth",
+        "width": CANVAS_WIDTH, "height": 720, "visibility": "HiddenInViewMode",
+        "filterConfig": {"filters": [{
+            "name": route_filter, "field": route, "type": "Categorical", "howCreated": "Drillthrough",
+        }]},
+        "pageBinding": {
+            "name": "DrillthroughChiTietDonHang", "type": "Drillthrough", "acceptsFilterContext": "Default",
+            "parameters": [{"name": "ThamSoTuyenChiTietDonHang", "boundFilter": route_filter, "fieldExpr": route}],
+        },
+    })
+    files[f"{report}/pages/TaiChinh/visuals/MoChiTietDonHang/visual.json"] = action_button(
+        "MoChiTietDonHang", "Xem đơn của tuyến đã chọn", (978, 602, 270, 36), "Drillthrough",
+        drillthroughSection=detail_id,
+    )
+    files[f"{detail}/visuals/QuayLai/visual.json"] = action_button(
+        "QuayLai", "Quay lại Tài chính", (32, 24, 195, 44), "Back",
+    )
+    files[f"{detail}/visuals/DonHang/visual.json"] = visual(
+        "DonHang", "tableEx", (32, 90, 1216, 598), FIN,
+        {"Values": [(field, "Column") for field in ("Mã đơn", "Tuyến", "Tiền tệ")]
+                   + [(field, "Measure") for field in ("Tiền thu", "Tiền hoàn", "Thu ròng")]},
+        "Chi tiết đơn hàng trong khoảng ngày giao dịch đã chọn",
+    )
     return files
 
 

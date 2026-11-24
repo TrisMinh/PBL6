@@ -113,6 +113,17 @@
   color: var(--color-text-editorial-copy);
   font-size: 13px;
 }
+.explore__catalog-title {
+  margin: 0 0 20px;
+  scroll-margin-top: 16px;
+  color: var(--color-text-editorial-heading);
+  font: 600 22px/30px var(--font-body);
+}
+.explore__result-count {
+  margin: 0 0 16px;
+  color: var(--color-text-editorial-copy);
+  font-size: 13px;
+}
 .explore__province-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -191,7 +202,7 @@
   font-size: 14px;
 }
 .explore__breadcrumb > span:last-child {
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
 }
 .explore :is(a, button, input):focus-visible {
   outline: 3px solid var(--color-focus-ring);

@@ -69,6 +69,8 @@ function RouteCard({
     destinationId: string;
     title: string;
     art: Artwork;
+    minFare?: number;
+    tripCount?: number;
   };
   departureDate: string;
 }): ReactElement {
@@ -79,19 +81,19 @@ function RouteCard({
     passengerCount: 1,
     sort: "relevance" as const,
   };
-  const query = useTrips(search);
+  const query = useTrips(search, isMockApi);
   const first = query.data?.[0];
+  const count = route.tripCount ?? query.data?.length ?? 0;
+  const minFare =
+    route.minFare ??
+    Math.min(...(query.data ?? []).map((trip) => trip.fareVnd));
   const art = <ExploreImage art={route.art} />;
   const copy = (
     <div className="popular-routes__card-copy">
       <h3>{route.title}</h3>
-      {first ? (
+      {count > 0 ? (
         <p>
-          Từ{" "}
-          {formatCurrencyVnd(
-            Math.min(...(query.data ?? []).map((trip) => trip.fareVnd)),
-          )}{" "}
-          · {query.data?.length} chuyến
+          Từ {formatCurrencyVnd(minFare)} · {count} chuyến
           <ArrowRight size={16} aria-hidden="true" />
         </p>
       ) : query.isPending ? (
@@ -107,15 +109,16 @@ function RouteCard({
   );
   return (
     <article className="popular-routes__card" aria-label={route.title}>
-      {first ? (
+      {count > 0 ? (
         <Link
           aria-label={`Tìm chuyến ${route.title}`}
           to={homeSearchPath(search)}
           onClick={() =>
             rememberSearch({
               search,
-              originLabel: first.origin.displayName,
-              destinationLabel: first.destination.displayName,
+              originLabel: first?.origin.displayName ?? route.originId,
+              destinationLabel:
+                first?.destination.displayName ?? route.destinationId,
             })
           }
         >
@@ -132,12 +135,15 @@ function RouteCard({
   );
 }
 export function MockPopularRoutes(): ReactElement {
-  const catalogue = useLiveCatalogue(!isMockApi);
   const rail = useRef<HTMLDivElement>(null);
   const [edges, setEdges] = useState({ start: true, end: true });
   const tomorrow = new Date(getVietnamTodayDate() + "T00:00:00Z");
   tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
   const departureDate = tomorrow.toISOString().slice(0, 10);
+  const catalogue = useLiveCatalogue(!isMockApi, {
+    departureDate,
+    includeAvailability: false,
+  });
   const routes = isMockApi
     ? ROUTES
     : catalogueRoutes(catalogue.data ?? [], departureDate).slice(

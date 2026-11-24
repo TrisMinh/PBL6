@@ -22,6 +22,7 @@ const tones: Readonly<Record<string, string>> = {
   refunded: "info",
   collected: "info",
   review: "warning",
+  "needs-update": "warning",
   issued: "success",
   "in-transit": "info",
   cancelled: "error",

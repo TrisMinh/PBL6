@@ -4,7 +4,7 @@ import { apiJson } from "@/shared/api/client";
 
 /** Mirrors NotificationDto / NotificationPageDto of the Notification service. */
 export const notificationSchema = z.object({
-  id: z.string().uuid(),
+  id: z.guid(),
   type: z.string(),
   title: z.string(),
   body: z.string(),

@@ -588,13 +588,11 @@ Nó **tự động bắt** các lỗi như "Domain tham chiếu Npgsql" hay "Boo
 | `dev-host.ps1` | Dựng dependency bằng Docker + seed dữ liệu + chạy backend bằng `dotnet` (tiện khi debug code) |
 | `dev-docker.ps1` | Build/chạy **toàn bộ** stack bằng Docker Compose (đơn giản nhất) |
 | `dev-env.ps1` | Set biến môi trường local: connection string, RabbitMQ, SMTP, JWT |
-| `apply-dev-seed.ps1` | Nạp tài khoản/chuyến mẫu |
+| `apply-dev-seed.ps1` | Nạp fixture riêng cho chế độ phát triển backend trên host |
 | `verify-s0.ps1` | Kiểm tra nền tảng Slice 0 |
 | `verify-contracts.ps1` | Kiểm tra OpenAPI/AsyncAPI/schema |
-| `gen_service_skeleton.py` | Sinh skeleton service mới theo cấu trúc chuẩn (4 layer) |
 | `hash-password.cs` | Tạo password hash cho seed data |
 
-Khi cần tạo **service mới**: dùng `gen_service_skeleton.py` thay vì copy-paste tay, để cấu trúc luôn chuẩn.
 
 ---
 
@@ -816,7 +814,7 @@ dotnet run --project src/services/identity/BusTicketPlatform.Identity.Api
 | Swagger Gateway thiếu service | Có service chưa chạy | Mở `/ready` và `/openapi/v1.json` của từng service |
 | Integration test fail ngay | Chưa bật Docker (Testcontainers) | Khởi động Docker rồi chạy lại |
 | Service báo thiếu connection string / JWT | Chưa nạp biến môi trường | Chạy `. ./scripts/dev-env.ps1` rồi `Set-PlatformEnv` |
-| Đăng nhập thử không có tài khoản | Chưa seed | Chạy `./scripts/apply-dev-seed.ps1` |
+| Đăng nhập thử không có tài khoản | Chưa seed | Xem [tài khoản Docker hiện tại](../README.md#đăng-nhập-local) |
 
 ---
 

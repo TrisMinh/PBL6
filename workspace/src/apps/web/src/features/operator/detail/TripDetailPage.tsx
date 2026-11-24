@@ -1,3 +1,4 @@
+import { publicActionError } from "@/shared/api/error";
 import { Toast } from "@/shared/ui/Toast/Toast";
 import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import { useState, type ReactElement, type FormEvent } from "react";
@@ -69,6 +70,7 @@ function DetailContent({ trip }: { trip: TripDetail }): ReactElement {
   const [full, setFull] = useState(false);
   const [message, setMessage] = useState("");
   const [savedNotice, setSavedNotice] = useState("");
+  const [errorNotice, setErrorNotice] = useState("");
   const [cancelOpen, setCancelOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
   const client = useQueryClient();
@@ -82,7 +84,7 @@ function DetailContent({ trip }: { trip: TripDetail }): ReactElement {
       );
       await client.invalidateQueries({ queryKey: ["operator"] });
     },
-    onError: (error: Error) => setMessage(error.message),
+    onError: (error: Error) => setErrorNotice(publicActionError(error)),
   });
   const mutation = useMutation({
     mutationFn: (data: unknown) => updateTrip(trip.id, data),
@@ -95,7 +97,7 @@ function DetailContent({ trip }: { trip: TripDetail }): ReactElement {
       setSavedNotice("Đã lưu thay đổi.");
     },
     onError: () =>
-      setMessage("Không lưu được thay đổi. Dữ liệu nhập được giữ lại."),
+      setErrorNotice("Không lưu được thay đổi. Dữ liệu nhập được giữ lại."),
   });
   const change = (key: keyof TripDetail, value: string): void => {
     setDraft((old) => ({ ...old, [key]: value }));
@@ -335,9 +337,18 @@ function DetailContent({ trip }: { trip: TripDetail }): ReactElement {
           {savedNotice && (
             <Toast message={savedNotice} onClose={() => setSavedNotice("")} />
           )}
-          <p className="operator-detail__message" role="status">
-            {message}
-          </p>
+          {errorNotice && (
+            <Toast
+              message={errorNotice}
+              tone="error"
+              onClose={() => setErrorNotice("")}
+            />
+          )}
+          {message && (
+            <p className="operator-detail__message" role="status">
+              {message}
+            </p>
+          )}
         </form>
         <aside className="operator-detail__passengers">
           <header>

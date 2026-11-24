@@ -15,6 +15,7 @@ builder.Services.AddHttpClient<ISePayOrderLookup, SePayOrderLookup>(client =>
     client.MaxResponseContentBufferSize = 256 * 1024;
 }).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
 builder.Services.AddTransient<SePayReconciliation>();
+builder.Services.AddHostedService<SePayReconciliationWorker>();
 builder.Services.AddPlatformJwt(builder.Configuration);
 builder.Services.AddPlatformOpenApi();
 builder.Services.ConfigureHttpJsonOptions(options => options.SerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase);

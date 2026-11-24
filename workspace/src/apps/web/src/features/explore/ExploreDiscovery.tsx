@@ -2,21 +2,16 @@ import { isMockApi } from "@/shared/api/config";
 import { useAutoCarousel } from "@/shared/hooks/useAutoCarousel";
 import { Pause } from "@phosphor-icons/react/dist/csr/Pause";
 import { Play } from "@phosphor-icons/react/dist/csr/Play";
-import {
-  catalogueRoutes,
-  catalogueProvinces,
-  useLiveCatalogue,
-} from "./liveCatalogue";
+import { catalogueRoutes, useLiveCatalogue } from "./liveCatalogue";
 import { useEffect, useRef, useState, type ReactElement } from "react";
 import { Link } from "react-router";
 import { ArrowRight } from "@phosphor-icons/react/dist/csr/ArrowRight";
 import { CaretLeft } from "@phosphor-icons/react/dist/csr/CaretLeft";
 import { CaretRight } from "@phosphor-icons/react/dist/csr/CaretRight";
 import { demoTrips } from "@/mocks/fixtures/demoTrips";
-import { exploreProvincePath, ROUTES } from "@/shared/config/routes";
+import { ROUTES } from "@/shared/config/routes";
 import { formatCurrencyVnd } from "@/shared/lib/formatCurrencyVnd";
 import { getVietnamTodayDate } from "@/shared/lib/getVietnamTodayDate";
-import { exploreStations } from "./exploreStations";
 import { ExploreImage, type Artwork } from "./ExploreImage";
 import "./ExploreDiscovery.css";
 
@@ -107,12 +102,15 @@ const guides: EditorialItem[] = [
 ];
 
 export function FeaturedRoutes(): ReactElement {
-  const catalogue = useLiveCatalogue(!isMockApi);
   const rail = useRef<HTMLDivElement>(null);
   const [edges, setEdges] = useState({ start: true, end: false });
   const tomorrow = new Date(getVietnamTodayDate() + "T00:00:00Z");
   tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
   const departureDate = tomorrow.toISOString().slice(0, 10);
+  const catalogue = useLiveCatalogue(!isMockApi, {
+    departureDate,
+    includeAvailability: false,
+  });
   const routes = isMockApi
     ? featuredRoutes.map(([originId, destinationId, art]) => ({
         originId,
@@ -317,48 +315,4 @@ export function ExplorePayments(): ReactElement {
 
 export function ExploreGuides(): ReactElement {
   return <EditorialRow id="cam-nang" title="Cẩm nang đi xe" items={guides} />;
-}
-
-export function ExploreStations(): ReactElement {
-  const catalogue = useLiveCatalogue(!isMockApi);
-  const stations = isMockApi
-    ? exploreStations
-    : catalogueProvinces(catalogue.data ?? []).flatMap((province, index) =>
-        province.points.map((point) => ({
-          id: point.id,
-          provinceSlug: province.slug,
-          imageIndex: index % 4,
-          name: point.name,
-          displayName: province.name,
-        })),
-      );
-  return (
-    <section
-      id="ben-xe"
-      className="explore-discovery"
-      aria-labelledby="explore-station-title"
-    >
-      <header>
-        <h2 id="explore-station-title">Bến xe khách</h2>
-        <p>Danh mục điểm đón, trả · Hình ảnh minh họa</p>
-      </header>
-      <div className="explore-discovery__grid">
-        {stations.map((station) => (
-          <Link
-            className="explore-discovery__card explore-discovery__station"
-            key={station.id}
-            to={
-              exploreProvincePath(station.provinceSlug) + "#ben-xe-dia-phuong"
-            }
-          >
-            <ExploreImage art={["stations", station.imageIndex]} />
-            <div className="explore-discovery__station-caption">
-              <h3>{station.name}</h3>
-              <p>{station.displayName}</p>
-            </div>
-          </Link>
-        ))}
-      </div>
-    </section>
-  );
 }

@@ -20,6 +20,7 @@ FROM nginxinc/nginx-unprivileged:1.27-alpine AS runtime
 ARG APP_TARGET=customer
 ARG API_MODE=mock
 COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
+COPY docker/gateway-proxy.inc /etc/nginx/gateway-proxy.inc
 COPY docker/nginx.mock.conf /tmp/nginx.mock.conf
 RUN if [ "$API_MODE" = "mock" ]; then cp /tmp/nginx.mock.conf /etc/nginx/conf.d/default.conf; fi
 COPY --from=build /app/build/${APP_TARGET}/client /usr/share/nginx/html

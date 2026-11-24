@@ -1,94 +1,110 @@
 import { rows, request, localDateTime, type Row } from "../liveOriginalApi";
 import { bookingsResponseSchema, type BookingFilters } from "./bookings.schema";
-import { ApiError } from "@/shared/api/error";
-export async function operatorBookingRows(
-  signal?: AbortSignal,
-): Promise<Row[]> {
-  const [bookings, trips] = await Promise.all([
-    rows("/api/v1/operator/bookings", signal),
-    rows("/api/v1/operator/trips", signal),
-  ]);
-  const inventories = new Map<string, Promise<Row>>();
-  const inventoryFor = (tripId: string): Promise<Row> => {
-    let inventory = inventories.get(tripId);
-    if (!inventory) {
-      inventory = request(
-        `/api/v1/trips/${tripId}/seats`,
-        "GET",
-        undefined,
-        signal,
-      ).catch((error) => {
-        if (error instanceof ApiError && error.status === 404)
-          return { seats: [] };
-        throw error;
-      });
-      inventories.set(tripId, inventory);
-    }
-    return inventory;
-  };
-  return Promise.all(
-    bookings.map(async (b) => {
-      const t = trips.find((t) => t.id === b.tripId);
-      const inventory = await inventoryFor(b.tripId);
-      const departure = t ? localDateTime(t.departureAt) : "";
-      return {
-        id: b.code,
-        backendId: b.id,
-        name: b.contact.fullName,
-        phone: b.contact.phone,
-        tripId: b.tripId,
-        origin: t?.origin ?? "—",
-        destination: t?.destination ?? "—",
-        departureDate: departure.slice(0, 10),
-        departureTime: departure.slice(11),
-        createdDate: b.createdAt ? localDateTime(b.createdAt).slice(0, 10) : "",
-        seat: b.items
-          .map(
-            (p: Row) =>
-              inventory.seats.find((s: Row) => s.id === p.seatId)?.code ?? "—",
-          )
-          .join(", "),
-        amount: b.total,
-        status:
-          b.status === "CANCELLED"
-            ? "cancelled"
-            : ["CONFIRMED", "PAID", "COMPLETED", "CHECKED_IN"].includes(
-                  b.status,
-                )
-              ? "confirmed"
-              : "pending",
-        payment:
-          b.status === "CANCELLED"
-            ? "unpaid"
-            : ["PAID", "COMPLETED", "CHECKED_IN"].includes(b.status) ||
-                (b.status === "CONFIRMED" && b.paymentChannel !== "PAY_LATER")
-              ? "paid"
-              : "unpaid",
-        source: b,
-        trip: t,
-      };
-    }),
-  );
+import { apiJson } from "@/shared/api/client";
+import { isMockApi } from "@/shared/api/config";
+
+function bookingQuery(
+  filters: Pick<BookingFilters, "from" | "to">,
+): URLSearchParams {
+  const query = new URLSearchParams();
+  if (filters.from) query.set("from", filters.from);
+  if (filters.to) query.set("to", filters.to);
+  return query;
 }
+
+function mapBookings(bookings: Row[], trips: Row[]) {
+  const tripsById = new Map(trips.map((trip) => [trip.id, trip]));
+  return bookings.map((booking) => {
+    const trip = tripsById.get(booking.tripId);
+    const departure = trip ? localDateTime(trip.departureAt) : "";
+    const confirmed = ["CONFIRMED", "PAID", "COMPLETED", "CHECKED_IN"].includes(
+      booking.status,
+    );
+    const paid =
+      ["PAID", "COMPLETED", "CHECKED_IN"].includes(booking.status) ||
+      (booking.status === "CONFIRMED" &&
+        booking.paymentChannel !== "PAY_LATER");
+    return {
+      id: booking.code,
+      backendId: booking.id,
+      name: booking.contact.fullName,
+      phone: booking.contact.phone,
+      tripId: booking.tripId,
+      origin: trip?.origin ?? "—",
+      destination: trip?.destination ?? "—",
+      departureDate: departure.slice(0, 10),
+      departureTime: departure.slice(11),
+      createdDate: booking.createdAt
+        ? localDateTime(booking.createdAt).slice(0, 10)
+        : "",
+      seat: (booking.seatCodes ?? booking.items.map(() => "—")).join(", "),
+      amount: booking.total,
+      status:
+        booking.status === "CANCELLED"
+          ? "cancelled"
+          : confirmed
+            ? "confirmed"
+            : "pending",
+      payment: paid ? "paid" : "unpaid",
+      source: booking,
+      trip,
+    };
+  });
+}
+
+export async function operatorBookingRows(
+  range: Pick<BookingFilters, "from" | "to">,
+  trips: Promise<Row[]>,
+  signal?: AbortSignal,
+) {
+  const [bookings, tripRows] = await Promise.all([
+    rows(`/api/v1/operator/bookings?${bookingQuery(range)}`, signal),
+    trips,
+  ]);
+  return mapBookings(bookings, tripRows);
+}
+
 export async function getOperatorBookings(
   filters: BookingFilters,
   signal?: AbortSignal,
 ): Promise<import("zod").infer<typeof bookingsResponseSchema>> {
-  const items = (await operatorBookingRows(signal)).filter(
-    (b) =>
-      (!b.createdDate ||
-        ((!filters.from || b.createdDate >= filters.from) &&
-          (!filters.to || b.createdDate <= filters.to))) &&
-      (filters.status === "all" || b.status === filters.status) &&
-      (filters.payment === "all" || b.payment === filters.payment) &&
-      `${b.id} ${b.name} ${b.phone}`
-        .toLowerCase()
-        .includes(filters.search.toLowerCase()),
+  if (isMockApi) {
+    const query = new URLSearchParams({
+      ...filters,
+      page: String(filters.page),
+    });
+    return apiJson(
+      `/api/v1/operator/bookings-preview?${query}`,
+      bookingsResponseSchema,
+      { signal },
+    );
+  }
+  const pageSize = 10;
+  const query = bookingQuery(filters);
+  query.set("page", String(filters.page - 1));
+  query.set("size", String(pageSize));
+  if (filters.search) query.set("search", filters.search);
+  if (filters.status !== "all") query.set("operatorStatus", filters.status);
+  if (filters.payment !== "all") query.set("operatorPayment", filters.payment);
+
+  const page = await request(
+    `/api/v1/operator/bookings?${query}`,
+    "GET",
+    undefined,
+    signal,
   );
+  const bookings: Row[] = page.items;
+  const tripQuery = new URLSearchParams();
+  for (const id of new Set(bookings.map((booking) => booking.tripId))) {
+    tripQuery.append("tripId", id);
+  }
+  const trips = bookings.length
+    ? await rows(`/api/v1/operator/trips?${tripQuery}`, signal)
+    : [];
   return bookingsResponseSchema.parse({
-    items: items.slice((filters.page - 1) * 10, filters.page * 10),
-    total: items.length,
+    items: mapBookings(bookings, trips),
+    total: page.totalElements,
     page: filters.page,
-    pageSize: 10,
+    pageSize,
   });
 }

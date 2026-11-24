@@ -1,64 +1,39 @@
-# Development Workspace
+# Workspace PBL6
 
-Source lives here. Documents stay in [`../docs/`](../docs/README.md); delivery tracking stays in [`../task-tracking/`](../task-tracking/README.md).
+## Chạy toàn bộ hệ thống trên Windows
 
-## Commands
-
-From `workspace/`:
-
-```bash
-dotnet restore
-dotnet build
-dotnet test
-npm install
-npm run dev:customer
-npm run dev:operator
-npm run dev:admin
-```
-
-## Run (dev / test)
-
-Infra only (Postgres, Rabbit, Redis, Mailpit):
-
-```bash
-docker compose -f src/infra/docker-compose.yml up -d --wait
-./scripts/dev-host.ps1
-npm run dev:customer    # http://localhost:5173
-```
-
-Full Docker (infra + Gateway + 6 APIs + BLUE web (customer/operator/admin)):
-
-```bash
-./scripts/dev-docker.ps1
-```
-
-Local services without Docker:
+Từ thư mục `workspace`, chạy lệnh sau với Docker Desktop đang dùng Linux containers.
 
 ```powershell
-.\scripts\dev-local.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File ..\Setup-PBL6.ps1
 ```
 
-The script installs missing PostgreSQL, Redis, Erlang/RabbitMQ dependencies through
-`winget` where available, creates the local databases and RabbitMQ permissions, launches the Gateway and six APIs in separate terminals, and
-opens Swagger at `http://localhost:5080/swagger`.
+Setup khởi động project Docker `pbl6-operating` và nạp bộ dữ liệu vận hành giả lập của 16 nhà xe. Xem [quy trình cài đặt và khôi phục dữ liệu](./src/data-backup/README.md) nếu cần dùng snapshot riêng.
 
-HTTP:
+## Đăng nhập local
 
-- Customer web: `http://localhost:5173`
-- Operator: `http://localhost:5174/operator/trips`
-- Admin: `http://localhost:5175/admin/organizations`
-- Gateway: `http://localhost:5080`
-- Mailpit: `http://localhost:8025`
+Các tài khoản dưới đây dùng chung mật khẩu `CustomerPass1`.
 
-Seed logins (local/test only):
+| Cổng | Tài khoản |
+|---|---|
+| [Khách hàng](http://localhost:5173/login) | `customer.00001@demo.blue.example.test` |
+| [Nhà xe · Cánh Buồm Sông Hàn](http://localhost:5174/login) | `operator.02@demo.blue.example.test` |
+| [Nhà xe · Đường Mây Kinh Bắc](http://localhost:5174/login) | `operator.03@demo.blue.example.test` |
+| [Nhà xe · Hải Vân Lam](http://localhost:5174/login) | `operator.01@demo.blue.example.test` |
+| [Nhà xe · Tài chính Hải Vân Lam](http://localhost:5174/login) | `finance.01@demo.blue.example.test` |
+| [Quản trị](http://localhost:5175/login) | `admin@demo.blue.example.test` |
 
-| App | Email | Password |
-|---|---|---|
-| Customer | seed.customer@example.test | CustomerPass1 |
-| Operator | operator.seed@example.test | OperatorPass1 |
-| Platform admin | admin.seed@example.test | AdminPass1234 |
-| Driver | driver.seed@example.test | DriverPass1 |
+## Mã nguồn và API
 
-Search seed trip: Seed Origin → Seed Destination on 2026-12-01.
+- [Cấu trúc mã nguồn](./src/README.md)
+- [Swagger qua Gateway](http://localhost:5080/swagger) và [đặc tả OpenAPI](../docs/contracts/openapi/platform-mvp.openapi.yaml)
+- [Bộ kiểm thử API Postman](./postman/README.md)
+- [Mailpit](http://localhost:8025)
 
-Development appsettings blank the connection strings. `dev-host.ps1` sets `ConnectionStrings__*` and `MESSAGING__AMQPURI` so `/ready` works against Docker Postgres/Rabbit.
+## Phát triển và kiểm thử
+
+Chạy `dotnet build BusTicketPlatform.sln` hoặc `dotnet test BusTicketPlatform.sln` từ `workspace`. Các bài kiểm thử tích hợp cần Docker.
+
+Mã giao diện chung nằm tại [src/apps/web](./src/apps/web). Từ thư mục đó, dùng `pnpm install`, `pnpm typecheck` và `pnpm test` với phiên bản Node và pnpm trong `package.json`. Các lệnh `npm run dev:customer`, `npm run dev:operator` và `npm run dev:admin` ở `workspace` mở từng cổng để phát triển.
+
+Tài liệu thiết kế và kế hoạch nằm tại [docs](../docs/README.md) và [task-tracking](../task-tracking/README.md).

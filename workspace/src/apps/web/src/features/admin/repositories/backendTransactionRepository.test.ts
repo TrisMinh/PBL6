@@ -61,7 +61,7 @@ const actualHistory = [
 beforeEach(() => {
   vi.mocked(liveApiJson)
     .mockReset()
-    .mockImplementation(async (path) => {
+    .mockImplementation(async (path, _schema, options) => {
       const value = String(path);
       if (value.endsWith("/audit"))
         return {
@@ -74,24 +74,50 @@ beforeEach(() => {
         };
       if (value === "/api/v1/admin/organizations")
         return [{ id: "org2", name: "Actual organization" }];
-      if (value.startsWith("/api/v1/admin/bookings?"))
+      if (value === "/api/v1/admin/bookings/references")
+        return [{ id: booking.id, code: booking.code }];
+      if (value.startsWith("/api/v1/admin/bookings?")) {
+        const filters = new URL(value, "http://localhost").searchParams;
+        const items =
+          filters.get("status") === "EXPIRED"
+            ? [
+                {
+                  ...booking,
+                  id: "b2",
+                  code: "OTHER",
+                  status: "EXPIRED",
+                  organizationId: "org1",
+                },
+              ]
+            : [booking];
+        return { items, totalPages: 1, totalElements: 1 };
+      }
+      const financeFilters = options?.body as
+        { statuses?: string[] } | undefined;
+      const withStatus = (status: string) =>
+        !financeFilters?.statuses?.length ||
+        financeFilters.statuses.includes(status);
+      if (value.startsWith("/api/v1/admin/payments?")) {
+        const items = payments.filter(({ status }) => withStatus(status));
+        return { items, totalElements: items.length, totalPages: 1 };
+      }
+      if (
+        value.startsWith("/api/v1/admin/refunds?") &&
+        options?.method === "POST"
+      )
         return {
-          items: [
-            booking,
-            {
-              ...booking,
-              id: "b2",
-              code: "OTHER",
-              status: "EXPIRED",
-              organizationId: "org1",
-            },
-          ],
-          totalPages: 1,
+          items: refunds
+            .filter(({ status }) => withStatus(status))
+            .map((refund) => ({
+              refund,
+              organizationId: "org2",
+              paymentReference: payments[0].paymentReference,
+            })),
+          totalElements: 350,
         };
-      if (value.startsWith("/api/v1/admin/payments?"))
-        return { items: payments, totalPages: 1 };
       if (value.startsWith("/api/v1/admin/refunds?"))
         return { items: refunds, totalPages: 1 };
+      if (value === "/api/v1/bookings/b1/payments") return payments;
       if (value === "/api/v1/bookings/b1/tickets")
         return [{ id: "ticket1", status: "CANCELLED" }];
       if (value === "/api/v1/bookings/b1") return booking;
@@ -107,6 +133,39 @@ beforeEach(() => {
     });
 });
 describe("real admin transactions", () => {
+  it("requests only the chosen refund page and sends cross-service booking matches before pagination", async () => {
+    const result = await createBackendTransactionRepository().listRefunds({
+      page: 3,
+      pageSize: 20,
+      organizationId: "org2",
+      status: "completed",
+      query: "REAL-123",
+    });
+    expect(result).toMatchObject({
+      total: 350,
+      page: 3,
+      items: [
+        {
+          id: "r1",
+          live: { bookingCode: "REAL-123", paymentCode: "PAY-REAL-1" },
+        },
+      ],
+    });
+    expect(liveApiJson).toHaveBeenCalledWith(
+      "/api/v1/admin/refunds?page=2&size=20",
+      expect.anything(),
+      expect.objectContaining({
+        method: "POST",
+        body: {
+          search: "REAL-123",
+          organizationId: "org2",
+          statuses: ["SUCCEEDED", "COMPLETED"],
+          matchingBookings: ["b1"],
+        },
+      }),
+    );
+    expect(vi.mocked(liveApiJson).mock.calls).toHaveLength(3);
+  });
   it.each([
     ["bookings", "REFUND_PENDING", "awaiting-refund"],
     ["bookings", "EXPIRED", "expired"],
@@ -130,6 +189,9 @@ describe("real admin transactions", () => {
       query: "real-123",
     });
     expect(result.total).toBe(1);
+    expect(vi.mocked(liveApiJson).mock.calls.map(([path]) => path)).toContain(
+      "/api/v1/admin/bookings?page=0&size=1&organizationId=org2&status=REFUND_PENDING&search=real-123",
+    );
     expect(result.items[0]).toMatchObject({
       id: "b1",
       live: {

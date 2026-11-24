@@ -1,3 +1,4 @@
+import { Toast } from "@/shared/ui/Toast/Toast";
 import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import { useState, type ReactElement, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -5,7 +6,7 @@ import { Link, Navigate, useLocation } from "react-router";
 import { z } from "zod";
 import { useAccountSession } from "@/features/auth/hooks/useAccountSession";
 import { apiJson } from "./client";
-import { ApiError } from "./error";
+import { ApiError, publicActionError } from "./error";
 import { field, type ApiRow } from "./fields";
 import { liveQueryKey } from "./liveRequest";
 import {
@@ -100,10 +101,23 @@ function ApiValue({
 export function ApiFailure({
   error,
   retry,
+  popup = false,
 }: {
   error: Error;
   retry?: () => void;
+  popup?: boolean;
 }): ReactElement {
+  if (popup) {
+    if (error instanceof ApiError && error.status === 401) {
+      return (
+        <div role="alert" className="live-api__error">
+          <p>{publicActionError(error)}</p>
+          <Link to="/login">Đăng nhập lại</Link>
+        </div>
+      );
+    }
+    return <Toast tone="error" message={publicActionError(error)} />;
+  }
   return (
     <div role="alert" className="live-api__error">
       <strong>Chưa thể tải hoặc lưu thông tin</strong>

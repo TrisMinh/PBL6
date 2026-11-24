@@ -12,6 +12,7 @@ public sealed class SePayOptions
     public string IpnSecretKey { get; set; } = "";
     public string Environment { get; set; } = "sandbox";
     public string CustomerOrigin { get; set; } = "http://localhost:5173";
+    public bool AutomaticReconciliationEnabled { get; set; } = true;
     public string[] Methods { get; set; } = ["BANK_TRANSFER"];
     public string CheckoutUrl => Environment == "production"
         ? "https://pay.sepay.vn/v1/checkout/init" : "https://pay-sandbox.sepay.vn/v1/checkout/init";

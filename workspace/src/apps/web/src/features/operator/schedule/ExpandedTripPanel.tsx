@@ -2,6 +2,7 @@ import type { ReactElement } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { X } from "@phosphor-icons/react/dist/csr/X";
 import { Button } from "@/shared/ui/Button/Button";
+import { formatCurrencyVnd } from "@/shared/lib/formatCurrencyVnd";
 import { CreateTripPage, type TripEditorPreview } from "../create/TripEditor";
 import {
   type TripForm,
@@ -11,6 +12,7 @@ import {
 } from "../tripWorkflow";
 import type { ScheduleTrip } from "./schedule.schema";
 import { TripArtwork } from "../components/TripArtwork";
+import { OperatorStatusBadge } from "../components/OperatorStatusBadge";
 import demoAvatar from "@/assets/operator/schedule/driver-demo-avatar.svg";
 import "./ExpandedTripPanel.css";
 
@@ -67,16 +69,24 @@ const drivers: Driver[] = ["Nguyễn Minh Hoàng", "Trần Văn Nam"].map(
 
 export function ExpandedTripPanel({
   trip,
+  historical,
+  statusLabel,
   onClose,
   onSaveDemo,
   onSaved,
 }: {
   trip: ScheduleTrip;
+  historical?: boolean;
+  statusLabel?: string;
   onClose: () => void;
   onSaveDemo: (trip: ScheduleTrip) => void;
   onSaved: () => void;
 }): ReactElement {
   const demo = trip.id === "DEMO-TAI-XE";
+  const status = trip.scheduleStatus ?? trip.status;
+  const archived =
+    historical || ["completed", "cancelled", "needs_update"].includes(status);
+  const summary = !demo && (archived || trip.status !== "draft");
   const arrivalDate = new Date(`${trip.date}T00:00:00Z`);
   if (trip.arrival <= trip.departure)
     arrivalDate.setUTCDate(arrivalDate.getUTCDate() + 1);
@@ -135,12 +145,20 @@ export function ExpandedTripPanel({
       <header className="operator-trip-expanded__header">
         <div>
           <Dialog.Title>
-            {demo ? "Chỉnh sửa chuyến minh họa" : "Chi tiết & vận hành chuyến"}
+            {demo
+              ? "Chỉnh sửa chuyến minh họa"
+              : archived
+                ? "Chi tiết lịch sử chuyến"
+                : summary
+                  ? "Chi tiết chuyến"
+                  : "Chỉnh sửa bản nháp"}
           </Dialog.Title>
           <Dialog.Description id="expanded-trip-description">
             {demo
               ? "DEMO · Dùng cùng form tạo chuyến. Thay đổi chỉ áp dụng cho thẻ minh họa."
-              : "Thông tin, phân công và giá vé của chuyến. Khả năng chỉnh sửa phụ thuộc trạng thái chuyến."}
+              : summary
+                ? "Thông tin lịch chạy và phân công đã lưu."
+                : "Thông tin, phân công và giá vé của chuyến. Khả năng chỉnh sửa phụ thuộc trạng thái chuyến."}
           </Dialog.Description>
         </div>
         <Dialog.Close asChild>
@@ -191,22 +209,78 @@ export function ExpandedTripPanel({
               </div>
             </div>
           )}
-          <p className="operator-trip-expanded__scope">
-            {demo
-              ? "Có thể thử đổi thời gian, xe, tài xế và giá vé ở form bên phải."
-              : "Lưu bản nháp sẽ cập nhật vào hệ thống. Chuyến đã phát hành được giữ nguyên thông tin."}
-          </p>
+          {statusLabel && !demo && (
+            <OperatorStatusBadge state={status}>
+              {statusLabel}
+            </OperatorStatusBadge>
+          )}
+          {!summary && (
+            <p className="operator-trip-expanded__scope">
+              {demo
+                ? "Có thể thử đổi thời gian, xe, tài xế và giá vé ở form bên phải."
+                : "Lưu bản nháp sẽ cập nhật vào hệ thống. Chuyến đã phát hành được giữ nguyên thông tin."}
+            </p>
+          )}
         </aside>
         <div className="operator-trip-expanded__editor">
-          <CreateTripPage
-            key={trip.id}
-            mode={demo ? "create" : "edit"}
-            preview={preview}
-            embedded
-            tripIdOverride={demo ? undefined : trip.id}
-            onSaved={onSaved}
-            onCancel={onClose}
-          />
+          {summary ? (
+            <section className="operator-trip-expanded__history">
+              <h3>Thông tin chuyến</h3>
+              <dl>
+                <div>
+                  <dt>Khởi hành</dt>
+                  <dd>
+                    {trip.departure} ·{" "}
+                    {trip.date.split("-").reverse().join("/")}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Đến dự kiến</dt>
+                  <dd>
+                    {trip.arrival} ·{" "}
+                    {(trip.arrivalDate ?? trip.date)
+                      .split("-")
+                      .reverse()
+                      .join("/")}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Điểm đón</dt>
+                  <dd>{trip.pickupStops?.join(" · ") || trip.origin}</dd>
+                </div>
+                <div>
+                  <dt>Điểm trả</dt>
+                  <dd>{trip.dropoffStops?.join(" · ") || trip.destination}</dd>
+                </div>
+                <div>
+                  <dt>Sức chứa</dt>
+                  <dd>{trip.capacity} ghế</dd>
+                </div>
+                {trip.fare && (
+                  <div>
+                    <dt>Giá vé</dt>
+                    <dd>{formatCurrencyVnd(trip.fare)}</dd>
+                  </div>
+                )}
+              </dl>
+              {status === "needs_update" && (
+                <p>
+                  Đã qua giờ đến dự kiến. Chuyến đang chờ cập nhật trạng thái
+                  vận hành.
+                </p>
+              )}
+            </section>
+          ) : (
+            <CreateTripPage
+              key={trip.id}
+              mode={demo ? "create" : "edit"}
+              preview={preview}
+              embedded
+              tripIdOverride={demo ? undefined : trip.id}
+              onSaved={onSaved}
+              onCancel={onClose}
+            />
+          )}
         </div>
       </div>
     </Dialog.Content>

@@ -20,6 +20,12 @@ public static class BookingEndpoints
                 return PlatformHttp.Error(PlatformErrors.Validation("Trip IDs are invalid."), context.CorrelationId());
             return Results.Json(await service.AvailableSeatsAsync(parts.Select(Guid.Parse).Distinct().ToArray(), context.RequestAborted), PlatformHttp.Json);
         });
+        api.MapPost("/trips/availability", async (HttpContext context, BookingService service, AvailabilityInput input) =>
+        {
+            if (input.TripIds is not { Length: > 0 and <= 1_000 } || input.TripIds.Contains(Guid.Empty))
+                return PlatformHttp.Error(PlatformErrors.Validation("Trip IDs are invalid."), context.CorrelationId());
+            return Results.Json(await service.AvailableSeatsAsync(input.TripIds.Distinct().ToArray(), context.RequestAborted), PlatformHttp.Json);
+        });
         api.MapGet("/trips/{tripId:guid}/coupons", async (HttpContext context, BookingService service, Guid tripId) =>
             (await service.ListCouponsAsync(tripId, context.RequestAborted)).ToHttp(context.CorrelationId()));
         api.MapPost("/coupons/quote", async (HttpContext context, BookingService service, CouponQuoteRequest body) => {
@@ -39,6 +45,13 @@ public static class BookingEndpoints
         api.MapPut("/seat-holds/{**holdToken}", ReplaceHoldAsync).RequireAuthorization();
         api.MapPost("/bookings", CreateBookingAsync).RequireAuthorization();
         api.MapGet("/bookings", ListBookingsAsync).RequireAuthorization();
+        api.MapGet("/bookings/by-code/{code}", async (HttpContext context, BookingService service, string code) =>
+        {
+            context.Response.Headers.CacheControl = "no-store";
+            var actor = ActorOf(context);
+            return actor is null ? PlatformHttp.Error(PlatformErrors.AuthenticationRequired(), context.CorrelationId())
+                : (await service.GetMyBookingByCodeAsync(actor, code, context.RequestAborted)).ToHttp(context.CorrelationId());
+        }).RequireAuthorization();
         api.MapGet("/bookings/{bookingId:guid}", GetBookingAsync).RequireAuthorization();
         api.MapPost("/bookings/{bookingId:guid}/cancellation-preview", PreviewAsync).RequireAuthorization();
         api.MapPost("/bookings/{bookingId:guid}/cancel", CancelAsync).RequireAuthorization();
@@ -49,19 +62,49 @@ public static class BookingEndpoints
                 : (await service.ListBookingTicketsAsync(actor, bookingId, context.RequestAborted)).ToHttp(context.CorrelationId());
         }).RequireAuthorization();
         api.MapGet("/tickets", ListTicketsAsync).RequireAuthorization();
+        api.MapPost("/tickets/my-lookup", async (HttpContext context, BookingService service, MyLookupInput input) =>
+        {
+            context.Response.Headers.CacheControl = "no-store";
+            var actor = ActorOf(context);
+            return actor is null ? PlatformHttp.Error(PlatformErrors.AuthenticationRequired(), context.CorrelationId())
+                : (await service.FindMyTicketsAsync(actor, input.Code ?? "", context.RequestAborted)).ToHttp(context.CorrelationId());
+        }).RequireAuthorization();
         api.MapPost("/tickets/lookup", LookupTicketsAsync).RequireRateLimiting("ticket-lookup");
         api.MapGet("/tickets/lookup/{code}", LookupTicketAsync);
         api.MapGet("/tickets/{ticketId:guid}", GetTicketAsync).RequireAuthorization();
         api.MapPost("/tickets/validate", ValidateAsync).RequireAuthorization();
         api.MapPost("/tickets/{ticketId:guid}/check-in", CheckInAsync).RequireAuthorization();
         api.MapGet("/operator/trips/{tripId:guid}/manifest", ManifestAsync).RequireAuthorization();
+        api.MapGet("/operator/trips/manifest-counts", async (HttpContext context, BookingService service) =>
+        {
+            var actor = ActorOf(context);
+            return actor is null ? PlatformHttp.Error(PlatformErrors.AuthenticationRequired(), context.CorrelationId())
+                : (await service.ManifestCountsAsync(actor, context.RequestAborted)).ToHttp(context.CorrelationId());
+        }).RequireAuthorization();
         api.MapGet("/admin/bookings", SearchAsync).RequireAuthorization();
+        api.MapPost("/admin/bookings/references", async (HttpContext context, BookingService service, BookingReferenceQuery body) =>
+        {
+            context.Response.Headers.CacheControl = "no-store";
+            var actor = ActorOf(context);
+            return actor is null ? PlatformHttp.Error(PlatformErrors.AuthenticationRequired(), context.CorrelationId())
+                : (await service.FindBookingReferencesAsync(actor, body.Search, body.Ids, body.OrganizationId, context.RequestAborted)).ToHttp(context.CorrelationId());
+        }).RequireAuthorization();
         api.MapGet("/operator/bookings", SearchAsync).RequireAuthorization();
+        api.MapGet("/operator/bookings/cancelled-seats", async (HttpContext context, BookingService service,
+            [Microsoft.AspNetCore.Mvc.FromQuery] Guid[] bookingId) =>
+        {
+            var actor = ActorOf(context);
+            return actor is null ? PlatformHttp.Error(PlatformErrors.AuthenticationRequired(), context.CorrelationId())
+                : (await service.CancelledSeatsAsync(actor, bookingId, context.RequestAborted)).ToHttp(context.CorrelationId());
+        }).RequireAuthorization();
         api.MapPost("/internal/trips/published", ImportAsync);
         return endpoints;
     }
 
     public sealed record LookupInput(string? BookingCode, string? VerificationValue);
+    public sealed record MyLookupInput(string? Code);
+    public sealed record AvailabilityInput(Guid[]? TripIds);
+    public sealed record BookingReferenceQuery(string? Search, Guid[]? Ids, Guid? OrganizationId);
 
     private static async Task<IResult> LookupTicketsAsync(HttpContext context, BookingService service, LookupInput input)
     {
@@ -243,12 +286,26 @@ public static class BookingEndpoints
             : (await service.ManifestAsync(actor, tripId, context.RequestAborted)).ToHttp(context.CorrelationId());
     }
 
-    private static async Task<IResult> SearchAsync(HttpContext context, BookingService service, int page = 0, int size = 20)
+    private static async Task<IResult> SearchAsync(HttpContext context, BookingService service,
+        [Microsoft.AspNetCore.Mvc.FromQuery] Guid[] matchingOrganizationId,
+        [Microsoft.AspNetCore.Mvc.FromQuery] Guid[] bookingId,
+        int page = 0, int size = 20, Guid? organizationId = null, string? status = null, string? search = null,
+        DateOnly? from = null, DateOnly? to = null, string? operatorStatus = null, string? operatorPayment = null, bool settlementReferences = false)
     {
         var actor = ActorOf(context);
-        return actor is null
-            ? PlatformHttp.Error(PlatformErrors.AuthenticationRequired(), context.CorrelationId())
-            : (await service.SearchBookingsAsync(actor, page, size, context.RequestAborted)).ToHttp(context.CorrelationId());
+        if (actor is null)
+            return PlatformHttp.Error(PlatformErrors.AuthenticationRequired(), context.CorrelationId());
+        if (settlementReferences && context.Request.Path == "/api/v1/operator/bookings")
+            return (await service.ListSettlementBookingReferencesAsync(actor, context.RequestAborted)).ToHttp(context.CorrelationId());
+        if (from == DateOnly.MinValue || to is { } last && last == DateOnly.MaxValue)
+            return PlatformHttp.Error(PlatformErrors.Validation("Date bounds are invalid."), context.CorrelationId());
+
+        static DateTimeOffset? StartOfLocalDay(DateOnly? date) => date is null ? null
+            : new DateTimeOffset(date.Value.ToDateTime(TimeOnly.MinValue), TimeSpan.FromHours(7)).ToUniversalTime();
+
+        var filter = new BookingListFilter(organizationId, status, search, matchingOrganizationId,
+            StartOfLocalDay(from), StartOfLocalDay(to?.AddDays(1)), operatorStatus, operatorPayment, bookingId);
+        return (await service.SearchBookingsAsync(actor, page, size, filter, context.RequestAborted)).ToHttp(context.CorrelationId());
     }
 
     private static async Task<IResult> ImportAsync(HttpContext context, BookingService service, TripPublishedMessage body) =>

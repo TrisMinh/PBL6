@@ -12,16 +12,39 @@ public interface ISePayOrderLookup
 
 public sealed class SePayReconciliation(IPaymentRepository payments, ISePayPaymentStore store, ISePayOrderLookup lookup)
 {
+    public async Task<int> CheckDueAsync(CancellationToken cancellationToken)
+    {
+        const int batchSize = 10;
+        var failures = 0;
+        var due = await store.FindDueReconciliationsAsync(batchSize, cancellationToken);
+        foreach (var paymentId in due)
+        {
+            var payment = await payments.GetAsync(paymentId, cancellationToken);
+            if (payment is null || payment.Provider != "SEPAY") continue;
+            var result = await ReconcileAsync(payment, Guid.CreateVersion7(), automatic: true, cancellationToken);
+            if (!result.IsSuccess) failures++;
+        }
+
+        return failures;
+    }
+
     public async Task<Result> CheckAsync(Guid customerId, Guid paymentId, Guid correlationId, CancellationToken cancellationToken)
     {
         var payment = await payments.GetAsync(paymentId, cancellationToken);
         if (payment is null || payment.CustomerId != customerId || payment.Provider != "SEPAY")
             return Result.Failure(PlatformErrors.NotFound());
 
+        return await ReconcileAsync(payment, correlationId, automatic: false, cancellationToken);
+    }
+
+    private async Task<Result> ReconcileAsync(PaymentRecord payment, Guid correlationId, bool automatic,
+        CancellationToken cancellationToken)
+    {
         if (!CanCheck(payment.Status)) return Result.Success();
-        if (!await store.TryStartReconciliationAsync(paymentId, cancellationToken))
+        if (!await store.TryStartReconciliationAsync(payment.Id, automatic, cancellationToken))
         {
-            var current = await payments.GetAsync(paymentId, cancellationToken);
+            if (automatic) return Result.Success();
+            var current = await payments.GetAsync(payment.Id, cancellationToken);
             if (current is not null && !CanCheck(current.Status)) return Result.Success();
             return Result.Failure(new AppError(ErrorCodes.RateLimited,
                 "Please wait before checking this payment again.", StatusCodes.TooManyRequests));

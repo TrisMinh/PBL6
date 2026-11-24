@@ -20,7 +20,7 @@ function sql(database, statement) {
     "docker",
     [
       "exec",
-      "pbl6-local-postgres-1",
+      process.env.PBL6_POSTGRES_CONTAINER || "pbl6-operating-postgres-1",
       "psql",
       "-U",
       "platform",
@@ -110,10 +110,10 @@ function cleanup() {
     await page.goto(base + "/login", { waitUntil: "networkidle" });
     await page
       .locator("input[type=email]")
-      .fill(process.env.ADMIN_TEST_EMAIL || "admin.seed@example.test");
+      .fill(process.env.ADMIN_TEST_EMAIL || "admin@demo.blue.example.test");
     await page
       .locator('input[autocomplete="current-password"]')
-      .fill(process.env.ADMIN_TEST_PASSWORD || "AdminPass1234");
+      .fill(process.env.ADMIN_TEST_PASSWORD || "CustomerPass1");
     await page.locator("button[type=submit]").click();
     await page.waitForURL("**/admin/organizations");
     token = await page.evaluate(

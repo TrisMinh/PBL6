@@ -280,7 +280,7 @@ export function LiveBookingOptions({
           Hủy đặt vé
         </Button>
       )}
-      {release.isError && <ApiFailure error={release.error} />}
+      {release.isError && <ApiFailure error={release.error} popup />}
     </div>
   );
   return children({

@@ -212,9 +212,8 @@ describe("StaffListPage", () => {
     expect(screen.getByLabelText("Current URL")).toHaveTextContent(
       "/admin/staff?query=demo&page=2",
     );
-    expect(screen.getByText("Đã thêm nhân viên.")).toHaveAttribute(
-      "role",
-      "status",
-    );
+    expect(
+      screen.getByText("Đã thêm nhân viên.").closest(".app-toast"),
+    ).toHaveAttribute("role", "status");
   });
 });

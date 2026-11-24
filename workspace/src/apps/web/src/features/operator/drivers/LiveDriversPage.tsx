@@ -156,7 +156,7 @@ function DriverProfile({
           Chỉnh sửa hồ sơ
         </Link>
       </div>
-      {deactivate.isError && <ApiFailure error={deactivate.error} />}
+      {deactivate.isError && <ApiFailure error={deactivate.error} popup />}
     </section>
   );
 }

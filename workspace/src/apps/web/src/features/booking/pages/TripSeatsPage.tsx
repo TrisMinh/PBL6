@@ -63,7 +63,7 @@ export function TripSeatsPage(): ReactElement {
   const { tripId } = useParams();
   const [params] = useSearchParams();
   const count = params.get("passengerCount") ?? "1";
-  if (!tripId || (!isMockApi && !z.uuid().safeParse(tripId).success))
+  if (!tripId || (!isMockApi && !z.guid().safeParse(tripId).success))
     return (
       <PageState
         title="Không tìm thấy chuyến"

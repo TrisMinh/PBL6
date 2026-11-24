@@ -1,3 +1,4 @@
+import { Toast } from "@/shared/ui/Toast/Toast";
 import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRef, useState, type ReactElement, type ReactNode } from "react";
@@ -242,8 +243,10 @@ export function ApiForm({
           </Button>
         </fieldset>
       </form>
-      {mutation.isError && <ApiFailure error={mutation.error} />}
-      {mutation.isSuccess && <p role="status">Đã lưu yêu cầu thành công.</p>}
+      {mutation.isError && <ApiFailure error={mutation.error} popup />}
+      {mutation.isSuccess && (
+        <Toast message="Đã lưu yêu cầu thành công." onClose={mutation.reset} />
+      )}
     </section>
   );
 }

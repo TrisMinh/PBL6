@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useForm, useWatch } from "react-hook-form";
-import { useRef, useState, type ReactElement } from "react";
+import { useId, useRef, useState, type ReactElement } from "react";
 import { z } from "zod";
 
 import closeIcon from "@/assets/admin/close-member.svg";
@@ -34,6 +34,8 @@ interface MembershipDialogProps {
   membership?: Membership;
   isPending: boolean;
   errorMessage?: string;
+  onStaffSearch?: (search: string) => void;
+  isStaffSearching?: boolean;
   onClose: () => void;
   onSubmit: (input: MembershipInput, key: string) => Promise<void>;
 }
@@ -44,6 +46,7 @@ export function MembershipDialog(props: MembershipDialogProps): ReactElement {
       typeof document === "undefined" ||
       !document.activeElement?.matches(":focus-visible"),
   );
+  const errorId = useId();
   const contentRef = useRef<HTMLDivElement | null>(null);
   const returnFocusRef = useRef<HTMLElement | null>(
     typeof document !== "undefined" &&
@@ -167,6 +170,12 @@ export function MembershipDialog(props: MembershipDialogProps): ReactElement {
               ) : (
                 <select
                   aria-label="Nhà xe"
+                  aria-invalid={Boolean(form.formState.errors.organizationId)}
+                  aria-describedby={
+                    form.formState.errors.organizationId
+                      ? `${errorId}-organizationId`
+                      : undefined
+                  }
                   {...form.register("organizationId")}
                 >
                   <option value="">Chọn nhà xe</option>
@@ -178,11 +187,28 @@ export function MembershipDialog(props: MembershipDialogProps): ReactElement {
                 </select>
               )}
               {form.formState.errors.organizationId?.message && (
-                <span role="alert">
+                <span id={`${errorId}-organizationId`} role="alert">
                   {form.formState.errors.organizationId.message}
                 </span>
               )}
             </label>
+            {!editing && props.onStaffSearch && (
+              <label>
+                Tìm tài khoản
+                <input
+                  type="search"
+                  maxLength={254}
+                  placeholder="Nhập ít nhất 2 ký tự tên, email hoặc số điện thoại"
+                  onChange={(event) => {
+                    form.setValue("staffId", "");
+                    props.onStaffSearch?.(event.target.value);
+                  }}
+                />
+                {props.isStaffSearching && (
+                  <span role="status">Đang tìm tài khoản…</span>
+                )}
+              </label>
+            )}
             <label>
               Nhân viên{editing ? " · Cố định" : ""}
               {editing ? (
@@ -190,7 +216,16 @@ export function MembershipDialog(props: MembershipDialogProps): ReactElement {
                   {props.fixedStaff?.fullName}
                 </span>
               ) : (
-                <select aria-label="Nhân viên" {...form.register("staffId")}>
+                <select
+                  aria-label="Nhân viên"
+                  aria-invalid={Boolean(form.formState.errors.staffId)}
+                  aria-describedby={
+                    form.formState.errors.staffId
+                      ? `${errorId}-staffId`
+                      : undefined
+                  }
+                  {...form.register("staffId")}
+                >
                   <option value="">Chọn nhân viên</option>
                   {props.staff.map((item) => (
                     <option key={item.id} value={item.id}>
@@ -200,21 +235,30 @@ export function MembershipDialog(props: MembershipDialogProps): ReactElement {
                 </select>
               )}
               {form.formState.errors.staffId?.message && (
-                <span role="alert">
+                <span id={`${errorId}-staffId`} role="alert">
                   {form.formState.errors.staffId.message}
                 </span>
               )}
             </label>
             <label>
               Vai trò
-              <select aria-label="Vai trò" {...form.register("role")}>
+              <select
+                aria-label="Vai trò"
+                aria-invalid={Boolean(form.formState.errors.role)}
+                aria-describedby={
+                  form.formState.errors.role ? `${errorId}-role` : undefined
+                }
+                {...form.register("role")}
+              >
                 <option value="">Chọn vai trò</option>
                 <option value="OPERATOR_ADMIN">Quản trị nhà xe</option>
                 <option value="OPERATOR_SCHEDULER">Lập lịch</option>
                 <option value="DRIVER">Tài xế</option>
               </select>
               {form.formState.errors.role?.message && (
-                <span role="alert">{form.formState.errors.role.message}</span>
+                <span id={`${errorId}-role`} role="alert">
+                  {form.formState.errors.role.message}
+                </span>
               )}
             </label>
             <label>
@@ -231,10 +275,16 @@ export function MembershipDialog(props: MembershipDialogProps): ReactElement {
                 placeholder={
                   editing ? "Nhập lý do thay đổi" : "Nhập lý do thêm thành viên"
                 }
+                aria-invalid={Boolean(form.formState.errors.reason)}
+                aria-describedby={
+                  form.formState.errors.reason ? `${errorId}-reason` : undefined
+                }
                 {...form.register("reason")}
               />
               {form.formState.errors.reason?.message && (
-                <span role="alert">{form.formState.errors.reason.message}</span>
+                <span id={`${errorId}-reason`} role="alert">
+                  {form.formState.errors.reason.message}
+                </span>
               )}
             </label>
             <p className="membership-dialog__hint">

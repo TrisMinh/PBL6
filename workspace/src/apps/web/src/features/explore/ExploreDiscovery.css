@@ -188,22 +188,6 @@
   color: var(--color-text-secondary);
 }
 
-.explore-discovery__station {
-  position: relative;
-  display: block;
-}
-.explore-discovery__station .explore-discovery__image {
-  aspect-ratio: 3 / 2;
-}
-
-.explore-discovery__station-caption {
-  position: absolute;
-  inset: auto 0 0;
-  padding: 30px 14px 12px;
-  background: linear-gradient(transparent, rgb(7 24 50 / 92%) 50%);
-  color: white;
-}
-
 .explore-discovery :is(a, button):focus-visible {
   outline: 3px solid var(--color-focus-ring);
   outline-offset: -3px;

@@ -1,3 +1,4 @@
+import { Toast } from "@/shared/ui/Toast/Toast";
 import { useState, type ReactElement } from "react";
 import { useSearchParams } from "react-router";
 
@@ -147,12 +148,14 @@ function CreateDialog({
   dialog,
   organizations,
   staff,
+  onStaffSearch,
   onCreated,
   save,
 }: {
   dialog: ReturnType<typeof useDialogUrl>;
   organizations: ReturnType<typeof useStaffOrganizations>;
   staff: ReturnType<typeof useStaff>;
+  onStaffSearch: (value: string) => void;
   onCreated: () => void;
   save: ReturnType<typeof useSaveMembership>;
 }): ReactElement | null {
@@ -174,6 +177,8 @@ function CreateDialog({
       onSubmit={submit}
       organizations={organizations.data?.items ?? []}
       staff={staff.data?.items ?? []}
+      onStaffSearch={isMockApi ? undefined : onStaffSearch}
+      isStaffSearching={staff.isFetching}
     />
   );
 }
@@ -181,10 +186,14 @@ function CreateDialog({
 export function StaffListPage(): ReactElement {
   const { params, updateParams } = useAdminListParams();
   const result = useStaff(params);
-  const availableStaff = useStaffCandidates();
+  const dialog = useDialogUrl();
+  const [staffSearch, setStaffSearch] = useState("");
+  const availableStaff = useStaffCandidates({
+    search: staffSearch,
+    enabled: dialog.isCreateOpen,
+  });
   const organizations = useStaffOrganizations();
   const save = useSaveMembership();
-  const dialog = useDialogUrl();
   const [notice, setNotice] = useState("");
   const options =
     organizations.data?.items.map((item) => ({
@@ -197,14 +206,22 @@ export function StaffListPage(): ReactElement {
     : undefined;
   return (
     <StaffListView
-      dialog={dialog}
+      dialog={{
+        ...dialog,
+        close: () => {
+          setStaffSearch("");
+          dialog.close();
+        },
+      }}
       notice={notice}
+      onNoticeClose={() => setNotice("")}
       onCreated={() => setNotice("Đã thêm nhân viên.")}
       options={options}
       organizations={organizations}
       params={params}
       result={result}
       availableStaff={availableStaff}
+      onStaffSearch={setStaffSearch}
       save={save}
       totalPages={totalPages}
       updateParams={updateParams}
@@ -215,12 +232,14 @@ export function StaffListPage(): ReactElement {
 interface StaffListViewProps {
   dialog: ReturnType<typeof useDialogUrl>;
   notice: string;
+  onNoticeClose: () => void;
   onCreated: () => void;
   options: readonly { label: string; value: string }[];
   organizations: ReturnType<typeof useStaffOrganizations>;
   params: ReturnType<typeof useAdminListParams>["params"];
   result: ReturnType<typeof useStaff>;
   availableStaff: ReturnType<typeof useStaff>;
+  onStaffSearch: (value: string) => void;
   save: ReturnType<typeof useSaveMembership>;
   totalPages?: number;
   updateParams: ReturnType<typeof useAdminListParams>["updateParams"];
@@ -244,14 +263,15 @@ function StaffListView(props: StaffListViewProps): ReactElement {
         totalPages={props.totalPages}
         updateParams={props.updateParams}
       />
-      <p aria-live="polite" className="staff-page__notice" role="status">
-        {props.notice}
-      </p>
+      {props.notice && (
+        <Toast message={props.notice} onClose={props.onNoticeClose} />
+      )}
       <CreateDialog
         dialog={props.dialog}
         onCreated={props.onCreated}
         organizations={props.organizations}
         staff={props.availableStaff}
+        onStaffSearch={props.onStaffSearch}
         save={props.save}
       />
     </div>

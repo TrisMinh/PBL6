@@ -5,7 +5,7 @@ import { createMeta } from "@/shared/config/seo";
 export function meta(): MetaDescriptor[] {
   return createMeta({
     title: "Operator — Lịch chuyến",
-    description: "Lịch chạy và phân công chuyến xe mô phỏng.",
+    description: "Lịch chạy và phân công chuyến xe của nhà xe.",
     noIndex: true,
   });
 }

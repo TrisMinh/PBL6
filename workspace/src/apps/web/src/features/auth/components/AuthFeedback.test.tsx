@@ -15,8 +15,11 @@ it("explains lockout without inventing a countdown or an exact unlock time", () 
 });
 it("keeps ordinary invalid credentials as the generic login message", () => {
   const error = new BookingRepositoryError("INVALID_CREDENTIALS", 401);
-  error.message = "Email/số điện thoại hoặc mật khẩu không đúng.";
+  error.message = "Thông tin kỹ thuật nội bộ";
   render(<AuthError error={error} />);
-  expect(screen.getByRole("alert")).toHaveTextContent(error.message);
+  expect(screen.getByRole("alert")).toHaveTextContent(
+    "Email/số điện thoại hoặc mật khẩu không đúng.",
+  );
+  expect(screen.queryByText(error.message)).not.toBeInTheDocument();
   expect(screen.queryByText("Tài khoản bị khóa")).not.toBeInTheDocument();
 });

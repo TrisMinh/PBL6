@@ -4,6 +4,8 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using BusTicketPlatform.Booking.Infrastructure;
 using BusTicketPlatform.BuildingBlocks.Messaging;
+using BusTicketPlatform.BuildingBlocks.Results;
+using BusTicketPlatform.Payment.Application;
 using BusTicketPlatform.Payment.Infrastructure;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -18,11 +20,13 @@ namespace BusTicketPlatform.Payment.Api.IntegrationTests;
 public sealed class SePayBookingFlowTests(PaymentPostgresFixture fixture)
 {
     [Theory]
-    [InlineData(false, false)]
-    [InlineData(true, false)]
-    [InlineData(false, true)]
-    [InlineData(true, true)]
-    public async Task Two_seats_to_SePay_IPN_to_booking_tickets_manifest_and_refund(bool bookingExpiresBeforeEvent, bool withCoupon)
+    [InlineData(false, false, false)]
+    [InlineData(true, false, false)]
+    [InlineData(false, true, false)]
+    [InlineData(true, true, false)]
+    [InlineData(false, false, true)]
+    public async Task Two_seats_to_SePay_capture_to_booking_tickets_manifest_and_refund(
+        bool bookingExpiresBeforeEvent, bool withCoupon, bool scheduled)
     {
         var dbName = "booking_" + Guid.NewGuid().ToString("N");
         await using (var connection = new NpgsqlConnection(fixture.Container.GetConnectionString()))
@@ -86,6 +90,25 @@ public sealed class SePayBookingFlowTests(PaymentPostgresFixture fixture)
             return response.StatusCode;
         }
 
+        if (scheduled)
+        {
+            await using var connection = new NpgsqlConnection(fixture.Container.GetConnectionString());
+            await connection.OpenAsync();
+            await using var age = new NpgsqlCommand(
+                "UPDATE payments SET created_at = NOW() - INTERVAL '2 minutes' WHERE id = @id", connection);
+            age.Parameters.AddWithValue("id", paymentId);
+            await age.ExecuteNonQueryAsync();
+
+            var capture = new SePayNotification(notification.order.order_invoice_number!, notification.transaction.id,
+                "ORDER_PAID", payable, "VND");
+            await using var reconciliationHost = fixture.Factory.WithWebHostBuilder(builder => builder.ConfigureTestServices(
+                services => services.AddSingleton<ISePayOrderLookup>(new CapturedInvoice(capture))));
+            var check = reconciliationHost.Services.GetRequiredService<SePayReconciliation>();
+            await check.CheckDueAsync(default);
+            var verified = await Send(paymentClient, HttpMethod.Get, $"/api/v1/payments/{paymentId}", token);
+            Assert.Equal("SUCCEEDED", verified.GetProperty("status").GetString());
+        }
+
         Assert.Equal(HttpStatusCode.OK, await SendIpnAsync(replicaClient));
         Assert.Equal(HttpStatusCode.OK, await SendIpnAsync(paymentClient));
         await using (var connection = new NpgsqlConnection(fixture.Container.GetConnectionString()))
@@ -141,6 +164,14 @@ public sealed class SePayBookingFlowTests(PaymentPostgresFixture fixture)
         await using var refunds = new NpgsqlCommand("SELECT COUNT(*), SUM(amount) FROM refunds WHERE payment_id = @id", verify); refunds.Parameters.AddWithValue("id", paymentId);
         await using var reader = await refunds.ExecuteReaderAsync(); Assert.True(await reader.ReadAsync()); Assert.Equal(1, reader.GetInt64(0));
         Assert.Equal(preview.GetProperty("refundAmount").GetInt64(), (long)reader.GetDecimal(1));
+    }
+
+    private sealed class CapturedInvoice(SePayNotification capture) : ISePayOrderLookup
+    {
+        public Task<Result<IReadOnlyList<SePayNotification>>> FindCapturesAsync(string invoice,
+            CancellationToken cancellationToken) =>
+            Task.FromResult(Result<IReadOnlyList<SePayNotification>>.Success(
+                invoice == capture.Invoice ? [capture] : []));
     }
 
     private static async Task<EventMessage> ReadEvent(string connectionString, string type, Guid aggregate)

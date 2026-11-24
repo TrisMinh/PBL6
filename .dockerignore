@@ -12,3 +12,7 @@ agent-transcripts
 **/coverage
 workspace/src/apps/mobile/node_modules
 workspace/src/data-backup
+.env
+.env.*
+.worktrees
+on-premises data gateway installer

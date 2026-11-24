@@ -4,6 +4,22 @@ Repository dùng SRS 2.1.0 làm baseline hiện hành để triển khai hệ th
 
 ## Điểm bắt đầu
 
+Trên Windows có Docker Desktop, chạy từ thư mục gốc để build và khởi động cả ba cổng với dữ liệu vận hành.
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Setup-PBL6.ps1
+```
+
+Máy local chạy bộ dữ liệu vận hành giả lập của 16 nhà xe. Các tài khoản dưới đây dùng chung mật khẩu local `CustomerPass1`.
+
+| Cổng | Tài khoản |
+|---|---|
+| [Khách hàng](http://localhost:5173/login) | `customer.00001@demo.blue.example.test` |
+| [Nhà xe](http://localhost:5174/login) · Hải Vân Lam | `operator.01@demo.blue.example.test` |
+| [Nhà xe](http://localhost:5174/login) · Cánh Buồm Sông Hàn | `operator.02@demo.blue.example.test` |
+| [Nhà xe](http://localhost:5174/login) · Đường Mây Kinh Bắc | `operator.03@demo.blue.example.test` |
+| [Quản trị](http://localhost:5175/login) | `admin@demo.blue.example.test` |
+
 - [Build Docker và nạp dữ liệu sau khi clone](./workspace/src/data-backup/README.md)
 - [Mục lục tài liệu](./docs/README.md)
 - [SRS 2.1.0 — active baseline](./docs/srs/v2/README.md)

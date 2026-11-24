@@ -42,6 +42,7 @@ x-payment: &payment
     <<: *api-env
     ConnectionStrings__Payment: Host=postgres;Port=5432;Database=payment;Username=platform;Password=${POSTGRES_PASSWORD:-postgres}
     SePay__Environment: ${SEPAY_ENVIRONMENT:-sandbox}
+    SePay__AutomaticReconciliationEnabled: ${SEPAY_AUTOMATIC_RECONCILIATION_ENABLED:-true}
     SePay__MerchantId: ${SEPAY_MERCHANT_ID:-}
     SePay__SecretKey: ${SEPAY_SECRET_KEY:-}
     SePay__IpnSecretKey: ${SEPAY_IPN_SECRET_KEY:-}
