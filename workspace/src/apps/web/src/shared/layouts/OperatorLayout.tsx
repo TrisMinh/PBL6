@@ -29,7 +29,7 @@ import "./OperatorLayout.css";
 import "./OperatorTheme.css";
 import "./OperatorConsistency.css";
 import "./OperatorMotion.css";
-import { workspaceAccess } from "@/features/auth/lib/workspaceAccess";
+import { driverOnly, workspaceAccess } from "@/features/auth/lib/workspaceAccess";
 import { OperatorWorkspaceContext } from "./OperatorWorkspaceContext";
 import { OperatorAccountAvatar } from "@/features/operator/components/OperatorAccountAvatar";
 
@@ -129,7 +129,7 @@ function LiveOperatorLayout(): ReactElement {
       duration: 200,
       easing: "cubic-bezier(0.2, 0.75, 0.3, 1)",
     });
-    const stop = () => animation.cancel();
+    const stop = (): void => animation.cancel();
     preference.addEventListener("change", stop);
     return () => {
       preference.removeEventListener("change", stop);
@@ -190,6 +190,11 @@ function LiveOperatorLayout(): ReactElement {
         </section>
       </main>
     );
+  if (driverOnly()) {
+    if (location.pathname !== "/operator/my-trips")
+      return <Navigate to="/operator/my-trips" replace />;
+    return <Outlet />;
+  }
   const section = groups
     .flatMap((group) => group.links)
     .find(

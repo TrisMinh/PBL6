@@ -170,7 +170,7 @@ test.describe("Admin portal final verification — FR-030..FR-034 @admin", () =>
     await admin.navigate("Thanh toán", "/admin/payments");
     await admin.expectResponsiveTable("Danh sách giao dịch thanh toán");
     await page
-      .getByRole("link", { name: "PAY-260916-018", exact: true })
+      .getByRole("link", { name: "VNP-9160018", exact: true })
       .click();
     await expect(
       page.getByRole("heading", { name: "Chi tiết thanh toán" }),

@@ -299,8 +299,22 @@ public sealed partial class PaymentRepository(PaymentDatabaseOptions options) : 
 
     public Task<(IReadOnlyList<RefundRecord> Items, long Total)> SearchRefundsAsync(Guid? orgId, int page, int size,
         CancellationToken cancellationToken, Guid? bookingId = null, Guid? paymentId = null, string? status = null, DateOnly? date = null) =>
-        SearchAsync("r.id, r.payment_id, r.booking_id_external, r.requested_by_external, r.refund_reference, r.amount, r.currency, r.reason_code, r.status, r.created_at",
-            "refunds r JOIN payments p ON p.id = r.payment_id", orgId, page, size, ReadRefund, cancellationToken,
+        SearchAsync("""
+            r.id, r.payment_id, r.booking_id_external, r.requested_by_external, r.refund_reference,
+            r.amount, r.currency, r.reason_code, r.status, r.created_at, p.provider,
+            CASE WHEN p.provider = 'SIMULATOR' AND r.refund_reference LIKE 'REF-%' THEN (
+                SELECT audit.correlation_id FROM audit_logs audit
+                WHERE audit.target_type = 'refund' AND audit.target_id = r.id::text
+                  AND audit.action = 'demo.refund.corrected' AND audit.result = 'SUCCEEDED'
+                ORDER BY audit.occurred_at DESC LIMIT 1
+            ) END
+            """,
+            "refunds r JOIN payments p ON p.id = r.payment_id", orgId, page, size,
+            reader => ReadRefund(reader) with
+            {
+                PaymentProvider = reader.GetString(10),
+                RefundRequestId = reader.IsDBNull(11) ? null : reader.GetGuid(11)
+            }, cancellationToken,
             " ORDER BY r.created_at DESC, r.id DESC", bookingId, paymentId,
             finance: status is null ? null : new FinanceListFilter(orgId, [status], null, null), refundSearch: true, refundDate: date);
 

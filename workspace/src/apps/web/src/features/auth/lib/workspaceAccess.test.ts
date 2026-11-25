@@ -30,6 +30,19 @@ describe("workspace navigation", () => {
   it("ignores inactive memberships", () => {
     expect(workspaceAccess(session([], "INACTIVE")).operator).toBe(false);
   });
+  it("takes driver-only accounts to their assigned trips even from a management link", () => {
+    const claims = btoa(
+      JSON.stringify({ org: "test-organization", org_role: "DRIVER" }),
+    );
+    const driver = {
+      ...session([], "ACTIVE", ["DRIVER"]),
+      accessToken: `head.${claims}.signature`,
+    };
+    expect(workspaceAccess(driver).home).toBe("/operator/my-trips");
+    expect(workspaceRedirect("/operator/drivers", driver)).toBe(
+      "/operator/my-trips",
+    );
+  });
   it("takes platform admins to system administration", () => {
     expect(workspaceRedirect(undefined, session(["PLATFORM_ADMIN"]))).toBe(
       "/admin/organizations",

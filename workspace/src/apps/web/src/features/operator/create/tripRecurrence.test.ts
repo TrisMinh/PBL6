@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { recurrenceEndLimit, recurringDates } from "./RecurringTrips";
+import { recurrenceEndLimit, recurringDates } from "./tripRecurrence";
 it("limits recurrence by three calendar months including month ends", () => {
   expect(recurrenceEndLimit("2027-01-31")).toBe("2027-04-30");
   expect(recurrenceEndLimit("2027-11-30")).toBe("2028-02-29");

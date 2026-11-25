@@ -5,6 +5,8 @@ using BusTicketPlatform.Booking.Api;
 using BusTicketPlatform.Booking.Infrastructure;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.RateLimiting;
+using System.Threading.RateLimiting;
+using BusTicketPlatform.BuildingBlocks.AspNetCore.Http;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,6 +33,12 @@ builder.Services.AddRateLimiter(options =>
         limiter.Window = TimeSpan.FromMinutes(1);
         limiter.PermitLimit = 40;
     });
+    options.AddPolicy("seat-hold-account", context => RateLimitPartition.GetSlidingWindowLimiter(
+        context.User.UserId()?.ToString() ?? "unauthenticated",
+        _ => new SlidingWindowRateLimiterOptions
+        {
+            Window = TimeSpan.FromMinutes(1), SegmentsPerWindow = 6, PermitLimit = 45
+        }));
 });
 
 var app = builder.Build();

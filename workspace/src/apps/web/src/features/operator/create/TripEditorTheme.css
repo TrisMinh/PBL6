@@ -78,7 +78,6 @@
 }
 .operator-trip-wizard__stage {
   min-width: 0;
-  outline: none;
 }
 .operator-trip-wizard__stage > section:not([hidden]),
 .operator-trip-wizard__stage > div:not([hidden]) {
@@ -507,7 +506,7 @@
   .resource-picker:focus-within {
   border: 0;
   box-shadow: none;
-  outline: 0;
+  outline: 2px solid var(--color-focus-ring);
 }
 .operator-crew__facts {
   display: flex;
@@ -662,7 +661,7 @@
   .operator-trip-workflow
   .operator-create__route-fields
   .resource-picker:focus-within {
-  outline: 0;
+  outline: 2px solid var(--color-focus-ring);
   box-shadow: none;
 }
 :is(.operator-workspace, .operator-trip-expanded)
@@ -751,7 +750,7 @@
   .operator-trip-workflow
   :is(.operator-route-selector__stops, .operator-route-selector__variant)
   .resource-picker:focus-within {
-  outline: 0;
+  outline: 2px solid var(--color-focus-ring);
   box-shadow: none;
 }
 :is(.operator-workspace, .operator-trip-expanded)

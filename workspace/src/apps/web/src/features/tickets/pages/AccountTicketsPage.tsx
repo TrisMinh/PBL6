@@ -1,3 +1,4 @@
+import { ticketCancellationAction } from "@/features/tickets/lib/ticketCancellationAction";
 import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import { useAnimatedGrid } from "@/shared/hooks/useAnimatedGrid";
 import { Toast } from "@/shared/ui/Toast/Toast";
@@ -136,13 +137,18 @@ function TicketList({
                   >
                     Xem vé <ArrowRight size={16} aria-hidden />
                   </Link>
-                  {ticket.status === "issued" && (
+                  {ticketCancellationAction(ticket) === "cancel" && (
                     <Link
                       className="account-tickets__cancel"
                       to={bookingCancellationPath(ticket.bookingCode)}
                     >
                       Hủy vé
                     </Link>
+                  )}
+                  {ticketCancellationAction(ticket) === "blocked" && (
+                    <span className="account-tickets__cancel-note">
+                      Chưa thể hủy vé này
+                    </span>
                   )}
                 </div>
               </div>

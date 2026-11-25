@@ -24,7 +24,7 @@ async function expectAccessibleAction(action: Locator): Promise<void> {
   await expect(action).toBeFocused();
 }
 
-test("@critical guest completes search through VNPay success and opens the issued ticket", async ({
+test("@critical guest completes search through simulated SePay success and opens the issued ticket", async ({
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
@@ -78,7 +78,7 @@ test("@critical guest completes search through VNPay success and opens the issue
 
   const payment = new PaymentPage(page);
   await expectAccessibleAction(
-    page.getByRole("button", { name: "Tiếp tục đến VNPay", exact: true }),
+    page.getByRole("tab", { name: "SePay QR", exact: true }),
   );
   await expectPageFits(page);
   await payment.pay();
@@ -89,7 +89,8 @@ test("@critical guest completes search through VNPay success and opens the issue
   const tickets = new TicketPage(page);
   const bookingCode = await page
     .getByRole("article", { name: "Kết quả giao dịch" })
-    .getByText(/^BLUE-[A-Z0-9-]+$/)
+    .locator("b")
+    .filter({ hasText: /^BLUE-[A-Z0-9-]+$/ })
     .textContent();
   expect(bookingCode).toBeTruthy();
   await tickets.requireLookup();

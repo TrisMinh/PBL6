@@ -42,6 +42,17 @@ public sealed class SeatHoldReplacementTests(BookingPostgresFixture fixture)
         var held=await Send(HttpMethod.Post,$"/api/v1/trips/{trip}/seat-holds",owner,Selection(seats[0]));
         Assert.Equal(HttpStatusCode.Created,held.Response.StatusCode);
         var token=held.Body.GetProperty("holdToken").GetString();
+        var duplicate = await Send(HttpMethod.Post,$"/api/v1/trips/{trip}/seat-holds",owner,Selection(seats[1]));
+        Assert.Equal(HttpStatusCode.Conflict, duplicate.Response.StatusCode);
+        Assert.Equal("ACTIVE_SEAT_HOLD", duplicate.Body.GetProperty("error").GetProperty("code").GetString());
+        var current = await Send(HttpMethod.Get, $"/api/v1/trips/{trip}/seat-holds/current", owner);
+        Assert.Equal(HttpStatusCode.OK, current.Response.StatusCode);
+        Assert.Equal(held.Body.GetProperty("expiresAt").GetString(), current.Body.GetProperty("expiresAt").GetString());
+        var recoveryToken = current.Body.GetProperty("holdToken").GetString();
+        var hidden = await Send(HttpMethod.Get, $"/api/v1/trips/{trip}/seat-holds/current", other);
+        Assert.Equal(HttpStatusCode.NoContent, hidden.Response.StatusCode);
+        var stolen = await Send(HttpMethod.Get, $"/api/v1/seat-holds/{recoveryToken}", other);
+        Assert.Equal(HttpStatusCode.NotFound, stolen.Response.StatusCode);
         var heldOther=await Send(HttpMethod.Post,$"/api/v1/trips/{trip}/seat-holds",other,Selection(seats[2]));
         Assert.Equal(HttpStatusCode.Created,heldOther.Response.StatusCode);
         var denied=await Send(HttpMethod.Put,$"/api/v1/seat-holds/{token}",other,Selection(seats[1]));
@@ -50,7 +61,7 @@ public sealed class SeatHoldReplacementTests(BookingPostgresFixture fixture)
         Assert.Equal(HttpStatusCode.Conflict,conflict.Response.StatusCode);
         var unchanged=await Send(HttpMethod.Get,$"/api/v1/seat-holds/{token}",owner);
         Assert.Single(unchanged.Body.GetProperty("seats").EnumerateArray());
-        var replaced=await Send(HttpMethod.Put,$"/api/v1/seat-holds/{token}",owner,Selection(seats[0],seats[1]));
+        var replaced=await Send(HttpMethod.Put,$"/api/v1/seat-holds/{recoveryToken}",owner,Selection(seats[0],seats[1]));
         Assert.Equal(HttpStatusCode.OK,replaced.Response.StatusCode);
         Assert.Equal(2,replaced.Body.GetProperty("seats").GetArrayLength());
         Assert.Equal(held.Body.GetProperty("expiresAt").GetString(),replaced.Body.GetProperty("expiresAt").GetString());
@@ -73,7 +84,30 @@ public sealed class SeatHoldReplacementTests(BookingPostgresFixture fixture)
         await using var status = new NpgsqlCommand("SELECT status FROM trip_seats WHERE id = @seat", connection);
         status.Parameters.AddWithValue("seat", seats[2]);
         Assert.Equal("HELD", await status.ExecuteScalarAsync());
-        var reclaimed = await Send(HttpMethod.Post, $"/api/v1/trips/{trip}/seat-holds", owner, Selection(seats[2]));
-        Assert.Equal(HttpStatusCode.Created, reclaimed.Response.StatusCode);
+        for (var cancellation = 0; cancellation < 4; cancellation++)
+        {
+            var reclaimed = await Send(HttpMethod.Post, $"/api/v1/trips/{trip}/seat-holds", other, Selection(seats[2]));
+            Assert.Equal(HttpStatusCode.Created, reclaimed.Response.StatusCode);
+            var reclaimedToken = reclaimed.Body.GetProperty("holdToken").GetString();
+            var holdPath = $"/api/v1/seat-holds/{reclaimedToken}";
+            if (cancellation == 0)
+            {
+                for (var toggle = 0; toggle < 4; toggle++)
+                {
+                    var cleared = await Send(HttpMethod.Put, holdPath, other, Selection());
+                    Assert.Equal(HttpStatusCode.OK, cleared.Response.StatusCode);
+                    Assert.Empty(cleared.Body.GetProperty("seats").EnumerateArray());
+                    var reselected = await Send(HttpMethod.Put, holdPath, other, Selection(seats[2]));
+                    Assert.Equal(HttpStatusCode.OK, reselected.Response.StatusCode);
+                    Assert.Equal(reclaimed.Body.GetProperty("expiresAt").GetString(), reselected.Body.GetProperty("expiresAt").GetString());
+                }
+            }
+            Assert.Equal(HttpStatusCode.NoContent, (await Send(HttpMethod.Delete, holdPath + "?cancelSession=true", other)).Response.StatusCode);
+            Assert.Equal(HttpStatusCode.NoContent, (await Send(HttpMethod.Delete, holdPath + "?cancelSession=true", other)).Response.StatusCode);
+        }
+        var cooledDown = await Send(HttpMethod.Post, $"/api/v1/trips/{trip}/seat-holds", other, Selection(seats[2]));
+        Assert.Equal(HttpStatusCode.TooManyRequests, cooledDown.Response.StatusCode);
+        Assert.Equal("SEAT_HOLD_COOLDOWN", cooledDown.Body.GetProperty("error").GetProperty("code").GetString());
+        Assert.True(cooledDown.Body.GetProperty("error").GetProperty("details").GetProperty("retryAfterSeconds").GetInt32() > 0);
     }
 }

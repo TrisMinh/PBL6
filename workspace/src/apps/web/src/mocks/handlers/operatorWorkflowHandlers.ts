@@ -10,7 +10,7 @@ import {
 import { tripSchema, type Trip } from "@/features/operator/tripWorkflow";
 import type { ScheduleTrip } from "@/features/operator/schedule/schedule.schema";
 import { scheduleConflicts } from "@/features/operator/tripAvailability";
-import { recurringDates } from "@/features/operator/create/RecurringTrips";
+import { recurringDates } from "@/features/operator/create/tripRecurrence";
 
 const KEY = "blue-operator-workflow-trips-v1";
 const inputSchema = z.object({
@@ -164,9 +164,10 @@ export const operatorWorkflowHandlers = [
         : [first];
       const start = Date.parse(departureAt),
         end = Date.parse(arrivalAt);
+      const last = dates.at(-1);
       if (
         end <= start ||
-        !dates.length ||
+        !last ||
         dates.some(
           (date, index) =>
             index > 0 &&
@@ -181,7 +182,7 @@ export const operatorWorkflowHandlers = [
         return scheduleConflicts(trips, [start + offset, end + offset]);
       });
       const lastArrival = new Date(
-        end + Date.parse(dates.at(-1)!) - Date.parse(first),
+        end + Date.parse(last) - Date.parse(first),
       )
         .toISOString()
         .slice(0, 10);

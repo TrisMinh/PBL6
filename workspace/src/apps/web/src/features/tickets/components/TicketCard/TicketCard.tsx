@@ -1,3 +1,4 @@
+import { ticketCancellationAction } from "@/features/tickets/lib/ticketCancellationAction";
 import { useEffect, useState, type ReactElement } from "react";
 import { isMockApi } from "@/shared/api/config";
 import { Link } from "react-router";
@@ -152,6 +153,7 @@ function TicketStub({ ticket }: { ticket: TicketDetail }): ReactElement {
 }
 
 function TicketActions({ ticket, ticketCodes }: Props): ReactElement {
+  const action = ticketCancellationAction(ticket);
   return (
     <nav className="ticket-card__links" aria-label="Thao tác với vé">
       {ticketCodes
@@ -164,14 +166,14 @@ function TicketActions({ ticket, ticketCodes }: Props): ReactElement {
       <Link className="ticket-card__lookup-action" to={ROUTES.ticketLookup}>
         Tra cứu vé khác
       </Link>
-      {ticket.status === "issued" ? (
+      {action === "cancel" && (
         <Link
           className="ticket-card__cancel-action"
           to={bookingCancellationPath(ticket.bookingCode)}
         >
           Hủy vé
         </Link>
-      ) : null}
+      )}
     </nav>
   );
 }
@@ -189,6 +191,15 @@ export function TicketCard(props: Props): ReactElement {
         <div className="ticket-card__content">
           <TicketJourney ticket={props.ticket} />
           <TicketFacts ticket={props.ticket} />
+          {ticketCancellationAction(props.ticket) === "blocked" && (
+            <div className="ticket-card__cancellation-note">
+              <strong>Chưa thể hủy vé này</strong>
+              <p>
+                Đơn có khoản hoàn trước đó. Liên hệ hỗ trợ nếu bạn cần hủy thêm
+                vé.
+              </p>
+            </div>
+          )}
           {props.ticket.status === "issued" ? (
             <p className="ticket-card__boarding-tip">
               <Info size={15} aria-hidden />

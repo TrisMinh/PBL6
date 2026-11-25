@@ -2,10 +2,17 @@ import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import { isMockApi } from "@/shared/api/config";
 import { useQuery } from "@tanstack/react-query";
 import { getCancellationPreview } from "../repositories/backendCancellationRepository";
+import { BookingRefundLinks } from "../components/BookingRefundLinks";
 import { Toast } from "@/shared/ui/Toast/Toast";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useEffect, useMemo, useRef, useState, type ReactElement } from "react";
-import { Link, useParams } from "react-router";
+import {
+  Link,
+  Navigate,
+  useLocation,
+  useParams,
+  useSearchParams,
+} from "react-router";
 
 import busIcon from "@/assets/cancellation/bus.svg";
 import passengerIcon from "@/assets/cancellation/passenger.svg";
@@ -22,6 +29,8 @@ import { useAccountSession } from "@/features/auth/hooks/useAccountSession";
 import type { MockSession } from "@/features/auth/types/auth";
 import { BookingRepositoryError } from "@/features/booking/repositories/bookingRepositoryError";
 import { ApiError } from "@/shared/api/error";
+import { liveQueryKey } from "@/shared/api/liveRequest";
+import { ApiFailure } from "@/shared/api/ResourcePage";
 import { CancellationConfirmDialog } from "@/features/cancellation/components/CancellationConfirmDialog/CancellationConfirmDialog";
 import { CancellationSelector } from "@/features/cancellation/components/CancellationSelector/CancellationSelector";
 import {
@@ -34,6 +43,7 @@ import type {
   Refund,
 } from "@/features/cancellation/types/cancellation";
 import { useTicketAccess } from "@/features/tickets/hooks/useTicketAccess";
+import { ownedBooking } from "@/features/tickets/repositories/backendTicketRepository";
 import { ticketCodeSchema } from "@/features/tickets/schemas/ticket.schema";
 import type {
   TicketAccess,
@@ -52,6 +62,9 @@ interface SelectionProps {
   bookingCode: string;
   access: CancellationAccess;
   revoke: () => void;
+  refundView: boolean;
+  requestReference?: string;
+  animateRequest?: boolean;
 }
 
 interface FormProps {
@@ -578,6 +591,9 @@ export function RefundProcessing({
         <p>Hành trình của tôi &nbsp;→&nbsp; Hủy vé &nbsp;→&nbsp; Hoàn tiền</p>
         <h1>Theo dõi hoàn tiền</h1>
       </header>
+      {!isMockApi && refund.amountVnd > 0 && (
+        <BookingRefundLinks bookingId={refund.bookingId} waiting />
+      )}
       <section className="cancellation-page__refund">
         <div className="cancellation-page__refund-brand">
           <strong>BLUE</strong>
@@ -717,11 +733,65 @@ function Selection({
   bookingCode,
   access,
   revoke,
+  refundView,
+  requestReference,
+  animateRequest,
 }: SelectionProps): ReactElement {
-  const query = useCancellationOptions(bookingCode, access);
+  const query = useCancellationOptions(bookingCode, access, !refundView);
+  const showRefundHistory =
+    !isMockApi &&
+    (refundView ||
+      query.error?.code === "NO_CANCELLABLE_TICKETS" ||
+      query.error?.code === "INVALID_STATE_TRANSITION");
+  const booking = useQuery({
+    queryKey: liveQueryKey("cancellation-refund-history", bookingCode),
+    queryFn: ({ signal }) => ownedBooking(bookingCode, signal),
+    enabled: showRefundHistory,
+    retry: false,
+  });
   useEffect(() => {
     if (accessError(query.error)) revoke();
   }, [query.error, revoke]);
+  const noRefund = (
+    <PageState
+      title="Theo dõi hoàn tiền"
+      description="Đơn này chưa có khoản hoàn tiền."
+      action={<Link to={ROUTES.accountTickets}>Về Vé của tôi</Link>}
+    />
+  );
+  if (showRefundHistory && booking.isPending)
+    return <BrandLoading compact title="Đang tải trạng thái hoàn tiền…" />;
+  if (showRefundHistory && booking.data?.paymentChannel === "PREPAID")
+    return (
+      <BookingRefundLinks
+        bookingId={booking.data.id}
+        waiting={booking.data.status === "REFUND_PENDING"}
+        history
+        requestReference={requestReference}
+        animateRequest={animateRequest}
+        blockedOrderTotal={
+          query.error?.code === "INVALID_STATE_TRANSITION"
+            ? booking.data.total
+            : undefined
+        }
+        empty={
+          query.error ? (
+            <SelectionError
+              error={query.error}
+              retry={() => void query.refetch()}
+            />
+          ) : (
+            noRefund
+          )
+        }
+      />
+    );
+  if (refundView)
+    return booking.error ? (
+      <ApiFailure error={booking.error} retry={() => void booking.refetch()} />
+    ) : (
+      noRefund
+    );
   if (query.isPending)
     return <BrandLoading compact title="Đang tải vé có thể hủy…" />;
   if (query.isError)
@@ -827,7 +897,16 @@ function CancellationForm({
     setDialogOpen(true);
   };
   if (mutation.data)
-    return (
+    return !isMockApi && mutation.data.amountVnd > 0 ? (
+      <Navigate
+        to="?view=refund"
+        replace
+        state={{
+          requestReference: mutation.data.requestReference,
+          documentTimeOrigin: performance.timeOrigin,
+        }}
+      />
+    ) : (
       <RefundProcessing refund={mutation.data} journey={options.journey} />
     );
   const quoteIssue = quote.error ? cancellationIssue(quote.error) : undefined;
@@ -908,12 +987,18 @@ function InvalidBooking(): ReactElement {
 
 export function CancellationPage(): ReactElement {
   const { bookingCode } = useParams();
+  const [params] = useSearchParams();
+  const arrival = useLocation().state as {
+    requestReference?: string;
+    documentTimeOrigin?: number;
+  } | null;
   const guest = useTicketAccess();
   const account = useAccountSession();
   if (!guest.isHydrated || !account.isHydrated)
     return <BrandLoading compact title="Đang kiểm tra quyền hủy vé…" />;
   const parsed = ticketCodeSchema.safeParse(bookingCode?.toUpperCase());
   if (!parsed.success) return <InvalidBooking />;
+  const refundView = !isMockApi && params.get("view") === "refund";
   const access = resolveAccess(
     account.session,
     isMockApi ? guest.access : null,
@@ -933,7 +1018,9 @@ export function CancellationPage(): ReactElement {
           ) : (
             <Link
               to={ROUTES.login}
-              state={{ from: `/bookings/${parsed.data}/cancel` }}
+              state={{
+                from: `/bookings/${parsed.data}/cancel${refundView ? "?view=refund" : ""}`,
+              }}
             >
               Đăng nhập
             </Link>
@@ -947,6 +1034,11 @@ export function CancellationPage(): ReactElement {
         bookingCode={parsed.data}
         access={access}
         revoke={access.kind === "account" ? account.revoke : guest.revoke}
+        refundView={refundView}
+        requestReference={refundView ? arrival?.requestReference : undefined}
+        animateRequest={
+          refundView && arrival?.documentTimeOrigin === performance.timeOrigin
+        }
       />
     </section>
   );

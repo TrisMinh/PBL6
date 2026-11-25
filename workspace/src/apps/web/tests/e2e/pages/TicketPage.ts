@@ -14,7 +14,8 @@ export class TicketPage {
     await payment.expectState("Thanh toán thành công");
     const code = await this.page
       .getByRole("article", { name: "Kết quả giao dịch" })
-      .getByText(/^BLUE-[A-Z0-9-]+$/)
+      .locator("b")
+      .filter({ hasText: /^BLUE-[A-Z0-9-]+$/ })
       .textContent();
     expect(code).toBeTruthy();
     return code ?? "";

@@ -30,6 +30,6 @@ public sealed class PaymentEvents(OutboxWriter outbox, IIdGenerator ids) : IPaym
                 "payment",
                 correlationId,
                 refund.Id,
-                JsonSerializer.SerializeToElement(new { bookingId = refund.BookingId, paymentId = refund.PaymentId, refundId = refund.Id, amount = refund.Amount, currency = refund.Currency })),
+                JsonSerializer.SerializeToElement(new { bookingId = refund.BookingId, paymentId = refund.PaymentId, refundId = refund.Id, refundReference = refund.RefundReference, amount = refund.Amount, currency = refund.Currency })),
             cancellationToken);
 }

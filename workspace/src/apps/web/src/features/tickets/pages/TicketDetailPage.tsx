@@ -9,6 +9,7 @@ import { useTicketAccess } from "@/features/tickets/hooks/useTicketAccess";
 import { useTicketDetail } from "@/features/tickets/hooks/useTicketDetail";
 import { useAccountSession } from "@/features/auth/hooks/useAccountSession";
 import type { MockSession } from "@/features/auth/types/auth";
+import { BookingRefundLinks } from "@/features/cancellation/components/BookingRefundLinks";
 import { useAccountTicketDetail } from "@/features/tickets/hooks/useAccountTickets";
 import { ticketCodeSchema } from "@/features/tickets/schemas/ticket.schema";
 import type { TicketAccess } from "@/features/tickets/types/ticketAccess";
@@ -216,6 +217,15 @@ function AccountContent({
           <ArrowLeft size={17} aria-hidden /> Về vé của tôi
         </Link>
       </header>
+      {query.data.status === "cancelled" &&
+        query.data.paymentChannel === "PREPAID" &&
+        query.data.refundRequestId && (
+          <BookingRefundLinks
+            bookingId={query.data.bookingId}
+            waiting={false}
+            ticketRefundRequestId={query.data.refundRequestId}
+          />
+        )}
       <TicketCard ticket={query.data} ticketCodes={[query.data.ticketCode]} />
     </>
   );

@@ -20,5 +20,9 @@
     <EmbeddedResource Include="..\..\..\..\..\docs\database\booking\004_revenue_booking_context.sql" LogicalName="sql.revenue-booking-context" />
     <EmbeddedResource Include="..\..\..\..\..\docs\database\booking\005_admin_lookup.sql" LogicalName="sql.booking-admin-lookup" />
     <EmbeddedResource Include="..\..\..\..\..\docs\database\booking\006_operator_booking_paging.sql" LogicalName="sql.booking-operator-paging" />
+    <EmbeddedResource Include="..\..\..\..\..\docs\database\booking\007_embedded_booking_activity.sql" LogicalName="sql.embedded-booking-activity" />
+    <EmbeddedResource Include="..\..\..\..\..\docs\database\booking\008_seat_hold_protection.sql" LogicalName="sql.seat-hold-protection" />
+    <EmbeddedResource Include="..\..\..\..\..\docs\database\booking\009_explicit_hold_cancellation.sql" LogicalName="sql.explicit-hold-cancellation" />
+    <EmbeddedResource Include="..\..\..\..\..\docs\database\booking\010_ticket_refund_request.sql" LogicalName="sql.ticket-refund-request" />
   </ItemGroup>
 </Project>

@@ -16,6 +16,11 @@
   gap: 12px;
 }
 
+.account-tickets__cancel-note {
+  color: var(--color-text-secondary);
+  font-size: 0.8125rem;
+}
+
 .account-tickets__heading,
 .account-tickets__toolbar,
 .account-tickets__meta {

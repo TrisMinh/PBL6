@@ -10,6 +10,7 @@ import { ROUTES } from "../shared/config/routes";
 
 const allRoutes = [
   layout("./routes/layouts/operator.tsx", [
+    route("/operator/my-trips", "./routes/operator/my-trips.tsx"),
     route(
       "/operator/refund-requests/:bookingCode",
       "./routes/operator/refund-tracking.tsx",

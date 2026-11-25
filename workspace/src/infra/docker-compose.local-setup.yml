@@ -1,4 +1,7 @@
 services:
+  postgres:
+    # Windows Power BI gateway reads scoped views from the operating database.
+    ports: !override ["127.0.0.1:55475:5432"]
   db-bootstrap:
     environment:
       PBL6_LEGACY_SEED: "0"

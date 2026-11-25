@@ -5,6 +5,7 @@ import {
   type ScheduleCriteria,
 } from "./schedule.schema";
 import { tripPictures } from "../create/tripPresentation";
+import { getDriverResourceRows } from "../drivers/driversRepository";
 export async function scheduleResources(
   signal?: AbortSignal,
   tripId?: string,
@@ -17,7 +18,7 @@ export async function scheduleResources(
       signal,
     ),
     rows("/api/v1/operator/buses", signal),
-    rows("/api/v1/operator/drivers", signal),
+    getDriverResourceRows(signal),
   ]);
   return { trips, buses, drivers };
 }
@@ -40,6 +41,7 @@ export function adaptSchedule(
       1;
   return scheduleTripSchema.parse({
     id: t.id,
+    rowVersion: t.rowVersion,
     origin: t.origin,
     destination: t.destination,
     date: departure.slice(0, 10),
@@ -60,11 +62,11 @@ export function adaptSchedule(
       ? { fare: t.fare.amount }
       : {}),
     vehicleLabel: bus?.plateNumber ?? t.busType,
-    crew: driver?.fullName ?? driver?.licenseNumber ?? "Chưa phân công",
+    crew: driver ? (driver.fullName ?? "Chưa có tên tài xế") : "Chưa phân công",
     driver: driver
       ? {
           id: driver.id,
-          name: driver.fullName ?? driver.licenseNumber,
+          name: driver.fullName ?? "Chưa có tên tài xế",
           license: driver.licenseNumber ?? "",
           phone: driver.phone ?? "",
           expires: driver.licenseExpiresOn ?? "",
@@ -100,7 +102,7 @@ export async function getSchedulePage(
   criteria: ScheduleCriteria,
   page: number,
   signal?: AbortSignal,
-) {
+): Promise<{ items: ScheduleTrip[]; total: number; page: number }> {
   const query = new URLSearchParams({ size: "5" });
   for (const key of [
     "origin",
@@ -115,7 +117,7 @@ export async function getSchedulePage(
     for (const value of criteria[key]?.split(",").filter(Boolean) ?? [])
       query.append(key, value);
   }
-  const fetchPage = (value: number) => {
+  const fetchPage = (value: number): Promise<Row> => {
     query.set("page", String(value - 1));
     return request(
       `/api/v1/operator/trips/schedule?${query}`,
@@ -127,7 +129,7 @@ export async function getSchedulePage(
   const [result, buses, drivers, pictures] = await Promise.all([
     fetchPage(page),
     rows("/api/v1/operator/buses", signal),
-    rows("/api/v1/operator/drivers", signal),
+    getDriverResourceRows(signal),
     tripPictures(signal),
   ]);
   const actualPage = Math.min(page, Math.max(1, result.totalPages));

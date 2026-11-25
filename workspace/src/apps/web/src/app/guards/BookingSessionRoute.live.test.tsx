@@ -5,6 +5,12 @@ import { BookingSessionRoute } from "./BookingSessionRoute";
 import { useBookingDraftStore } from "@/features/booking/store/bookingDraftStore";
 
 vi.mock("@/shared/api/config", () => ({ isMockApi: false }));
+vi.mock("@/features/auth/hooks/useMockSession", () => ({
+  useMockSession: () => ({
+    isHydrated: true,
+    session: { userId: "live-customer", role: "customer" },
+  }),
+}));
 vi.mock("@/features/booking/hooks/useBookingDraftHydration", () => ({
   useBookingDraftHydration: () => true,
 }));

@@ -33,6 +33,7 @@ export const refundSchema = z
     referenceCode: z.string().min(1),
     status: z.enum(["processing", "accepted"]),
     createdAt: z.iso.datetime(),
+    requestReference: z.string().optional(),
   })
   .strict()
   .refine((value) => new Set(value.ticketIds).size === value.ticketIds.length)

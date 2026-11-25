@@ -163,6 +163,53 @@ paths:
           content: {application/json: {schema: {$ref: '#/components/schemas/UserProfile'}}}
         '202': {$ref: '#/components/responses/Accepted'}
         default: {$ref: '#/components/responses/Error'}
+  /users/me/phone-verification:
+    post:
+      tags: [Profile]
+      operationId: sendPhoneVerification
+      summary: Send an SMS verification code to the signed-in customer's profile number
+      responses:
+        '202':
+          description: SMS submitted
+          content: {application/json: {schema: {type: object, required: [challengeId], properties: {challengeId: {type: string, format: uuid}}}}}
+        '204': {description: Number already verified}
+        default: {$ref: '#/components/responses/Error'}
+  /users/me/phone-verification/verify:
+    post:
+      tags: [Profile]
+      operationId: verifyPhone
+      summary: Verify the signed-in customer's phone using a single-use SMS code
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [challengeId, code]
+              properties:
+                challengeId: {type: string, format: uuid}
+                code: {type: string, pattern: '^[0-9]{6}$', writeOnly: true}
+      responses:
+        '204': {description: Phone verified. Refresh the session before retrying a seat hold.}
+        default: {$ref: '#/components/responses/Error'}
+  /users/me/password:
+    post:
+      tags: [Auth]
+      operationId: changeMyPassword
+      summary: Change the signed-in user's password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [currentPassword, newPassword]
+              properties:
+                currentPassword: {type: string, format: password, writeOnly: true, minLength: 1, maxLength: 128}
+                newPassword: {type: string, format: password, writeOnly: true, minLength: 10, maxLength: 128}
+      responses:
+        '204': {description: Password changed and existing sessions revoked}
+        default: {$ref: '#/components/responses/Error'}
   /admin/users:
     get:
       tags: [AdminIdentity]
@@ -348,12 +395,24 @@ paths:
       tags: [Booking]
       operationId: createSeatHold
       summary: Atomically hold selected seats
+      description: At most one active hold and four unpaid seats per account per trip. After four explicit session cancellations on that trip in 30 minutes, a five-minute cooldown applies.
       parameters: [{$ref: '#/components/parameters/IdempotencyKey'}]
       requestBody:
         required: true
         content: {application/json: {schema: {$ref: '#/components/schemas/CreateSeatHoldRequest'}}}
       responses:
         '201': {description: Hold, content: {application/json: {schema: {$ref: '#/components/schemas/SeatHold'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /trips/{tripId}/seat-holds/current:
+    parameters: [{$ref: '#/components/parameters/TripId'}]
+    get:
+      tags: [Booking]
+      operationId: findActiveSeatHold
+      summary: Resume the signed-in customer's active hold on the trip
+      description: Returns the original expiry and held seats. The recovery token works on owned hold and booking APIs.
+      responses:
+        '200': {description: Active hold, content: {application/json: {schema: {$ref: '#/components/schemas/SeatHold'}}}}
+        '204': {description: The customer has no active hold on the trip}
         default: {$ref: '#/components/responses/Error'}
   /seat-holds/{holdToken}:
     parameters: [{$ref: '#/components/parameters/HoldToken'}]
@@ -368,9 +427,30 @@ paths:
       tags: [Booking]
       operationId: releaseSeatHold
       summary: Release an owned seat hold
-      parameters: [{$ref: '#/components/parameters/IdempotencyKey'}]
+      parameters:
+        - {$ref: '#/components/parameters/IdempotencyKey'}
+        - {name: cancelSession, in: query, schema: {type: boolean, default: false}, description: Record an explicit customer cancellation when true.}
       responses:
         '204': {description: Released or already terminal}
+        default: {$ref: '#/components/responses/Error'}
+    put:
+      tags: [Booking]
+      operationId: replaceSeatHold
+      summary: Replace the selected seats without ending or extending the hold
+      parameters: [{$ref: '#/components/parameters/IdempotencyKey'}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [seatIds, pickupStopId, dropoffStopId]
+              properties:
+                seatIds: {type: array, maxItems: 4, uniqueItems: true, items: {$ref: '#/components/schemas/Id'}}
+                pickupStopId: {$ref: '#/components/schemas/Id'}
+                dropoffStopId: {$ref: '#/components/schemas/Id'}
+      responses:
+        '200': {description: Updated hold, content: {application/json: {schema: {$ref: '#/components/schemas/SeatHold'}}}}
         default: {$ref: '#/components/responses/Error'}
   /bookings:
     post:
@@ -492,6 +572,17 @@ paths:
         '202': {$ref: '#/components/responses/Accepted'}
         default: {$ref: '#/components/responses/Error'}
   /refunds:
+    get:
+      tags: [Refunds]
+      operationId: listMyBookingRefunds
+      summary: List refund records for a booking owned by the current customer
+      parameters:
+        - {name: bookingId, in: query, required: true, schema: {$ref: '#/components/schemas/Id'}}
+        - {$ref: '#/components/parameters/Page'}
+        - {$ref: '#/components/parameters/Size'}
+      responses:
+        '200': {description: Booking refunds, content: {application/json: {schema: {$ref: '#/components/schemas/RefundPage'}}}}
+        default: {$ref: '#/components/responses/Error'}
     post:
       tags: [Refunds]
       operationId: createRefund
@@ -512,6 +603,26 @@ paths:
       summary: Get an accessible refund
       responses:
         '200': {description: Refund, content: {application/json: {schema: {$ref: '#/components/schemas/Refund'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /admin/refunds/{refundId}/transfer:
+    parameters: [{$ref: '#/components/parameters/RefundId'}]
+    put:
+      tags: [Refunds]
+      operationId: recordRefundTransfer
+      summary: Confirm a completed external transfer for a pending SePay refund
+      description: Platform administrator or finance only. Matching refund, amount and transfer reference can be replayed safely.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [transferReference, amount]
+              properties:
+                transferReference: {type: string, minLength: 4, maxLength: 120, pattern: '^[A-Za-z0-9._/-]+$'}
+                amount: {type: integer, format: int64, minimum: 1}
+      responses:
+        '200': {description: Transfer recorded and refund succeeded, content: {application/json: {schema: {$ref: '#/components/schemas/OperationAccepted'}}}}
         default: {$ref: '#/components/responses/Error'}
   /tickets:
     get:
@@ -677,6 +788,59 @@ paths:
         content: {application/json: {schema: {type: array, minItems: 1, items: {$ref: '#/components/schemas/SeatInput'}}}}
       responses:
         '200': {description: Bus, content: {application/json: {schema: {$ref: '#/components/schemas/Bus'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /operator/staff:
+    post:
+      tags: [Operator]
+      operationId: createOperatorStaff
+      summary: Create an account in the active organization
+      description: A driver account with an initial password can sign in immediately. The password is never returned. An existing driver is returned only for a matching account creation retry with the same password.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [fullName, email, phone]
+              properties:
+                fullName: {type: string, minLength: 2, maxLength: 120}
+                email: {type: string, format: email}
+                phone: {type: string, pattern: '^0[0-9]{9}$'}
+                role: {type: string, default: DRIVER, enum: [DRIVER, OPERATOR_ADMIN, OPERATOR_SCHEDULER, OPERATOR_OPERATIONS, OPERATOR_FINANCE]}
+                initialPassword: {type: string, format: password, writeOnly: true, minLength: 10, maxLength: 128}
+      responses:
+        '201': {description: Staff account and its membership}
+        default: {$ref: '#/components/responses/Error'}
+  /operator/staff/{membershipId}/driver-password:
+    post:
+      tags: [Operator]
+      operationId: reissueDriverPassword
+      summary: Reissue a password for a driver in the current organization
+      description: Requires an operator administrator in the current organization and an active driver-only membership. Returns the new password once and revokes the previous sessions.
+      parameters:
+        - {name: membershipId, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        '200':
+          description: New credentials for one-time handoff
+          headers:
+            Cache-Control: {schema: {type: string, const: no-store}}
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [email, password]
+                properties:
+                  email: {type: string, format: email}
+                  password: {type: string, format: password}
+        default: {$ref: '#/components/responses/Error'}
+  /operator/drivers/current-trips:
+    get:
+      tags: [Operator]
+      operationId: listCurrentDriverTrips
+      summary: Find the current trip and bus of each driver in the active organization
+      description: Returns at most one trip per driver. A pending trip is within its planned operating window and still needs departure confirmation.
+      responses:
+        '200': {description: Current assignments, content: {application/json: {schema: {type: array, items: {$ref: '#/components/schemas/DriverTripWork'}}}}}
         default: {$ref: '#/components/responses/Error'}
   /operator/drivers:
     get:
@@ -879,6 +1043,15 @@ paths:
       x-permission: tenant.manifest.read
       responses:
         '200': {description: Manifest, content: {application/json: {schema: {$ref: '#/components/schemas/Manifest'}}}}
+        default: {$ref: '#/components/responses/Error'}
+  /driver/trips:
+    get:
+      tags: [Driver]
+      operationId: getMyDriverTrips
+      summary: List trip and vehicle assignments for the authenticated driver
+      description: Returns active assignments in the signed-in driver's organization, including completed or cancelled trips from the past seven days. The list contains at most 100 trips.
+      responses:
+        '200': {description: Driver trips, content: {application/json: {schema: {type: array, items: {$ref: '#/components/schemas/DriverTripWork'}}}}}
         default: {$ref: '#/components/responses/Error'}
   /driver/assignments:
     get:
@@ -1272,6 +1445,31 @@ paths:
                         tickets: {type: integer, minimum: 0}
                         checkedIn: {type: integer, minimum: 0}
         default: {$ref: '#/components/responses/Error'}
+  /reports/power-bi/embed:
+    post:
+      tags: [Reports]
+      operationId: createPowerBiEmbedSession
+      summary: Issue a read-only Power BI embed token for the active operator
+      description: Uses the active organization and its finance or administrator role from the authenticated session. Takes no request body and returns Cache-Control no-store.
+      x-permission: report.revenue.read
+      responses:
+        '200':
+          description: Short-lived embed session
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [reportId, embedUrl, token, expiration]
+                properties:
+                  reportId: {type: string, format: uuid}
+                  embedUrl: {type: string, format: uri}
+                  token: {type: string}
+                  expiration: {type: string, format: date-time}
+        '401': {$ref: '#/components/responses/Error'}
+        '403': {$ref: '#/components/responses/Error'}
+        '404': {$ref: '#/components/responses/Error'}
+        '503': {$ref: '#/components/responses/Error'}
+        default: {$ref: '#/components/responses/Error'}
   /reports/revenue:
     get:
       tags: [Reports]
@@ -1438,6 +1636,7 @@ components:
         operationId: {$ref: '#/components/schemas/Id'}
         status: {type: string, enum: [ACCEPTED, PROCESSING]}
         statusUrl: {type: [string, 'null']}
+        refundRequestId: {type: [string, 'null'], format: uuid}
     VnPayCallback:
       type: object
       additionalProperties: true
@@ -1589,7 +1788,7 @@ components:
         destination: {type: string}
         fare: {$ref: '#/components/schemas/Money'}
         status: {$ref: '#/components/schemas/TripStatus'}
-        scheduleStatus: {type: string, description: Schedule display status. NEEDS_UPDATE indicates a trip past planned arrival that has not been confirmed as arrived or ended.}
+        scheduleStatus: {type: string, description: Schedule display status. AWAITING_DEPARTURE marks a scheduled trip past departure without confirmation. NEEDS_UPDATE marks a trip past planned arrival without arrival or completion confirmation.}
         sellable: {type: boolean}
         availableSeatCount: {type: integer, minimum: 0}
         availabilityAsOf: {$ref: '#/components/schemas/DateTime'}
@@ -1748,6 +1947,22 @@ components:
       allOf:
         - {$ref: '#/components/schemas/ExpectedVersionRequest'}
         - {type: object, required: [targetStatus], properties: {targetStatus: {$ref: '#/components/schemas/TripStatus'}, reason: {type: [string, 'null'], maxLength: 500}}}
+    DriverTripWork:
+      type: object
+      required: [driverId, tripId, busId, plateNumber, origin, destination, departureAt, arrivalAt, status, rowVersion, phase, needsUpdate]
+      properties:
+        driverId: {type: string, format: uuid}
+        tripId: {type: string, format: uuid}
+        busId: {type: string, format: uuid}
+        plateNumber: {type: string}
+        origin: {type: string}
+        destination: {type: string}
+        departureAt: {type: string, format: date-time}
+        arrivalAt: {type: string, format: date-time}
+        status: {type: string}
+        rowVersion: {type: integer, minimum: 0}
+        phase: {type: string, enum: [OPERATING, PENDING, UPCOMING, HISTORY]}
+        needsUpdate: {type: boolean}
     DriverAssignment:
       type: object
       required: [tripId, driverId, startAt, endAt, active]
@@ -1780,7 +1995,7 @@ components:
       additionalProperties: false
       required: [seatIds, pickupStopId, dropoffStopId]
       properties:
-        seatIds: {type: array, minItems: 1, maxItems: 10, uniqueItems: true, items: {$ref: '#/components/schemas/Id'}}
+        seatIds: {type: array, minItems: 1, maxItems: 4, uniqueItems: true, items: {$ref: '#/components/schemas/Id'}}
         pickupStopId: {$ref: '#/components/schemas/Id'}
         dropoffStopId: {$ref: '#/components/schemas/Id'}
     SeatHold:
@@ -1913,6 +2128,8 @@ components:
         currency: {$ref: '#/components/schemas/Currency'}
         status: {type: string, enum: [REQUESTED, PROCESSING, SUCCEEDED, FAILED]}
         reason: {type: string}
+        paymentProvider: {type: [string, 'null'], enum: [SIMULATOR, VNPAY_SANDBOX, SEPAY, null]}
+        refundRequestId: {type: [string, 'null'], format: uuid}
     FinanceListFilter:
       type: object
       properties:
@@ -2004,6 +2221,7 @@ components:
         status: {type: string, enum: [ISSUED, CHECKED_IN, USED, CANCELLED, REFUNDED]}
         paymentChannel: {type: string, enum: [PREPAID, PAY_LATER]}
         qrPayload: {type: [string, 'null'], description: Signed/opaque; only returned to authorized owner.}
+        refundRequestId: {type: string, format: uuid}
         issuedAt: {$ref: '#/components/schemas/DateTime'}
         checkedInAt: {oneOf: [{$ref: '#/components/schemas/DateTime'}, {type: 'null'}]}
         journey:
@@ -2012,6 +2230,7 @@ components:
           required: [bookingCode, seatId, pickupStopId, dropoffStopId]
           properties:
             bookingCode: {type: string}
+            bookingStatus: {type: [string, 'null']}
             seatId: {$ref: '#/components/schemas/Id'}
             pickupStopId: {$ref: '#/components/schemas/Id'}
             dropoffStopId: {$ref: '#/components/schemas/Id'}

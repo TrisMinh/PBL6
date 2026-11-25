@@ -143,6 +143,7 @@ export const backendCancellationRepository: CancellationRepository = {
         operationId: z.string(),
         status: z.string(),
         acceptedAt: z.string(),
+        refundRequestId: z.guid().nullish(),
       }),
       {
         method: "POST",
@@ -173,6 +174,9 @@ export const backendCancellationRepository: CancellationRepository = {
       referenceCode: booking.code,
       status: "accepted",
       createdAt: result.acceptedAt,
+      requestReference: result.refundRequestId
+        ? `EVENT-${result.refundRequestId.replaceAll("-", "")}`
+        : undefined,
     };
   },
 };

@@ -151,19 +151,62 @@ public sealed class SePayBookingFlowTests(PaymentPostgresFixture fixture)
         Assert.Equal("PAID", stateBooking.GetProperty("status").GetString());
         var preview = await Send(bookingClient, HttpMethod.Post, $"/api/v1/bookings/{bookingId}/cancellation-preview", token,
             new { ticketIds = tickets.EnumerateArray().Select(t => t.GetProperty("id").GetGuid()).ToArray() });
-        await Send(bookingClient, HttpMethod.Post, $"/api/v1/bookings/{bookingId}/cancel", token, new {
+        var cancellation = await Send(bookingClient, HttpMethod.Post, $"/api/v1/bookings/{bookingId}/cancel", token, new {
             previewId = preview.GetProperty("previewId").GetGuid(), expectedVersion = stateBooking.GetProperty("rowVersion").GetInt64(), reason = "CUSTOMER_CANCELLATION" });
         var refundEvent = await ReadEvent(connectionString, "RefundRequested", bookingId);
+        Assert.Equal(refundEvent.EventId, cancellation.GetProperty("refundRequestId").GetGuid());
         await PaymentEventHandlers.HandleAsync(fixture.Factory.Services, await ReadEvent(connectionString, "BookingCancelled", bookingId), default);
         await PaymentEventHandlers.HandleAsync(fixture.Factory.Services, refundEvent, default);
         await PaymentEventHandlers.HandleAsync(fixture.Factory.Services, refundEvent, default);
         Assert.Equal("REFUND_PENDING", (await Send(paymentClient, HttpMethod.Get, $"/api/v1/payments/{paymentId}", token)).GetProperty("status").GetString());
         var cancelled = await Send(bookingClient, HttpMethod.Get, $"/api/v1/bookings/{bookingId}/tickets", token);
         Assert.All(cancelled.EnumerateArray(), t => Assert.Equal("CANCELLED", t.GetProperty("status").GetString()));
-        await using var verify = new NpgsqlConnection(fixture.Container.GetConnectionString()); await verify.OpenAsync();
-        await using var refunds = new NpgsqlCommand("SELECT COUNT(*), SUM(amount) FROM refunds WHERE payment_id = @id", verify); refunds.Parameters.AddWithValue("id", paymentId);
-        await using var reader = await refunds.ExecuteReaderAsync(); Assert.True(await reader.ReadAsync()); Assert.Equal(1, reader.GetInt64(0));
-        Assert.Equal(preview.GetProperty("refundAmount").GetInt64(), (long)reader.GetDecimal(1));
+        Assert.All(cancelled.EnumerateArray(), t => Assert.Equal(refundEvent.EventId, t.GetProperty("refundRequestId").GetGuid()));
+        var refundPath = $"/api/v1/refunds?bookingId={bookingId}";
+        var customerRefund = Assert.Single((await Send(paymentClient, HttpMethod.Get, refundPath, token)).GetProperty("items").EnumerateArray());
+        var refundId = customerRefund.GetProperty("id").GetGuid();
+        Assert.Equal("EVENT-" + refundEvent.EventId.ToString("N"), customerRefund.GetProperty("refundReference").GetString());
+        var refundAmount = preview.GetProperty("refundAmount").GetInt64();
+        Assert.Equal(refundAmount, customerRefund.GetProperty("amount").GetInt64());
+        Assert.Equal("SEPAY", customerRefund.GetProperty("paymentProvider").GetString());
+        Assert.Equal("REQUESTED", customerRefund.GetProperty("status").GetString());
+        using var privateRefunds = new HttpRequestMessage(HttpMethod.Get, refundPath);
+        privateRefunds.Headers.Authorization = new AuthenticationHeaderValue("Bearer", stranger);
+        Assert.Equal(HttpStatusCode.NotFound, (await paymentClient.SendAsync(privateRefunds)).StatusCode);
+
+        var transferPath = $"/api/v1/admin/refunds/{refundId}/transfer";
+        var transfer = new { transferReference = "SANDBOX-" + refundId.ToString("N"), amount = refundAmount };
+        using var forbiddenTransfer = new HttpRequestMessage(HttpMethod.Put, transferPath) { Content = JsonContent.Create(transfer) };
+        forbiddenTransfer.Headers.Authorization = new AuthenticationHeaderValue("Bearer", operatorToken);
+        Assert.Equal(HttpStatusCode.Forbidden, (await paymentClient.SendAsync(forbiddenTransfer)).StatusCode);
+        var financeToken = TestJwt.Mint(Guid.CreateVersion7(), ["PLATFORM_ADMIN"]);
+        var saved = await Send(paymentClient, HttpMethod.Put, transferPath, financeToken, transfer);
+        Assert.Equal("SUCCEEDED", saved.GetProperty("status").GetString());
+        await Send(replicaClient, HttpMethod.Put, transferPath, financeToken, transfer);
+        var verifiedRefund = await Send(paymentClient, HttpMethod.Get, $"/api/v1/refunds/{refundId}", token);
+        Assert.Equal("SUCCEEDED", verifiedRefund.GetProperty("status").GetString());
+        var audit = await Send(paymentClient, HttpMethod.Get, $"/api/v1/admin/refunds/{refundId}/audit", financeToken);
+        Assert.Equal(transfer.transferReference.ToUpperInvariant(), audit.GetProperty("transferReference").GetString());
+        Assert.Equal("PARTIALLY_REFUNDED", (await Send(paymentClient, HttpMethod.Get, $"/api/v1/payments/{paymentId}", token)).GetProperty("status").GetString());
+        var recorded = await ReadEvent(fixture.Container.GetConnectionString(), "RefundSucceeded", refundId);
+        await BookingEventHandlers.HandlePaymentAsync(bookingFactory.Services, recorded, default);
+        await BookingEventHandlers.HandlePaymentAsync(bookingFactory.Services, recorded, default);
+        Assert.Equal("REFUNDED", (await Send(bookingClient, HttpMethod.Get, $"/api/v1/bookings/{bookingId}", token)).GetProperty("status").GetString());
+
+        await using var verify = new NpgsqlConnection(fixture.Container.GetConnectionString());
+        await verify.OpenAsync();
+        await using var result = new NpgsqlCommand("""
+            SELECT (SELECT COUNT(*) FROM refunds WHERE payment_id = @payment),
+              (SELECT COUNT(*) FROM outbox_messages WHERE aggregate_id = @refund AND message_type = 'RefundSucceeded'),
+              (SELECT gross_amount FROM booking_settlements WHERE payment_id = @payment)
+            """, verify);
+        result.Parameters.AddWithValue("refund", refundId);
+        result.Parameters.AddWithValue("payment", paymentId);
+        await using var reader = await result.ExecuteReaderAsync();
+        Assert.True(await reader.ReadAsync());
+        Assert.Equal(1L, reader.GetInt64(0));
+        Assert.Equal(1L, reader.GetInt64(1));
+        Assert.Equal(payable - refundAmount, reader.GetInt64(2));
     }
 
     private sealed class CapturedInvoice(SePayNotification capture) : ISePayOrderLookup

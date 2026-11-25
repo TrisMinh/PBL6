@@ -1,14 +1,18 @@
-.live-refund { padding-top: 32px; }
-.live-refund .cancellation-page__refund > h2 { margin-top: 6px; line-height: 40px; }
-.live-refund .cancellation-page__refund {
-  height: auto;
-  min-height: 520px;
+.live-refund-page {
+  padding-top: 32px;
 }
-.live-refund .cancellation-page__processing-heading h1 {
+.live-refund > h2 {
+  margin-top: 6px;
+  line-height: 40px;
+}
+.cancellation-page__refund.live-refund {
+  height: auto;
+}
+.live-refund-page .cancellation-page__processing-heading h1 {
   font-size: 38px;
   line-height: 48px;
 }
-.live-refund .cancellation-page__refund > p {
+.live-refund > p {
   font-size: 14px;
 }
 .live-refund .cancellation-page__refund-facts dd {
@@ -28,18 +32,24 @@
 }
 .live-refund .cancellation-page__refund-brand small {
   font-size: 11px;
+  overflow-wrap: anywhere;
 }
-.live-refund__progress ol[data-illustrated="true"] li::before,
-.live-refund__progress ol[data-illustrated="true"] li::after {
-  display: none;
+.live-refund .cancellation-page__refund-brand {
+  height: auto;
+  flex-wrap: wrap;
+  row-gap: 4px;
+}
+@media (min-width: 1024px) {
+  .live-refund .cancellation-page__refund-body {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  }
 }
 .live-refund__progress ol {
   row-gap: 15px;
-  margin-top: 6px;
+  margin: 16px 0 0 44px;
 }
-.live-refund__progress li:last-child { min-height: 40px; }
-.live-refund__progress ol {
-  counter-reset: step;
+.live-refund__progress li:last-child {
+  min-height: 40px;
 }
 .live-refund__progress li {
   position: relative;
@@ -53,8 +63,8 @@
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  border: 2px solid #b8c9dd;
-  background: white;
+  border: 2px solid var(--color-cancellation-border-strong);
+  background: var(--color-bg-surface);
 }
 .live-refund__progress li::after {
   content: "";
@@ -62,22 +72,96 @@
   left: -24px;
   top: 21px;
   bottom: -23px;
-  border-left: 1px solid #d6e3f2;
+  border-left: 1px solid var(--color-cancellation-border);
+}
+.live-refund__progress li[data-phase="complete"]::after {
+  border-color: var(--color-cancellation-compact-accent);
 }
 .live-refund__progress li:last-child::after {
   display: none;
 }
-.live-refund__progress li[data-complete="true"]::before {
-  border-color: #246bda;
-  background: #246bda;
+.live-refund .live-refund__progress li strong {
+  color: var(--color-text-secondary);
 }
-.live-refund[data-status="SUCCEEDED"] .live-refund__progress li::before {
-  border-color: #16a36a;
-  background: #16a36a;
+
+.live-refund__progress li[data-phase="complete"]::before {
+  border-color: var(--color-cancellation-compact-accent);
+  background: var(--color-bg-surface);
 }
-.live-refund[data-status="FAILED"] [role="status"] {
-  color: #b42318;
+
+.live-refund__progress li[data-phase="current"] {
+  --refund-step-color: var(--color-cancellation-compact-accent);
+}
+
+.live-refund__progress li[data-phase="success"] {
+  --refund-step-color: var(--color-status-success);
+}
+
+.live-refund__progress li[data-phase="failure"] {
+  --refund-step-color: var(--color-status-error);
+}
+
+.live-refund__progress li[aria-current="step"]::before {
+  border-color: var(--refund-step-color, var(--color-text-secondary));
+  background: var(--refund-step-color, var(--color-text-secondary));
+}
+
+.live-refund .live-refund__progress li[aria-current="step"] strong {
+  color: var(--refund-step-color, var(--color-text-secondary));
+}
+
+.live-refund__status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.live-refund__status svg {
+  flex: none;
+}
+
+.live-refund[data-status="SUCCEEDED"] .live-refund__status {
+  color: var(--color-status-success);
+}
+
+.live-refund[data-status="FAILED"] .live-refund__status {
+  color: var(--color-status-error);
 }
 .live-refund__progress small {
   overflow-wrap: anywhere;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .live-refund__progress li::before,
+  .live-refund__progress li::after,
+  .live-refund__progress li strong,
+  .live-refund__status {
+    transition:
+      color 220ms ease,
+      border-color 220ms ease,
+      background-color 220ms ease;
+  }
+
+  .live-refund__progress li[aria-current="step"]::before {
+    animation: refund-step-highlight 360ms ease-out both;
+  }
+}
+
+@keyframes refund-step-highlight {
+  0% {
+    transform: scale(0.78);
+    box-shadow: 0 0 0 0
+      color-mix(
+        in srgb,
+        var(--refund-step-color, currentColor) 28%,
+        transparent
+      );
+  }
+  55% {
+    transform: scale(1.16);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 7px transparent;
+  }
 }

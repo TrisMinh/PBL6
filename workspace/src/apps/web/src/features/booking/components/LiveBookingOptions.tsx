@@ -4,14 +4,16 @@ import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import { useState, type ReactElement, type ReactNode } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
-import { z } from "zod";
 import { getBackendTrip } from "@/features/trips/repositories/backendTripRepository";
-import { keyFor } from "../repositories/backendBookingRepository";
+import {
+  cancelLiveSeatSession,
+  keyFor,
+} from "../repositories/backendBookingRepository";
+import { CancelSeatSessionButton } from "./CancelSeatSessionButton";
 import { useBookingDraftStore } from "../store/bookingDraftStore";
 import type { BookingDraft } from "../types/booking";
 import { liveApiJson, liveQueryKey } from "@/shared/api/liveRequest";
 import { ApiFailure } from "@/shared/api/ResourcePage";
-import { Button } from "@/shared/ui/Button/Button";
 import { holdSchema } from "@/shared/api/contracts";
 
 import type { SeatLayout } from "../types/seat";
@@ -32,6 +34,7 @@ type Options = {
   pickupStopId?: string;
   dropoffStopId?: string;
   paymentChannel?: string;
+  prepaidRequired?: boolean;
   holdToken?: string;
   bookingId?: string;
   attempt?: string;
@@ -73,19 +76,11 @@ export function LiveBookingOptions({
         );
       if (!current.holdToken && current.attempt && current.holdRequest) {
         const recovered = await liveApiJson(
-          `/api/v1/trips/${draft.tripId}/seat-holds`,
-          holdSchema,
-          {
-            method: "POST",
-            idempotencyKey: `web-hold-${current.attempt}`,
-            body: current.holdRequest,
-          },
+          `/api/v1/trips/${draft.tripId}/seat-holds/current`,
+          holdSchema.optional(),
+          { cache: "no-store" },
         );
-        current.holdToken = recovered.holdToken;
-        sessionStorage.setItem(
-          keyFor(draft.sessionId),
-          JSON.stringify(current),
-        );
+        current.holdToken = recovered?.holdToken;
       }
       if (current.holdToken) {
         const path = `/api/v1/seat-holds/${encodeURIComponent(current.holdToken)}`;
@@ -94,10 +89,7 @@ export function LiveBookingOptions({
           throw new Error(
             "Ghế đã được chuyển thành đơn. Vui lòng kiểm tra vé trong tài khoản trước khi tiếp tục.",
           );
-        await liveApiJson(path, z.unknown(), {
-          method: "DELETE",
-          idempotent: true,
-        });
+        await cancelLiveSeatSession(current.holdToken);
       }
       sessionStorage.removeItem(keyFor(draft.sessionId));
       useBookingDraftStore.getState().clearDraft();
@@ -108,7 +100,12 @@ export function LiveBookingOptions({
   });
   const update = (patch: Partial<Options>): void => {
     const current = readOptions(draft.sessionId);
-    if (pending || current.attempt || current.holdToken || current.bookingId)
+    if (
+      pending ||
+      current.attempt ||
+      current.bookingId ||
+      (current.holdToken && patch.paymentChannel === undefined)
+    )
       return;
     const next = { ...current, ...patch };
     sessionStorage.setItem(keyFor(draft.sessionId), JSON.stringify(next));
@@ -213,7 +210,8 @@ export function LiveBookingOptions({
       </label>
     </fieldset>
   );
-  const payLater = options.paymentChannel === "PAY_LATER";
+  const prepaidRequired = readOptions(draft.sessionId).prepaidRequired;
+  const payLater = !prepaidRequired && options.paymentChannel === "PAY_LATER";
   const paymentOptions = (
     <>
       <CouponReview
@@ -249,18 +247,20 @@ export function LiveBookingOptions({
         <select
           id="review-payment-channel"
           disabled={locked}
-          value={options.paymentChannel ?? "PREPAID"}
+          value={payLater ? "PAY_LATER" : "PREPAID"}
           onChange={(e) => update({ paymentChannel: e.target.value })}
         >
           <option value="PREPAID">Thanh toán trực tuyến</option>
-          {query.data.allowPayLater && (
+          {query.data.allowPayLater && !prepaidRequired && (
             <option value="PAY_LATER">Thanh toán sau</option>
           )}
         </select>
         <p>
-          {payLater
-            ? "Thanh toán theo hướng dẫn của nhà xe."
-            : "Bạn sẽ được chuyển sang SePay để thanh toán."}
+          {prepaidRequired
+            ? "Lượt đặt này cần thanh toán trước."
+            : payLater
+              ? "Thanh toán theo hướng dẫn của nhà xe."
+              : "Bạn sẽ được chuyển sang SePay để thanh toán."}
         </p>
       </div>
     </>
@@ -268,17 +268,14 @@ export function LiveBookingOptions({
   const secondaryAction = (
     <div className="booking-summary__cancel">
       {!draft.bookingId && (
-        <Button
-          variant="ghost"
+        <CancelSeatSessionButton
           disabled={pending}
-          isLoading={release.isPending}
-          onClick={() => {
+          pending={release.isPending}
+          onConfirm={() => {
             onReleasePending(true);
             release.mutate();
           }}
-        >
-          Hủy đặt vé
-        </Button>
+        />
       )}
       {release.isError && <ApiFailure error={release.error} popup />}
     </div>

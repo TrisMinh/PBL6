@@ -94,7 +94,7 @@ beforeEach(() => {
       }
       const financeFilters = options?.body as
         { statuses?: string[] } | undefined;
-      const withStatus = (status: string) =>
+      const withStatus = (status: string): boolean =>
         !financeFilters?.statuses?.length ||
         financeFilters.statuses.includes(status);
       if (value.startsWith("/api/v1/admin/payments?")) {

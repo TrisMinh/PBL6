@@ -28,6 +28,8 @@ import {
 import "./OperatorRevenuePage.css";
 import { OperatorBookingAnalytics } from "./OperatorBookingAnalytics";
 import { RevenueLineChart, SettlementWaterfall } from "./RevenueCharts";
+import { EmbeddedPowerBI } from "./EmbeddedPowerBI";
+import { fetchPowerBIEmbed, powerBIEmbedRefetchInterval } from "./powerBIEmbed";
 
 const number = new Intl.NumberFormat("vi-VN");
 const formatDate = (date: string): string =>
@@ -119,10 +121,30 @@ function FinanceCharts({
   );
 }
 
-function powerBIUrl(): string | undefined {
-  const configured = import.meta.env.VITE_OPERATOR_POWER_BI_EMBED_URL;
-  if (!configured) return undefined;
+function operatorOrganization(token: string | undefined): string | undefined {
+  const payload = token?.split(".")[1];
+  if (!payload) return undefined;
   try {
+    const claims = JSON.parse(
+      atob(payload.replace(/-/g, "+").replace(/_/g, "/")),
+    );
+    return typeof claims?.org === "string" ? claims.org : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function powerBIUrl(activeOrganization: string | undefined): string | undefined {
+  try {
+    let configured = import.meta.env.VITE_OPERATOR_POWER_BI_EMBED_URL;
+    const reports = import.meta.env.VITE_OPERATOR_POWER_BI_REPORTS;
+    const organization = import.meta.env.VITE_OPERATOR_POWER_BI_ORGANIZATION_ID;
+    if (reports || organization) {
+      if (!activeOrganization) return undefined;
+      if (reports) configured = JSON.parse(reports)?.[activeOrganization];
+      else if (activeOrganization !== organization) return undefined;
+    }
+    if (typeof configured !== "string" || !configured) return undefined;
     const url = new URL(configured);
     if (
       url.origin === "https://app.powerbi.com" &&
@@ -137,11 +159,28 @@ function powerBIUrl(): string | undefined {
   return undefined;
 }
 
-function PowerBI({ active }: { active: boolean }): ReactElement {
-  const [opened, setOpened] = useState(false);
+function PowerBI({
+  active,
+  token,
+}: {
+  active: boolean;
+  token?: string;
+}): ReactElement {
   const [fullscreenFailed, setFullscreenFailed] = useState(false);
   const frame = useRef<HTMLDivElement>(null);
-  const url = powerBIUrl();
+  const organization = operatorOrganization(token);
+  const embedded = useQuery({
+    queryKey: liveQueryKey("operator-power-bi-embed", organization),
+    queryFn: ({ signal }) => fetchPowerBIEmbed(signal),
+    enabled: active && Boolean(token),
+    gcTime: 0,
+    retry: false,
+    refetchOnWindowFocus: false,
+    refetchInterval: powerBIEmbedRefetchInterval,
+  });
+  const legacy = embedded.error instanceof ApiError && embedded.error.status === 404;
+  const url = legacy ? powerBIUrl(organization) : undefined;
+  const shared = embedded.isError ? undefined : embedded.data;
 
   async function openFullscreen(): Promise<void> {
     setFullscreenFailed(false);
@@ -169,25 +208,19 @@ function PowerBI({ active }: { active: boolean }): ReactElement {
             trên từng trang để xem số liệu cần tìm.
           </p>
         </div>
-        {url && (
+        {(url || shared) && (
           <div className="revenue-report__power-actions">
-            {opened ? (
-              <Button variant="secondary" onClick={() => void openFullscreen()}>
-                Toàn màn hình
-              </Button>
-            ) : (
-              <Button onClick={() => setOpened(true)}>
-                Xem báo cáo tại đây
-              </Button>
-            )}
-            <a
+            <Button variant="secondary" onClick={() => void openFullscreen()}>
+              Toàn màn hình
+            </Button>
+            {url && <a
               className="button button--secondary"
               href={url}
               target="_blank"
               rel="noreferrer"
             >
               Mở trong tab mới
-            </a>
+            </a>}
           </div>
         )}
       </header>
@@ -196,7 +229,7 @@ function PowerBI({ active }: { active: boolean }): ReactElement {
           Không mở được toàn màn hình. Bạn có thể mở báo cáo trong tab mới.
         </p>
       )}
-      {url && opened && (
+      {url && active && (
         <div className="revenue-report__power-frame" ref={frame}>
           <iframe
             title="Power BI báo cáo nhà xe"
@@ -206,9 +239,20 @@ function PowerBI({ active }: { active: boolean }): ReactElement {
           />
         </div>
       )}
-      {!url && (
+      {active && shared && <EmbeddedPowerBI session={shared} frameRef={frame} />}
+      {active && embedded.isPending && (
+        <p role="status" className="revenue-report__caption">Đang tải báo cáo Power BI…</p>
+      )}
+      {active && embedded.isError && !legacy && (
+        <p role="alert" className="revenue-report__caption">
+          {embedded.error instanceof ApiError && embedded.error.status === 403
+            ? "Tài khoản này chưa có quyền xem báo cáo Power BI của nhà xe."
+            : "Power BI tạm thời không khả dụng."}
+        </p>
+      )}
+      {legacy && !url && (
         <p className="revenue-report__caption">
-          Chưa có báo cáo nhúng. Bạn có thể mở báo cáo mẫu bằng Power BI
+          Nhà xe này chưa có báo cáo nhúng. Bạn có thể mở báo cáo mẫu bằng Power BI
           Desktop.
         </p>
       )}
@@ -737,7 +781,7 @@ export function OperatorRevenuePage(): ReactElement {
           )}
         </>
       )}
-      <PowerBI active={tab.id === "power-bi"} />
+      <PowerBI active={tab.id === "power-bi"} token={session?.token} />
     </div>
   );
 }

@@ -6,7 +6,14 @@ import { Rows } from "@phosphor-icons/react/dist/csr/Rows";
 import { GridNine } from "@phosphor-icons/react/dist/csr/GridNine";
 import { SquaresFour } from "@phosphor-icons/react/dist/csr/SquaresFour";
 import { isMockApi } from "@/shared/api/config";
-import { useMemo, useState, type FormEvent, type ReactElement } from "react";
+import {
+  useEffect,
+  useEffectEvent,
+  useMemo,
+  useState,
+  type FormEvent,
+  type ReactElement,
+} from "react";
 import { createDemoTrips } from "@/mocks/fixtures/demoTrips";
 import { locations as catalogueLocations } from "@/mocks/fixtures/locations";
 import { tripSearchSchema } from "@/features/trips/schemas/search.schema";
@@ -45,6 +52,7 @@ type TripsQuery = ReturnType<typeof useTrips>;
 const CATALOGUE_DATE = new Intl.DateTimeFormat("en-CA", {
   timeZone: "Asia/Ho_Chi_Minh",
 });
+const MAX_TIMEOUT_MS = 2_147_483_647;
 const FILTER_AMENITIES = [
   "wifi",
   "charging",
@@ -686,7 +694,7 @@ function TripCatalogue({
     passengerCount,
   });
   const catalogue = isMockApi ? mockCatalogue : (liveCatalogue.data ?? []);
-  const catalogueTime = Date.now();
+  const [catalogueTime, setCatalogueTime] = useState(() => Date.now());
   const candidates = catalogue.filter(
     (trip) =>
       (!originId || trip.origin.id === originId) &&
@@ -697,6 +705,19 @@ function TripCatalogue({
       trip.availableSeatCount >= passengerCount &&
       Date.parse(trip.departureTime) > catalogueTime,
   );
+  const nextDeparture = candidates.reduce(
+    (earliest, trip) => Math.min(earliest, Date.parse(trip.departureTime)),
+    Infinity,
+  );
+  const scheduleCatalogueUpdate = useEffectEvent((departure: number): number => {
+    const delay = Math.min(MAX_TIMEOUT_MS, Math.max(0, departure - Date.now()));
+    return window.setTimeout(() => setCatalogueTime(Date.now()), delay);
+  });
+  useEffect(() => {
+    if (!Number.isFinite(nextDeparture)) return;
+    const timeout = scheduleCatalogueUpdate(nextDeparture);
+    return () => window.clearTimeout(timeout);
+  }, [catalogueTime, nextDeparture]);
   const sort = tripSearchSchema.shape.sort.safeParse(
     params.get("sort") ?? "relevance",
   );

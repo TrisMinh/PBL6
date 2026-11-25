@@ -2,17 +2,23 @@ using BusTicketPlatform.BuildingBlocks.Ids;
 
 namespace BusTicketPlatform.Booking.Application;
 
-public sealed record Actor(Guid UserId, Guid? OrganizationId, IReadOnlyList<string> Roles)
+public sealed record Actor(Guid UserId, Guid? OrganizationId, IReadOnlyList<string> Roles, DateTimeOffset? AccountCreatedAt = null, string? VerifiedPhoneKey = null)
 {
     public bool Has(params string[] roles) => roles.Any(Roles.Contains);
 }
 
 public sealed record MoneyDto(long Amount, string Currency);
-public sealed record OperationAccepted(Guid OperationId, string Status, string? StatusUrl = null, DateTimeOffset? AcceptedAt = null);
+public sealed record OperationAccepted(Guid OperationId, string Status, string? StatusUrl = null, DateTimeOffset? AcceptedAt = null, Guid? RefundRequestId = null);
 public sealed record TripSeatDto(Guid Id, string Code, string Type, string Status, MoneyDto Price, long RowVersion);
 public sealed record TripSeatListDto(Guid TripId, IReadOnlyList<TripSeatDto> Seats, DateTimeOffset AvailabilityAsOf, DateTimeOffset ServerTime);
 public sealed record CreateSeatHoldRequest(IReadOnlyList<Guid> SeatIds, Guid PickupStopId, Guid DropoffStopId);
 public sealed record SeatHoldDto(string HoldToken, Guid TripId, string Status, IReadOnlyList<TripSeatDto> Seats, DateTimeOffset ExpiresAt, DateTimeOffset ServerTime);
+public sealed class SeatHoldPolicyException(string code, string message, int status, int? retryAfterSeconds = null) : Exception(message)
+{
+    public string Code { get; } = code;
+    public int Status { get; } = status;
+    public int? RetryAfterSeconds { get; } = retryAfterSeconds;
+}
 public sealed record BookingContact(string FullName, string Email, string Phone);
 public sealed record PassengerInput(Guid SeatId, string FullName, string? DocumentType, string? DocumentNumber, Guid PickupStopId, Guid DropoffStopId);
 public sealed record CreateBookingRequest(string HoldToken, BookingContact Contact, IReadOnlyList<PassengerInput> Passengers, long ExpectedTotal, string Currency, string PaymentChannel, string? CouponCode = null);
@@ -29,9 +35,12 @@ public sealed record BookingReference(Guid Id, string Code)
 public sealed record CancellationPreviewRequest(IReadOnlyList<Guid> TicketIds);
 public sealed record CancellationPreviewDto(Guid PreviewId, IReadOnlyList<Guid> TicketIds, string PolicyVersion, long Fee, long RefundAmount, string Currency, DateTimeOffset ExpiresAt);
 public sealed record CancelBookingRequest(Guid PreviewId, string Reason, long ExpectedVersion);
-public sealed record TicketJourney(string BookingCode, Guid SeatId, Guid PickupStopId, Guid DropoffStopId);
+public sealed record TicketJourney(string BookingCode, Guid SeatId, Guid PickupStopId, Guid DropoffStopId, string? BookingStatus = null);
 public sealed record TicketDto(Guid Id, string PublicCode, Guid BookingId, Guid TripId, string PassengerName, string SeatCode, string Status, string PaymentChannel, string? QrPayload, DateTimeOffset IssuedAt, DateTimeOffset? CheckedInAt, long RowVersion, long UnitPrice = 0)
 {
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public Guid? RefundRequestId { get; init; }
+
     [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
     public TicketJourney? Journey { get; init; }
 }
@@ -81,8 +90,9 @@ public interface IBookingRepository
     Task<SeatHoldRecord?> CreateHoldAsync(SeatHoldRecord hold, IReadOnlyList<Guid> seatIds, CancellationToken cancellationToken);
     Task<SeatHoldRecord?> ReplaceHoldAsync(SeatHoldRecord hold, IReadOnlyList<Guid> seatIds, CancellationToken cancellationToken) => throw new NotSupportedException();
     Task<SeatHoldRecord?> GetHoldByTokenHashAsync(string tokenHash, CancellationToken cancellationToken);
-    Task ReleaseHoldAsync(Guid holdId, CancellationToken cancellationToken);
-    Task<BookingRecord?> CreateBookingAsync(BookingRecord booking, IReadOnlyList<BookingItemRecord> items, IReadOnlyList<PassengerRecord> passengers, Guid holdId, CancellationToken cancellationToken);
+    Task<SeatHoldRecord?> GetOwnedHoldAsync(Guid customerId, Guid? tripId, Guid? holdId, CancellationToken cancellationToken);
+    Task<bool> ReleaseHoldAsync(SeatHoldRecord hold, bool cancelSession, CancellationToken cancellationToken);
+    Task<BookingRecord?> CreateBookingAsync(BookingRecord booking, IReadOnlyList<BookingItemRecord> items, IReadOnlyList<PassengerRecord> passengers, Guid holdId, CancellationToken cancellationToken, bool newAccount = false);
     Task<BookingRecord?> GetBookingAsync(Guid bookingId, CancellationToken cancellationToken);
     Task<BookingRecord?> GetBookingByCodeAsync(string code, CancellationToken cancellationToken) => throw new NotSupportedException();
     Task<IReadOnlyList<BookingRecord>> ListBookingsForCustomerAsync(Guid customerId, int page, int size, CancellationToken cancellationToken);
@@ -92,7 +102,8 @@ public interface IBookingRepository
     Task<bool> ApplyPaidAsync(Guid bookingId, IReadOnlyList<TicketRecord> tickets, CancellationToken cancellationToken, Guid correlationId = default);
     Task<CancellationPreviewRecord> InsertPreviewAsync(CancellationPreviewRecord preview, CancellationToken cancellationToken);
     Task<CancellationPreviewRecord?> GetPreviewAsync(Guid previewId, CancellationToken cancellationToken);
-    Task CancelAsync(Guid bookingId, IReadOnlyList<Guid> ticketIds, long fee, long refund, CancellationToken cancellationToken);
+    Task CancelAsync(Guid bookingId, IReadOnlyList<Guid> ticketIds, long fee, long refund, Guid? refundRequestId, CancellationToken cancellationToken);
+    Task CompleteCancellationRefundAsync(Guid bookingId, Guid requestEventId, long amount, string currency, CancellationToken cancellationToken);
     Task<IReadOnlyList<TicketRecord>> ListTicketsForCustomerAsync(Guid customerId, int page, int size, CancellationToken cancellationToken);
     Task<IReadOnlyList<TicketRecord>> ListTicketsForBookingAsync(Guid bookingId, CancellationToken cancellationToken);
     Task<long> CountTicketsForCustomerAsync(Guid customerId, CancellationToken cancellationToken);
@@ -107,7 +118,7 @@ public interface IBookingRepository
 
 public sealed record InventorySeat(Guid Id, Guid TripId, Guid SourceSeatId, string Code, string Type, int Deck, int Row, int Column, long Price, string Status, long RowVersion);
 public sealed record TripSnapshot(Guid TripId, Guid OrganizationId, Guid OriginStopId, Guid DestinationStopId, DateTimeOffset DepartureAt, bool Sellable, string Status, string Currency, bool AllowPayLater, string PolicyVersion, Guid? DriverUserId);
-public sealed record SeatHoldRecord(Guid Id, Guid TripId, Guid CustomerId, string IdempotencyKey, string TokenHash, string TokenPlain, string Status, long TotalAmount, string Currency, DateTimeOffset CreatedAt, DateTimeOffset ExpiresAt, IReadOnlyList<InventorySeat> Seats);
+public sealed record SeatHoldRecord(Guid Id, Guid TripId, Guid CustomerId, string IdempotencyKey, string TokenHash, string TokenPlain, string Status, long TotalAmount, string Currency, DateTimeOffset CreatedAt, DateTimeOffset ExpiresAt, IReadOnlyList<InventorySeat> Seats, string? VerifiedPhoneKey = null);
 public sealed record BookingItemRecord(Guid Id, Guid BookingId, Guid TripSeatId, Guid SourceSeatId, string SeatCode, long UnitPrice, long Discount = 0);
 public sealed record PassengerRecord(Guid Id, Guid BookingItemId, string FullName, Guid PickupStopId, Guid DropoffStopId, string? DocumentType, byte[]? DocumentCipher, string? Last4);
 public sealed record BookingRecord(
@@ -119,6 +130,7 @@ public sealed record BookingRecord(
 public sealed record TicketRecord(Guid Id, Guid BookingId, Guid BookingItemId, Guid TripId, Guid CustomerId, string PublicCode, string QrHash, string? QrPlain, string PaymentChannel, string Status, string PassengerName, string SeatCode, long UnitPrice, DateTimeOffset IssuedAt, DateTimeOffset? CheckedInAt, long RowVersion)
 {
     public TicketJourney? Journey { get; init; }
+    public Guid? RefundRequestId { get; init; }
 }
 public sealed record CancellationPreviewRecord(Guid Id, Guid BookingId, Guid RequestedBy, IReadOnlyList<Guid> BookingItemIds, IReadOnlyList<Guid> TicketIds, string PolicyVersion, long Eligible, decimal FeeRate, long Fee, long Refund, DateTimeOffset ExpiresAt, DateTimeOffset? ConsumedAt = null);
 
@@ -128,7 +140,7 @@ public interface IBookingEvents
     Task BookingPaidAsync(BookingRecord booking, Guid correlationId, CancellationToken cancellationToken);
     Task TicketsIssuedAsync(IReadOnlyList<TicketRecord> tickets, Guid correlationId, CancellationToken cancellationToken);
     Task TicketsReadyAsync(BookingRecord booking, Guid correlationId, CancellationToken cancellationToken);
-    Task RefundRequestedAsync(Guid bookingId, Guid paymentId, long amount, string currency, string reason, Guid correlationId, CancellationToken cancellationToken);
+    Task RefundRequestedAsync(Guid bookingId, Guid paymentId, long amount, string currency, string reason, Guid correlationId, CancellationToken cancellationToken, Guid? requestId = null);
     Task BookingCancelledAsync(BookingRecord booking, string reason, Guid correlationId, CancellationToken cancellationToken);
     Task InventoryReadyAsync(Guid tripId, Guid correlationId, CancellationToken cancellationToken);
 }

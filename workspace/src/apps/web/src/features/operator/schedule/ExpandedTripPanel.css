@@ -116,6 +116,85 @@
 .operator-trip-expanded__history h3 {
   margin: 0 0 16px;
 }
+.operator-trip-expanded__operations {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--op-border);
+  border-radius: 12px;
+  background: var(--op-white);
+}
+.operator-trip-expanded__operations-header,
+.operator-trip-expanded__operations-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+}
+.operator-trip-expanded__operations h3 {
+  margin: 0;
+  font-size: 14px;
+}
+.operator-trip-expanded__read-only {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--op-muted);
+  font-size: 12px;
+}
+.operator-trip-expanded__steps {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.operator-trip-expanded__steps > li {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 28px;
+  padding: 3px 7px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: var(--op-muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.operator-trip-expanded__steps > li[data-step="past"] {
+  color: var(--color-text-primary);
+}
+.operator-trip-expanded__steps > li[aria-current="step"] {
+  border-color: var(--color-results-success);
+  background: var(--color-cancellation-success-soft);
+  color: var(--color-results-success);
+  font-weight: 700;
+}
+.operator-trip-expanded__step-dot {
+  width: 7px;
+  height: 7px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+}
+.operator-trip-expanded__steps
+  > li[aria-current="step"]
+  .operator-trip-expanded__step-dot {
+  background: currentColor;
+}
+.operator-trip-expanded__operations-line > .button {
+  min-height: 40px;
+  padding: 5px 10px;
+  font-size: 12px;
+}
+.operator-trip-expanded__status-note {
+  margin: 0;
+  color: var(--op-muted);
+  font-size: 12px;
+}
 .operator-trip-expanded__history dl {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));

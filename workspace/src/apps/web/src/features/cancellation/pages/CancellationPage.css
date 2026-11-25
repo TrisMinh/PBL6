@@ -696,11 +696,11 @@
   font-size: 14px;
 }
 
-.cancellation-page__progress li:nth-child(2) strong {
+.cancellation-page__progress:not(.live-refund__progress) li:nth-child(2) strong {
   color: var(--color-cancellation-accent);
 }
 
-.cancellation-page__progress li:nth-child(3) strong {
+.cancellation-page__progress:not(.live-refund__progress) li:nth-child(3) strong {
   color: var(--color-cancellation-copy);
 }
 

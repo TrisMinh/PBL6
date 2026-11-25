@@ -1,5 +1,9 @@
 import { rows, request, localDateTime, type Row } from "../liveOriginalApi";
-import { bookingsResponseSchema, type BookingFilters } from "./bookings.schema";
+import {
+  bookingsResponseSchema,
+  type BookingFilters,
+  type OperatorBooking,
+} from "./bookings.schema";
 import { apiJson } from "@/shared/api/client";
 import { isMockApi } from "@/shared/api/config";
 
@@ -12,9 +16,15 @@ function bookingQuery(
   return query;
 }
 
-function mapBookings(bookings: Row[], trips: Row[]) {
+type OperatorBookingRow = OperatorBooking & {
+  backendId: string;
+  source: Row;
+  trip: Row | undefined;
+};
+
+function mapBookings(bookings: Row[], trips: Row[]): OperatorBookingRow[] {
   const tripsById = new Map(trips.map((trip) => [trip.id, trip]));
-  return bookings.map((booking) => {
+  return bookings.map((booking): OperatorBookingRow => {
     const trip = tripsById.get(booking.tripId);
     const departure = trip ? localDateTime(trip.departureAt) : "";
     const confirmed = ["CONFIRMED", "PAID", "COMPLETED", "CHECKED_IN"].includes(
@@ -56,7 +66,7 @@ export async function operatorBookingRows(
   range: Pick<BookingFilters, "from" | "to">,
   trips: Promise<Row[]>,
   signal?: AbortSignal,
-) {
+): Promise<OperatorBookingRow[]> {
   const [bookings, tripRows] = await Promise.all([
     rows(`/api/v1/operator/bookings?${bookingQuery(range)}`, signal),
     trips,

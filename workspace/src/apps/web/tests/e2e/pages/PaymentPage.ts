@@ -9,7 +9,7 @@ export class PaymentPage {
     await review.start(names);
     await review.continue();
     await expect(
-      this.page.getByRole("tab", { name: "VNPay QR", exact: true }),
+      this.page.getByRole("tab", { name: "SePay QR", exact: true }),
     ).toBeEnabled();
   }
   async pay(label = "Tiếp tục đến VNPay"): Promise<void> {
@@ -35,7 +35,7 @@ export class PaymentPage {
       })
       .click();
     await expect(this.page).toHaveURL(
-      /\/payment\/vnpay\/return\?transactionId=/,
+      /\/payment\/sepay\/return\?transactionId=/,
     );
   }
   async expectState(heading: string): Promise<void> {
@@ -62,7 +62,7 @@ export class PaymentPage {
       .getByRole("link", { name: "Chọn phương thức khác", exact: true })
       .click();
     await expect(
-      this.page.getByRole("tab", { name: "VNPay QR", exact: true }),
+      this.page.getByRole("tab", { name: "SePay QR", exact: true }),
     ).toBeEnabled();
   }
   async recheck(): Promise<void> {

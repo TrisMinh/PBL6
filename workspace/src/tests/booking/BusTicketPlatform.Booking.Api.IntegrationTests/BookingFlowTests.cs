@@ -255,6 +255,36 @@ public sealed class BookingFlowTests
     }
 
     [Fact]
+    public async Task One_account_cannot_hold_separate_groups_and_pending_payment_consumes_its_quota()
+    {
+        var client = _fixture.CreateClient();
+        var trip = await ImportTrip(client, seatCount: 6, allowPayLater: true);
+        var customer = TestJwt.Mint(Guid.CreateVersion7(), ["CUSTOMER"], createdAt: DateTimeOffset.UtcNow);
+        var responses = await Task.WhenAll(
+            CreateHold(client, trip, trip.SeatIds.Take(3).ToArray(), customer),
+            CreateHold(client, trip, trip.SeatIds.Skip(3).ToArray(), customer));
+        var accepted = Assert.Single(responses, response => response.Response.StatusCode == HttpStatusCode.Created).Body;
+        var rejected = Assert.Single(responses, response => response.Response.StatusCode == HttpStatusCode.Conflict).Body;
+        Assert.Equal("ACTIVE_SEAT_HOLD", rejected.GetProperty("error").GetProperty("code").GetString());
+        var heldSeats = accepted.GetProperty("seats").EnumerateArray().ToArray();
+        var token = accepted.GetProperty("holdToken").GetString()!;
+        var total = heldSeats.Sum(seat => seat.GetProperty("price").GetProperty("amount").GetInt64());
+        var selectedIds = heldSeats.Select(seat => seat.GetProperty("id").GetGuid()).ToArray();
+        var passengers = selectedIds.Select(id => Passenger(trip, id, "Passenger A")).ToArray();
+        var payLater = await CreateBooking(client, trip, token, customer, total, "PAY_LATER", passengers);
+        Assert.Equal(HttpStatusCode.Conflict, payLater.Response.StatusCode);
+        Assert.Equal("PREPAID_REQUIRED", payLater.Body.GetProperty("error").GetProperty("code").GetString());
+        var prepaid = await CreateBooking(client, trip, token, customer, total, "PREPAID", passengers);
+        Assert.Equal(HttpStatusCode.Created, prepaid.Response.StatusCode);
+        var remaining = trip.SeatIds.Except(selectedIds).ToArray();
+        var overQuota = await CreateHold(client, trip, remaining.Take(2).ToArray(), customer);
+        Assert.Equal(HttpStatusCode.Conflict, overQuota.Response.StatusCode);
+        Assert.Equal("SEAT_HOLD_LIMIT", overQuota.Body.GetProperty("error").GetProperty("code").GetString());
+        var otherCustomer = TestJwt.Mint(Guid.CreateVersion7(), ["CUSTOMER"]);
+        Assert.Equal(HttpStatusCode.Created, (await CreateHold(client, trip, remaining.Take(2).ToArray(), otherCustomer)).Response.StatusCode);
+    }
+
+    [Fact]
     public async Task Booking_validates_passenger_cardinality_channel_and_price_without_consuming_hold()
     {
         var client = _fixture.CreateClient();

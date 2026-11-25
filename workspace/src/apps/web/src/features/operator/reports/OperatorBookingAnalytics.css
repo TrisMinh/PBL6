@@ -328,6 +328,9 @@
 .revenue-report__power-frame:fullscreen iframe {
   height: 100%;
 }
+.revenue-report__power-frame:fullscreen > div {
+  height: 100%;
+}
 .revenue-report__power-downloads {
   padding: 0.35rem 0.15rem;
   color: #52627c;

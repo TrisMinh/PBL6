@@ -4,6 +4,7 @@ import { z } from "zod";
 import { apiJson } from "@/shared/api/client";
 import { getLiveRows, liveQueryKey } from "@/shared/api/liveRequest";
 import { readApiSession } from "@/shared/api/session";
+import { getDriverResourceRows } from "./drivers/driversRepository";
 const stopSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -58,6 +59,14 @@ export type Route = z.infer<typeof routeSchema>;
 export type Bus = z.infer<typeof busSchema>;
 export type Driver = z.infer<typeof driverSchema>;
 export type Trip = z.infer<typeof tripSchema>;
+export const tripOperationSteps = [
+  { status: "SCHEDULED", label: "Lên lịch", action: "" },
+  { status: "BOARDING", label: "Đón khách", action: "Bắt đầu đón khách" },
+  { status: "DEPARTED", label: "Khởi hành", action: "Xác nhận khởi hành" },
+  { status: "IN_TRANSIT", label: "Di chuyển", action: "Xác nhận di chuyển" },
+  { status: "ARRIVED", label: "Đến nơi", action: "Xác nhận đã đến" },
+  { status: "COMPLETED", label: "Hoàn thành", action: "Xác nhận hoàn thành" },
+] as const;
 export interface TripForm {
   routeId: string;
   busId: string;
@@ -124,8 +133,8 @@ export const busLabel = (bus?: Bus): string =>
         } as Record<string, string>
       )[bus.type] ?? bus.type)
     : "Chưa chọn xe";
-export const driverLabel = (driver: Driver): string =>
-  `${driver.fullName ? driver.fullName + " · " : "GPLX "}${driver.licenseNumber}`;
+export const driverLabel = (driver: Pick<Driver, "fullName">): string =>
+  driver.fullName?.trim() || "Chưa có tên tài xế";
 export function canPublishTrip(): boolean {
   if (isMockApi) return true;
   const u = readApiSession()?.user;
@@ -135,6 +144,26 @@ export function canPublishTrip(): boolean {
       .filter((m) => m.status === "ACTIVE")
       .flatMap((m) => m.roleCodes),
   ].some((r) => r === "OPERATOR_ADMIN" || r === "OPERATOR_SCHEDULER");
+}
+export function canOperateTrip(): boolean {
+  const payload = readApiSession()?.accessToken.split(".")[1];
+  if (!payload) return false;
+  try {
+    const claims = JSON.parse(
+      atob(payload.replace(/-/g, "+").replace(/_/g, "/")),
+    );
+    const roles: unknown[] = Array.isArray(claims?.org_role)
+      ? claims.org_role
+      : [claims?.org_role];
+    return (
+      typeof claims?.org === "string" &&
+      roles.some(
+        (role) => role === "OPERATOR_ADMIN" || role === "OPERATOR_OPERATIONS",
+      )
+    );
+  } catch {
+    return false;
+  }
 }
 export function tripInput(form: TripForm): {
   routeId: string;
@@ -195,9 +224,7 @@ export function useTripResources(): {
   const drivers = useQuery({
     queryKey: liveQueryKey("operator-drivers"),
     queryFn: async ({ signal }) =>
-      z
-        .array(driverSchema)
-        .parse(await getLiveRows("/api/v1/operator/drivers", signal)),
+      z.array(driverSchema).parse(await getDriverResourceRows(signal)),
   });
   return {
     routes,
@@ -211,7 +238,8 @@ export function useOperatorTrip(id: string): UseQueryResult<Trip, Error> {
   return useQuery({
     queryKey: liveQueryKey("operator-trip-workflow", id),
     queryFn: async ({ signal }) => {
-      const rows = await getLiveRows("/api/v1/operator/trips", signal);
+      const query = new URLSearchParams({ tripId: id });
+      const rows = await getLiveRows(`/api/v1/operator/trips?${query}`, signal);
       const found = rows.find((row) => row.id === id);
       if (!found) throw Error("Không tìm thấy chuyến trong nhà xe của bạn.");
       return tripSchema.parse(found);

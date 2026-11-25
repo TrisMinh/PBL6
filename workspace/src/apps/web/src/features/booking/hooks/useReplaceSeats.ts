@@ -4,6 +4,7 @@ import {
   type UseMutationResult,
 } from "@tanstack/react-query";
 import { useState } from "react";
+import { isMockApi } from "@/shared/api/config";
 
 import {
   beginSeatMutation,
@@ -74,15 +75,7 @@ export function useReplaceSeats(
   const attempt = useSeatAttempt();
   const [limitReached, setLimitReached] = useState(false);
   const mutation = useSeatMutation(attempt.finish, attempt.isAlive);
-  const toggle = (id: string): void => {
-    const previous = useBookingDraftStore.getState().draft;
-    if (previous?.sessionId !== draft.sessionId) return;
-    const seatIds = replacement(previous, layout, id);
-    if (!seatIds) return;
-    if (seatIds.length > 6) {
-      setLimitReached(true);
-      return;
-    }
+  const submit = (previous: BookingDraft, seatIds: string[]): void => {
     const controller = attempt.begin();
     if (!controller) return;
     setLimitReached(false);
@@ -92,6 +85,17 @@ export function useReplaceSeats(
       seatIds,
       controller,
     });
+  };
+  const toggle = (id: string): void => {
+    const previous = useBookingDraftStore.getState().draft;
+    if (previous?.sessionId !== draft.sessionId) return;
+    const seatIds = replacement(previous, layout, id);
+    if (!seatIds) return;
+    if (seatIds.length > (isMockApi ? 6 : 4)) {
+      setLimitReached(true);
+      return;
+    }
+    submit(previous, seatIds);
   };
   return {
     toggle,

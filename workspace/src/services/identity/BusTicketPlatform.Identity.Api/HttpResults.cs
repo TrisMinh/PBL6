@@ -115,6 +115,7 @@ public sealed record EmailRequest(string Email);
 public sealed record LoginRequest(string Identifier, string Password);
 public sealed record RefreshRequest(string? RefreshToken);
 public sealed record ResetPasswordRequest(Guid ChallengeId, string Code, string NewPassword);
+public sealed record ChangePasswordRequest(string CurrentPassword, string NewPassword);
 public sealed record UpdateProfileRequest(string? FullName, string? Email, string? Phone, long ExpectedVersion);
 public sealed record VersionedStatusRequest(string Status, string Reason, long ExpectedVersion);
 public sealed record ReplaceRolesRequest(IReadOnlyList<string> RoleCodes, string Reason, long ExpectedVersion);

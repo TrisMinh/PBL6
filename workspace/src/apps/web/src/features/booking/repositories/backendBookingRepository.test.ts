@@ -1,7 +1,11 @@
 import { beforeEach, expect, it, vi } from "vitest";
 vi.hoisted(() => vi.resetModules());
 vi.mock("@/shared/api/config", () => ({ isMockApi: false, apiBaseUrl: "" }));
-import { keyFor, backendBookingRepository } from "./backendBookingRepository";
+import {
+  keyFor,
+  backendBookingRepository,
+  cancelSeatDraft,
+} from "./backendBookingRepository";
 import { saveApiSession } from "@/shared/api/session";
 import { useBookingDraftStore } from "../store/bookingDraftStore";
 import { getSelectedPassengerSeats } from "../lib/passengerDraft";
@@ -57,6 +61,45 @@ const seat = {
   price: trip.fare,
   rowVersion: 0,
 };
+
+it("clears the last seat without cancelling the session until explicitly requested", async () => {
+  const expiresAt = new Date(Date.now() + 360_000).toISOString();
+  const requests: string[] = [];
+  const current = {
+    holdToken: "resume-test",
+    tripId: ids.trip,
+    status: "ACTIVE",
+    expiresAt,
+    serverTime: new Date().toISOString(),
+  };
+  vi.spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
+    const path = String(input);
+    if (path.endsWith("/seat-holds/current"))
+      return Response.json({ ...current, seats: [seat] });
+    if (path.includes("/seat-holds/resume-test")) {
+      requests.push(`${init?.method} ${path}`);
+      if (init?.method === "DELETE") return new Response(null, { status: 204 });
+      expect(JSON.parse(String(init?.body)).seatIds).toEqual([]);
+      return Response.json({ ...current, seats: [] });
+    }
+    return Response.json(trip);
+  });
+  const session = await backendBookingRepository.createSession(ids.trip, 1);
+  useBookingDraftStore.getState().setDraft(session);
+  const empty = await backendBookingRepository.replaceSeats(
+    session.sessionId,
+    [],
+  );
+  expect(empty.selectedSeatIds).toEqual([]);
+  expect(empty.expiresAt).toBe(expiresAt);
+  expect(requests).toEqual(["PUT /api/v1/seat-holds/resume-test"]);
+  useBookingDraftStore.getState().setDraft(empty);
+  await cancelSeatDraft(session.sessionId);
+  expect(requests.at(-1)).toBe(
+    "DELETE /api/v1/seat-holds/resume-test?cancelSession=true",
+  );
+  expect(sessionStorage.getItem(keyFor(session.sessionId))).toBeNull();
+});
 beforeEach(() => {
   sessionStorage.clear();
   useBookingDraftStore.getState().clearDraft();
@@ -112,6 +155,8 @@ it.each([false, true])(
       calls.push({ path, init });
       if (path.endsWith("/seats"))
         return Response.json({ tripId: ids.trip, seats: [seat] });
+      if (path.endsWith("/seat-holds/current"))
+        return new Response(null, { status: 204 });
       if (path.endsWith("/seat-holds") || path.includes("/seat-holds/"))
         return Response.json(
           {
@@ -229,7 +274,11 @@ it.each([false, true])(
   },
 );
 it("rejects stale booking drafts after switching accounts", async () => {
-  vi.spyOn(globalThis, "fetch").mockResolvedValue(Response.json(trip));
+  vi.spyOn(globalThis, "fetch").mockImplementation(async (input) =>
+    String(input).endsWith("/seat-holds/current")
+      ? new Response(null, { status: 204 })
+      : Response.json(trip),
+  );
   const draft = await backendBookingRepository.createSession(ids.trip, 1);
   useBookingDraftStore.getState().setDraft(draft);
   saveApiSession({
@@ -243,4 +292,28 @@ it("rejects stale booking drafts after switching accounts", async () => {
   await expect(
     backendBookingRepository.replaceSeats(draft.sessionId, [ids.seat]),
   ).rejects.toMatchObject({ code: "ACCESS_REQUIRED" });
+});
+
+it("resumes the existing seats and original deadline using only the signed-in account", async () => {
+  const expiresAt = new Date(Date.now() + 360_000).toISOString();
+  vi.spyOn(globalThis, "fetch").mockImplementation(async (input) =>
+    String(input).endsWith("/seat-holds/current")
+      ? Response.json({
+          holdToken: "resume-test",
+          tripId: ids.trip,
+          status: "ACTIVE",
+          seats: [seat],
+          expiresAt,
+          serverTime: new Date().toISOString(),
+        })
+      : Response.json(trip),
+  );
+  const draft = await backendBookingRepository.createSession(ids.trip, 4);
+  expect(draft.selectedSeatIds).toEqual([ids.seat]);
+  expect(draft.passengerCount).toBe(1);
+  expect(draft.expiresAt).toBe(expiresAt);
+  expect(
+    JSON.parse(sessionStorage.getItem(keyFor(draft.sessionId)) ?? "{}")
+      .holdToken,
+  ).toBe("resume-test");
 });

@@ -4,7 +4,9 @@ import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { MemoryRouter } from "react-router";
 import { expect, it } from "vitest";
+import type { z } from "zod";
 import { server } from "@/mocks/server";
+import type { livePaymentSchema } from "../schemas/livePayment.schema";
 import { SePayReturnPage } from "./SePayReturnPage";
 
 it("only reconciles when the customer clicks and shows when a late payment needs refunding", async () => {
@@ -12,7 +14,7 @@ it("only reconciles when the customer clicks and shows when a late payment needs
   const paymentId = crypto.randomUUID();
   let status = "PROCESSING";
   let checks = 0;
-  const payment = () => ({
+  const payment = (): z.input<typeof livePaymentSchema> => ({
     id: paymentId,
     bookingId,
     status,

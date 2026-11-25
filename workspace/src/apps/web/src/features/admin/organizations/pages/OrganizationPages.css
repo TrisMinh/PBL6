@@ -171,7 +171,7 @@
 
 .organization-page__detail-card dt {
   margin-top: 14px;
-  color: var(--color-text-muted);
+  color: var(--color-admin-label);
   font-size: 0.75rem;
   line-height: 22px;
 }
@@ -291,7 +291,7 @@
   flex-shrink: 0;
   border-radius: 50%;
   background: var(--color-admin-avatar);
-  color: var(--color-bg-brand);
+  color: var(--color-admin-badge-copy);
   font-size: 12px;
 }
 .organization-page__role {
@@ -333,7 +333,7 @@
   font-size: 14px;
 }
 .organization-page__members th {
-  color: var(--color-text-muted);
+  color: var(--color-admin-label);
   font-size: 12px;
 }
 .organization-page__members a {

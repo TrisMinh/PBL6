@@ -42,7 +42,7 @@ public sealed class BookingService(IBookingRepository store, IBookingEvents even
         if (string.IsNullOrWhiteSpace(request.HoldToken) || string.IsNullOrWhiteSpace(request.Code) || request.Code.Length > 32)
             return Result<CouponQuoteDto>.Failure(PlatformErrors.Validation("Nhập mã giảm giá hợp lệ.", "couponCode"));
         await store.ExpireHoldsAsync(ct);
-        var hold = await store.GetHoldByTokenHashAsync(Hash(request.HoldToken), ct);
+        var hold = await FindHoldAsync(actor.UserId, request.HoldToken, ct);
         if (hold is null || hold.CustomerId != actor.UserId) return Result<CouponQuoteDto>.Failure(PlatformErrors.NotFound());
         if (hold.Status != "ACTIVE" || hold.ExpiresAt <= DateTimeOffset.UtcNow) return Result<CouponQuoteDto>.Failure(PlatformErrors.SeatHoldExpired());
         var trip = await store.GetTripAsync(hold.TripId, ct);
@@ -102,7 +102,7 @@ public sealed class BookingService(IBookingRepository store, IBookingEvents even
         }
 
         if (request.SeatIds is null
-            || request.SeatIds.Count is < 1 or > 10
+            || request.SeatIds.Count is < 1 or > 4
             || request.SeatIds.Any(id => id == Guid.Empty)
             || request.SeatIds.Distinct().Count() != request.SeatIds.Count
             || request.PickupStopId == Guid.Empty
@@ -135,8 +135,10 @@ public sealed class BookingService(IBookingRepository store, IBookingEvents even
             trip.Currency,
             DateTimeOffset.UtcNow,
             DateTimeOffset.UtcNow.AddMinutes(10),
-            []);
-        var created = await store.CreateHoldAsync(hold, request.SeatIds.ToArray(), cancellationToken);
+            [], actor.VerifiedPhoneKey);
+        SeatHoldRecord? created;
+        try { created = await store.CreateHoldAsync(hold, request.SeatIds, cancellationToken); }
+        catch (SeatHoldPolicyException error) { return Result<SeatHoldDto>.Failure(HoldPolicyError(error)); }
         if (created is null)
         {
             return Result<SeatHoldDto>.Failure(PlatformErrors.SeatUnavailable());
@@ -149,21 +151,41 @@ public sealed class BookingService(IBookingRepository store, IBookingEvents even
     {
         if (!actor.Has("CUSTOMER")) return Result<SeatHoldDto>.Failure(PlatformErrors.AccessDenied());
         await store.ExpireHoldsAsync(cancellationToken);
-        var hold = await store.GetHoldByTokenHashAsync(Hash(token), cancellationToken);
+        var hold = await FindHoldAsync(actor.UserId, token, cancellationToken);
         if (hold is null || hold.CustomerId != actor.UserId) return Result<SeatHoldDto>.Failure(PlatformErrors.NotFound());
         if (hold.Status != "ACTIVE" || hold.ExpiresAt <= DateTimeOffset.UtcNow) return Result<SeatHoldDto>.Failure(PlatformErrors.BookingExpired());
-        if (request.SeatIds is null || request.SeatIds.Count is < 1 or > 10 || request.SeatIds.Any(id => id == Guid.Empty) || request.SeatIds.Distinct().Count() != request.SeatIds.Count)
+        if (request.SeatIds is null || request.SeatIds.Count > 4 || request.SeatIds.Any(id => id == Guid.Empty) || request.SeatIds.Distinct().Count() != request.SeatIds.Count)
             return Result<SeatHoldDto>.Failure(PlatformErrors.Validation("Seat hold input is invalid."));
         var trip = await store.GetTripAsync(hold.TripId, cancellationToken);
         if (trip is null || !trip.Sellable) return Result<SeatHoldDto>.Failure(PlatformErrors.TripNotSellable());
-        var updated = await store.ReplaceHoldAsync(hold, request.SeatIds, cancellationToken);
+        SeatHoldRecord? updated;
+        try { updated = await store.ReplaceHoldAsync(hold, request.SeatIds, cancellationToken); }
+        catch (SeatHoldPolicyException error) { return Result<SeatHoldDto>.Failure(HoldPolicyError(error)); }
         return updated is null ? Result<SeatHoldDto>.Failure(PlatformErrors.SeatUnavailable()) : Result<SeatHoldDto>.Success(MapHold(updated with { TokenPlain = token }));
+    }
+
+    private Task<SeatHoldRecord?> FindHoldAsync(Guid customerId, string token, CancellationToken cancellationToken) =>
+        token.StartsWith("resume-", StringComparison.Ordinal) && Guid.TryParseExact(token.AsSpan(7), "N", out var holdId)
+            ? store.GetOwnedHoldAsync(customerId, null, holdId, cancellationToken)
+            : store.GetHoldByTokenHashAsync(Hash(token), cancellationToken);
+
+    private static BusTicketPlatform.BuildingBlocks.Errors.AppError HoldPolicyError(SeatHoldPolicyException error) =>
+        new(error.Code, error.Message, error.Status, error.RetryAfterSeconds is int seconds
+            ? new Dictionary<string, object> { ["retryAfterSeconds"] = seconds }
+            : null);
+
+    public async Task<Result<SeatHoldDto?>> FindActiveHoldAsync(Actor actor, Guid tripId, CancellationToken cancellationToken)
+    {
+        if (!actor.Has("CUSTOMER")) return Result<SeatHoldDto?>.Failure(PlatformErrors.AccessDenied());
+        await store.ExpireHoldsAsync(cancellationToken);
+        var hold = await store.GetOwnedHoldAsync(actor.UserId, tripId, null, cancellationToken);
+        return Result<SeatHoldDto?>.Success(hold is null ? null : MapHold(hold with { TokenPlain = $"resume-{hold.Id:N}" }));
     }
 
     public async Task<Result<SeatHoldDto>> GetHoldAsync(Actor actor, string token, CancellationToken cancellationToken)
     {
         await store.ExpireHoldsAsync(cancellationToken);
-        var hold = await store.GetHoldByTokenHashAsync(Hash(token), cancellationToken);
+        var hold = await FindHoldAsync(actor.UserId, token, cancellationToken);
         if (hold is null || hold.CustomerId != actor.UserId)
         {
             return Result<SeatHoldDto>.Failure(PlatformErrors.NotFound());
@@ -172,18 +194,18 @@ public sealed class BookingService(IBookingRepository store, IBookingEvents even
         return Result<SeatHoldDto>.Success(MapHold(hold with { TokenPlain = token }));
     }
 
-    public async Task<Result> ReleaseHoldAsync(Actor actor, string token, CancellationToken cancellationToken)
+    public async Task<Result> ReleaseHoldAsync(Actor actor, string token, bool cancelSession, CancellationToken cancellationToken)
     {
-        var hold = await store.GetHoldByTokenHashAsync(Hash(token), cancellationToken);
+        var hold = await FindHoldAsync(actor.UserId, token, cancellationToken);
         if (hold is null || hold.CustomerId != actor.UserId)
         {
             return Result.Failure(PlatformErrors.NotFound());
         }
 
-        if (hold.Status == "ACTIVE")
-        {
-            await store.ReleaseHoldAsync(hold.Id, cancellationToken);
-        }
+        var consumed = hold.Status == "CONSUMED" ||
+            (hold.Status == "ACTIVE" && !await store.ReleaseHoldAsync(hold, cancelSession, cancellationToken));
+        if (consumed && cancelSession)
+            return Result.Failure(new AppError("BOOKING_LOCKED", "Phiên này đã tạo đơn đặt vé.", 409));
 
         return Result.Success();
     }
@@ -191,7 +213,7 @@ public sealed class BookingService(IBookingRepository store, IBookingEvents even
     public async Task<Result<BookingDto>> CreateBookingAsync(Actor actor, CreateBookingRequest request, Guid correlationId, CancellationToken cancellationToken)
     {
         await store.ExpireHoldsAsync(cancellationToken);
-        var hold = await store.GetHoldByTokenHashAsync(Hash(request.HoldToken), cancellationToken);
+        var hold = await FindHoldAsync(actor.UserId, request.HoldToken, cancellationToken);
         if (hold is null || hold.CustomerId != actor.UserId)
         {
             return Result<BookingDto>.Failure(PlatformErrors.NotFound());
@@ -201,6 +223,9 @@ public sealed class BookingService(IBookingRepository store, IBookingEvents even
         {
             return Result<BookingDto>.Failure(PlatformErrors.SeatHoldExpired());
         }
+
+        if (hold.Seats.Count == 0)
+            return Result<BookingDto>.Failure(PlatformErrors.Validation("Chọn ít nhất một ghế trước khi đặt vé.", "passengers"));
 
         if (request.PaymentChannel is not ("PREPAID" or "PAY_LATER"))
         {
@@ -316,8 +341,10 @@ public sealed class BookingService(IBookingRepository store, IBookingEvents even
             allocatedDiscount = cumulativeDiscount;
         }
         BookingRecord? created;
-        try { created = await store.CreateBookingAsync(booking, items, passengers, hold.Id, cancellationToken); }
+        var newAccount = actor.AccountCreatedAt is null || actor.AccountCreatedAt > DateTimeOffset.UtcNow.AddDays(-7);
+        try { created = await store.CreateBookingAsync(booking, items, passengers, hold.Id, cancellationToken, newAccount); }
         catch (CouponUnavailableException) { return Result<BookingDto>.Failure(PlatformErrors.Validation("Mã giảm giá vừa thay đổi hoặc hết hạn. Vui lòng áp dụng lại mã.", "couponCode")); }
+        catch (SeatHoldPolicyException error) { return Result<BookingDto>.Failure(HoldPolicyError(error)); }
         if (created is null)
         {
             return Result<BookingDto>.Failure(PlatformErrors.SeatUnavailable());
@@ -520,15 +547,19 @@ public sealed class BookingService(IBookingRepository store, IBookingEvents even
             return Result<OperationAccepted>.Failure(PlatformErrors.PreviewStale());
         }
 
-        await store.CancelAsync(bookingId, preview.TicketIds, preview.Fee, preview.Refund, cancellationToken);
+        Guid? refundRequestId = preview.Refund > 0 ? ids.NewUuidV7() : null;
+        await store.CancelAsync(bookingId, preview.TicketIds, preview.Fee, preview.Refund, refundRequestId, cancellationToken);
         await events.BookingCancelledAsync(booking, request.Reason, correlationId, cancellationToken);
-        if (preview.Refund > 0)
+        if (refundRequestId is Guid requestId)
         {
-            await events.RefundRequestedAsync(bookingId, Guid.Empty, preview.Refund, booking.Currency, "CUSTOMER_CANCELLATION", correlationId, cancellationToken);
+            await events.RefundRequestedAsync(bookingId, Guid.Empty, preview.Refund, booking.Currency, "CUSTOMER_CANCELLATION", correlationId, cancellationToken, requestId);
         }
 
-        return Result<OperationAccepted>.Success(new OperationAccepted(bookingId, "ACCEPTED", AcceptedAt: DateTimeOffset.UtcNow));
+        return Result<OperationAccepted>.Success(new OperationAccepted(bookingId, "ACCEPTED", AcceptedAt: DateTimeOffset.UtcNow, RefundRequestId: refundRequestId));
     }
+
+    public Task CompleteCancellationRefundAsync(Guid bookingId, Guid requestEventId, long amount, string currency, CancellationToken cancellationToken) =>
+        store.CompleteCancellationRefundAsync(bookingId, requestEventId, amount, currency, cancellationToken);
 
     private static AppError CancellationCutoffError(DateTimeOffset departureAt, DateTimeOffset now) =>
         new(ErrorCodes.CancellationNotAllowed, "Đã hết thời hạn tự hủy vé.", StatusCodes.Conflict,
@@ -847,7 +878,10 @@ public sealed class BookingService(IBookingRepository store, IBookingEvents even
             ticket.IssuedAt,
             ticket.CheckedInAt,
             ticket.RowVersion,
-            ticket.UnitPrice);
+            ticket.UnitPrice)
+        {
+            RefundRequestId = ticket.RefundRequestId
+        };
 
     private async Task<TicketRecord?> ResolveScannedAsync(string scannedToken, CancellationToken cancellationToken)
     {

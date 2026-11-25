@@ -8,6 +8,8 @@ describe("canonical intended redirect", () => {
     "/trips/019b3000-0000-7000-8000-000000007001/seats",
     "/trips/019b3000-0000-7000-8000-000000007001/seats?passengerCount=2",
     "/tickets/BLUE-ABC",
+    "/bookings/BKDM050410408/cancel?view=refund",
+    "/refunds/25bdfede-d1eb-454c-b105-1afbb9e821f0",
     "/trips?originId=loc-hcm&destinationId=loc-dalat&departureDate=2099-01-01&passengerCount=2",
   ])("allows canonical customer path %s", (path) => {
     expect(safeIntendedRedirect(path, "customer")).toBe(path);
@@ -25,6 +27,7 @@ describe("canonical intended redirect", () => {
     "/login",
     "/random",
     "/tickets/BLUE-ABC?token=secret",
+    "/bookings/BKDM050410408/cancel?view=refund&next=https://evil.test",
     "/account/tickets?email=private",
     "/admin/staff",
     "/trips/trip-1/seats?passengerCount=0",

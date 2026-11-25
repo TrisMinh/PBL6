@@ -30,6 +30,11 @@ public sealed class IdentityRepository(IdentityDatabaseOptions options, IIdGener
     public async Task InsertUserAsync(UserRecord user, CancellationToken cancellationToken)
     {
         await using var connection = await OpenAsync(cancellationToken);
+        await InsertUserAsync(connection, null, user, cancellationToken);
+    }
+
+    private static async Task InsertUserAsync(NpgsqlConnection connection, NpgsqlTransaction? transaction, UserRecord user, CancellationToken cancellationToken)
+    {
         await using var command = new NpgsqlCommand("""
             INSERT INTO users (
               id, full_name, email, normalized_email, phone, normalized_phone, password_hash,
@@ -38,9 +43,99 @@ public sealed class IdentityRepository(IdentityDatabaseOptions options, IIdGener
             VALUES (
               @id, @fullName, @email, @nemail, @phone, @nphone, @hash,
               @status, @verified, @failures, @lockout, @authv, @created, @created, @rowVersion);
-            """, connection);
+            """, connection, transaction);
         BindUser(command, user);
         await command.ExecuteNonQueryAsync(cancellationToken);
+    }
+
+    public async Task<bool> InsertStaffAccountAsync(UserRecord user, MembershipRecord membership, string role, CancellationToken cancellationToken)
+    {
+        await using var connection = await OpenAsync(cancellationToken);
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+        try
+        {
+            await InsertUserAsync(connection, transaction, user, cancellationToken);
+            await InsertMembershipAsync(connection, transaction, membership, cancellationToken);
+            await AssignRoleAsync(connection, transaction, user.Id, role, membership.OrganizationId, cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+            return true;
+        }
+        catch (PostgresException error) when (error.SqlState == PostgresErrorCodes.UniqueViolation)
+        {
+            return false;
+        }
+    }
+
+    public async Task<bool> ReplacePasswordAsync(Guid userId, string currentHash, string newHash, CancellationToken cancellationToken)
+    {
+        await using var connection = await OpenAsync(cancellationToken);
+        await using var command = new NpgsqlCommand("""
+            UPDATE users
+            SET password_hash = @newHash, authorization_version = authorization_version + 1,
+                row_version = row_version + 1, updated_at = NOW()
+            WHERE id = @id AND password_hash = @currentHash AND status = 'ACTIVE' AND deleted_at IS NULL;
+            """, connection);
+        command.Parameters.AddWithValue("id", userId);
+        command.Parameters.AddWithValue("currentHash", currentHash);
+        command.Parameters.AddWithValue("newHash", newHash);
+        return await command.ExecuteNonQueryAsync(cancellationToken) == 1;
+    }
+
+    public async Task<bool> UpdateLoginStateAsync(UserRecord user, CancellationToken cancellationToken)
+    {
+        await using var connection = await OpenAsync(cancellationToken);
+        await using var command = new NpgsqlCommand("""
+            UPDATE users
+            SET status = @status, failed_login_count = @failures, lockout_until = @lockout
+            WHERE id = @id AND authorization_version = @authv AND row_version = @rowVersion AND deleted_at IS NULL;
+            """, connection);
+        command.Parameters.AddWithValue("id", user.Id);
+        command.Parameters.AddWithValue("status", user.Status);
+        command.Parameters.AddWithValue("failures", user.FailedLoginCount);
+        command.Parameters.AddWithValue("lockout", NpgsqlDbType.TimestampTz, (object?)user.LockoutUntil ?? DBNull.Value);
+        command.Parameters.AddWithValue("authv", user.AuthorizationVersion);
+        command.Parameters.AddWithValue("rowVersion", user.RowVersion);
+        return await command.ExecuteNonQueryAsync(cancellationToken) == 1;
+    }
+
+    public async Task<bool> ReissueDriverPasswordAsync(Guid organizationId, MembershipRecord membership, UserRecord user, string newHash, CancellationToken cancellationToken)
+    {
+        await using var connection = await OpenAsync(cancellationToken);
+        await using var command = new NpgsqlCommand("""
+            WITH changed AS (
+                UPDATE users u SET password_hash = @newHash, status = 'ACTIVE',
+                    failed_login_count = 0, lockout_until = NULL, updated_at = NOW(),
+                    authorization_version = authorization_version + 1, row_version = row_version + 1
+                WHERE u.id = @userId AND u.row_version = @version AND u.deleted_at IS NULL
+                    AND u.status IN ('ACTIVE', 'LOCKED', 'PENDING_VERIFICATION')
+                    AND EXISTS (
+                        SELECT 1 FROM organization_memberships m JOIN user_roles ur
+                            ON ur.user_id = m.user_id AND ur.organization_id_external = m.organization_id_external
+                        JOIN roles r ON r.id = ur.role_id
+                        WHERE m.id = @membershipId AND m.user_id = u.id AND m.organization_id_external = @org
+                            AND m.status = 'ACTIVE' AND ur.active AND r.code = 'DRIVER'
+                    )
+                    AND NOT EXISTS (
+                        SELECT 1 FROM user_roles ur JOIN roles r ON r.id = ur.role_id
+                        WHERE ur.user_id = u.id AND ur.active
+                            AND (ur.organization_id_external IS DISTINCT FROM @org OR r.code <> 'DRIVER')
+                    )
+                RETURNING u.id
+            ), sessions AS (
+                UPDATE refresh_sessions SET revoked_at = NOW(), revoke_reason = 'PASSWORD_CHANGED'
+                WHERE user_id IN (SELECT id FROM changed) AND revoked_at IS NULL
+            ), challenges AS (
+                UPDATE auth_challenges SET status = 'REVOKED'
+                WHERE user_id IN (SELECT id FROM changed) AND status = 'ACTIVE'
+            )
+            SELECT EXISTS (SELECT 1 FROM changed);
+            """, connection);
+        command.Parameters.AddWithValue("userId", user.Id);
+        command.Parameters.AddWithValue("version", user.RowVersion);
+        command.Parameters.AddWithValue("membershipId", membership.Id);
+        command.Parameters.AddWithValue("org", organizationId);
+        command.Parameters.AddWithValue("newHash", newHash);
+        return await command.ExecuteScalarAsync(cancellationToken) is true;
     }
 
     public async Task UpdateUserAsync(UserRecord user, CancellationToken cancellationToken)
@@ -49,6 +144,7 @@ public sealed class IdentityRepository(IdentityDatabaseOptions options, IIdGener
         await using var command = new NpgsqlCommand("""
             UPDATE users SET
               full_name = @fullName, email = @email, normalized_email = @nemail,
+              verified_phone = CASE WHEN normalized_phone = @nphone THEN verified_phone END,
               phone = @phone, normalized_phone = @nphone, password_hash = @hash, status = @status,
               email_verified_at = @verified, failed_login_count = @failures, lockout_until = @lockout,
               authorization_version = @authv, updated_at = NOW(), row_version = @rowVersion
@@ -61,12 +157,17 @@ public sealed class IdentityRepository(IdentityDatabaseOptions options, IIdGener
     public async Task AssignRoleAsync(Guid userId, string roleCode, Guid? organizationId, CancellationToken cancellationToken)
     {
         await using var connection = await OpenAsync(cancellationToken);
+        await AssignRoleAsync(connection, null, userId, roleCode, organizationId, cancellationToken);
+    }
+
+    private async Task AssignRoleAsync(NpgsqlConnection connection, NpgsqlTransaction? transaction, Guid userId, string roleCode, Guid? organizationId, CancellationToken cancellationToken)
+    {
         await using var command = new NpgsqlCommand("""
             INSERT INTO user_roles (id, user_id, role_id, organization_id_external, active, created_at)
             SELECT @id, @userId, r.id, @org, true, NOW()
             FROM roles r
             WHERE r.code = @code;
-            """, connection);
+            """, connection, transaction);
         command.Parameters.AddWithValue("id", ids.NewUuidV7());
         command.Parameters.AddWithValue("userId", userId);
         command.Parameters.AddWithValue("org", (object?)organizationId ?? DBNull.Value);
@@ -476,11 +577,16 @@ public sealed class IdentityRepository(IdentityDatabaseOptions options, IIdGener
     public async Task InsertMembershipAsync(MembershipRecord membership, CancellationToken cancellationToken)
     {
         await using var connection = await OpenAsync(cancellationToken);
+        await InsertMembershipAsync(connection, null, membership, cancellationToken);
+    }
+
+    private static async Task InsertMembershipAsync(NpgsqlConnection connection, NpgsqlTransaction? transaction, MembershipRecord membership, CancellationToken cancellationToken)
+    {
         await using var command = new NpgsqlCommand("""
             INSERT INTO organization_memberships (
               id, user_id, organization_id_external, status, started_at, created_at, updated_at)
             VALUES (@id, @userId, @org, @status, NOW(), NOW(), NOW());
-            """, connection);
+            """, connection, transaction);
         command.Parameters.AddWithValue("id", membership.Id);
         command.Parameters.AddWithValue("userId", membership.UserId);
         command.Parameters.AddWithValue("org", membership.OrganizationId);
@@ -548,7 +654,8 @@ public sealed class IdentityRepository(IdentityDatabaseOptions options, IIdGener
                 reader.IsDBNull(10) ? null : new DateTimeOffset(DateTime.SpecifyKind(reader.GetDateTime(10), DateTimeKind.Utc)),
                 reader.GetInt64(11),
                 reader.GetInt64(12),
-                new DateTimeOffset(DateTime.SpecifyKind(reader.GetDateTime(13), DateTimeKind.Utc))));
+                new DateTimeOffset(DateTime.SpecifyKind(reader.GetDateTime(13), DateTimeKind.Utc)),
+                reader.IsDBNull(14) ? null : reader.GetString(14)));
         }
 
         return items;
@@ -556,7 +663,7 @@ public sealed class IdentityRepository(IdentityDatabaseOptions options, IIdGener
 
     private const string UserColumns = """
         id, full_name, email, normalized_email, phone, normalized_phone, password_hash, status,
-        email_verified_at, failed_login_count, lockout_until, authorization_version, row_version, created_at
+        email_verified_at, failed_login_count, lockout_until, authorization_version, row_version, created_at, verified_phone
         """;
 
     private static void BindUser(NpgsqlCommand command, UserRecord user)

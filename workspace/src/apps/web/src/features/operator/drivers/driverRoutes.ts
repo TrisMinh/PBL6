@@ -1,7 +1,10 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 import { getOperatorRoutes } from "../resources/routesRepository";
+import type { OperatorRoute } from "../resources/routes.schema";
 
-export function useDriverRoutes(enabled = true) {
+export function useDriverRoutes(
+  enabled = true,
+): UseQueryResult<OperatorRoute[], Error> {
   return useQuery({
     queryKey: ["operator", "resource-routes"],
     queryFn: ({ signal }) => getOperatorRoutes(signal),

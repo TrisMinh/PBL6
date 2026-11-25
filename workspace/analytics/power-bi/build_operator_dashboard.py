@@ -138,7 +138,7 @@ def table(name, columns, measures, expression, mode="import"):
     fields = [
         {"name": labels.get(key, key), "dataType": kind, "sourceColumn": key, "summarizeBy": "none",
          **({"formatString": "dd/MM/yyyy"} if kind == "dateTime" else {}),
-         **({"isHidden": True} if key == "customer_key" else {})}
+         **({"isHidden": True} if key in ("customer_key", "organization_key") else {})}
         for key, kind in columns.items()
     ]
     fields.append({"name": "Mốc ngày", "dataType": "string", "sourceColumn": "period_axis",
@@ -274,9 +274,11 @@ def action_button(name, title, placement, action, **destination):
     })
 
 
-def build(*, live=False, direct_query=False, server="localhost", booking="booking", reporting="reporting"):
+def build(*, live=False, direct_query=False, embedded=False, server="localhost", booking="booking", reporting="reporting"):
     if direct_query and not live:
         raise ValueError("DirectQuery requires the live PostgreSQL source")
+    if embedded and not direct_query:
+        raise ValueError("Embedded tenant filtering requires DirectQuery")
     files = {}
     files["OperatorDashboard.pbip"] = schema("pbip/pbipProperties/1.0.0", {
         "version": "1.0", "artifacts": [{"report": {"path": REPORT}}], "settings": {"enableAutoRecovery": True},
@@ -292,9 +294,13 @@ def build(*, live=False, direct_query=False, server="localhost", booking="bookin
         for key, column in FIN_MEASURES.items()
     }
     mode = "directQuery" if direct_query else "import"
+    ops_columns = {**OPS_COLUMNS, "organization_key": "string"} if embedded else OPS_COLUMNS
+    fin_columns = {**FIN_COLUMNS, "organization_key": "string"} if embedded else FIN_COLUMNS
     if direct_query:
-        ops = direct_query_partition(OPS_COLUMNS, "BookingDatabase", "operator_booking_activity", localize=True)
-        fin = direct_query_partition(FIN_COLUMNS, "ReportingDatabase", "operator_revenue_by_booking")
+        ops_view = "embedded_booking_activity" if embedded else "operator_booking_activity"
+        fin_view = "embedded_revenue_by_booking" if embedded else "operator_revenue_by_booking"
+        ops = direct_query_partition(ops_columns, "BookingDatabase", ops_view, localize=True)
+        fin = direct_query_partition(fin_columns, "ReportingDatabase", fin_view)
     else:
         ops = partition(OPS_COLUMNS, demo_operations(), "BookingDatabase", "operator_booking_activity", localize=True, live=live)
         fin = partition(FIN_COLUMNS, DEMO_FIN, "ReportingDatabase", "operator_revenue_by_booking", live=live)
@@ -314,11 +320,20 @@ def build(*, live=False, direct_query=False, server="localhost", booking="bookin
                 )
             ],
             "tables": [
-                table(OPS, OPS_COLUMNS, OPS_MEASURES, ops, mode),
-                table(FIN, FIN_COLUMNS, finance_measures, fin, mode),
+                table(OPS, ops_columns, OPS_MEASURES, ops, mode),
+                table(FIN, fin_columns, finance_measures, fin, mode),
             ],
         },
     }
+    if embedded:
+        files[f"{MODEL}/model.bim"]["model"]["roles"] = [{
+            "name": "BlueOperator",
+            "modelPermission": "read",
+            "tablePermissions": [
+                {"name": name, "filterExpression": f"{name}[organization_key] = USERNAME()"}
+                for name in (OPS, FIN)
+            ],
+        }]
     report = f"{REPORT}/definition"
     files[f"{report}/version.json"] = definition("versionMetadata", "1.0.0", {"version": "2.0.0"})
     files[f"{report}/report.json"] = definition("report", "2.0.0", {"themeCollection": {}})
@@ -415,6 +430,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Package the Operator Power BI project")
     parser.add_argument("--live", action="store_true", help="Build a PostgreSQL-only project")
     parser.add_argument("--direct-query", action="store_true", help="Use DirectQuery for both live tables")
+    parser.add_argument("--embedded", action="store_true", help="Build the shared report with organization RLS")
     parser.add_argument("--server", default="localhost", help="PostgreSQL host or host:port")
     parser.add_argument("--booking-db", default="booking")
     parser.add_argument("--reporting-db", default="reporting")
@@ -432,6 +448,8 @@ if __name__ == "__main__":
         raise SystemExit
     if args.direct_query and not args.live:
         parser.error("--direct-query requires --live")
+    if args.embedded and not args.direct_query:
+        parser.error("--embedded requires --direct-query")
     if args.live and not args.output:
         parser.error("--live requires an explicit --output outside the web public directory")
     output = (args.output or OUTPUT).resolve()
@@ -439,7 +457,7 @@ if __name__ == "__main__":
         parser.error("Keep live Power BI projects outside the web public directory")
     data = io.BytesIO()
     with ZipFile(data, "w", ZIP_DEFLATED) as archive:
-        for filename, content in build(live=args.live, direct_query=args.direct_query, server=args.server, booking=args.booking_db, reporting=args.reporting_db).items():
+        for filename, content in build(live=args.live, direct_query=args.direct_query, embedded=args.embedded, server=args.server, booking=args.booking_db, reporting=args.reporting_db).items():
             archive.writestr(filename, json.dumps(content, ensure_ascii=False, indent=2) + "\n")
         if not args.live:
             archive.writestr("MO-BAO-CAO.txt", "Giải nén toàn bộ. Mở OperatorDashboard.pbip bằng Power BI Desktop và chọn Refresh để tải dữ liệu demo.\n")

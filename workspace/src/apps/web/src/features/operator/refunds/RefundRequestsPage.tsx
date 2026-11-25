@@ -186,7 +186,7 @@ export function RefundRequestsPage(): ReactElement {
   const currentPage = query.data?.page ?? page;
   const total = query.data?.total ?? 0;
   const pages = Math.max(1, Math.ceil(total / REFUND_PAGE_SIZE));
-  const changePage = (value: number) => {
+  const changePage = (value: number): void => {
     const next = new URLSearchParams(params);
     if (value > 1) next.set("page", String(value));
     else next.delete("page");

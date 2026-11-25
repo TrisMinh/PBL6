@@ -8,6 +8,7 @@ import {
   tripEditSchema,
   type TripDetail,
 } from "./detail.schema";
+import { driverLabel } from "../tripWorkflow";
 export async function readTrip(
   id: string,
   signal?: AbortSignal,
@@ -15,8 +16,8 @@ export async function readTrip(
   const { trips, buses, drivers } = await scheduleResources(signal, id);
   const t = trips.find((v) => v.id === id);
   if (!t) throw Error("Không tìm thấy chuyến");
-  const bus = buses.find((v) => v.id === t.busId),
-    driver = drivers.find((v) => v.id === t.driverId);
+  const bus = buses.find((v) => v.id === t.busId);
+  const schedule = adaptSchedule(t, buses, drivers);
   const manifest =
     t.status === "DRAFT"
       ? { passengers: [] }
@@ -27,10 +28,10 @@ export async function readTrip(
           signal,
         );
   return tripDetailSchema.parse({
-    ...adaptSchedule(t, buses, drivers),
+    ...schedule,
     rowVersion: t.rowVersion,
     vehicle: bus?.plateNumber ?? "Chưa phân công",
-    driver: driver?.fullName ?? driver?.licenseNumber ?? "Chưa phân công",
+    driver: schedule.crew,
     assistant: "",
     pickup: t.stops.find((s: Row) => s.pickupAllowed)?.name ?? t.origin,
     dropoff:
@@ -45,7 +46,9 @@ export async function readTrip(
       confirmed: p.status !== "CANCELLED",
     })),
     vehicleOptions: buses.map((v) => v.plateNumber),
-    driverOptions: drivers.map((v) => v.fullName ?? v.licenseNumber),
+    driverOptions: [
+      ...new Set(drivers.map(({ fullName }) => driverLabel({ fullName }))),
+    ],
   });
 }
 export async function cancelTrip(
@@ -71,10 +74,14 @@ export async function updateTrip(
   const route = routes.find(
     (r) => r.origin === value.origin && r.destination === value.destination,
   );
-  const bus = buses.find((v) => v.plateNumber === value.vehicle),
-    driver = drivers.find(
-      (v) => (v.fullName ?? v.licenseNumber) === value.driver,
-    );
+  const bus = buses.find((v) => v.plateNumber === value.vehicle);
+  const matchingDrivers = drivers.filter(
+    ({ fullName }) => driverLabel({ fullName }) === value.driver,
+  );
+  const driver =
+    matchingDrivers.length === 1
+      ? matchingDrivers[0]
+      : matchingDrivers.find((v) => v.id === t.driverId);
   if (!route || !bus || !driver)
     throw Error("Chọn tuyến, xe và tài xế đang có trong nhà xe.");
   if (value.assistant || value.note)

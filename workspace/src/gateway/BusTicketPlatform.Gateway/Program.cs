@@ -1,6 +1,7 @@
 using BusTicketPlatform.BuildingBlocks.AspNetCore;
 using BusTicketPlatform.BuildingBlocks.AspNetCore.Health;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,6 +9,26 @@ var builder = WebApplication.CreateBuilder(args);
 // Building Blocks
 // ============================================================
 builder.Services.AddBuildingBlocks();
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = 429;
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+    {
+        var path = context.Request.Path.Value ?? "";
+        var request = context.Request.Method;
+        var signup = HttpMethods.IsPost(request) && path.TrimEnd('/').Equals("/api/v1/auth/register", StringComparison.OrdinalIgnoreCase);
+        var holds = (HttpMethods.IsPost(request) || HttpMethods.IsPut(request)) && path.Contains("/seat-holds", StringComparison.OrdinalIgnoreCase);
+        var phone = HttpMethods.IsPost(request) && path.StartsWith("/api/v1/users/me/phone-verification", StringComparison.OrdinalIgnoreCase);
+        if (!signup && !holds && !phone) return RateLimitPartition.GetNoLimiter("unrestricted");
+        var operation = signup ? "signup" : holds ? "hold" : "phone";
+        var ip = context.Connection.RemoteIpAddress?.MapToIPv6().ToString() ?? "unknown";
+        return RateLimitPartition.GetSlidingWindowLimiter($"{operation}:{ip}", _ => new SlidingWindowRateLimiterOptions
+        {
+            PermitLimit = signup ? 35 : holds ? 240 : 75,
+            Window = TimeSpan.FromMinutes(1), SegmentsPerWindow = 6
+        });
+    });
+});
 
 // ============================================================
 // YARP Reverse Proxy
@@ -77,6 +98,7 @@ app.UseCors("clients");
 // Building Blocks Middleware
 // ============================================================
 app.UseBuildingBlocks();
+app.UseRateLimiter();
 
 // ============================================================
 // Health Check

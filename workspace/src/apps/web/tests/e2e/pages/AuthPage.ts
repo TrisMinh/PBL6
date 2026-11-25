@@ -18,13 +18,14 @@ export class AuthPage {
   }
 
   async login(email = CUSTOMER_EMAIL): Promise<void> {
+    await expect(this.page.locator(".app-startup__screen")).toHaveCount(0);
     await this.page
       .getByLabel("Email hoặc số điện thoại", { exact: true })
       .fill(email);
     await this.page.getByLabel("Mật khẩu", { exact: true }).fill(DEMO_PASSWORD);
     await this.page
       .getByRole("button", { name: "Đăng nhập", exact: true })
-      .dblclick();
+      .click();
   }
 
   async expectMockOnly(): Promise<void> {

@@ -1,5 +1,35 @@
 import { readApiSession, type StoredSession } from "@/shared/api/session";
 
+function activeOrganizationRoles(session: StoredSession | null): string[] {
+  const payload = session?.accessToken.split(".")[1];
+  if (!payload) return [];
+  try {
+    const claims = JSON.parse(
+      atob(payload.replace(/-/g, "+").replace(/_/g, "/")),
+    );
+    const roles: unknown[] = Array.isArray(claims?.org_role)
+      ? claims.org_role
+      : [claims?.org_role];
+    return typeof claims?.org === "string"
+      ? roles.filter((role): role is string => typeof role === "string")
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+export function driverOnly(session = readApiSession()): boolean {
+  const roles = activeOrganizationRoles(session);
+  return (
+    roles.includes("DRIVER") &&
+    !roles.some((role) => role.startsWith("OPERATOR_"))
+  );
+}
+
+export function canReissueDriverPassword(session = readApiSession()): boolean {
+  return activeOrganizationRoles(session).includes("OPERATOR_ADMIN");
+}
+
 export function workspaceAccess(
   session: StoredSession | null = readApiSession(),
 ): { admin: boolean; operator: boolean; home: string; label: string } {
@@ -16,7 +46,9 @@ export function workspaceAccess(
   const home = admin
     ? "/admin/organizations"
     : operator
-      ? "/operator/trips"
+      ? driverOnly(session)
+        ? "/operator/my-trips"
+        : "/operator/trips"
       : "/account/tickets";
   return {
     admin,
@@ -25,7 +57,9 @@ export function workspaceAccess(
     label: admin
       ? "Quản trị hệ thống"
       : operator
-        ? "Quản lý nhà xe"
+        ? driverOnly(session)
+          ? "Chuyến của tôi"
+          : "Quản lý nhà xe"
         : "Hành trình của tôi",
   };
 }
@@ -47,6 +81,12 @@ export function workspaceRedirect(
   const url = new URL(input, "https://blue.invalid");
   if (/%2f|%5c|%2e/i.test(url.pathname)) return access.home;
   if (url.pathname.startsWith("/operator/") && !access.operator)
+    return access.home;
+  if (
+    url.pathname.startsWith("/operator/") &&
+    driverOnly(session) &&
+    url.pathname !== "/operator/my-trips"
+  )
     return access.home;
   if (url.pathname.startsWith("/admin/") && !access.admin) return access.home;
   if (

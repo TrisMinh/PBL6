@@ -116,7 +116,7 @@ describe("HomeRoute", () => {
         ) & Node.DOCUMENT_POSITION_FOLLOWING,
       ).toBeTruthy();
     }
-    expect(screen.getAllByRole("article", { name: /→/ })).toHaveLength(4);
+    expect(screen.getAllByRole("article", { name: /→/ })).toHaveLength(6);
     expect(
       screen.getByRole("region", { name: "Danh sách tuyến đường phổ biến" }),
     ).toHaveAttribute("tabindex", "0");

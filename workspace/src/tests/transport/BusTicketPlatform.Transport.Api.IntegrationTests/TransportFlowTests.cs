@@ -580,6 +580,25 @@ public sealed class TransportFlowTests
         Assert.Equal(HttpStatusCode.Forbidden, denied.Response.StatusCode);
 
         var driverToken = TestJwt.Mint(fixture.DriverUserId, [Roles.Driver], fixture.OrganizationId);
+        var mine = await SendAsync(client, HttpMethod.Get, "/api/v1/driver/trips", bearer: driverToken);
+        Assert.Equal(HttpStatusCode.OK, mine.Response.StatusCode);
+        var assignment = Assert.Single(mine.Body.EnumerateArray());
+        Assert.Equal(tripId, assignment.GetProperty("tripId").GetGuid());
+        Assert.Equal(fixture.BusId, assignment.GetProperty("busId").GetGuid());
+        Assert.False(string.IsNullOrWhiteSpace(assignment.GetProperty("plateNumber").GetString()));
+        Assert.Equal("UPCOMING", assignment.GetProperty("phase").GetString());
+        var notMine = await SendAsync(client, HttpMethod.Get, "/api/v1/driver/trips", bearer: stranger);
+        Assert.Empty(notMine.Body.EnumerateArray());
+        var forbiddenDirectory = await SendAsync(client, HttpMethod.Get, "/api/v1/operator/drivers/current-trips", bearer: driverToken);
+        Assert.Equal(HttpStatusCode.Forbidden, forbiddenDirectory.Response.StatusCode);
+        var driverWithAdminRoleElsewhere = TestJwt.Mint(fixture.DriverUserId, [Roles.Driver, Roles.OperatorAdmin],
+            fixture.OrganizationId, [Roles.Driver]);
+        var scopedDirectory = await SendAsync(client, HttpMethod.Get, "/api/v1/operator/drivers/current-trips",
+            bearer: driverWithAdminRoleElsewhere);
+        Assert.Equal(HttpStatusCode.Forbidden, scopedDirectory.Response.StatusCode);
+        var forbiddenSchedule = await SendAsync(client, HttpMethod.Get, "/api/v1/operator/trips/schedule", bearer: driverToken);
+        Assert.Equal(HttpStatusCode.Forbidden, forbiddenSchedule.Response.StatusCode);
+
         foreach (var status in new[] { "BOARDING", "DEPARTED", "IN_TRANSIT", "ARRIVED", "COMPLETED" })
         {
             var transitioned = await SendAsync(
@@ -591,6 +610,14 @@ public sealed class TransportFlowTests
                 Idempotency());
             Assert.Equal(HttpStatusCode.OK, transitioned.Response.StatusCode);
             Assert.Equal(status, transitioned.Body.GetProperty("status").GetString());
+            if (status == "IN_TRANSIT")
+            {
+                var current = await SendAsync(client, HttpMethod.Get, "/api/v1/operator/drivers/current-trips", bearer: fixture.OperatorToken);
+                Assert.Equal(HttpStatusCode.OK, current.Response.StatusCode);
+                var work = Assert.Single(current.Body.EnumerateArray());
+                Assert.Equal(tripId, work.GetProperty("tripId").GetGuid());
+                Assert.Equal("OPERATING", work.GetProperty("phase").GetString());
+            }
         }
 
         var deleted = await SendAsync(client, HttpMethod.Delete, $"/api/v1/operator/trips/{tripId}", bearer: fixture.OperatorToken);
@@ -642,7 +669,7 @@ public sealed class TransportFlowTests
         var client = _fixture.CreateClient();
         var fixture = await CreateResourcesAsync(client);
         var ids = new List<Guid>();
-        for (var day = 0; day < 3; day++)
+        for (var day = 0; day < 4; day++)
         {
             var created = await CreateTripAsync(client, fixture, fixture.BusId, fixture.Departure.AddDays(day));
             Assert.Equal(HttpStatusCode.Created, created.Response.StatusCode);
@@ -662,20 +689,31 @@ public sealed class TransportFlowTests
                     operating_window=tstzrange(now()-interval '25 hours', now()-interval '21 hours', '[)') WHERE id=@overdue;
                 UPDATE trips SET status='COMPLETED', departure_at=now()-interval '48 hours', arrival_at=now()-interval '46 hours',
                     operating_window=tstzrange(now()-interval '49 hours', now()-interval '45 hours', '[)') WHERE id=@completed;
+                UPDATE trips SET departure_at=now()-interval '1 hour', arrival_at=now()+interval '1 hour',
+                    operating_window=tstzrange(now()-interval '2 hours', now()+interval '2 hours', '[)') WHERE id=@awaiting;
                 """, db);
             command.Parameters.AddWithValue("future", ids[0]);
             command.Parameters.AddWithValue("overdue", ids[1]);
             command.Parameters.AddWithValue("completed", ids[2]);
+            command.Parameters.AddWithValue("awaiting", ids[3]);
             await command.ExecuteNonQueryAsync();
         }
 
         const string path = "/api/v1/operator/trips/schedule";
         var active = await SendAsync(client, HttpMethod.Get, path + "?scope=active", bearer: fixture.OperatorToken);
         Assert.Equal(HttpStatusCode.OK, active.Response.StatusCode);
-        var upcoming = Assert.Single(active.Body.GetProperty("items").EnumerateArray());
+        var upcoming = Assert.Single(active.Body.GetProperty("items").EnumerateArray(),
+            trip => trip.GetProperty("id").GetGuid() == ids[0]);
         Assert.Equal(ids[0], upcoming.GetProperty("id").GetGuid());
         Assert.Equal("BOARDING", upcoming.GetProperty("status").GetString());
         Assert.Equal("SCHEDULED", upcoming.GetProperty("scheduleStatus").GetString());
+
+        var awaitingResponse = await SendAsync(client, HttpMethod.Get, path + "?scope=active&status=awaiting_departure", bearer: fixture.OperatorToken);
+        Assert.Equal(HttpStatusCode.OK, awaitingResponse.Response.StatusCode);
+        var awaiting = Assert.Single(awaitingResponse.Body.GetProperty("items").EnumerateArray());
+        Assert.Equal(ids[3], awaiting.GetProperty("id").GetGuid());
+        Assert.Equal("SCHEDULED", awaiting.GetProperty("status").GetString());
+        Assert.Equal("AWAITING_DEPARTURE", awaiting.GetProperty("scheduleStatus").GetString());
 
         var history = await SendAsync(client, HttpMethod.Get, path + "?scope=history&size=1", bearer: fixture.OperatorToken);
         Assert.Equal(2, history.Body.GetProperty("totalElements").GetInt32());

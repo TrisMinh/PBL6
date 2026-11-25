@@ -168,7 +168,11 @@ function DetailContent({ trip }: { trip: TripDetail }): ReactElement {
                   label="ĐIỂM ĐI"
                   value={draft.origin}
                   onChange={(v) => change("origin", v)}
-                  options={["TP.HCM", "Đà Lạt", "Nha Trang", "Phan Thiết"]}
+                  options={
+                    isMockApi
+                      ? ["TP.HCM", "Đà Lạt", "Nha Trang", "Phan Thiết"]
+                      : [draft.origin]
+                  }
                 />
                 <button
                   type="button"
@@ -190,7 +194,11 @@ function DetailContent({ trip }: { trip: TripDetail }): ReactElement {
                   label="ĐIỂM ĐẾN"
                   value={draft.destination}
                   onChange={(v) => change("destination", v)}
-                  options={["Đà Lạt", "TP.HCM", "Nha Trang", "Phan Thiết"]}
+                  options={
+                    isMockApi
+                      ? ["Đà Lạt", "TP.HCM", "Nha Trang", "Phan Thiết"]
+                      : [draft.destination]
+                  }
                 />
               </div>
               <div className="operator-create__three">

@@ -1,5 +1,7 @@
 import { useState, type FormEvent, type ReactElement } from "react";
-import { Link, useLocation, useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
+import { Eye } from "@phosphor-icons/react/dist/csr/Eye";
+import { EyeSlash } from "@phosphor-icons/react/dist/csr/EyeSlash";
 import { httpAuthRepository } from "@/features/auth/repositories/httpAuthRepository";
 import { AuthShell } from "@/features/auth/components/AuthShell";
 import {
@@ -15,8 +17,6 @@ import {
 import { isMockApi } from "@/shared/api/config";
 import { Button } from "@/shared/ui/Button/Button";
 import { Input } from "@/shared/ui/Input/Input";
-import { BrandLogo } from "@/shared/ui/BrandLogo/BrandLogo";
-import "./portal.css";
 import { createMeta } from "@/shared/config/seo";
 export function meta(): ReturnType<typeof createMeta> {
   return createMeta({
@@ -32,26 +32,24 @@ export default function PortalLogin(): ReactElement {
   const demoEmail = operator
     ? "operator@blue.example.invalid"
     : "admin@blue.example.invalid";
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [visible, setVisible] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
-  async function submit(event: FormEvent): Promise<void> {
+  async function submit(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
     if (pending) return;
+    const fields = new FormData(event.currentTarget);
+    const email = String(fields.get("email") ?? "").trim();
+    const password = String(fields.get("password") ?? "");
     setError("");
     setPending(true);
     try {
-      if (isMockApi && email.trim().toLowerCase() !== demoEmail)
+      if (isMockApi && email.toLowerCase() !== demoEmail)
         throw new Error(`Vui lòng dùng tài khoản ${label} của cổng này.`);
       clearMockSession();
-      const session = await httpAuthRepository.login({
-        email: email.trim(),
-        password,
-      });
+      const session = await httpAuthRepository.login({ email, password });
       if (isMockApi && session.role !== "admin")
         throw new Error("Tài khoản không có quyền truy cập.");
       if (!writeMockSession(session))
@@ -72,110 +70,55 @@ export default function PortalLogin(): ReactElement {
       setPending(false);
     }
   }
-  const form = (
-    <form onSubmit={(event) => void submit(event)}>
-      <fieldset
-        className={operator ? "auth-page__fields" : undefined}
-        disabled={pending}
-      >
-        <legend
-          className={operator ? "auth-page__sr-only" : "portal-login__sr"}
-        >
-          Thông tin đăng nhập
-        </legend>
-        <Input
-          className={
-            operator
-              ? "auth-page__control auth-page__control--email"
-              : undefined
-          }
-          label="Email"
-          name="email"
-          placeholder={operator ? "Nhập email" : undefined}
-          type="email"
-          required
-          autoComplete="username"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-        />
-        <Input
-          className={
-            operator
-              ? "auth-page__control auth-page__control--password"
-              : undefined
-          }
-          label="Mật khẩu"
-          name="password"
-          placeholder={operator ? "••••••••••" : undefined}
-          type={visible ? "text" : "password"}
-          required
-          autoComplete="current-password"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          trailingControl={
-            operator ? (
-              <button
-                aria-label={visible ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
-                className="auth-page__visibility"
-                type="button"
-                onClick={() => setVisible((value) => !value)}
-              />
-            ) : undefined
-          }
-        />
-        {!operator && (
-          <label className="portal-login__show">
-            <input
-              type="checkbox"
-              checked={visible}
-              onChange={(event) => setVisible(event.target.checked)}
-            />{" "}
-            Hiện mật khẩu
-          </label>
-        )}
-        {error && (
-          <p role="alert" className="portal-login__error">
-            {error}
-          </p>
-        )}
-        <Button type="submit" isLoading={pending}>
-          Đăng nhập
-        </Button>
-      </fieldset>
-    </form>
-  );
-  if (operator) {
-    return (
-      <main>
-        <AuthShell mode="login" audience="operator">
-          {form}
-        </AuthShell>
-      </main>
-    );
-  }
   return (
-    <main className="portal-login">
-      <section className="portal-login__story" aria-label="BLUE Admin">
-        <BrandLogo placement="header" />
-        <div>
-          <p className="portal-login__eyebrow">BLUE · ADMIN</p>
-          <h1>{"Một nền tảng.\nMọi hành trình trong tầm tay."}</h1>
-          <p>
-            Quản lý tổ chức, thành viên và giao dịch trong không gian quản trị
-            độc lập.
-          </p>
-        </div>
-        <p className="portal-login__footer">
-          Rõ ràng từng bước · An tâm từng hành trình
-        </p>
-      </section>
-      <section className="portal-login__form">
-        <p className="portal-login__eyebrow">KHÔNG GIAN QUẢN TRỊ</p>
-        <h2>Chào mừng trở lại</h2>
-        <p>Đăng nhập tài khoản {label} để tiếp tục.</p>
-        {form}
-        <Link to="/">Về trang đầu</Link>
-      </section>
+    <main>
+      <AuthShell mode="login" audience={operator ? "operator" : "admin"}>
+        <form onSubmit={(event) => void submit(event)}>
+          <fieldset className="auth-page__fields" disabled={pending}>
+            <legend className="auth-page__sr-only">Thông tin đăng nhập</legend>
+            <Input
+              className="auth-page__control auth-page__control--email"
+              label="Email"
+              name="email"
+              placeholder="Nhập email"
+              type="email"
+              required
+              autoComplete="username"
+            />
+            <Input
+              className="auth-page__control auth-page__control--password"
+              label="Mật khẩu"
+              name="password"
+              placeholder="••••••••••"
+              type={visible ? "text" : "password"}
+              required
+              autoComplete="current-password"
+              trailingControl={
+                <button
+                  aria-label={visible ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                  className="auth-page__visibility"
+                  type="button"
+                  onClick={() => setVisible((value) => !value)}
+                >
+                  {visible ? (
+                    <EyeSlash size={18} aria-hidden />
+                  ) : (
+                    <Eye size={18} aria-hidden />
+                  )}
+                </button>
+              }
+            />
+            {error && (
+              <p role="alert" className="auth-page__error">
+                {error}
+              </p>
+            )}
+            <Button type="submit" isLoading={pending}>
+              Đăng nhập
+            </Button>
+          </fieldset>
+        </form>
+      </AuthShell>
     </main>
   );
 }

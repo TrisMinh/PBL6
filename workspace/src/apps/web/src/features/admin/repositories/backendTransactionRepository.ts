@@ -9,6 +9,7 @@ import type {
   AdminRefund,
   LiveTransactionDetails,
 } from "../types/admin";
+import type { PagedResult } from "../types/pagination";
 
 type Row = Record<string, unknown>;
 const text = (value: unknown): string =>
@@ -45,7 +46,11 @@ async function all(
     if (page + 1 >= number(body.totalPages)) return items;
   }
 }
-function page<T>(items: T[], total: number, params: AdminListParams) {
+function page<T>(
+  items: T[],
+  total: number,
+  params: AdminListParams,
+): PagedResult<T> {
   return {
     items,
     total,
@@ -92,7 +97,7 @@ export function createBackendTransactionRepository(): Pick<
   async function bookingReferences(
     body: { ids?: string[]; search?: string; organizationId?: string },
     signal?: AbortSignal,
-  ) {
+  ): Promise<Map<string, string>> {
     const result = await liveApiJson(
       "/api/v1/admin/bookings/references",
       z.unknown(),
@@ -104,7 +109,11 @@ export function createBackendTransactionRepository(): Pick<
     resource: "payments" | "refunds",
     params: AdminListParams,
     signal?: AbortSignal,
-  ) {
+  ): Promise<{
+    result: Row;
+    codes: Map<string, string>;
+    orgs: Map<string, string>;
+  }> {
     const search = params.query?.trim();
     const raw =
       resource === "payments"
@@ -483,6 +492,7 @@ export function createBackendTransactionRepository(): Pick<
         get(`/api/v1/admin/bookings/${text(value.bookingId)}/audit`, signal),
       ]);
       const result = refund(value, orgs, linkedBooking, originalPayment);
+      result.transferReference = text(audit.transferReference) || undefined;
       result.updatedAt = text(audit.updatedAt);
       result.live = {
         ...details(result),

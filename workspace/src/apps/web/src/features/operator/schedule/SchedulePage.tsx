@@ -61,6 +61,7 @@ const STATUS = [
   ["", "Tất cả"],
   ["draft", "Nháp"],
   ["scheduled", "Đã lên lịch"],
+  ["awaiting_departure", "Chờ xác nhận khởi hành"],
   ["boarding", "Đang đón khách"],
   ["departed", "Đã khởi hành"],
   ["in_transit", "Đang di chuyển"],
@@ -440,7 +441,7 @@ export function SchedulePage(): ReactElement {
         : "active";
   const statusOptions = STATUS.filter(([value]) =>
     isMockApi
-      ? value !== "needs_update"
+      ? value !== "needs_update" && value !== "awaiting_departure"
       : scope !== "active" || !HISTORY_STATUS.has(value),
   );
   const requestedPage = Number(rawPage ?? "1");
@@ -462,6 +463,7 @@ export function SchedulePage(): ReactElement {
       const items = await getSchedule(signal);
       return { items, total: items.length, page: 1 };
     },
+    refetchInterval: isMockApi ? false : 60_000,
   });
   const routes = useQuery({
     queryKey: liveQueryKey("operator-schedule-routes"),
@@ -472,6 +474,12 @@ export function SchedulePage(): ReactElement {
   const trips = isMockApi
     ? selectSchedule(query.data?.items ?? [], criteria)
     : (query.data?.items ?? []);
+  const dialogTrip = expandedTrip && (
+    trips.find(
+      (trip) => trip.id === expandedTrip.id &&
+        (trip.rowVersion ?? 0) >= (expandedTrip.rowVersion ?? 0),
+    ) ?? expandedTrip
+  );
   const total = isMockApi ? trips.length : (query.data?.total ?? 0);
   const cities = isMockApi
     ? CITIES
@@ -692,18 +700,21 @@ export function SchedulePage(): ReactElement {
             >
               <Dialog.Portal>
                 <Dialog.Overlay className="operator-schedule__overlay" />
-                {expandedTrip && (
+                {dialogTrip && (
                   <ExpandedTripPanel
-                    trip={expandedTrip}
+                    trip={dialogTrip}
                     historical={!isMockApi && scope === "history"}
                     statusLabel={
                       STATUS.find(
                         ([value]) =>
                           value ===
-                          (expandedTrip.scheduleStatus ?? expandedTrip.status),
+                          (dialogTrip.scheduleStatus ?? dialogTrip.status),
                       )?.[1]
                     }
                     onClose={closeDetails}
+                    onTripTransition={(updated) => {
+                      setExpandedTrip((current) => current?.id === updated.id ? updated : current);
+                    }}
                     onSaved={() => {
                       void query.refetch();
                       closeDetails();

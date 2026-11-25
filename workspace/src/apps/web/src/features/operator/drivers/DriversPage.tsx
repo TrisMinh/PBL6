@@ -6,12 +6,22 @@ import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import { DriverPhoto, DriverDocument } from "./DriverAttachments";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useRef, useState, type FormEvent, type ReactElement } from "react";
-import { useNavigate, useSearchParams } from "react-router";
+import { Link, useNavigate, useSearchParams } from "react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { OperatorSidebar } from "../components/OperatorSidebar";
 import { Button } from "@/shared/ui/Button/Button";
 import { OperatorInput as Input } from "../components/OperatorInput";
 import { PageState } from "@/shared/ui/PageState/PageState";
+import { isMockApi } from "@/shared/api/config";
+import { liveQueryKey } from "@/shared/api/liveRequest";
+import { canReissueDriverPassword } from "@/features/auth/lib/workspaceAccess";
+import { DriverPasswordReissue } from "./DriverPasswordReissue";
+import {
+  driverTripCode,
+  driverTripStatus,
+  driverTripTime,
+  getDriverTripWork,
+} from "./driverTripWork";
 import {
   DRIVER_STATUSES,
   LICENSE_CLASSES,
@@ -72,7 +82,11 @@ function StatusBadge({ status }: { status: DriverStatus }): ReactElement {
     </OperatorStatusBadge>
   );
 }
-function LicenseTag({ grade }: { grade: OperatorDriver["licenseClass"] }) {
+function LicenseTag({
+  grade,
+}: {
+  grade: OperatorDriver["licenseClass"];
+}): ReactElement {
   return (
     <span className="operator-drivers__license-tag" data-grade={grade}>
       Hạng {grade}
@@ -237,19 +251,43 @@ export function DriversPage(): ReactElement {
     queryKey: ["operator-drivers"],
     queryFn: ({ signal }) => getDrivers(signal),
   });
+  const currentTrips = useQuery({
+    queryKey: liveQueryKey("operator-current-driver-trips"),
+    queryFn: ({ signal }) => getDriverTripWork(false, signal),
+    enabled: !isMockApi,
+    refetchInterval: 30_000,
+    retry: false,
+  });
+  const tripByDriver = new Map(
+    (currentTrips.data ?? []).map((trip) => [trip.driverId, trip]),
+  );
   const search = params.get("q") ?? "",
     status = params.get("status") ?? "",
     license = params.get("license") ?? "";
-  const filtered = (query.data ?? []).filter(
-    (d) =>
-      (!status || d.status === status) &&
-      (!license || d.licenseClass === license) &&
-      normalize(`${d.name}${d.id}${d.phone}`).includes(normalize(search)),
-  );
+  const keyword = normalize(search);
+  const filtered = (query.data ?? []).filter((driver) => {
+    if (
+      (status && driver.status !== status) ||
+      (license && driver.licenseClass !== license)
+    )
+      return false;
+    const trip = tripByDriver.get(driver.id);
+    const work = trip
+      ? [driverTripCode(trip), trip.plateNumber, trip.origin, trip.destination]
+      : [];
+    return [
+      driver.name,
+      driver.id,
+      displayCode(driver.id, "TX"),
+      driver.phone,
+      ...work,
+    ].some((value) => normalize(value).includes(keyword));
+  });
   const requestedDriver = params.get("driver");
   const selected = requestedDriver
     ? filtered.find((driver) => driver.id === requestedDriver)
     : filtered[0];
+  const selectedTrip = selected ? tripByDriver.get(selected.id) : undefined;
   const routes = useDriverRoutes(Boolean(selected?.assignedRouteId));
   function updateParam(key: string, value: string): void {
     setParams(
@@ -305,7 +343,7 @@ export function DriversPage(): ReactElement {
         <section className="operator-drivers__toolbar" aria-label="Lọc tài xế">
           <Input
             label="Tìm kiếm"
-            placeholder="Tên, mã hoặc số điện thoại"
+            placeholder="Tên, mã chuyến, biển số hoặc số điện thoại"
             value={search}
             onChange={(e) => updateParam("q", e.target.value)}
           />
@@ -371,37 +409,58 @@ export function DriversPage(): ReactElement {
                 <span>{filtered.length} tài xế</span>
               </header>
               <p>Chọn tài xế để xem và cập nhật hồ sơ.</p>
-              {filtered.map((d) => (
-                <button
-                  type="button"
-                  className="operator-drivers__row"
-                  key={d.id}
-                  aria-pressed={d.id === selected?.id}
-                  onClick={() => updateParam("driver", d.id)}
-                >
-                  <span className="operator-drivers__avatar">
-                    {d.avatar ? (
-                      <DriverPhoto
-                        attachment={d.avatar}
-                        fallback={initials(d.name)}
-                      />
-                    ) : (
-                      initials(d.name)
-                    )}
-                  </span>
-                  <span className="operator-drivers__identity">
-                    <strong>{d.name}</strong>
-                    <small>
-                      {displayCode(d.id, "TX")}
-                      {d.phone && ` · ${phoneLabel(d.phone)}`}
-                    </small>
-                  </span>
-                  <span className="operator-drivers__row-tags">
-                    <LicenseTag grade={d.licenseClass} />
-                    <StatusBadge status={d.status} />
-                  </span>
-                </button>
-              ))}
+              {filtered.map((d) => {
+                const trip = tripByDriver.get(d.id);
+                return (
+                  <button
+                    type="button"
+                    className="operator-drivers__row"
+                    key={d.id}
+                    aria-pressed={d.id === selected?.id}
+                    onClick={() => updateParam("driver", d.id)}
+                  >
+                    <span className="operator-drivers__avatar">
+                      {d.avatar ? (
+                        <DriverPhoto
+                          attachment={d.avatar}
+                          fallback={initials(d.name)}
+                        />
+                      ) : (
+                        initials(d.name)
+                      )}
+                    </span>
+                    <span className="operator-drivers__identity">
+                      <strong>{d.name}</strong>
+                      <small>
+                        <span>{displayCode(d.id, "TX")}</span>
+                        {d.phone && <span>{phoneLabel(d.phone)}</span>}
+                      </small>
+                      {trip && (
+                        <small className="operator-drivers__current-trip">
+                          <span>{driverTripCode(trip)}</span>
+                          <span>{trip.plateNumber}</span>
+                        </small>
+                      )}
+                    </span>
+                    <span className="operator-drivers__row-tags">
+                      <LicenseTag grade={d.licenseClass} />
+                      {trip && d.status !== "paused" ? (
+                        <OperatorStatusBadge
+                          state={
+                            trip.phase === "PENDING"
+                              ? "awaiting_departure"
+                              : trip.status
+                          }
+                        >
+                          {driverTripStatus(trip)}
+                        </OperatorStatusBadge>
+                      ) : (
+                        <StatusBadge status={d.status} />
+                      )}
+                    </span>
+                  </button>
+                );
+              })}
               {!filtered.length && (
                 <PageState
                   title="Không có tài xế phù hợp"
@@ -436,9 +495,20 @@ export function DriversPage(): ReactElement {
                       {displayCode(selected.id, "TX")} / Tham gia{" "}
                       {dateLabel(selected.joinedAt)}
                     </p>
-                    <StatusBadge status={selected.status} />
+                    {(!selectedTrip || selected.status === "paused") && (
+                      <StatusBadge status={selected.status} />
+                    )}
                   </div>
                   <div className="operator-drivers__profile-actions">
+                    {!isMockApi &&
+                      canReissueDriverPassword() &&
+                      selected.accountMembershipId && (
+                        <DriverPasswordReissue
+                          key={selected.accountMembershipId}
+                          membershipId={selected.accountMembershipId}
+                          name={selected.name}
+                        />
+                      )}
                     <Button
                       variant="secondary"
                       className="operator-drivers__delete"
@@ -465,6 +535,52 @@ export function DriversPage(): ReactElement {
                     </Button>
                   </div>
                 </header>
+                {!isMockApi && (
+                  <section className="operator-drivers__personal">
+                    <h3>Chuyến đang phụ trách</h3>
+                    {currentTrips.isError ? (
+                      <Button
+                        variant="secondary"
+                        onClick={() => void currentTrips.refetch()}
+                      >
+                        Tải lại thông tin chuyến
+                      </Button>
+                    ) : selectedTrip ? (
+                      <dl>
+                        <Field
+                          label="Chuyến"
+                          value={
+                            <Link to={`/operator/trips/${selectedTrip.tripId}`}>
+                              {driverTripCode(selectedTrip)} ·{" "}
+                              {selectedTrip.origin} → {selectedTrip.destination}
+                            </Link>
+                          }
+                        />
+                        <Field label="Xe" value={selectedTrip.plateNumber} />
+                        <Field
+                          label="Trạng thái"
+                          value={driverTripStatus(selectedTrip)}
+                        />
+                        <Field
+                          label="Giờ đến dự kiến"
+                          value={driverTripTime(selectedTrip.arrivalAt)}
+                        />
+                        {selectedTrip.needsUpdate && (
+                          <Field
+                            label="Cập nhật"
+                            value="Quá giờ đến · Chờ xác nhận"
+                          />
+                        )}
+                      </dl>
+                    ) : (
+                      <p>
+                        {currentTrips.isPending
+                          ? "Đang tải thông tin chuyến…"
+                          : "Chưa có chuyến đang vận hành."}
+                      </p>
+                    )}
+                  </section>
+                )}
                 <section className="operator-drivers__personal">
                   <h3>Thông tin cá nhân</h3>
                   <dl>

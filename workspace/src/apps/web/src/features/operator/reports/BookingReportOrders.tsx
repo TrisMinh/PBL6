@@ -84,7 +84,7 @@ export function BookingReportOrders({
       : initial.tickets === "checked-in"
         ? "Đơn có vé đã check-in"
         : "Danh sách đơn đặt vé";
-  const date = (value: string) => value.split("-").reverse().join("/");
+  const date = (value: string): string => value.split("-").reverse().join("/");
 
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>

@@ -1,9 +1,27 @@
 import unittest
 
-from build_operator_dashboard import FIN, MODEL, REPORT, build
+from build_operator_dashboard import FIN, MODEL, OPS, REPORT, build
 
 
 class OperatorDashboardTests(unittest.TestCase):
+    def test_shared_model_filters_both_tables_and_keeps_existing_models_scoped(self):
+        shared = build(live=True, direct_query=True, embedded=True)[f"{MODEL}/model.bim"]["model"]
+        role = shared["roles"][0]
+        self.assertEqual("BlueOperator", role["name"])
+        self.assertEqual("read", role["modelPermission"])
+        self.assertEqual(
+            {name: f"{name}[organization_key] = USERNAME()" for name in (OPS, FIN)},
+            {item["name"]: item["filterExpression"] for item in role["tablePermissions"]},
+        )
+        views = {OPS: "embedded_booking_activity", FIN: "embedded_revenue_by_booking"}
+        for table in shared["tables"]:
+            key = next(column for column in table["columns"] if column["name"] == "organization_key")
+            self.assertTrue(key["isHidden"])
+            self.assertIn(views[table["name"]], table["partitions"][0]["source"]["expression"])
+        self.assertNotIn("roles", build(live=True, direct_query=True)[f"{MODEL}/model.bim"]["model"])
+        with self.assertRaises(ValueError):
+            build(live=True, embedded=True)
+
     def test_route_chart_and_drillthrough_share_finance_fields(self):
         for options in ({}, {"live": True}, {"live": True, "direct_query": True}):
             with self.subTest(options=options):

@@ -22,6 +22,7 @@ public static class IdentityEndpoints
         var me = api.MapGroup("/users/me").RequireAuthorization();
         me.MapGet("/", GetMeAsync);
         me.MapPatch("/", UpdateMeAsync);
+        me.MapPost("/password", ChangePasswordAsync);
 
         var admin = api.MapGroup("/admin").RequireAuthorization();
         admin.MapGet("/users", ListUsersAsync);
@@ -108,6 +109,17 @@ public static class IdentityEndpoints
                 http.RequestAborted);
             return result.IsSuccess ? (204, (object?)null) : (result.Error!.StatusCode, ErrorEnvelopeBody(result.Error, http));
         });
+
+    private static async Task<IResult> ChangePasswordAsync(ChangePasswordRequest body, AuthService auth, HttpContext http)
+    {
+        var userId = http.User.UserId();
+        if (userId is null)
+            return HttpResults.Error(IdentityErrors.AuthenticationRequired(), http.CorrelationId());
+
+        var result = await auth.ChangePasswordAsync(userId.Value, body.CurrentPassword, body.NewPassword,
+            http.CorrelationId(), http.RequestAborted);
+        return result.IsSuccess ? Results.NoContent() : HttpResults.Error(result.Error!, http.CorrelationId());
+    }
 
     private static async Task<IResult> GetMeAsync(ProfileService profiles, HttpContext http)
     {

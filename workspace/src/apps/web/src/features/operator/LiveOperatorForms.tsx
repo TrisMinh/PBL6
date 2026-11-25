@@ -11,6 +11,7 @@ import {
 } from "@/shared/api/liveRequest";
 import { ApiFailure, type ApiRow } from "@/shared/api/ResourcePage";
 import { Button } from "@/shared/ui/Button/Button";
+import { tripOperationSteps } from "./tripWorkflow";
 
 const row = z.record(z.string(), z.unknown());
 const get = getLiveRows;
@@ -585,15 +586,19 @@ export function LiveCancelTrip({ trip }: { trip: ApiRow }): ReactElement {
   );
 }
 
-export function LiveTripTransition({ trip }: { trip: ApiRow }): ReactElement {
-  const next: Record<string, string> = {
-    SCHEDULED: "BOARDING",
-    BOARDING: "DEPARTED",
-    DEPARTED: "IN_TRANSIT",
-    IN_TRANSIT: "ARRIVED",
-    ARRIVED: "COMPLETED",
-  };
-  const target = next[text(trip.status)];
+export function LiveTripTransition({
+  trip,
+  onTransition,
+  showAction = false,
+}: {
+  trip: ApiRow;
+  onTransition?: (trip: ApiRow) => void;
+  showAction?: boolean;
+}): ReactElement {
+  const current = tripOperationSteps.findIndex(
+    (step) => step.status === trip.status,
+  );
+  const next = current >= 0 ? tripOperationSteps[current + 1] : undefined;
   const client = useQueryClient();
   const mutation = useMutation({
     mutationFn: () =>
@@ -604,18 +609,19 @@ export function LiveTripTransition({ trip }: { trip: ApiRow }): ReactElement {
           method: "POST",
           body: {
             expectedVersion: number(trip.rowVersion),
-            targetStatus: target,
+            targetStatus: next?.status,
             reason: null,
           },
           idempotent: true,
         },
       ),
-    onSuccess: () => {
+    onSuccess: (updated) => {
+      onTransition?.(updated);
       void refresh(client);
     },
     retry: false,
   });
-  if (!target) return <></>;
+  if (!next) return <></>;
   return (
     <>
       <Button
@@ -624,13 +630,13 @@ export function LiveTripTransition({ trip }: { trip: ApiRow }): ReactElement {
         onClick={() => {
           if (
             window.confirm(
-              `Chuyển chuyến sang trạng thái ${stateLabel(target)}?`,
+              `Chuyển chuyến sang trạng thái ${stateLabel(next.status)}?`,
             )
           )
             mutation.mutate();
         }}
       >
-        {stateLabel(target)}
+        {showAction ? next.action : stateLabel(next.status)}
       </Button>
       <ErrorMessage error={mutation.error} />
     </>

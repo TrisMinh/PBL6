@@ -80,7 +80,8 @@ public sealed record UserRecord(
     DateTimeOffset? LockoutUntil,
     long AuthorizationVersion,
     long RowVersion,
-    DateTimeOffset CreatedAt);
+    DateTimeOffset CreatedAt,
+    string? VerifiedPhone = null);
 
 public sealed record ChallengeRecord(
     Guid Id,

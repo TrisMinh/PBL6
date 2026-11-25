@@ -582,7 +582,7 @@ public sealed class TransportRepository(TransportDatabaseOptions options, IIdGen
         }
     }
 
-    public async Task UpdateTripAsync(TripRecord trip, CancellationToken cancellationToken)
+    public async Task<bool> UpdateTripAsync(TripRecord trip, long expectedVersion, CancellationToken cancellationToken)
     {
         try
         {
@@ -594,7 +594,7 @@ public sealed class TransportRepository(TransportDatabaseOptions options, IIdGen
                     base_fare = @fare, status = @status, sellable = @sellable, published_version = @published,
                     route_snapshot = CAST(@routeSnap AS jsonb), bus_snapshot = CAST(@busSnap AS jsonb),
                     fare_policy_snapshot = CAST(@fareSnap AS jsonb), row_version = @version, updated_at = NOW()
-                WHERE id = @id;
+                WHERE id = @id AND row_version = @expectedVersion;
                 """, connection);
             BindTripCore(command, trip);
             command.Parameters.Add(new NpgsqlParameter("published", NpgsqlTypes.NpgsqlDbType.Bigint) { Value = (object?)trip.PublishedVersion ?? DBNull.Value });
@@ -602,7 +602,8 @@ public sealed class TransportRepository(TransportDatabaseOptions options, IIdGen
             command.Parameters.AddWithValue("busSnap", (object?)trip.BusSnapshot ?? DBNull.Value);
             command.Parameters.AddWithValue("fareSnap", (object?)trip.FareSnapshot ?? DBNull.Value);
             command.Parameters.AddWithValue("version", trip.RowVersion);
-            await command.ExecuteNonQueryAsync(cancellationToken);
+            command.Parameters.AddWithValue("expectedVersion", expectedVersion);
+            return await command.ExecuteNonQueryAsync(cancellationToken) == 1;
         }
         catch (PostgresException exception) when (exception.SqlState is "23P01" or "23505")
         {
@@ -713,6 +714,7 @@ public sealed class TransportRepository(TransportDatabaseOptions options, IIdGen
                     CASE
                         WHEN t.arrival_at <= @asOf
                             AND t.status IN ('SCHEDULED','BOARDING','DEPARTED','IN_TRANSIT') THEN 'NEEDS_UPDATE'
+                        WHEN t.status = 'SCHEDULED' AND t.departure_at <= @asOf THEN 'AWAITING_DEPARTURE'
                         WHEN t.status = 'BOARDING' AND t.departure_at > @asOf + INTERVAL '1 hour' THEN 'SCHEDULED'
                         ELSE t.status
                     END AS display_status
@@ -938,6 +940,58 @@ public sealed class TransportRepository(TransportDatabaseOptions options, IIdGen
         command.Parameters.AddWithValue("trip", tripId);
         command.Parameters.AddWithValue("user", driverUserId);
         return await command.ExecuteScalarAsync(cancellationToken) is not null;
+    }
+
+    public async Task<IReadOnlyList<DriverTripWorkDto>> ListDriverTripWorkAsync(
+        Guid organizationId, Guid? driverUserId, CancellationToken cancellationToken)
+    {
+        await using var connection = await OpenAsync(cancellationToken);
+        await using var command = new NpgsqlCommand("""
+            WITH assignments AS (
+                SELECT DISTINCT d.id AS driver_id, t.id AS trip_id, t.bus_id, b.plate_number,
+                    os.name AS origin, ds.name AS destination, t.departure_at, t.arrival_at, t.status, t.row_version,
+                    CASE
+                        WHEN t.status IN ('COMPLETED','CANCELLED') THEN 'HISTORY'
+                        WHEN t.status IN ('DEPARTED','IN_TRANSIT','ARRIVED')
+                            OR (t.status = 'BOARDING' AND t.departure_at <= @asOf + INTERVAL '1 hour') THEN 'OPERATING'
+                        WHEN t.departure_at <= @asOf THEN 'PENDING'
+                        ELSE 'UPCOMING'
+                    END AS phase,
+                    t.arrival_at <= @asOf AND t.status IN ('SCHEDULED','BOARDING','DEPARTED','IN_TRANSIT') AS needs_update
+                FROM driver_assignments a
+                JOIN driver_profiles d ON d.id = a.driver_profile_id AND d.organization_id = @org
+                JOIN trips t ON t.id = a.trip_id AND t.organization_id = @org
+                JOIN buses b ON b.id = t.bus_id AND b.organization_id = @org
+                JOIN stops os ON os.id = t.origin_stop_id
+                JOIN stops ds ON ds.id = t.destination_stop_id
+                WHERE a.active AND t.status <> 'DRAFT'
+                    AND (@user IS NULL OR d.user_id_external = @user)
+                    AND (t.status NOT IN ('COMPLETED','CANCELLED') OR t.departure_at >= @asOf - INTERVAL '7 days')
+            ), ranked AS (
+                SELECT *, row_number() OVER (
+                    PARTITION BY driver_id
+                    ORDER BY needs_update, (phase = 'OPERATING') DESC, departure_at DESC, trip_id
+                ) AS position
+                FROM assignments
+                WHERE @user IS NOT NULL OR phase = 'OPERATING'
+                    OR (phase = 'PENDING' AND arrival_at > @asOf)
+            )
+            SELECT driver_id, trip_id, bus_id, plate_number, origin, destination, departure_at, arrival_at,
+                   status, row_version, phase, needs_update
+            FROM ranked
+            WHERE @user IS NOT NULL OR position = 1
+            ORDER BY CASE phase WHEN 'OPERATING' THEN 0 WHEN 'PENDING' THEN 1 WHEN 'UPCOMING' THEN 2 ELSE 3 END,
+                CASE WHEN phase = 'UPCOMING' THEN departure_at END ASC,
+                departure_at DESC, trip_id
+            LIMIT CASE WHEN @user IS NOT NULL THEN 100 END;
+            """, connection);
+        command.Parameters.AddWithValue("org", organizationId);
+        command.Parameters.AddWithValue("user", NpgsqlTypes.NpgsqlDbType.Uuid, (object?)driverUserId ?? DBNull.Value);
+        command.Parameters.AddWithValue("asOf", DateTimeOffset.UtcNow);
+        return await ReadAllAsync(command, reader => new DriverTripWorkDto(
+            reader.GetGuid(0), reader.GetGuid(1), reader.GetGuid(2), reader.GetString(3), reader.GetString(4),
+            reader.GetString(5), reader.GetFieldValue<DateTimeOffset>(6), reader.GetFieldValue<DateTimeOffset>(7),
+            reader.GetString(8), reader.GetInt64(9), reader.GetString(10), reader.GetBoolean(11)), cancellationToken);
     }
 
     public async Task MarkSellableAsync(Guid tripId, bool sellable, CancellationToken cancellationToken)

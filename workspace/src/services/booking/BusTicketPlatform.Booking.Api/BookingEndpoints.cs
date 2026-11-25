@@ -39,10 +39,19 @@ public static class BookingEndpoints
                 : (await service.SaveCouponAsync(actor, body, context.RequestAborted)).ToHttp(context.CorrelationId());
         }).RequireAuthorization();
         api.MapGet("/trips/{tripId:guid}/seats", GetSeatsAsync).RequireAuthorization();
-        api.MapPost("/trips/{tripId:guid}/seat-holds", CreateHoldAsync).RequireAuthorization();
+        api.MapPost("/trips/{tripId:guid}/seat-holds", CreateHoldAsync).RequireAuthorization().RequireRateLimiting("seat-hold-account");
+        api.MapGet("/trips/{tripId:guid}/seat-holds/current", async (HttpContext context, BookingService service, Guid tripId) =>
+        {
+            context.Response.Headers.CacheControl = "no-store";
+            var actor = ActorOf(context);
+            if (actor is null) return PlatformHttp.Error(PlatformErrors.AuthenticationRequired(), context.CorrelationId());
+            var result = await service.FindActiveHoldAsync(actor, tripId, context.RequestAborted);
+            if (!result.IsSuccess) return PlatformHttp.Error(result.Error!, context.CorrelationId());
+            return result.Value is null ? Results.NoContent() : Results.Json(result.Value, PlatformHttp.Json);
+        }).RequireAuthorization();
         api.MapGet("/seat-holds/{**holdToken}", GetHoldAsync).RequireAuthorization();
         api.MapDelete("/seat-holds/{**holdToken}", ReleaseHoldAsync).RequireAuthorization();
-        api.MapPut("/seat-holds/{**holdToken}", ReplaceHoldAsync).RequireAuthorization();
+        api.MapPut("/seat-holds/{**holdToken}", ReplaceHoldAsync).RequireAuthorization().RequireRateLimiting("seat-hold-account");
         api.MapPost("/bookings", CreateBookingAsync).RequireAuthorization();
         api.MapGet("/bookings", ListBookingsAsync).RequireAuthorization();
         api.MapGet("/bookings/by-code/{code}", async (HttpContext context, BookingService service, string code) =>
@@ -130,7 +139,9 @@ public static class BookingEndpoints
             : new Actor(
                 userId.Value,
                 context.User.OrganizationId(),
-                context.User.Claims.Where(c => c.Type.EndsWith("/role", StringComparison.Ordinal) || c.Type == System.Security.Claims.ClaimTypes.Role).Select(c => c.Value).Distinct().ToArray());
+                context.User.Claims.Where(c => c.Type.EndsWith("/role", StringComparison.Ordinal) || c.Type == System.Security.Claims.ClaimTypes.Role).Select(c => c.Value).Distinct().ToArray(),
+                DateTimeOffset.TryParse(context.User.FindFirst("account_created_at")?.Value, out var created) ? created : null,
+                context.User.FindFirst("phone_key")?.Value);
     }
 
     private static async Task<IResult> GetSeatsAsync(HttpContext context, BookingService service, Guid tripId) =>
@@ -138,11 +149,15 @@ public static class BookingEndpoints
 
     private static async Task<IResult> CreateHoldAsync(HttpContext context, BookingService service, IIdempotencyStore store, Guid tripId, CreateSeatHoldRequest body)
     {
+        context.Response.Headers.CacheControl = "no-store";
         var actor = ActorOf(context);
         if (actor is null)
         {
             return PlatformHttp.Error(PlatformErrors.AuthenticationRequired(), context.CorrelationId());
         }
+
+        if (context.RequestServices.GetRequiredService<IConfiguration>().GetValue<bool>("SeatProtection:RequireVerifiedPhone") && actor.VerifiedPhoneKey is null)
+            return PlatformHttp.Error(new AppError("PHONE_VERIFICATION_REQUIRED", "Xác minh số điện thoại trước khi giữ ghế.", 403), context.CorrelationId());
 
         var key = context.Request.IdempotencyKey() ?? "";
         return await context.WithIdempotency(store, "booking", "create-hold", actor.UserId.ToString(), PlatformHttp.HashPayload(body), async () =>
@@ -154,6 +169,7 @@ public static class BookingEndpoints
 
     private static async Task<IResult> GetHoldAsync(HttpContext context, BookingService service, string holdToken)
     {
+        context.Response.Headers.CacheControl = "no-store";
         var actor = ActorOf(context);
         return actor is null
             ? PlatformHttp.Error(PlatformErrors.AuthenticationRequired(), context.CorrelationId())
@@ -170,7 +186,7 @@ public static class BookingEndpoints
         });
     }
 
-    private static async Task<IResult> ReleaseHoldAsync(HttpContext context, BookingService service, IIdempotencyStore store, string holdToken)
+    private static async Task<IResult> ReleaseHoldAsync(HttpContext context, BookingService service, IIdempotencyStore store, string holdToken, bool? cancelSession)
     {
         var actor = ActorOf(context);
         if (actor is null)
@@ -178,9 +194,10 @@ public static class BookingEndpoints
             return PlatformHttp.Error(PlatformErrors.AuthenticationRequired(), context.CorrelationId());
         }
 
-        return await context.WithIdempotency(store, "booking", "release-hold", holdToken, PlatformHttp.HashPayload(holdToken), async () =>
+        var operation = cancelSession == true ? "cancel-hold-session" : "release-hold";
+        return await context.WithIdempotency(store, "booking:" + actor.UserId, operation, holdToken, PlatformHttp.HashPayload(holdToken), async () =>
         {
-            var result = await service.ReleaseHoldAsync(actor, holdToken, context.RequestAborted);
+            var result = await service.ReleaseHoldAsync(actor, holdToken, cancelSession == true, context.RequestAborted);
             return result.IsSuccess ? (204, (object?)null) : (result.Error!.StatusCode, BusTicketPlatform.BuildingBlocks.Http.ErrorEnvelope.From(result.Error, context.CorrelationId()));
         });
     }

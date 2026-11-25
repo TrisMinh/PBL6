@@ -17,7 +17,7 @@
   box-shadow: none;
 }
 .time-picker .time-picker__input:focus-visible {
-  outline: none;
+  outline: 2px solid var(--color-focus-ring);
   box-shadow: none;
 }
 .time-picker__input::placeholder {

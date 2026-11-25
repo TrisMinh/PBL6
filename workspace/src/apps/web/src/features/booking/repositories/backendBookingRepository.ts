@@ -23,6 +23,7 @@ const metadataSchema = z.object({
   pickupStopId: z.guid().optional(),
   dropoffStopId: z.guid().optional(),
   paymentChannel: z.enum(["PREPAID", "PAY_LATER"]).optional(),
+  prepaidRequired: z.boolean().optional(),
   attempt: z.string().optional(),
   holdRequest: z
     .object({
@@ -44,6 +45,32 @@ const metadataSchema = z.object({
   couponRejected: z.boolean().optional(),
 });
 export const keyFor = (id: string): string => `blue-live-booking:${id}`;
+export function hasLiveSeatSession(id: string): boolean {
+  return Boolean(
+    metadataSchema.safeParse(
+      JSON.parse(sessionStorage.getItem(keyFor(id)) ?? "null"),
+    ).data?.holdToken,
+  );
+}
+export async function cancelLiveSeatSession(token: string): Promise<void> {
+  await apiJson(
+    `/api/v1/seat-holds/${encodeURIComponent(token)}?cancelSession=true`,
+    z.unknown(),
+    {
+      method: "DELETE",
+      idempotencyKey: `cancel-session-${token}`,
+    },
+  );
+}
+
+export async function cancelSeatDraft(id: string): Promise<void> {
+  draftFor(id);
+  const meta = metadataSchema.parse(
+    JSON.parse(sessionStorage.getItem(keyFor(id)) ?? "null"),
+  );
+  if (meta.holdToken) await cancelLiveSeatSession(meta.holdToken);
+  sessionStorage.removeItem(keyFor(id));
+}
 function owner(): string {
   const session = readApiSession();
   if (!session)
@@ -137,20 +164,43 @@ export const backendBookingRepository: BookingRepository = {
       const trip = await getBackendTrip(tripId, options.signal);
       if (!trip.sellable || !["SCHEDULED", "BOARDING"].includes(trip.status))
         throw new ApiError("TRIP_NOT_SELLABLE", 422, "Chuyến đã ngừng bán.");
+      const hold = await apiJson(
+        `/api/v1/trips/${encodeURIComponent(tripId)}/seat-holds/current`,
+        holdSchema.optional(),
+        { signal: options.signal, cache: "no-store" },
+      );
+      const existing = useBookingDraftStore.getState().draft;
+      if (
+        hold &&
+        existing?.tripId === tripId &&
+        !existing.bookingId &&
+        Date.parse(existing.expiresAt) === Date.parse(hold.expiresAt) &&
+        existing.selectedSeatIds.length === hold.seats.length &&
+        hold.seats.every((seat) => existing.selectedSeatIds.includes(seat.id))
+      ) {
+        const meta = metadataSchema.safeParse(
+          JSON.parse(
+            sessionStorage.getItem(keyFor(existing.sessionId)) ?? "null",
+          ),
+        );
+        if (meta.success && meta.data.owner === user)
+          return { ...existing, status: "active" };
+      }
       const sessionId = crypto.randomUUID();
       sessionStorage.setItem(
         keyFor(sessionId),
-        JSON.stringify({ owner: user }),
+        JSON.stringify({ owner: user, holdToken: hold?.holdToken }),
       );
       return {
         sessionId,
         tripId,
-        passengerCount,
-        selectedSeatIds: [],
+        passengerCount: hold?.seats.length || Math.min(4, passengerCount),
+        selectedSeatIds: hold?.seats.map((seat) => seat.id) ?? [],
         passengers: [],
         // No seats are held until the first authoritative selection response.
-        expiresAt: new Date().toISOString(),
-        totalVnd: 0,
+        expiresAt: hold?.expiresAt ?? new Date().toISOString(),
+        totalVnd:
+          hold?.seats.reduce((sum, seat) => sum + seat.price.amount, 0) ?? 0,
         status: "active",
       };
     }),
@@ -167,11 +217,11 @@ export const backendBookingRepository: BookingRepository = {
       const trip = await getBackendTrip(draft.tripId, signal);
       if (!trip.sellable || !["SCHEDULED", "BOARDING"].includes(trip.status))
         throw new ApiError("TRIP_NOT_SELLABLE", 422, "Chuyến đã ngừng bán.");
-      if (seatIds.length > 6 || new Set(seatIds).size !== seatIds.length)
+      if (seatIds.length > 4 || new Set(seatIds).size !== seatIds.length)
         throw new ApiError(
           "VALIDATION_ERROR",
           400,
-          "Lựa chọn ghế không hợp lệ.",
+          "Mỗi tài khoản được giữ tối đa 4 ghế trên một chuyến.",
         );
       let meta = metadataSchema.parse(
         JSON.parse(sessionStorage.getItem(keyFor(id)) ?? "null"),
@@ -216,8 +266,7 @@ export const backendBookingRepository: BookingRepository = {
           if (
             error instanceof ApiError &&
             error.status >= 400 &&
-            error.status < 500 &&
-            error.status !== 429
+            error.status < 500
           ) {
             meta = { ...meta, selectionRequest: undefined };
             sessionStorage.setItem(keyFor(id), JSON.stringify(meta));
@@ -236,20 +285,27 @@ export const backendBookingRepository: BookingRepository = {
       // Finish an ambiguous previous request before changing its selection.
       const recovered = await reconcileSelection();
       if (seatIds.length === 0) {
-        if (meta.holdToken)
-          await apiJson(
-            `/api/v1/seat-holds/${encodeURIComponent(meta.holdToken)}`,
-            z.unknown(),
-            {
-              method: "DELETE",
-              signal,
-              idempotencyKey: `release-${meta.holdToken}`,
+        if (meta.holdToken && recovered?.seats.length !== 0) {
+          meta = {
+            ...meta,
+            selectionRequest: {
+              key: crypto.randomUUID(),
+              seatIds: [],
+              holdToken: meta.holdToken,
             },
-          );
-        sessionStorage.setItem(
-          keyFor(id),
-          JSON.stringify({ ...meta, holdToken: undefined }),
-        );
+          };
+          sessionStorage.setItem(keyFor(id), JSON.stringify(meta));
+          const cleared = await reconcileSelection();
+          if (
+            cleared?.status !== "ACTIVE" ||
+            Date.parse(cleared.expiresAt) <= Date.now()
+          )
+            throw new ApiError(
+              "HOLD_EXPIRED",
+              409,
+              "Đã hết thời gian giữ ghế.",
+            );
+        }
         return {
           ...draft,
           selectedSeatIds: [],
@@ -376,8 +432,8 @@ export const backendBookingRepository: BookingRepository = {
         if (
           !meta.holdToken &&
           error instanceof ApiError &&
-          error.status === 409 &&
-          error.code.includes("SEAT")
+          ((error.status === 409 && error.code.includes("SEAT")) ||
+            error.status === 429)
         ) {
           sessionStorage.setItem(
             keyFor(id),
@@ -387,6 +443,11 @@ export const backendBookingRepository: BookingRepository = {
               holdRequest: undefined,
             }),
           );
+          const current = useBookingDraftStore.getState().draft;
+          if (current?.sessionId === id)
+            useBookingDraftStore
+              .getState()
+              .setDraft({ ...current, bookingAttemptKey: crypto.randomUUID() });
         }
         throw error;
       });
@@ -421,6 +482,24 @@ export const backendBookingRepository: BookingRepository = {
           paymentChannel: meta.paymentChannel ?? "PREPAID",
         },
       }).catch((error: unknown) => {
+        if (error instanceof ApiError && error.code === "PREPAID_REQUIRED") {
+          sessionStorage.setItem(
+            keyFor(id),
+            JSON.stringify({
+              ...meta,
+              attempt: undefined,
+              holdToken: hold.holdToken,
+              paymentChannel: "PREPAID",
+              prepaidRequired: true,
+            }),
+          );
+          const current = useBookingDraftStore.getState().draft;
+          if (current?.sessionId === id)
+            useBookingDraftStore
+              .getState()
+              .setDraft({ ...current, bookingAttemptKey: crypto.randomUUID() });
+          throw error;
+        }
         // A definitive price/coupon rejection created no booking; edits must get a fresh attempt key.
         if (
           error instanceof ApiError &&

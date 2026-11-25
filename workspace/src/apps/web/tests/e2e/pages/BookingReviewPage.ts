@@ -23,7 +23,7 @@ export class BookingReviewPage {
   }
   async continue(): Promise<void> {
     await this.continueButton.dblclick();
-    await expect(this.page).toHaveURL(/\/payment\/[^/]+\/vnpay$/);
+    await expect(this.page).toHaveURL(/\/payment\/[^/]+\/sepay$/);
     await expect(
       this.page.getByRole("heading", {
         name: "Thanh toán đơn đặt vé",

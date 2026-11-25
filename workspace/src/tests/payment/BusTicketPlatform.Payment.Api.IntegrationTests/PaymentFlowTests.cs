@@ -214,6 +214,31 @@ public sealed class PaymentFlowTests
     }
 
     [Fact]
+    public async Task Customer_cancellation_only_refunds_the_explicit_amount_once()
+    {
+        var client = _fixture.CreateClient();
+        var (paymentId, _, token) = await CreatePayment(client, 150000, "VND");
+        Assert.True((await SendWebhook(client, paymentId, 150000, "VND")).IsSuccessStatusCode);
+        var bookingId = (await GetPayment(client, paymentId, token)).GetProperty("bookingId").GetGuid();
+        var service = _fixture.Factory.Services.GetRequiredService<PaymentService>();
+        await service.ApplyRefundRequestedAsync(bookingId, paymentId, 0, "VND", "Cancellation notice", default, "EVENT-" + Guid.NewGuid().ToString("N"), false);
+        Assert.Equal("SUCCEEDED", (await GetPayment(client, paymentId, token)).GetProperty("status").GetString());
+
+        var request = "EVENT-" + Guid.NewGuid().ToString("N");
+        await service.ApplyRefundRequestedAsync(bookingId, paymentId, 60000, "VND", "CUSTOMER_CANCELLATION", default, request);
+        await service.ApplyRefundRequestedAsync(bookingId, paymentId, 60000, "VND", "CUSTOMER_CANCELLATION", default, request);
+        Assert.Equal(60000L, await Scalar("SELECT COALESCE(SUM(amount),0) FROM refunds WHERE payment_id = @id AND status = 'SUCCEEDED'", paymentId));
+        var history = await Send(client, HttpMethod.Get, $"/api/v1/refunds?bookingId={bookingId}", null, token);
+        history.EnsureSuccessStatusCode();
+        var refund = Assert.Single((await history.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("items").EnumerateArray());
+        Assert.Equal("VNPAY_SANDBOX", refund.GetProperty("paymentProvider").GetString());
+        var refundId = refund.GetProperty("id").GetGuid();
+        var detail = await Send(client, HttpMethod.Get, $"/api/v1/refunds/{refundId}", null, token);
+        detail.EnsureSuccessStatusCode();
+        Assert.Equal("VNPAY_SANDBOX", (await detail.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("paymentProvider").GetString());
+    }
+
+    [Fact]
     public async Task Operator_finance_cannot_read_another_operators_payment()
     {
         var client = _fixture.CreateClient();

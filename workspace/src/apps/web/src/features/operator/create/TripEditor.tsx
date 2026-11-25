@@ -1,10 +1,6 @@
 import { z } from "zod";
-import {
-  RecurrenceFields,
-  RecurringTripResults,
-  recurringDates,
-  type Recurrence,
-} from "./RecurringTrips";
+import { RecurrenceFields, RecurringTripResults } from "./RecurringTrips";
+import { recurringDates, type Recurrence } from "./tripRecurrence";
 import { BrandLoading } from "@/shared/ui/BrandLogo/BrandLoading";
 import {
   useCallback,
@@ -254,7 +250,7 @@ function TripWizardSummary({
                   .join("")}
               </span>
             )}
-            {driver ? driver.fullName || driverLabel(driver) : "Chưa phân công"}
+            {driver ? driverLabel(driver) : "Chưa phân công"}
           </dd>
         </div>
         <div>
@@ -455,7 +451,7 @@ export function CreateTripPage({
     .map((item) => ({
       id: item.id,
       label: driverLabel(item),
-      description: "",
+      description: `GPLX ${item.licenseNumber}`,
       conflicts: [],
     }));
   const hasConflict =
@@ -758,6 +754,7 @@ export function CreateTripPage({
   };
   const submit = (e: FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
+    if (readOnly || submitting.current) return;
     if (wizard && step < 2) {
       nextStep();
       return;
@@ -783,7 +780,6 @@ export function CreateTripPage({
         ?.focus();
       return;
     }
-    if (submitting.current) return;
     submitting.current = true;
     const button = (e.nativeEvent as SubmitEvent)
       .submitter as HTMLButtonElement | null;
@@ -870,12 +866,6 @@ export function CreateTripPage({
           noValidate={wizard}
           className={wizard ? "operator-trip-wizard" : undefined}
         >
-          {readOnly && (
-            <p className="operator-trip-workflow__warning">
-              Chuyến đã phát hành hoặc kết thúc: thông tin được khóa chỉnh sửa
-              theo trạng thái hiện tại.
-            </p>
-          )}
           <WorkflowError
             error={mutation.error}
             retry={mutation.error ? retry : undefined}

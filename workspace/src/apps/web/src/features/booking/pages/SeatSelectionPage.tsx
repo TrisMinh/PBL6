@@ -4,7 +4,13 @@ import { isMockApi } from "@/shared/api/config";
 import { isTripUnavailable } from "@/features/trips/lib/isTripUnavailable";
 import { TripUnavailableState } from "@/features/booking/components/TripUnavailableState";
 import { useEffect, type ReactElement } from "react";
-import { keyFor } from "@/features/booking/repositories/backendBookingRepository";
+import {
+  cancelSeatDraft,
+  hasLiveSeatSession,
+  keyFor,
+} from "@/features/booking/repositories/backendBookingRepository";
+import { useMutation } from "@tanstack/react-query";
+import { CancelSeatSessionButton } from "../components/CancelSeatSessionButton";
 import { Link, useNavigate } from "react-router";
 
 import type { SeatFocus } from "@/features/booking/hooks/useSeatFocus";
@@ -35,8 +41,11 @@ import { formatDateTime } from "@/shared/lib/formatDateTime";
 import { Button } from "@/shared/ui/Button/Button";
 import { PageState } from "@/shared/ui/PageState/PageState";
 import { canContinueBooking } from "@/features/booking/lib/canContinueBooking";
+import { VerifyBookingPhone } from "@/features/booking/components/VerifyBookingPhone";
 
 import "./SeatSelectionPage.css";
+
+const seatLimit = isMockApi ? 6 : 4;
 
 function BookingSteps({
   layout,
@@ -96,18 +105,36 @@ function MutationFeedback({
   mutation,
   onRetry,
   sessionId,
+  tripId,
 }: {
   mutation: ReplaceSeatsResult;
   onRetry: () => void;
   sessionId: string;
+  tripId: string;
 }): ReactElement | null {
   if (mutation.error?.code === "BOOKING_LOCKED")
     return <BookingLockedFeedback sessionId={sessionId} />;
+  if (mutation.error?.code === "PHONE_VERIFICATION_REQUIRED")
+    return <VerifyBookingPhone onVerified={onRetry} />;
+  if (mutation.error?.code === "ACTIVE_SEAT_HOLD")
+    return (
+      <div className="seat-selection__feedback" role="alert">
+        <p>{mutation.error.message}</p>
+        <Link to={`/trips/${encodeURIComponent(tripId)}/seats`}>
+          Tiếp tục lượt giữ ghế
+        </Link>
+      </div>
+    );
+  if (
+    mutation.error?.code === "SEAT_HOLD_COOLDOWN" ||
+    mutation.error?.code === "SEAT_HOLD_LIMIT"
+  )
+    return <Toast tone="error" message={mutation.error.message} />;
   if (mutation.limitReached)
     return (
       <Toast
         tone="error"
-        message="Bạn chỉ có thể chọn tối đa 6 ghế mỗi phiên."
+        message={`Bạn chỉ có thể giữ tối đa ${seatLimit} ghế trên một chuyến.`}
       />
     );
   if (
@@ -135,6 +162,7 @@ interface SeatBookingProps {
   isFetching: boolean;
   onRefetch: () => void;
   countdown: HoldCountdown;
+  hasLiveHold: boolean;
 }
 function BookingConflict({
   draft,
@@ -168,6 +196,7 @@ interface SeatBodyProps extends SeatBookingProps {
   focus: SeatFocus;
   onToggle: (id: string) => void;
   onContinue: () => void;
+  cancelAction?: ReactElement;
 }
 function SeatBookingBody(props: SeatBodyProps): ReactElement {
   return (
@@ -175,6 +204,7 @@ function SeatBookingBody(props: SeatBodyProps): ReactElement {
       <MutationFeedback
         mutation={props.mutation}
         sessionId={props.draft.sessionId}
+        tripId={props.draft.tripId}
         onRetry={() => {
           props.mutation.dismissError();
           props.onRefetch();
@@ -198,10 +228,16 @@ function SeatBookingBody(props: SeatBodyProps): ReactElement {
           countdown={props.countdown}
           isPending={props.isFetching}
           onContinue={props.onContinue}
+          secondaryAction={props.cancelAction}
+          actionLabel={
+            !isMockApi && props.draft.selectedSeatIds.length > 0
+              ? "Tiếp tục đặt vé"
+              : "Tiếp tục"
+          }
           hint={
             props.draft.selectedSeatIds.length > 0
-              ? `Đã chọn ${props.draft.selectedSeatIds.length} ghế cho ${props.draft.passengerCount} hành khách. Tối đa 6 ghế mỗi phiên.`
-              : "Chọn ít nhất 1 ghế để tiếp tục. Tối đa 6 ghế mỗi phiên."
+              ? `Đã chọn ${props.draft.selectedSeatIds.length} ghế cho ${props.draft.passengerCount} hành khách. Tối đa ${seatLimit} ghế.`
+              : `Chọn ít nhất 1 ghế để tiếp tục. Tối đa ${seatLimit} ghế.`
           }
         />
       </div>
@@ -216,6 +252,16 @@ function SeatBooking(props: SeatBookingProps): ReactElement {
   const expired =
     countdown.isExpired || mutation.error?.code === "HOLD_EXPIRED";
   const resultsPath = bookingResultsPath(layout, draft.passengerCount);
+  const cancellation = useMutation({
+    mutationFn: () => cancelSeatDraft(draft.sessionId),
+    onSuccess: () => {
+      if (useBookingDraftStore.getState().draft?.sessionId !== draft.sessionId)
+        return;
+      useBookingDraftStore.getState().clearDraft();
+      void navigate(resultsPath, { replace: true });
+    },
+    retry: false,
+  });
   const recoverExpired = (): void => {
     releaseExpiredSeats(draft.tripId);
     useBookingDraftStore.getState().clearDraft();
@@ -223,6 +269,7 @@ function SeatBooking(props: SeatBookingProps): ReactElement {
   };
   const pending =
     mutation.isPending ||
+    cancellation.isPending ||
     isFetching ||
     mutation.error?.code === "BOOKING_LOCKED" ||
     expired;
@@ -239,6 +286,12 @@ function SeatBooking(props: SeatBookingProps): ReactElement {
   return (
     <>
       <SeatHeading layout={layout} draft={draft} />
+      {cancellation.isError && (
+        <Toast
+          tone="error"
+          message="Chưa thể hủy phiên đặt ghế. Vui lòng thử lại."
+        />
+      )}
       <SeatBookingBody
         {...props}
         isFetching={pending}
@@ -246,6 +299,15 @@ function SeatBooking(props: SeatBookingProps): ReactElement {
         focus={focus}
         onToggle={toggle}
         onContinue={continueBooking}
+        cancelAction={
+          props.hasLiveHold ? (
+            <CancelSeatSessionButton
+              disabled={pending}
+              pending={cancellation.isPending}
+              onConfirm={() => cancellation.mutate()}
+            />
+          ) : undefined
+        }
       />
       <BookingConflict
         {...props}
@@ -256,20 +318,24 @@ function SeatBooking(props: SeatBookingProps): ReactElement {
         open={mutation.limitReached}
         variant="limit"
         eyebrow="GIỚI HẠN ĐẶT CHỖ"
-        title="Bạn đã chọn đủ 6 chỗ"
-        description="Mỗi lượt đặt vé hỗ trợ tối đa 6 vị trí. Bạn có thể bỏ chọn một chỗ trước khi chọn vị trí khác."
-        statusLead="6/6 chỗ đã chọn"
+        title={`Bạn đã chọn đủ ${seatLimit} chỗ`}
+        description={`Bạn có thể giữ tối đa ${seatLimit} ghế trên chuyến này. Bỏ chọn một ghế để chọn ghế khác.`}
+        statusLead={`${seatLimit}/${seatLimit} chỗ đã chọn`}
         statusDetail="Đã đạt giới hạn"
         onClose={mutation.dismissError}
         onFocusReturn={focus.restore}
         secondary={
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={mutation.dismissError}
-          >
-            Đóng
-          </Button>
+          isMockApi ? (
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={mutation.dismissError}
+            >
+              Đóng
+            </Button>
+          ) : (
+            <DialogActionLink to="/support">Hỗ trợ đặt đoàn</DialogActionLink>
+          )
         }
         primary={
           <Button type="button" onClick={mutation.dismissError}>
@@ -315,7 +381,8 @@ function SeatBooking(props: SeatBookingProps): ReactElement {
 }
 function DraftSeats({ draft }: { draft: BookingDraft }): ReactElement {
   const query = useSeats(draft.tripId);
-  const countdown = useDraftCountdown(draft.expiresAt);
+  const hasLiveHold = !isMockApi && hasLiveSeatSession(draft.sessionId);
+  const countdown = useDraftCountdown(draft.expiresAt, hasLiveHold);
   useEffect(() => {
     if (isMockApi || !query.data || query.isFetching || draft.bookingId) return;
     const metadata = JSON.parse(
@@ -371,6 +438,7 @@ function DraftSeats({ draft }: { draft: BookingDraft }): ReactElement {
   if (isTripUnavailable(query.data.trip)) return <TripUnavailableState />;
   return (
     <SeatBooking
+      hasLiveHold={hasLiveHold}
       draft={draft}
       countdown={countdown}
       layout={query.data}

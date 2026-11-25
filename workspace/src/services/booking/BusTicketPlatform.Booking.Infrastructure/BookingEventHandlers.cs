@@ -39,6 +39,18 @@ public static class BookingEventHandlers
 
     public static async Task HandlePaymentAsync(IServiceProvider services, EventMessage message, CancellationToken cancellationToken)
     {
+        if (message.EventType == "RefundSucceeded")
+        {
+            var reference = EventPayload.String(message.Payload, "refundReference", "");
+            if (reference.StartsWith("EVENT-", StringComparison.Ordinal) &&
+                Guid.TryParseExact(reference[6..], "N", out var requestId) &&
+                EventPayload.TryGuid(message.Payload, "bookingId", out var refundedBooking) &&
+                message.Payload.TryGetProperty("amount", out var refundedAmount) && refundedAmount.TryGetInt64(out var amount) && amount > 0)
+                await services.GetRequiredService<BookingService>().CompleteCancellationRefundAsync(refundedBooking, requestId, amount,
+                    EventPayload.String(message.Payload, "currency", ""), cancellationToken);
+            return;
+        }
+
         if (message.EventType != "PaymentSucceeded")
         {
             return;

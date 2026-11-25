@@ -25,7 +25,7 @@ export class CancellationPage {
       this.page.getByRole("heading", { name: "Theo dõi hoàn tiền" }),
     ).toBeVisible();
     await expect(
-      this.page.getByText("VNPay đang xử lý hoàn tiền"),
+      this.page.getByText("SePay đang xử lý hoàn tiền"),
     ).toBeVisible();
   }
 }

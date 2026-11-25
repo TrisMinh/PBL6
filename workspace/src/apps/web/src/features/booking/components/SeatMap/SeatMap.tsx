@@ -173,7 +173,7 @@ function MockSeatMap(props: SeatMapProps): ReactElement {
             : "22 PHÒNG · 2 TẦNG"}
         </span>
         <span className="seat-map__count">
-          {props.selectedSeatIds.length}/6 chỗ đã chọn
+          {props.selectedSeatIds.length}/{isMockApi ? 6 : 4} chỗ đã chọn
         </span>
       </header>
       <SeatLegend />

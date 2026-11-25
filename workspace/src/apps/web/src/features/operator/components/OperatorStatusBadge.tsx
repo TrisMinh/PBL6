@@ -23,6 +23,8 @@ const tones: Readonly<Record<string, string>> = {
   collected: "info",
   review: "warning",
   "needs-update": "warning",
+  "awaiting-departure": "warning",
+  arrived: "success",
   issued: "success",
   "in-transit": "info",
   cancelled: "error",

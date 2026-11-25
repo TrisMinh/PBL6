@@ -13,7 +13,7 @@ import {
 } from "@/features/account/customerPreferences";
 import { isTripUnavailable } from "@/features/trips/lib/isTripUnavailable";
 import { TripUnavailableState } from "@/features/booking/components/TripUnavailableState";
-import { useId, type ReactElement } from "react";
+import { useId, useState, type ReactElement } from "react";
 import { Link } from "react-router";
 
 import { BookingSummary } from "@/features/booking/components/BookingSummary/BookingSummary";
@@ -124,7 +124,8 @@ function PassengerBooking(
   props: PassengerBookingProps & { seats: PassengerSeat[] },
 ): ReactElement {
   const formId = useId();
-  const { session } = useMockSession();
+  const { session, isHydrated } = useMockSession();
+  const [profileLoaded, setProfileLoaded] = useState(false);
   const loadProfile =
     !isMockApi && session?.role === "customer" && !props.draft.contact;
   const liveProfile = useQuery({
@@ -135,6 +136,8 @@ function PassengerBooking(
     retry: false,
     staleTime: 0,
   });
+  // A token refresh can replace the query key while the form is being edited.
+  if (liveProfile.isFetched && !profileLoaded) setProfileLoaded(true);
   const account =
     isMockApi && session?.role === "customer"
       ? findDemoAccount(session.userId, true)
@@ -173,10 +176,34 @@ function PassengerBooking(
           email: account.email,
         }
       : undefined;
+  const waitForProfile =
+    !isMockApi &&
+    !props.draft.contact &&
+    (!isHydrated || (loadProfile && !profileLoaded && !liveProfile.isFetched));
+  if (waitForProfile)
+    return (
+      <>
+        <PassengerHeading {...props} />
+        <BrandLoading compact title="Đang tải thông tin tài khoản…" />
+      </>
+    );
   return (
     <>
       <PassengerHeading {...props} />
       {props.hasQueryError && <QueryFeedback onRefetch={props.onRefetch} />}
+      {loadProfile && !liveProfile.data && liveProfile.isFetched && (
+        <div className="passenger-details__feedback" role="status">
+          <p>Chưa tải được hồ sơ. Bạn có thể nhập thông tin để tiếp tục.</p>
+          <Button
+            type="button"
+            variant="secondary"
+            isLoading={liveProfile.isFetching}
+            onClick={() => void liveProfile.refetch()}
+          >
+            Tải lại hồ sơ
+          </Button>
+        </div>
+      )}
       <SaveFeedback error={mutation.error} sessionId={props.draft.sessionId} />
       <div className="passenger-details__body">
         <PassengerForm

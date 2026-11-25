@@ -22,6 +22,7 @@ export const CANCELLATION_QUERY_KEY = "cancellation-options";
 export function useCancellationOptions(
   bookingCode: string,
   access: CancellationAccess,
+  enabled = true,
 ): UseQueryResult<CancellationOptions, BookingRepositoryError | ApiError> {
   return useQuery({
     queryKey: [
@@ -32,6 +33,7 @@ export function useCancellationOptions(
     ],
     queryFn: ({ signal }) =>
       httpCancellationRepository.getOptions(bookingCode, access, signal),
+    enabled,
     retry: false,
   });
 }

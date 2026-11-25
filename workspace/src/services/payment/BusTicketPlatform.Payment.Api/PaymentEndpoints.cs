@@ -35,7 +35,21 @@ public static class PaymentEndpoints
         api.MapPost("/payments/{paymentId:guid}/reconcile", ReconcileAsync);
         api.MapPost("/payments/{paymentId:guid}/cancel", CancelAsync);
         api.MapPost("/refunds", RefundAsync);
+        api.MapGet("/refunds", async (HttpContext context, PaymentService service, Guid bookingId, int page = 0, int size = 20) =>
+        {
+            context.Response.Headers.CacheControl = "no-store";
+            var actor = ActorOf(context);
+            return actor is null ? PlatformHttp.Error(PlatformErrors.AuthenticationRequired(), context.CorrelationId())
+                : (await service.ListCustomerRefundsAsync(actor, bookingId, page, size, context.RequestAborted)).ToHttp(context.CorrelationId());
+        });
         api.MapGet("/refunds/{refundId:guid}", GetRefundAsync);
+        api.MapPut("/admin/refunds/{refundId:guid}/transfer", async (HttpContext context, PaymentService service, Guid refundId, RecordRefundTransferRequest body) =>
+        {
+            context.Response.Headers.CacheControl = "no-store";
+            var actor = ActorOf(context);
+            return actor is null ? PlatformHttp.Error(PlatformErrors.AuthenticationRequired(), context.CorrelationId())
+                : (await service.RecordRefundTransferAsync(actor, refundId, body, context.CorrelationId(), context.RequestAborted)).ToHttp(context.CorrelationId());
+        });
         api.MapGet("/admin/payments", SearchPaymentsAsync);
         api.MapGet("/admin/refunds", SearchRefundsAsync);
         api.MapPost("/admin/payments", async (HttpContext context, PaymentService service, FinanceListFilter filter, int page = 0, int size = 20) =>

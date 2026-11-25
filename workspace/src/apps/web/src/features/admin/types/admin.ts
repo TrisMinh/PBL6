@@ -138,6 +138,7 @@ export interface AdminRefund {
   audit?: RefundAudit;
   id: string;
   refundReference?: string;
+  transferReference?: string;
   bookingId: string;
   paymentId: string;
   amountVnd: VndAmount;

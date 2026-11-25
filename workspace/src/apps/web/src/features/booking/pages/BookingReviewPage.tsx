@@ -150,7 +150,8 @@ function ReadyReview(props: ReviewProps): ReactElement {
         description={
           mutation.error?.code === "SEAT_CONFLICT"
             ? "Một hoặc nhiều ghế bạn chọn vừa được người khác giữ hoặc đặt. Vui lòng chọn lại ghế trống để tiếp tục."
-            : mutation.error?.code === "VALIDATION_ERROR" ||
+            : mutation.error?.code === "PREPAID_REQUIRED" ||
+                mutation.error?.code === "VALIDATION_ERROR" ||
                 mutation.error?.message?.includes("giảm giá")
               ? mutation.error.message
               : "Yêu cầu chưa hoàn tất. Vui lòng kiểm tra kết nối và thông tin trước khi thử lại."

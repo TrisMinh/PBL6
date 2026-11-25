@@ -43,6 +43,7 @@ coverage/
 .nyc_output/
 playwright-report/
 test-results/
+test-results-live/
 
 # Logs
 *.log

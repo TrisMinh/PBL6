@@ -170,7 +170,7 @@ public sealed class AuthService(
         {
             var failures = user.FailedLoginCount + 1;
             var lockout = failures >= LockoutThreshold ? clock.UtcNow.AddMinutes(LockoutMinutes) : (DateTimeOffset?)null;
-            await users.UpdateUserAsync(
+            await users.UpdateLoginStateAsync(
                 user with { FailedLoginCount = failures, LockoutUntil = lockout, Status = lockout is null ? user.Status : UserStatuses.Locked },
                 cancellationToken);
             await users.InsertAuditAsync(null, user.Id, "LOGIN_FAILED", "DENIED", lockout is null ? "INVALID_CREDENTIALS" : "ACCOUNT_LOCKED", correlationId, cancellationToken);
@@ -178,7 +178,8 @@ public sealed class AuthService(
         }
 
         var unlocked = user with { FailedLoginCount = 0, LockoutUntil = null };
-        await users.UpdateUserAsync(unlocked, cancellationToken);
+        if (!await users.UpdateLoginStateAsync(unlocked, cancellationToken))
+            return Result<SessionResponse>.Failure(IdentityErrors.InvalidCredentials());
         await users.InsertAuditAsync(user.Id, user.Id, "LOGIN", "SUCCEEDED", null, correlationId, cancellationToken);
         return await IssueSessionAsync(unlocked, correlationId, cancellationToken);
     }
@@ -239,6 +240,30 @@ public sealed class AuthService(
         var now = clock.UtcNow;
         await users.RevokeUserSessionsAsync(userId, "LOGOUT", now, cancellationToken);
         await users.InsertAuditAsync(userId, userId, "LOGOUT", "SUCCEEDED", sessionId.ToString(), correlationId, cancellationToken);
+        return Result.Success();
+    }
+
+    public async Task<Result> ChangePasswordAsync(Guid userId, string currentPassword, string newPassword, Guid correlationId, CancellationToken cancellationToken)
+    {
+        if (!PasswordPolicy.IsSatisfied(newPassword))
+            return Result.Failure(IdentityErrors.PasswordPolicy());
+        if (newPassword == currentPassword)
+            return Result.Failure(IdentityErrors.Validation("Choose a different password.", "newPassword"));
+        if (!await AllowSensitiveRequestAsync("CHANGE_PASSWORD_REQUESTED", userId.ToString(), correlationId, cancellationToken))
+            return Result.Failure(IdentityErrors.RateLimited());
+
+        var user = await users.FindByIdAsync(userId, cancellationToken);
+        if (user is not { Status: UserStatuses.Active } ||
+            string.IsNullOrEmpty(currentPassword) || currentPassword.Length > PasswordPolicy.MaxLength ||
+            !passwords.Verify(currentPassword, user.PasswordHash))
+            return Result.Failure(IdentityErrors.Validation("The current password does not match.", "currentPassword"));
+
+        if (!await users.ReplacePasswordAsync(userId, user.PasswordHash, passwords.Hash(newPassword), cancellationToken))
+            return Result.Failure(IdentityErrors.VersionConflict());
+
+        await users.RevokeActiveChallengesAsync(userId, ChallengeTypes.PasswordReset, cancellationToken);
+        await users.RevokeUserSessionsAsync(userId, "PASSWORD_CHANGED", clock.UtcNow, cancellationToken);
+        await users.InsertAuditAsync(userId, userId, "PASSWORD_CHANGED", "SUCCEEDED", null, correlationId, cancellationToken);
         return Result.Success();
     }
 

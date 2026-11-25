@@ -1,6 +1,5 @@
-import { addMonths, format, isValid, parseISO } from "date-fns";
 import { OperatorStatusBadge } from "../components/OperatorStatusBadge";
-import { useState } from "react";
+import { useState, type ReactElement } from "react";
 import { Link } from "react-router";
 import { z } from "zod";
 import { getLiveRows, liveApiJson } from "@/shared/api/liveRequest";
@@ -8,8 +7,13 @@ import { ApiError } from "@/shared/api/error";
 import { Button } from "@/shared/ui/Button/Button";
 import { DatePicker } from "@/shared/ui/DatePicker/DatePicker";
 import { displayDate, tripSchema, type Trip } from "../tripWorkflow";
+import {
+  recurrenceEndLimit,
+  recurringDates,
+  type Recurrence,
+} from "./tripRecurrence";
 
-export const weekdays = [
+const weekdays = [
   { day: 1, label: "T2" },
   { day: 2, label: "T3" },
   { day: 3, label: "T4" },
@@ -18,36 +22,6 @@ export const weekdays = [
   { day: 6, label: "T7" },
   { day: 0, label: "CN" },
 ];
-export interface Recurrence {
-  enabled: boolean;
-  endDate: string;
-  days: number[];
-}
-export function recurrenceEndLimit(start: string): string {
-  const date = parseISO(start);
-  return isValid(date) ? format(addMonths(date, 3), "yyyy-MM-dd") : "";
-}
-export function recurringDates(
-  start: string,
-  recurrence: Recurrence,
-): string[] {
-  if (!start || !recurrence.endDate || recurrence.endDate < start) return [];
-  const date = new Date(start + "T00:00:00Z");
-  const end = new Date(recurrence.endDate + "T00:00:00Z");
-  if (
-    !Number.isFinite(date.getTime()) ||
-    !Number.isFinite(end.getTime()) ||
-    recurrence.endDate > recurrenceEndLimit(start)
-  )
-    return [];
-  const dates: string[] = [];
-  while (date <= end) {
-    if (recurrence.days.includes(date.getUTCDay()))
-      dates.push(date.toISOString().slice(0, 10));
-    date.setUTCDate(date.getUTCDate() + 1);
-  }
-  return dates;
-}
 export function RecurrenceFields({
   start,
   value,
@@ -56,7 +30,7 @@ export function RecurrenceFields({
   start: string;
   value: Recurrence;
   onChange: (value: Recurrence) => void;
-}) {
+}): ReactElement {
   const dates = recurringDates(start, value);
   return (
     <div className="operator-recurrence">
@@ -151,12 +125,12 @@ export function RecurringTripResults({
 }: {
   trips: Trip[];
   onPublished: () => void;
-}) {
+}): ReactElement {
   const [states, setStates] = useState<
     Record<string, { published?: boolean; error?: string }>
   >({});
   const [busy, setBusy] = useState(false);
-  async function publish() {
+  async function publish(): Promise<void> {
     if (busy) return;
     setBusy(true);
     try {

@@ -1,16 +1,24 @@
 import type { ReactElement } from "react";
+import { useQuery } from "@tanstack/react-query";
 import * as Dialog from "@radix-ui/react-dialog";
 import { X } from "@phosphor-icons/react/dist/csr/X";
+import { Check } from "@phosphor-icons/react/dist/csr/Check";
+import { LockSimple } from "@phosphor-icons/react/dist/csr/LockSimple";
 import { Button } from "@/shared/ui/Button/Button";
 import { formatCurrencyVnd } from "@/shared/lib/formatCurrencyVnd";
+import { liveQueryKey } from "@/shared/api/liveRequest";
+import { getDrivers } from "../drivers/driversRepository";
 import { CreateTripPage, type TripEditorPreview } from "../create/TripEditor";
 import {
+  canOperateTrip,
+  tripOperationSteps,
   type TripForm,
   type Route,
   type Bus,
   type Driver,
 } from "../tripWorkflow";
-import type { ScheduleTrip } from "./schedule.schema";
+import { scheduleTripSchema, type ScheduleTrip } from "./schedule.schema";
+import { LiveTripTransition } from "../LiveOperatorForms";
 import { TripArtwork } from "../components/TripArtwork";
 import { OperatorStatusBadge } from "../components/OperatorStatusBadge";
 import demoAvatar from "@/assets/operator/schedule/driver-demo-avatar.svg";
@@ -74,6 +82,7 @@ export function ExpandedTripPanel({
   onClose,
   onSaveDemo,
   onSaved,
+  onTripTransition,
 }: {
   trip: ScheduleTrip;
   historical?: boolean;
@@ -81,12 +90,40 @@ export function ExpandedTripPanel({
   onClose: () => void;
   onSaveDemo: (trip: ScheduleTrip) => void;
   onSaved: () => void;
+  onTripTransition: (trip: ScheduleTrip) => void;
 }): ReactElement {
   const demo = trip.id === "DEMO-TAI-XE";
   const status = trip.scheduleStatus ?? trip.status;
   const archived =
     historical || ["completed", "cancelled", "needs_update"].includes(status);
-  const summary = !demo && (archived || trip.status !== "draft");
+  const summary = !demo && archived;
+  const draft = trip.status === "draft";
+  const currentStep = tripOperationSteps.findIndex(
+    (step) => step.status === trip.status.toUpperCase(),
+  );
+  const statusNote =
+    status === "awaiting_departure"
+      ? "Đã đóng bán vé · Chờ xác nhận khởi hành"
+      : status === "needs_update"
+        ? "Quá giờ đến · Chờ xác nhận"
+        : undefined;
+  const canAdvance =
+    !demo &&
+    !draft &&
+    trip.status !== "completed" &&
+    trip.status !== "cancelled" &&
+    trip.rowVersion !== undefined &&
+    canOperateTrip();
+  const driverId = trip.driver?.id;
+  const driverProfiles = useQuery({
+    queryKey: liveQueryKey("operator-driver-profiles"),
+    queryFn: ({ signal }) => getDrivers(signal),
+    enabled: !demo && !!driverId,
+    staleTime: 30_000,
+  });
+  const driverName =
+    driverProfiles.data?.find((driver) => driver.id === driverId)?.name ??
+    trip.driver?.name;
   const arrivalDate = new Date(`${trip.date}T00:00:00Z`);
   if (trip.arrival <= trip.departure)
     arrivalDate.setUTCDate(arrivalDate.getUTCDate() + 1);
@@ -149,16 +186,16 @@ export function ExpandedTripPanel({
               ? "Chỉnh sửa chuyến minh họa"
               : archived
                 ? "Chi tiết lịch sử chuyến"
-                : summary
-                  ? "Chi tiết chuyến"
-                  : "Chỉnh sửa bản nháp"}
+                : draft
+                  ? "Chỉnh sửa bản nháp"
+                  : "Chi tiết chuyến"}
           </Dialog.Title>
           <Dialog.Description id="expanded-trip-description">
             {demo
               ? "DEMO · Dùng cùng form tạo chuyến. Thay đổi chỉ áp dụng cho thẻ minh họa."
-              : summary
-                ? "Thông tin lịch chạy và phân công đã lưu."
-                : "Thông tin, phân công và giá vé của chuyến. Khả năng chỉnh sửa phụ thuộc trạng thái chuyến."}
+              : draft
+                ? "Cập nhật lịch chạy và phân công."
+                : "Lịch chạy và phân công đã lưu."}
           </Dialog.Description>
         </div>
         <Dialog.Close asChild>
@@ -196,7 +233,7 @@ export function ExpandedTripPanel({
                 {demo || trip.driver.avatarUrl ? (
                   <img src={trip.driver.avatarUrl || demoAvatar} alt="" />
                 ) : (
-                  trip.driver.name
+                  (driverName ?? "Tài xế")
                     .split(" ")
                     .slice(-2)
                     .map((part) => part[0])
@@ -205,7 +242,7 @@ export function ExpandedTripPanel({
               </span>
               <div>
                 <small>Tài xế</small>
-                <strong>{trip.driver.name}</strong>
+                <strong>{driverName}</strong>
               </div>
             </div>
           )}
@@ -214,7 +251,7 @@ export function ExpandedTripPanel({
               {statusLabel}
             </OperatorStatusBadge>
           )}
-          {!summary && (
+          {!summary && (demo || draft) && (
             <p className="operator-trip-expanded__scope">
               {demo
                 ? "Có thể thử đổi thời gian, xe, tài xế và giá vé ở form bên phải."
@@ -223,6 +260,80 @@ export function ExpandedTripPanel({
           )}
         </aside>
         <div className="operator-trip-expanded__editor">
+          {!demo && currentStep >= 0 && (
+            <section
+              className="operator-trip-expanded__operations"
+              aria-labelledby="trip-operation-title"
+            >
+              <div className="operator-trip-expanded__operations-header">
+                <h3 id="trip-operation-title">Trạng thái vận hành</h3>
+                <span className="operator-trip-expanded__read-only">
+                  <LockSimple size={14} aria-hidden="true" />
+                  Lịch chuyến chỉ xem
+                </span>
+              </div>
+              <div className="operator-trip-expanded__operations-line">
+                <ol
+                  className="operator-trip-expanded__steps"
+                  aria-label="Tiến trình chuyến"
+                >
+                  {tripOperationSteps.map((step, index) => (
+                    <li
+                      key={step.status}
+                      aria-current={index === currentStep ? "step" : undefined}
+                      data-step={index < currentStep ? "past" : undefined}
+                    >
+                      {index < currentStep ? (
+                        <Check size={13} aria-hidden="true" />
+                      ) : (
+                        <span
+                          className="operator-trip-expanded__step-dot"
+                          aria-hidden="true"
+                        />
+                      )}
+                      {step.label}
+                    </li>
+                  ))}
+                </ol>
+                {canAdvance && (
+                  <LiveTripTransition
+                    showAction
+                    trip={{
+                      id: trip.id,
+                      status: trip.status.toUpperCase(),
+                      rowVersion: trip.rowVersion,
+                    }}
+                    onTransition={(updated) => {
+                      const next = scheduleTripSchema.shape.status.safeParse(
+                        typeof updated.status === "string"
+                          ? updated.status.toLowerCase()
+                          : undefined,
+                      );
+                      if (
+                        !next.success ||
+                        typeof updated.rowVersion !== "number"
+                      )
+                        return;
+                      onTripTransition({
+                        ...trip,
+                        rowVersion: updated.rowVersion,
+                        status: next.data,
+                        scheduleStatus:
+                          status === "needs_update" && next.data !== "arrived"
+                            ? "needs_update"
+                            : next.data,
+                      });
+                    }}
+                  />
+                )}
+              </div>
+              {statusNote && (
+                <p className="operator-trip-expanded__status-note">
+                  {statusNote}
+                </p>
+              )}
+            </section>
+          )}
           {summary ? (
             <section className="operator-trip-expanded__history">
               <h3>Thông tin chuyến</h3>
@@ -263,12 +374,6 @@ export function ExpandedTripPanel({
                   </div>
                 )}
               </dl>
-              {status === "needs_update" && (
-                <p>
-                  Đã qua giờ đến dự kiến. Chuyến đang chờ cập nhật trạng thái
-                  vận hành.
-                </p>
-              )}
             </section>
           ) : (
             <CreateTripPage

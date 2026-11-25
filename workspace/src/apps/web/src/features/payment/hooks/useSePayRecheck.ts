@@ -1,11 +1,15 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, type UseMutateAsyncFunction } from "@tanstack/react-query";
 import { apiJson } from "@/shared/api/client";
 import { ApiError } from "@/shared/api/error";
 import { livePaymentSchema } from "../schemas/livePayment.schema";
 
 type PaymentToCheck = { id: string; status: string; provider?: string };
 
-export function useSePayRecheck(refresh: () => Promise<unknown>) {
+export function useSePayRecheck(refresh: () => Promise<unknown>): {
+  recheck: UseMutateAsyncFunction<void, Error, PaymentToCheck | undefined>;
+  checking: boolean;
+  notice: string | undefined;
+} {
   const check = useMutation({
     mutationFn: async (payment: PaymentToCheck | undefined) => {
       if (

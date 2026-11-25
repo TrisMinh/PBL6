@@ -65,7 +65,7 @@ export async function operatorRefundRows(
   let total: number | undefined;
   let refunds: Row[];
   if (serverPaging) {
-    const fetchPage = (index: number) => {
+    const fetchPage = (index: number): Promise<Row> => {
       const query = new URLSearchParams(finance);
       query.set("page", String(index - 1));
       query.set("size", String(REFUND_PAGE_SIZE));
@@ -110,23 +110,21 @@ export async function operatorRefundRows(
     ))
       bookings.set(booking.id, booking);
   }
-  const matchedRefunds = refunds.filter((refund) => {
+  const matchedRefunds = refunds.flatMap((refund) => {
     const booking = bookings.get(refund.bookingId);
     if (!booking) throw Error("Không tìm thấy đặt chỗ của hồ sơ hoàn tiền.");
-    return (
+    const matches =
       !filters ||
       `${booking.code} ${booking.contact.fullName} ${booking.contact.phone}`
         .toLowerCase()
-        .includes(filters.search.toLowerCase())
-    );
+        .includes(filters.search.toLowerCase());
+    return matches ? [{ refund, booking }] : [];
   });
   if (!matchedRefunds.length) return { items: [], total: 0, page: 1 };
 
   const tripIds = [
     ...new Set(
-      matchedRefunds.map(
-        (refund) => bookings.get(refund.bookingId)!.tripId as string,
-      ),
+      matchedRefunds.map(({ booking }) => booking.tripId as string),
     ),
   ];
   const trips = new Map<string, Row>();
@@ -140,8 +138,8 @@ export async function operatorRefundRows(
     for (const trip of await rows(`/api/v1/operator/trips?${query}`, signal))
       trips.set(trip.id, trip);
   }
-  const matching = matchedRefunds.filter((refund) => {
-    const trip = trips.get(bookings.get(refund.bookingId)!.tripId);
+  const matching = matchedRefunds.filter(({ refund, booking }) => {
+    const trip = trips.get(booking.tripId);
     return (
       !filters ||
       filters.level === "all" ||
@@ -159,7 +157,7 @@ export async function operatorRefundRows(
       : matching.slice((page - 1) * REFUND_PAGE_SIZE, page * REFUND_PAGE_SIZE);
   const ticketsByBooking = new Map<string, Row[]>();
   const visibleIds = [
-    ...new Set(visible.map((refund) => refund.bookingId as string)),
+    ...new Set(visible.map(({ refund }) => refund.bookingId as string)),
   ];
   for (let offset = 0; offset < visibleIds.length; offset += 100) {
     const query = new URLSearchParams();
@@ -176,9 +174,10 @@ export async function operatorRefundRows(
     }
   }
   const items = visible
-    .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))
-    .map((refund) => {
-      const b = bookings.get(refund.bookingId)!;
+    .sort(
+      (a, b) => Date.parse(b.refund.createdAt) - Date.parse(a.refund.createdAt),
+    )
+    .map(({ refund, booking: b }) => {
       const trip = trips.get(b.tripId);
       const bus = buses.get(trip?.busId);
       const cancelled = ticketsByBooking.get(b.id) ?? [];

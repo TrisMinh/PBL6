@@ -1,7 +1,6 @@
 import { readFile } from "node:fs/promises";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-import reactRouterConfig from "../../../react-router.config";
 import { createMeta } from "@/shared/config/seo";
 
 describe("createMeta", () => {
@@ -51,7 +50,17 @@ describe("robots policy", () => {
     expect(robots).not.toMatch(/^Sitemap:/m);
   });
 
-  it("keeps prerender limited to the stable public home route", () => {
-    expect(reactRouterConfig.prerender).toEqual(["/"]);
-  });
+  it.each([["mock", ["/"]], ["live", false]] as const)(
+    "sets the prerender policy in %s mode",
+    async (mode, expected) => {
+      vi.resetModules();
+      vi.stubEnv("VITE_API_MODE", mode);
+      try {
+        const { default: config } = await import("../../../react-router.config");
+        expect(config.prerender).toEqual(expected);
+      } finally {
+        vi.unstubAllEnvs();
+      }
+    },
+  );
 });

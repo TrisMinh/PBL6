@@ -10,6 +10,7 @@ public sealed class TransportService(ITransportRepository store, ITransportEvent
 {
     private static readonly string[] FleetRoles = [Roles.OperatorAdmin, Roles.OperatorScheduler];
     private static readonly string[] OperateRoles = [Roles.OperatorAdmin, Roles.OperatorOperations, Roles.Driver];
+    private static readonly string[] DriverDirectoryRoles = [Roles.OperatorAdmin, Roles.OperatorScheduler, Roles.OperatorOperations];
     private static readonly string[] CancelRoles = [Roles.OperatorAdmin, Roles.OperatorOperations];
     private static readonly string[] ReadRoles =
     [
@@ -495,7 +496,7 @@ public sealed class TransportService(ITransportRepository store, ITransportEvent
 
     public async Task<Result<TripPageDto>> ListOperatorTripsAsync(Actor actor, int page, int size, Guid[] tripIds, CancellationToken cancellationToken)
     {
-        if (!TryTenant(actor, ReadRoles, out var orgId, out var error))
+        if (!TryTenant(actor, DriverDirectoryRoles, out var orgId, out var error))
         {
             return Fail<TripPageDto>(error);
         }
@@ -519,7 +520,7 @@ public sealed class TransportService(ITransportRepository store, ITransportEvent
 
     public async Task<Result<TripPageDto>> SearchScheduleAsync(Actor actor, ScheduleFilter filter, int page, int size, CancellationToken cancellationToken)
     {
-        if (!TryTenant(actor, ReadRoles, out var orgId, out var error))
+        if (!TryTenant(actor, DriverDirectoryRoles, out var orgId, out var error))
             return Fail<TripPageDto>(error);
         if (page < 0 || size is < 1 or > 100 || filter.Statuses.Length > 10 || filter.Periods.Length > 3
             || filter.Assignments.Length > 3 || filter.Origin?.Length > 200 || filter.Destination?.Length > 200
@@ -535,6 +536,16 @@ public sealed class TransportService(ITransportRepository store, ITransportEvent
             DriverId = item.Trip.DriverId,
             ScheduleStatus = item.ScheduleStatus
         }).ToArray(), page, size, total));
+    }
+
+    public async Task<Result<IReadOnlyList<DriverTripWorkDto>>> ListDriverTripWorkAsync(
+        Actor actor, bool mine, CancellationToken cancellationToken)
+    {
+        if (!TryTenant(actor, mine ? [Roles.Driver] : DriverDirectoryRoles, out var organizationId, out var error))
+            return Fail<IReadOnlyList<DriverTripWorkDto>>(error);
+
+        var items = await store.ListDriverTripWorkAsync(organizationId, mine ? actor.UserId : null, cancellationToken);
+        return Result<IReadOnlyList<DriverTripWorkDto>>.Success(items);
     }
 
     public async Task<Result<IReadOnlyList<ManifestTripDto>>> ListManifestTripsAsync(Actor actor, CancellationToken cancellationToken)
@@ -877,7 +888,8 @@ public sealed class TransportService(ITransportRepository store, ITransportEvent
         }
 
         var cancelled = trip with { Status = TripStatuses.Cancelled, Sellable = false, RowVersion = trip.RowVersion + 1 };
-        await store.UpdateTripAsync(cancelled, cancellationToken);
+        if (!await store.UpdateTripAsync(cancelled, request.ExpectedVersion, cancellationToken))
+            return Fail<OperationAccepted>(PlatformErrors.VersionConflict());
         await events.TripCancelledAsync(cancelled, request.Reason, correlationId, cancellationToken);
         return Result<OperationAccepted>.Success(new OperationAccepted(tripId, "ACCEPTED"));
     }
@@ -895,15 +907,15 @@ public sealed class TransportService(ITransportRepository store, ITransportEvent
             return Fail<TripDto>(PlatformErrors.NotFound());
         }
 
-        if (trip.RowVersion != request.ExpectedVersion)
-        {
-            return Fail<TripDto>(PlatformErrors.VersionConflict());
-        }
-
         var driverOnly = actor.Has(Roles.Driver) && !actor.Has(Roles.OperatorAdmin, Roles.OperatorOperations);
         if (driverOnly && !await store.IsDriverAssignedToTripAsync(actor.UserId, tripId, cancellationToken))
         {
             return Fail<TripDto>(PlatformErrors.AccessDenied());
+        }
+
+        if (trip.RowVersion != request.ExpectedVersion)
+        {
+            return Fail<TripDto>(PlatformErrors.VersionConflict());
         }
 
         if (!IsAllowedTransition(trip.Status, request.TargetStatus))
@@ -913,7 +925,8 @@ public sealed class TransportService(ITransportRepository store, ITransportEvent
 
         var sellable = request.TargetStatus is TripStatuses.Scheduled or TripStatuses.Boarding && trip.Sellable;
         var updated = trip with { Status = request.TargetStatus, Sellable = sellable, RowVersion = trip.RowVersion + 1 };
-        await store.UpdateTripAsync(updated, cancellationToken);
+        if (!await store.UpdateTripAsync(updated, request.ExpectedVersion, cancellationToken))
+            return Fail<TripDto>(PlatformErrors.VersionConflict());
         await events.TripStatusChangedAsync(updated, correlationId, cancellationToken);
         return Result<TripDto>.Success(await MapTripAsync(updated, cancellationToken));
     }

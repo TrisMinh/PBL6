@@ -166,7 +166,7 @@ export function useOrganizationMemberPage(
   page: number,
   active?: boolean,
   search?: string,
-) {
+): UseQueryResult<PagedResult<Staff>, Error> {
   const repository = useAdminRepository();
   return useQuery({
     queryKey: [

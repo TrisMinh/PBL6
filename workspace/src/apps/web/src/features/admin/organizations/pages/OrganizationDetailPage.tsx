@@ -31,8 +31,10 @@ import {
 } from "@/features/admin/organizations/hooks/useOrganizationData";
 import { isOrganizationNotFound } from "@/features/admin/organizations/lib/organizationErrors";
 import type {
+  Membership,
   Organization,
   OrganizationInput,
+  Staff,
 } from "@/features/admin/types/admin";
 import { ROUTES } from "@/shared/config/routes";
 import { isMockApi } from "@/shared/api/config";
@@ -283,7 +285,7 @@ function OrganizationDetailContent({
   const accounts = isMockApi
     ? availableStaff.data?.items
     : memberPage.data?.items;
-  const memberFor = (staff: NonNullable<typeof accounts>[number]) =>
+  const memberFor = (staff: Staff): Membership | undefined =>
     (isMockApi ? memberships.data : staff.memberships)?.find(
       (item) =>
         item.staffId === staff.id && item.organizationId === organization.id,

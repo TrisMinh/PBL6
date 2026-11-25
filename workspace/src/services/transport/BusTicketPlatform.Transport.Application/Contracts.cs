@@ -76,6 +76,9 @@ public sealed record ExpectedVersionRequest(long ExpectedVersion);
 public sealed record VersionedReasonRequest(string Reason, long ExpectedVersion);
 public sealed record TripTransitionRequest(long ExpectedVersion, string TargetStatus, string? Reason);
 public sealed record DriverAssignmentDto(Guid TripId, Guid DriverId, DateTimeOffset StartAt, DateTimeOffset EndAt, bool Active);
+public sealed record DriverTripWorkDto(Guid DriverId, Guid TripId, Guid BusId, string PlateNumber,
+    string Origin, string Destination, DateTimeOffset DepartureAt, DateTimeOffset ArrivalAt,
+    string Status, long RowVersion, string Phase, bool NeedsUpdate);
 public sealed record ExploreRouteDto(string Origin, string Destination, int TripCount, int OperatorCount);
 public sealed record TripSearchQuery(
     string? Origin,
@@ -123,7 +126,7 @@ public interface ITransportRepository
     Task InsertTripAsync(TripRecord trip, DriverAssignmentRecord assignment, CancellationToken cancellationToken);
     Task UpdateTripDraftAsync(TripRecord trip, DriverAssignmentRecord assignment, CancellationToken cancellationToken);
     Task PublishTripAsync(TripRecord trip, CancellationToken cancellationToken);
-    Task UpdateTripAsync(TripRecord trip, CancellationToken cancellationToken);
+    Task<bool> UpdateTripAsync(TripRecord trip, long expectedVersion, CancellationToken cancellationToken);
     Task<TripRecord?> GetTripAsync(Guid tripId, CancellationToken cancellationToken);
     Task<IReadOnlyList<TripRecord>> ListTripsByIdsAsync(Guid[] tripIds, CancellationToken cancellationToken);
     Task<IReadOnlyList<ManifestTripDto>> ListManifestTripsAsync(Guid organizationId, CancellationToken cancellationToken);
@@ -136,6 +139,7 @@ public interface ITransportRepository
     Task<IReadOnlyList<TripStopDto>> GetTripStopsAsync(Guid tripId, CancellationToken cancellationToken);
     Task<ILookup<Guid, TripStopDto>> GetRouteStopsForTripsAsync(Guid[] routeIds, CancellationToken cancellationToken);
     Task<IReadOnlyList<DriverAssignmentDto>> ListAssignmentsForDriverAsync(Guid driverUserId, CancellationToken cancellationToken);
+    Task<IReadOnlyList<DriverTripWorkDto>> ListDriverTripWorkAsync(Guid organizationId, Guid? driverUserId, CancellationToken cancellationToken);
     Task<bool> IsDriverAssignedToTripAsync(Guid driverUserId, Guid tripId, CancellationToken cancellationToken);
     Task MarkSellableAsync(Guid tripId, bool sellable, CancellationToken cancellationToken);
 }

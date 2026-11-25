@@ -1,7 +1,9 @@
 using System.Net;
 using Npgsql;
 using System.Net.Http.Json;
+using BusTicketPlatform.Identity.Application;
 using BusTicketPlatform.Identity.Domain;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace BusTicketPlatform.Identity.Api.IntegrationTests;
 
@@ -11,6 +13,99 @@ public sealed class AuthFlowTests
     private readonly IdentityPostgresFixture _fixture;
 
     public AuthFlowTests(IdentityPostgresFixture fixture) => _fixture = fixture;
+
+    [Fact]
+    public async Task New_driver_signs_in_with_initial_password_and_changes_it_in_session()
+    {
+        var client = _fixture.CreateClient();
+        var users = _fixture.Factory.Services.GetRequiredService<IIdentityRepository>();
+        var hasher = _fixture.Factory.Services.GetRequiredService<IPasswordHasher>();
+        var ct = CancellationToken.None;
+        var manager = IdentityTestData.NewUser();
+        var managerId = Guid.NewGuid();
+        var organizationId = Guid.NewGuid();
+        var now = DateTimeOffset.UtcNow;
+        await users.InsertUserAsync(new UserRecord(
+            managerId, manager.Name, manager.Email, manager.Email.ToUpperInvariant(), manager.Phone,
+            manager.Phone, hasher.Hash(manager.Password), UserStatuses.Active, now, 0, null, 0, 0, now), ct);
+        await users.InsertMembershipAsync(new MembershipRecord(
+            Guid.NewGuid(), managerId, organizationId, "ACTIVE", 0, ["OPERATOR_ADMIN"]), ct);
+        await users.AssignRoleAsync(managerId, "OPERATOR_ADMIN", organizationId, ct);
+        var managerLogin = await IdentityTestData.SendAsync(client, HttpMethod.Post, "/api/v1/auth/login",
+            new { identifier = manager.Email, password = manager.Password });
+        Assert.Equal(HttpStatusCode.OK, managerLogin.Response.StatusCode);
+
+        var driver = IdentityTestData.NewUser();
+        var firstPassword = "Blue7-" + Guid.NewGuid().ToString("N");
+        var managerToken = managerLogin.Body.GetProperty("accessToken").GetString();
+        var staffInput = new { fullName = "New Driver", email = driver.Email, phone = "0" + driver.Phone[3..],
+            role = "DRIVER", initialPassword = firstPassword };
+        var created = await IdentityTestData.SendAsync(client, HttpMethod.Post, "/api/v1/operator/staff",
+            staffInput, bearer: managerToken);
+        Assert.Equal(HttpStatusCode.Created, created.Response.StatusCode);
+        Assert.DoesNotContain(firstPassword, created.Body.ToString());
+        var retry = await IdentityTestData.SendAsync(client, HttpMethod.Post, "/api/v1/operator/staff",
+            staffInput, bearer: managerToken);
+        Assert.Equal(HttpStatusCode.Created, retry.Response.StatusCode);
+        Assert.Equal(created.Body.GetProperty("userId").GetGuid(), retry.Body.GetProperty("userId").GetGuid());
+        var driverLogin = await IdentityTestData.SendAsync(client, HttpMethod.Post, "/api/v1/auth/login",
+            new { identifier = driver.Email, password = firstPassword });
+        Assert.Equal(HttpStatusCode.OK, driverLogin.Response.StatusCode);
+        var user = await users.FindByNormalizedEmailAsync(driver.Email.ToUpperInvariant(), ct);
+        Assert.NotNull(user);
+        Assert.Equal(staffInput.phone, user.Phone);
+        Assert.NotEqual(firstPassword, user.PasswordHash);
+        var membership = Assert.Single(await users.GetMembershipsForUserAsync(user!.Id, ct));
+        Assert.Equal(organizationId, membership.OrganizationId);
+        Assert.Contains("DRIVER", membership.RoleCodes);
+        var driverToken = driverLogin.Body.GetProperty("accessToken").GetString();
+        var driverDirectory = await IdentityTestData.SendAsync(client, HttpMethod.Get,
+            "/api/v1/operator/staff?driverDirectory=true", bearer: driverToken);
+        Assert.Equal(HttpStatusCode.Forbidden, driverDirectory.Response.StatusCode);
+        var wrongPassword = await IdentityTestData.SendAsync(client, HttpMethod.Post, "/api/v1/users/me/password",
+            new { currentPassword = "Incorrect15", newPassword = driver.Password }, bearer: driverToken);
+        Assert.Equal(HttpStatusCode.BadRequest, wrongPassword.Response.StatusCode);
+        var changed = await IdentityTestData.SendAsync(client, HttpMethod.Post, "/api/v1/users/me/password",
+            new { currentPassword = firstPassword, newPassword = driver.Password }, bearer: driverToken);
+        Assert.Equal(HttpStatusCode.NoContent, changed.Response.StatusCode);
+        var oldSession = await IdentityTestData.SendAsync(client, HttpMethod.Get, "/api/v1/users/me", bearer: driverToken);
+        Assert.Equal(HttpStatusCode.Unauthorized, oldSession.Response.StatusCode);
+        var reuse = await IdentityTestData.SendAsync(client, HttpMethod.Post, "/api/v1/operator/staff",
+            staffInput, bearer: managerToken);
+        Assert.Equal(HttpStatusCode.Conflict, reuse.Response.StatusCode);
+        var oldLogin = await IdentityTestData.SendAsync(client, HttpMethod.Post, "/api/v1/auth/login",
+            new { identifier = driver.Email, password = firstPassword });
+        Assert.Equal(HttpStatusCode.Unauthorized, oldLogin.Response.StatusCode);
+        var newLogin = await IdentityTestData.SendAsync(client, HttpMethod.Post, "/api/v1/auth/login",
+            new { identifier = driver.Email, password = driver.Password });
+        Assert.Equal(HttpStatusCode.OK, newLogin.Response.StatusCode);
+        var newDriverToken = newLogin.Body.GetProperty("accessToken").GetString();
+        var reissuePath = $"/api/v1/operator/staff/{membership.Id}/driver-password";
+        var forbidden = await IdentityTestData.SendAsync(client, HttpMethod.Post, reissuePath, bearer: newDriverToken);
+        Assert.Equal(HttpStatusCode.Forbidden, forbidden.Response.StatusCode);
+        var managerMembership = Assert.Single(await users.GetMembershipsForUserAsync(managerId, ct));
+        var forbiddenManagerReset = await IdentityTestData.SendAsync(client, HttpMethod.Post,
+            $"/api/v1/operator/staff/{managerMembership.Id}/driver-password", bearer: managerToken);
+        Assert.Equal(HttpStatusCode.Forbidden, forbiddenManagerReset.Response.StatusCode);
+        var unknownMembership = await IdentityTestData.SendAsync(client, HttpMethod.Post,
+            $"/api/v1/operator/staff/{Guid.NewGuid()}/driver-password", bearer: managerToken);
+        Assert.Equal(HttpStatusCode.NotFound, unknownMembership.Response.StatusCode);
+
+        var reissued = await IdentityTestData.SendAsync(client, HttpMethod.Post, reissuePath, bearer: managerToken);
+        Assert.Equal(HttpStatusCode.OK, reissued.Response.StatusCode);
+        Assert.True(reissued.Response.Headers.CacheControl?.NoStore);
+        Assert.Equal(driver.Email, reissued.Body.GetProperty("email").GetString());
+        var reissuedPassword = reissued.Body.GetProperty("password").GetString()!;
+        Assert.True(PasswordPolicy.IsSatisfied(reissuedPassword));
+        var revokedDriver = await IdentityTestData.SendAsync(client, HttpMethod.Get, "/api/v1/users/me", bearer: newDriverToken);
+        Assert.Equal(HttpStatusCode.Unauthorized, revokedDriver.Response.StatusCode);
+        var rejectedOldPassword = await IdentityTestData.SendAsync(client, HttpMethod.Post, "/api/v1/auth/login",
+            new { identifier = driver.Email, password = driver.Password });
+        Assert.Equal(HttpStatusCode.Unauthorized, rejectedOldPassword.Response.StatusCode);
+        var loginWithReissued = await IdentityTestData.SendAsync(client, HttpMethod.Post, "/api/v1/auth/login",
+            new { identifier = driver.Email, password = reissuedPassword });
+        Assert.Equal(HttpStatusCode.OK, loginWithReissued.Response.StatusCode);
+    }
 
     [Fact]
     public async Task Register_verify_login_refresh_logout_and_profile()

@@ -69,6 +69,8 @@ services:
       Smtp__Host: mailpit
       Smtp__Port: "1025"
       Smtp__From: noreply@example.test
+      Sms__Endpoint: ${SMS_ENDPOINT:-}
+      Sms__Token: ${SMS_TOKEN:-}
     ports:
       - "5081:8080"
 
@@ -98,6 +100,7 @@ services:
     environment:
       <<: *api-env
       ConnectionStrings__Booking: Host=postgres;Port=5432;Database=booking;Username=platform;Password=${POSTGRES_PASSWORD:-postgres}
+      SeatProtection__RequireVerifiedPhone: ${SEAT_REQUIRE_VERIFIED_PHONE:-false}
     ports:
       - "5083:8080"
 
@@ -134,6 +137,13 @@ services:
     environment:
       <<: *api-env
       ConnectionStrings__Reporting: Host=postgres;Port=5432;Database=reporting;Username=platform;Password=${POSTGRES_PASSWORD:-postgres}
+      PowerBi__Enabled: ${POWER_BI_EMBED_ENABLED:-false}
+      PowerBi__TenantId: ${POWER_BI_TENANT_ID:-00000000-0000-0000-0000-000000000000}
+      PowerBi__ClientId: ${POWER_BI_CLIENT_ID:-00000000-0000-0000-0000-000000000000}
+      PowerBi__ClientSecret: ${POWER_BI_CLIENT_SECRET:-}
+      PowerBi__WorkspaceId: ${POWER_BI_WORKSPACE_ID:-00000000-0000-0000-0000-000000000000}
+      PowerBi__ReportId: ${POWER_BI_REPORT_ID:-00000000-0000-0000-0000-000000000000}
+      PowerBi__DatasetId: ${POWER_BI_DATASET_ID:-00000000-0000-0000-0000-000000000000}
     ports:
       - "5086:8080"
 
@@ -208,6 +218,8 @@ services:
         APP_TARGET: operator
         API_MODE: live
         OPERATOR_POWER_BI_EMBED_URL: ${OPERATOR_POWER_BI_EMBED_URL:-}
+        OPERATOR_POWER_BI_ORGANIZATION_ID: ${OPERATOR_POWER_BI_ORGANIZATION_ID:-}
+        OPERATOR_POWER_BI_REPORTS: ${OPERATOR_POWER_BI_REPORTS:-}
     depends_on:
       gateway:
         condition: service_healthy

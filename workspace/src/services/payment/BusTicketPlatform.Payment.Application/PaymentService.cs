@@ -16,7 +16,8 @@ public sealed record CreatePaymentRequest(string Provider, string Method, string
 public sealed record PaymentDto(Guid Id, Guid BookingId, string Status, long Amount, string Currency, string Provider, IReadOnlyDictionary<string, string>? ProviderAction, string? StatusUrl, long RowVersion, DateTimeOffset? CreatedAt = null, Guid? OrganizationId = null, string? PaymentReference = null);
 public sealed record PaymentPageDto(int Page, int Size, long TotalElements, int TotalPages, IReadOnlyList<PaymentDto> Items);
 public sealed record CreateRefundRequest(string RefundReference, Guid PaymentId, Guid BookingId, long Amount, string Currency, string Reason);
-public sealed record RefundDto(Guid Id, string RefundReference, Guid PaymentId, Guid BookingId, long Amount, string Currency, string Status, string Reason, DateTimeOffset? CreatedAt = null);
+public sealed record RecordRefundTransferRequest(string? TransferReference, long Amount);
+public sealed record RefundDto(Guid Id, string RefundReference, Guid PaymentId, Guid BookingId, long Amount, string Currency, string Status, string Reason, DateTimeOffset? CreatedAt = null, string? PaymentProvider = null, Guid? RefundRequestId = null);
 public sealed record RefundPageDto(int Page, int Size, long TotalElements, int TotalPages, IReadOnlyList<RefundDto> Items);
 public sealed record FinanceListFilter(Guid? OrganizationId, string[]? Statuses, string? Search, Guid[]? MatchingBookings);
 public sealed record RefundListItem(RefundDto Refund, Guid OrganizationId, string PaymentReference);
@@ -53,6 +54,7 @@ public interface IPaymentRepository
     Task<long> SumSucceededRefundsAsync(Guid paymentId, CancellationToken cancellationToken);
     Task<bool> TryApplyRefundAsync(PaymentRecord payment, RefundRecord refund, decimal commissionRate, CancellationToken cancellationToken);
     Task<RefundRecord?> GetRefundAsync(Guid refundId, CancellationToken cancellationToken);
+    Task<Result<OperationAccepted>> RecordRefundTransferAsync(RefundRecord refund, Guid actorId, string reference, Guid correlationId, CancellationToken cancellationToken);
     Task<(IReadOnlyList<RefundRecord> Items, long Total)> SearchRefundsAsync(Guid? orgId, int page, int size, CancellationToken cancellationToken,
         Guid? bookingId = null, Guid? paymentId = null, string? status = null, DateOnly? date = null);
     Task InsertSettlementAsync(SettlementRecord settlement, CancellationToken cancellationToken);
@@ -63,7 +65,7 @@ public interface IPaymentRepository
 }
 
 public sealed record PaymentRecord(Guid Id, Guid BookingId, Guid CustomerId, Guid OrganizationId, string Provider, string LogicalReference, long Amount, string Currency, string Status, DateTimeOffset ExpiresAt, long RowVersion, string? ReturnUri, string? CheckoutMethod = null, DateTimeOffset? CreatedAt = null);
-public sealed record RefundRecord(Guid Id, Guid PaymentId, Guid BookingId, Guid RequestedBy, string RefundReference, long Amount, string Currency, string Reason, string Status, DateTimeOffset? CreatedAt = null);
+public sealed record RefundRecord(Guid Id, Guid PaymentId, Guid BookingId, Guid RequestedBy, string RefundReference, long Amount, string Currency, string Reason, string Status, DateTimeOffset? CreatedAt = null, string? PaymentProvider = null, Guid? RefundRequestId = null);
 public sealed record SettlementRecord(Guid Id, Guid BookingId, Guid OrganizationId, Guid? PaymentId, string PaymentChannel, long Gross, decimal Rate, long Commission, long Net, string Currency, string Status, long? OriginalAmount = null, DateTimeOffset? CreatedAt = null, long RowVersion = 0, SettlementReceipt? Receipt = null);
 public sealed record PayoutRecord(Guid Id, Guid OrganizationId, DateOnly PeriodStart, DateOnly PeriodEnd, string Currency, long PayableAmount, string Status, DateTimeOffset? TransferredAt);
 
@@ -365,7 +367,37 @@ public sealed class PaymentService(IPaymentRepository store, IPaymentEvents even
             return Result<RefundDto>.Failure(PlatformErrors.NotFound());
         }
 
-        return Result<RefundDto>.Success(Map(refund));
+        return Result<RefundDto>.Success(Map(refund with { PaymentProvider = payment.Provider }));
+    }
+
+    public async Task<Result<OperationAccepted>> RecordRefundTransferAsync(Actor actor, Guid refundId, RecordRefundTransferRequest request, Guid correlationId, CancellationToken cancellationToken)
+    {
+        if (!actor.Has("PLATFORM_ADMIN", "PLATFORM_FINANCE"))
+            return Result<OperationAccepted>.Failure(PlatformErrors.AccessDenied());
+
+        var reference = request.TransferReference?.Trim().ToUpperInvariant();
+        if (reference is null || reference.Length is < 4 or > 120 ||
+            !reference.All(c => char.IsAsciiLetterOrDigit(c) || c is '.' or '_' or '-' or '/') || request.Amount <= 0)
+            return Result<OperationAccepted>.Failure(PlatformErrors.Validation("Enter a valid bank transfer reference and amount."));
+
+        var refund = await store.GetRefundAsync(refundId, cancellationToken);
+        if (refund is null)
+            return Result<OperationAccepted>.Failure(PlatformErrors.NotFound());
+        if (refund.Amount != request.Amount)
+            return Result<OperationAccepted>.Failure(PlatformErrors.ResourceConflict("The transfer amount does not match the refund."));
+
+        return await store.RecordRefundTransferAsync(refund, actor.UserId, reference, correlationId, cancellationToken);
+    }
+
+    public async Task<Result<RefundPageDto>> ListCustomerRefundsAsync(Actor actor, Guid bookingId, int page, int size, CancellationToken cancellationToken)
+    {
+        if (page < 0 || size is < 1 or > 100)
+            return Result<RefundPageDto>.Failure(PlatformErrors.Validation("Invalid refund page bounds."));
+        if ((await store.GetQuoteAsync(bookingId, cancellationToken))?.CustomerId != actor.UserId)
+            return Result<RefundPageDto>.Failure(PlatformErrors.NotFound());
+
+        var (items, total) = await store.SearchRefundsAsync(null, page, size, cancellationToken, bookingId);
+        return Result<RefundPageDto>.Success(new RefundPageDto(page, size, total, Pages(total, size), items.Select(Map).ToArray()));
     }
 
     public async Task<Result<PaymentPageDto>> SearchPaymentsAsync(Actor actor, int page, int size, CancellationToken cancellationToken, FinanceListFilter? filter = null)
@@ -475,26 +507,21 @@ public sealed class PaymentService(IPaymentRepository store, IPaymentEvents even
         string? eventReference = null,
         bool explicitRefund = true)
     {
+        if (!explicitRefund || amount <= 0) return;
+
         var payment = paymentId != Guid.Empty
             ? await store.GetAsync(paymentId, cancellationToken)
             : await store.GetByBookingAsync(bookingId, cancellationToken);
-        if (payment is null || payment.Status is not ("SUCCEEDED" or "PARTIALLY_REFUNDED" or "REFUND_PENDING"))
+        if (payment is null || payment.BookingId != bookingId || payment.Currency != currency ||
+            payment.Status is not ("SUCCEEDED" or "PARTIALLY_REFUNDED" or "REFUND_PENDING"))
         {
             return;
         }
 
+        var reference = eventReference ?? "BOOKING-" + bookingId.ToString("N");
         if (payment.Provider == "SEPAY")
         {
-            if (!explicitRefund) return;
-            await sepayStore.QueueSePayRefundAsync(payment, eventReference ?? "BOOKING-" + bookingId.ToString("N"), amount > 0 ? amount : payment.Amount, reason, Guid.Empty, cancellationToken);
-            return;
-        }
-
-        var alreadyRefunded = await store.SumSucceededRefundsAsync(payment.Id, cancellationToken);
-        var remaining = payment.Amount - alreadyRefunded;
-        var refundAmount = amount > 0 ? Math.Min(amount, remaining) : remaining;
-        if (refundAmount <= 0)
-        {
+            await sepayStore.QueueSePayRefundAsync(payment, reference, amount, reason, Guid.Empty, cancellationToken);
             return;
         }
 
@@ -503,9 +530,9 @@ public sealed class PaymentService(IPaymentRepository store, IPaymentEvents even
             payment.Id,
             payment.BookingId,
             Guid.Empty,
-            "REF-" + ids.NewUuidV7().ToString("N")[^12..],
-            refundAmount,
-            string.IsNullOrWhiteSpace(currency) ? payment.Currency : currency,
+            reference,
+            amount,
+            currency,
             string.IsNullOrWhiteSpace(reason) ? "BOOKING_CANCELLED" : reason,
             "SUCCEEDED");
         var quote = await store.GetQuoteAsync(payment.BookingId, cancellationToken);
@@ -580,7 +607,7 @@ public sealed class PaymentService(IPaymentRepository store, IPaymentEvents even
     }
 
     private static RefundDto Map(RefundRecord refund) =>
-        new(refund.Id, refund.RefundReference, refund.PaymentId, refund.BookingId, refund.Amount, refund.Currency, refund.Status, refund.Reason, refund.CreatedAt);
+        new(refund.Id, refund.RefundReference, refund.PaymentId, refund.BookingId, refund.Amount, refund.Currency, refund.Status, refund.Reason, refund.CreatedAt, refund.PaymentProvider, refund.RefundRequestId);
 
     private static BookingSettlementDto Map(SettlementRecord item) =>
         new(item.Id, item.BookingId, item.OrganizationId, item.PaymentId, item.PaymentChannel, item.Gross, item.Rate, item.Commission, item.Net, item.Currency, item.Status, item.OriginalAmount ?? item.Gross,

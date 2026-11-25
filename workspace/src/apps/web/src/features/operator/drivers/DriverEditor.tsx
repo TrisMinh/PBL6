@@ -1,9 +1,12 @@
 import { displayCode } from "../components/displayCode";
-import { useState, type FormEvent, type ReactElement } from "react";
+import { useRef, useState, type FormEvent, type ReactElement } from "react";
 import { useNavigate } from "react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { OperatorSidebar } from "../components/OperatorSidebar";
 import { Button } from "@/shared/ui/Button/Button";
+import { isMockApi } from "@/shared/api/config";
+import { liveQueryKey } from "@/shared/api/liveRequest";
+import { DriverCredentials } from "./DriverCredentials";
 import { OperatorInput as Input } from "../components/OperatorInput";
 import {
   createDriverSchema,
@@ -110,6 +113,19 @@ export function DriverEditor({
           .reverse()
           .map((e) => [String(e.path[0]), e.message]),
       );
+  const needsLoginEmail = !driver && !isMockApi;
+  const accountAttempt = useRef<{
+    email: string;
+    phone: string;
+    password: string;
+  } | null>(null);
+  const [createdAccount, setCreatedAccount] = useState<{
+    id: string;
+    email: string;
+    password: string;
+  } | null>(null);
+  if (needsLoginEmail && !values.email.trim())
+    errors.email = "Nhập email để tài xế đặt mật khẩu và đăng nhập.";
   if (driver) {
     for (const key of ["phone", "licenseNumber"] as const) {
       if (values[key].replace(/\s/g, "") === driver[key].replace(/\s/g, ""))
@@ -124,6 +140,24 @@ export function DriverEditor({
       if (!parsed.success) throw Error("Vui lòng kiểm tra thông tin bắt buộc.");
       const stored: Partial<Record<FileSlot, DriverAttachment>> = {};
       const removed: Partial<Record<FileSlot, null>> = {};
+      if (needsLoginEmail) {
+        const { email, phone } = parsed.data;
+        if (
+          accountAttempt.current?.email !== email ||
+          accountAttempt.current.phone !== phone
+        ) {
+          const secret = crypto.getRandomValues(new Uint8Array(18));
+          accountAttempt.current = {
+            email,
+            phone,
+            password:
+              "Bl7-" +
+              Array.from(secret, (byte) =>
+                byte.toString(16).padStart(2, "0"),
+              ).join(""),
+          };
+        }
+      }
       try {
         for (const slot of ["avatar", "licenseFront", "licenseBack"] as const) {
           const file = files[slot];
@@ -142,6 +176,7 @@ export function DriverEditor({
             )
           : await createDriver(
               createDriverSchema.parse({ ...parsed.data, ...stored }),
+              accountAttempt.current?.password,
             );
       } catch (error) {
         await Promise.allSettled(
@@ -157,7 +192,19 @@ export function DriverEditor({
           : [...(previous ?? []), driver],
       );
       void client.invalidateQueries({ queryKey: ["operator-drivers"] });
-      navigate(`/operator/drivers?driver=${encodeURIComponent(driver.id)}`);
+      void client.invalidateQueries({
+        queryKey: liveQueryKey("operator-drivers"),
+      });
+      void client.invalidateQueries({
+        queryKey: liveQueryKey("operator-schedule"),
+      });
+      if (accountAttempt.current) {
+        const { email, password } = accountAttempt.current;
+        setCreatedAccount({ id: driver.id, email, password });
+        accountAttempt.current = null;
+      } else {
+        navigate(`/operator/drivers?driver=${encodeURIComponent(driver.id)}`);
+      }
     },
   });
   function field(
@@ -243,6 +290,36 @@ export function DriverEditor({
           : "/operator/drivers",
       );
   };
+  if (createdAccount) {
+    return (
+      <div className="operator-schedule__main">
+        <section
+          className="driver-credentials-card"
+          aria-labelledby="driver-account-created"
+        >
+          <header>
+            <h1 id="driver-account-created">Đã tạo tài khoản tài xế</h1>
+            <p>
+              Bàn giao thông tin đăng nhập cho tài xế trước khi rời trang này.
+            </p>
+          </header>
+          <DriverCredentials credentials={createdAccount} />
+          <footer>
+            <Button
+              type="button"
+              onClick={() => {
+                const id = createdAccount.id;
+                setCreatedAccount(null);
+                navigate(`/operator/drivers?driver=${encodeURIComponent(id)}`);
+              }}
+            >
+              Về hồ sơ tài xế
+            </Button>
+          </footer>
+        </section>
+      </div>
+    );
+  }
   return (
     <div className="operator-schedule operator-drivers driver-add">
       <a className="operator-schedule__skip" href="#add-driver-main">
@@ -302,7 +379,14 @@ export function DriverEditor({
                     inputMode: "numeric",
                     maxLength: 14,
                   })}
-                  {field("email", "Email", "Nhập email", { type: "email" })}
+                  {field(
+                    "email",
+                    needsLoginEmail ? "Email đăng nhập *" : "Email",
+                    "Nhập email",
+                    {
+                      type: "email",
+                    },
+                  )}
                   <div className="driver-add__wide">
                     {field(
                       "address",

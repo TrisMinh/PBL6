@@ -4,6 +4,7 @@ import { driverAttachmentSchema } from "../drivers/drivers.schema";
 export const scheduleTripSchema = z
   .object({
     id: z.string().min(1),
+    rowVersion: z.number().int().nonnegative().optional(),
     origin: z.string().min(1),
     destination: z.string().min(1),
     date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
@@ -42,6 +43,7 @@ export const scheduleTripSchema = z
       .enum([
         "draft",
         "scheduled",
+        "awaiting_departure",
         "boarding",
         "departed",
         "in_transit",

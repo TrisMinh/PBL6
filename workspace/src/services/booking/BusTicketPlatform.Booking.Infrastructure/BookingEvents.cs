@@ -21,8 +21,8 @@ public sealed class BookingEvents(OutboxWriter outbox, IIdGenerator ids) : IBook
     public Task TicketsReadyAsync(BookingRecord booking, Guid correlationId, CancellationToken cancellationToken) =>
         Enqueue("TicketIssued", booking.Id, booking.OrganizationId, correlationId, Fact(booking, booking.Status, 0, 0), cancellationToken);
 
-    public Task RefundRequestedAsync(Guid bookingId, Guid paymentId, long amount, string currency, string reason, Guid correlationId, CancellationToken cancellationToken) =>
-        Enqueue("RefundRequested", bookingId, null, correlationId, new { bookingId, paymentId, amount, currency, reason }, cancellationToken);
+    public Task RefundRequestedAsync(Guid bookingId, Guid paymentId, long amount, string currency, string reason, Guid correlationId, CancellationToken cancellationToken, Guid? requestId = null) =>
+        Enqueue("RefundRequested", bookingId, null, correlationId, new { bookingId, paymentId, amount, currency, reason }, cancellationToken, requestId);
 
     public Task BookingCancelledAsync(BookingRecord booking, string reason, Guid correlationId, CancellationToken cancellationToken) =>
         Enqueue("BookingCancelled", booking.Id, booking.OrganizationId, correlationId, Fact(booking, "CANCELLED", 0, 0) with { Reason = reason }, cancellationToken);
@@ -71,8 +71,8 @@ public sealed class BookingEvents(OutboxWriter outbox, IIdGenerator ids) : IBook
     public Task InventoryReadyAsync(Guid tripId, Guid correlationId, CancellationToken cancellationToken) =>
         Enqueue("TripInventoryReady", tripId, null, correlationId, new { tripId }, cancellationToken);
 
-    private Task Enqueue(string type, Guid aggregateId, Guid? tenantId, Guid correlationId, object payload, CancellationToken cancellationToken) =>
+    private Task Enqueue(string type, Guid aggregateId, Guid? tenantId, Guid correlationId, object payload, CancellationToken cancellationToken, Guid? eventId = null) =>
         outbox.EnqueueAsync(
-            new EventMessage(ids.NewUuidV7(), type, 1, DateTimeOffset.UtcNow, "booking", correlationId, aggregateId, JsonSerializer.SerializeToElement(payload, EventMessageJson.Options), null, null, tenantId),
+            new EventMessage(eventId ?? ids.NewUuidV7(), type, 1, DateTimeOffset.UtcNow, "booking", correlationId, aggregateId, JsonSerializer.SerializeToElement(payload, EventMessageJson.Options), null, null, tenantId),
             cancellationToken);
 }

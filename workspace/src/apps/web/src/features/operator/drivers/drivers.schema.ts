@@ -93,6 +93,7 @@ export const driverSchema = driverInputSchema.safeExtend({
   phone: z.string().max(32),
   licenseNumber: z.string().min(1).max(80),
   id: z.string().min(1).max(128),
+  accountMembershipId: z.guid().optional(),
   joinedAt: date,
   status: driverStatusSchema,
 });

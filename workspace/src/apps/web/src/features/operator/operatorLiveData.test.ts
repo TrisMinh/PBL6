@@ -10,20 +10,24 @@ import {
   setVehicleSeatPermission,
 } from "./vehicles/vehiclesRepository";
 import { getOperatorRoutes } from "./resources/routesRepository";
-import { getDrivers } from "./drivers/driversRepository";
+import { getDriverResourceRows, getDrivers } from "./drivers/driversRepository";
 import { getOperatorBookings } from "./bookings/bookingsRepository";
 import { bookingFiltersSchema } from "./bookings/bookings.schema";
 import { operatorDefaultRange } from "./operatorDates";
 import { paginationWindow } from "./components/paginationWindow";
 import { cancelTrip } from "./detail/detailRepository";
 import { adaptSchedule } from "./schedule/scheduleRepository";
+import { driverLabel } from "./tripWorkflow";
 
-const api = vi.hoisted(() => ({
-  rows: vi.fn(),
-  metadata: vi.fn(),
-  request: vi.fn(),
-  saveMetadata: vi.fn(),
-}));
+const api = vi.hoisted(() => {
+  vi.resetModules();
+  return {
+    rows: vi.fn(),
+    metadata: vi.fn(),
+    request: vi.fn(),
+    saveMetadata: vi.fn(),
+  };
+});
 vi.mock("@/shared/api/config", () => ({ isMockApi: false }));
 vi.mock("./liveOriginalApi", async (importOriginal) => ({
   ...(await importOriginal<typeof import("./liveOriginalApi")>()),
@@ -155,6 +159,45 @@ it("reads backend driver records with international phone and legacy license for
   expect(driver.name).toBe("Driver Name");
   expect(driver.phone).toBe("+84901234567");
   expect(driverInputSchema.safeParse(driver).success).toBe(false);
+});
+
+it("uses profile and account names in trip assignments while keeping the driver IDs and licences", async () => {
+  const first = {
+    id: "driver-1",
+    userId: "user-1",
+    licenseNumber: "123456789012",
+  };
+  const second = {
+    id: "driver-2",
+    userId: "user-2",
+    licenseNumber: "987654321098",
+  };
+  api.rows.mockImplementation(async (path) =>
+    path.endsWith("/drivers")
+      ? [first, second]
+      : [
+          { userId: "user-2", fullName: "Trần Văn Nam" },
+          { userId: "user-1", fullName: "Tên lúc tạo tài khoản" },
+        ],
+  );
+  api.metadata.mockResolvedValue({
+    "driver-1": { name: "  Nguyễn Kim My  " },
+    "driver-2": { name: " " },
+  });
+
+  const [namedFromProfile, namedFromAccount] = await getDriverResourceRows();
+  expect(namedFromProfile).toMatchObject({
+    ...first,
+    fullName: "Nguyễn Kim My",
+  });
+  expect(namedFromAccount).toMatchObject({
+    ...second,
+    fullName: "Trần Văn Nam",
+  });
+  expect(driverLabel({ fullName: namedFromProfile.fullName })).toBe(
+    "Nguyễn Kim My",
+  );
+  expect(driverLabel({})).toBe("Chưa có tên tài xế");
 });
 
 it("paid bookings are confirmed and paid, and the unbounded range includes historical records", async () => {

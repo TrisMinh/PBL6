@@ -63,6 +63,12 @@ const OPERATOR_COPY = {
   support: "Sử dụng tài khoản được cấp để vào trang quản lý.",
   assistant: "Cần hỗ trợ? Liên hệ quản trị nhà xe.",
 };
+const ADMIN_COPY = {
+  eyebrow: "BLUE ADMIN",
+  title: "Đăng nhập quản trị",
+  support: "Dùng tài khoản quản trị được cấp để truy cập hệ thống.",
+  assistant: "Cần hỗ trợ? Liên hệ quản trị hệ thống.",
+};
 
 export function AuthShell({
   children,
@@ -71,12 +77,17 @@ export function AuthShell({
 }: {
   children: ReactNode;
   mode: AuthMode;
-  audience?: "customer" | "operator";
+  audience?: "customer" | "operator" | "admin";
 }): ReactElement {
-  const operator = audience === "operator";
+  const staff = audience !== "customer";
   const classes = ["auth-page", `auth-page--${mode}`];
-  if (operator) classes.push("auth-page--operator");
-  const copy = operator ? OPERATOR_COPY : AUTH_COPY[mode];
+  if (staff) classes.push("auth-page--staff");
+  const copy =
+    audience === "admin"
+      ? ADMIN_COPY
+      : audience === "operator"
+        ? OPERATOR_COPY
+        : AUTH_COPY[mode];
   const homeLabel = (
     <>
       <House size={17} aria-hidden /> Về trang chủ
@@ -87,7 +98,7 @@ export function AuthShell({
       <div className="auth-page__shell">
         <div className="auth-page__form-zone">
           <div className="auth-page__topline">
-            {operator ? (
+            {staff ? (
               <>
                 <BrandLogo placement="auth" />
                 <a className="auth-page__home" href={customerOrigin()}>
@@ -105,11 +116,7 @@ export function AuthShell({
               </>
             )}
           </div>
-          <AuthIntro
-            mode={mode}
-            assistant={copy.assistant}
-            showTabs={!operator}
-          />
+          <AuthIntro mode={mode} assistant={copy.assistant} showTabs={!staff} />
           <div className="auth-page__heading">
             <p className="auth-page__eyebrow">{copy.eyebrow}</p>
             <h1 className="auth-page__title">{copy.title}</h1>
@@ -122,7 +129,7 @@ export function AuthShell({
           )}
           {children}
         </div>
-        <ScenicPanel mode={mode} operator={operator} />
+        <ScenicPanel mode={mode} audience={audience} />
       </div>
     </section>
   );
@@ -160,10 +167,10 @@ function AuthIntro({
 
 function ScenicPanel({
   mode,
-  operator,
+  audience,
 }: {
   mode: AuthMode;
-  operator: boolean;
+  audience: "customer" | "operator" | "admin";
 }): ReactElement {
   const storyFront =
     mode === "login"
@@ -186,13 +193,19 @@ function ScenicPanel({
         height="834"
         alt="Xe BLUE trên cung đường núi — ảnh minh họa"
       />
-      {operator ? (
-        <div className="auth-page__operator-caption">
-          <h2>Điều hành chuyến xe</h2>
-          <p>Quản lý lịch chuyến, đội xe và doanh thu.</p>
-        </div>
-      ) : (
+      {audience === "customer" ? (
         <CustomerScenicCopy storyFront={storyFront} storyArrow={storyArrow} />
+      ) : (
+        <div className="auth-page__staff-caption">
+          <h2>
+            {audience === "admin" ? "Quản trị nền tảng" : "Điều hành chuyến xe"}
+          </h2>
+          <p>
+            {audience === "admin"
+              ? "Quản lý nhà xe, tài khoản và giao dịch."
+              : "Quản lý lịch chuyến, đội xe và doanh thu."}
+          </p>
+        </div>
       )}
     </aside>
   );

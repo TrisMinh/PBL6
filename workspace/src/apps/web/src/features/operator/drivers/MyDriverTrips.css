@@ -1,0 +1,115 @@
+.driver-trip-workspace {
+  display: grid;
+  gap: 16px;
+  width: min(100%, 820px);
+  margin-inline: auto;
+  padding: 16px clamp(16px, 4vw, 32px) 40px;
+  color: var(--color-text-primary);
+}
+.driver-trip-workspace h1,
+.driver-trip h2,
+.driver-trip p {
+  margin: 0;
+}
+.driver-trip-workspace__header,
+.driver-trip__heading,
+.driver-trip-workspace__tabs {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+.driver-trip-workspace__header,
+.driver-trip__heading {
+  justify-content: space-between;
+}
+.driver-trip-workspace__tabs .button {
+  min-height: 44px;
+}
+.driver-trip-workspace__tabs [aria-pressed="true"] {
+  background: var(--color-bg-subtle);
+  color: var(--color-brand-shell-strong);
+}
+.driver-trip {
+  display: grid;
+  gap: 16px;
+  padding: clamp(14px, 3vw, 24px);
+  border: 1px solid var(--color-border-shell);
+  border-radius: 12px;
+  background: var(--color-results-surface);
+}
+.driver-trip h2 {
+  font-size: 20px;
+}
+.driver-trip__details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(135px, 100%), 1fr));
+  gap: 12px;
+  margin: 0;
+}
+.driver-trip__details dt,
+.driver-trip__heading small {
+  color: var(--color-text-secondary);
+}
+.driver-trip__details dd {
+  margin: 4px 0 0;
+  font-weight: 650;
+}
+.driver-trip__progress {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.driver-trip__progress li {
+  padding: 4px 7px;
+  border-radius: 6px;
+  color: var(--color-text-secondary);
+}
+.driver-trip__progress [aria-current="step"] {
+  background: var(--color-cancellation-success-soft);
+  color: var(--color-results-success);
+  font-weight: 700;
+}
+.driver-trip__action > .button {
+  min-height: 44px;
+}
+.driver-trip__notice {
+  color: var(--color-text-secondary);
+}
+.driver-password__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgb(15 23 42 / 45%);
+}
+.driver-password__dialog {
+  position: fixed;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 101;
+  width: min(440px, calc(100% - 32px));
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  padding: 24px;
+  border: 1px solid var(--color-border-shell);
+  border-radius: 14px;
+  color: var(--color-text-primary);
+  background: var(--color-results-surface);
+}
+.driver-password__dialog h2 {
+  margin: 0;
+}
+.driver-password__dialog form {
+  display: grid;
+  gap: 12px;
+}
+.driver-password__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}

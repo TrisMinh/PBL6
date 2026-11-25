@@ -322,7 +322,7 @@ function TicketTrend({
   daily: z.infer<typeof schema>["daily"];
 }): ReactElement {
   const unit = reportBucketUnit(range);
-  const tick = (date: string) =>
+  const tick = (date: string): string =>
     unit === "year"
       ? date.slice(0, 4)
       : unit === "month"

@@ -27,14 +27,16 @@ public static class AdminPaymentAuditEndpoints
             if (!context.User.IsInRole("PLATFORM_ADMIN")) return Results.Forbid();
             await using var db = new NpgsqlConnection(options.ConnectionString);
             await db.OpenAsync(context.RequestAborted);
-            await using var command = new NpgsqlCommand("SELECT created_at,updated_at,succeeded_at,status,provider_refund_id FROM refunds WHERE id=@id", db);
+            await using var command = new NpgsqlCommand("SELECT created_at,updated_at,succeeded_at,status,provider_refund_id,transfer_reference,transfer_recorded_by FROM refunds WHERE id=@id", db);
             command.Parameters.AddWithValue("id", id);
             await using var reader = await command.ExecuteReaderAsync(context.RequestAborted);
             if (!await reader.ReadAsync(context.RequestAborted)) return Results.NotFound();
             var history = new List<object> { new { occurredAt = reader.GetDateTime(0), description = "Yêu cầu hoàn tiền" } };
             if (!reader.IsDBNull(2)) history.Add(new { occurredAt = reader.GetDateTime(2), description = "Hoàn tiền thành công" });
             if (reader.GetDateTime(1) != reader.GetDateTime(0)) history.Add(new { occurredAt = reader.GetDateTime(1), description = $"Cập nhật khoản hoàn: {reader.GetString(3)}" });
-            return Results.Json(new { history, updatedAt = reader.GetDateTime(1), partnerCode = reader.IsDBNull(4) ? null : reader.GetString(4) });
+            return Results.Json(new { history, updatedAt = reader.GetDateTime(1), partnerCode = reader.IsDBNull(4) ? null : reader.GetString(4),
+                transferReference = reader.IsDBNull(5) ? null : reader.GetString(5),
+                transferRecordedBy = reader.IsDBNull(6) ? (Guid?)null : reader.GetGuid(6) });
         }).RequireAuthorization();
     }
 }

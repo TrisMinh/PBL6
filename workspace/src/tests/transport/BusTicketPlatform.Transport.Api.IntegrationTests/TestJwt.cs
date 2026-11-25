@@ -9,7 +9,7 @@ internal static class TestJwt
 {
     public const string SigningKey = "local-dev-only-change-me-32bytes-min";
 
-    public static string Mint(Guid userId, IEnumerable<string> roles, Guid? organizationId = null)
+    public static string Mint(Guid userId, IEnumerable<string> roles, Guid? organizationId = null, IEnumerable<string>? organizationRoles = null)
     {
         var claims = new List<Claim>
         {
@@ -20,6 +20,7 @@ internal static class TestJwt
         if (organizationId is not null)
         {
             claims.Add(new Claim("org", organizationId.Value.ToString()));
+            claims.AddRange((organizationRoles ?? roles).Select(role => new Claim("org_role", role)));
         }
 
         claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));

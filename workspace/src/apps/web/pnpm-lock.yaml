@@ -41,6 +41,9 @@ importers:
       msw:
         specifier: 3.0.3
         version: 3.0.3(@types/node@22.20.5)(typescript@5.9.3)(vite@8.3.4(@types/node@22.20.5)(jiti@2.7.0)(yaml@2.9.1))
+      powerbi-client:
+        specifier: 2.25.0
+        version: 2.25.0
       qrcode:
         specifier: 1.5.4
         version: 1.5.4
@@ -1684,6 +1687,9 @@ packages:
   es-toolkit@1.53.2:
     resolution: {integrity: sha512-iUqZ+NlwH4jUgRmXZUxFBsV/9762TQEa1O4IXLFBmDEjVHScBytKuseX23I0+v9ShZ5MYxEx6WKNzm6IPnex8g==}
 
+  es6-promise@3.3.1:
+    resolution: {integrity: sha512-SOp9Phqvqn7jtEUxPWdWfWoLmyt2VaJ6MpvP9Comy1MceMXqE6bxvaTu4iaxpYYPzhny28Lc+M87/c2cPK6lDg==}
+
   escalade@3.2.0:
     resolution: {integrity: sha512-WUj2qlxaQtO4g6Pq5c29GTcWGDyd8itL8zTlipgECz3JesAiiOKotd8JU6otB3PACgG6xkJUyVhboMS+bje/jA==}
     engines: {node: '>=6'}
@@ -1916,6 +1922,9 @@ packages:
   http-errors@2.0.1:
     resolution: {integrity: sha512-4FbRdAX+bSdmo4AUFuS0WNiPz8NgFt+r8ThgNWmlrjQjt1Q7ZR9+zTlce2859x4KSXrwIsaeTqDoKQmtP8pLmQ==}
     engines: {node: '>= 0.8'}
+
+  http-post-message@0.3.0:
+    resolution: {integrity: sha512-tfn1ca5RcRKdejbFanY2ydN4pXB+youdgtNz1GSKtWvzbaf63sGQWyRjo5bnqlebTjG85wY0GUADDD0tAVpmkQ==}
 
   husky@9.1.7:
     resolution: {integrity: sha512-5gs5ytaNjBrh5Ow3zrvdUUY+0VxIuWVL4i9irt6friV+BqdCfmV11CQTWMiBYWHbXhco+J1kHfTOUkePhCDvMA==}
@@ -2390,6 +2399,15 @@ packages:
     resolution: {integrity: sha512-zkd+e9S1AQHhmaBKye9zlFHWjOwVgqXl1q3ECYy8561K7qxR2cREf/STLskulBFd78k6AOFeA+ff1TtEzk9bAA==}
     engines: {node: ^10 || ^12 || >=14}
 
+  powerbi-client@2.25.0:
+    resolution: {integrity: sha512-h6jMorFGRiptWiuJ8O0ZCavLf3d1IaBdxEFP34YTx830yiUPnOJWGJrUbdY0fnyAPFO3GJz1BhqjkN9Q3CB7hg==}
+
+  powerbi-models@2.2.0:
+    resolution: {integrity: sha512-L8HcBLQQP1+y1382jnf6RoC6OtOB25TCdDpEkLTXeg4d2Uku8cUUVG0b8JyZ3j5yATohFBuj8oWstkQoCJJvoA==}
+
+  powerbi-router@0.1.5:
+    resolution: {integrity: sha512-DFJCKxwh/DqMZXtHSo6xZl87mbRviZGn4P7Oi2rT0L4HMI4AjnWIrwg0JCSM7ymBzYnNe5UmrsCaf2Upur5RQA==}
+
   prelude-ls@1.2.1:
     resolution: {integrity: sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==}
     engines: {node: '>= 0.8.0'}
@@ -2614,6 +2632,9 @@ packages:
     resolution: {integrity: sha512-eTBTTqMR6uHKLgcUqpJP8ntzDI6V4LYA8negAMBEI7gkgVvOdrx6VsvS2Ym+83KhOPdLCHWJu0w7UQFJZhHKNw==}
     engines: {node: ^20.19.0 || >=22.12.0}
     hasBin: true
+
+  route-recognizer@0.1.11:
+    resolution: {integrity: sha512-7JNu5mXQVa39zxmUKyk/bfpeF2WyEC5JKVTJO5HATcoUQpcQsI3eLzhwGU69xeOagQxfOQ+yr2sSv0G8xy+vQA==}
 
   router@2.2.0:
     resolution: {integrity: sha512-nLTrUKm2UyiL7rlhapu/Zl45FwNgkZGaCpZbIHajDYgwlJCOzLSk+cIPAnsEqV955GjILJnKbdQC1nVPz+gAYQ==}
@@ -2992,6 +3013,9 @@ packages:
     resolution: {integrity: sha512-Tb2FUhB4vUsGQlfSquQLYkApkuPAFQXGFzxWKHHumVz2dK+X1RUm/HnID4+TfIGYJ1kTcwOaCk/buYCEJr6YjQ==}
     engines: {node: '>=20.11'}
     hasBin: true
+
+  window-post-message-proxy@0.3.0:
+    resolution: {integrity: sha512-dEpItkLX97djHvWzcbVmyelEPoq2Oglx2y5EYt+mCC0bwKvwbtE3ro3Zsg9heHAUir/3dHUBtV2Rr8DQQjwyPg==}
 
   word-wrap@1.2.5:
     resolution: {integrity: sha512-BN22B5eaMMI9UMtjrGd5g5eCYPpCPDUy0FJXbYsaT5zYxjFOckS53SQDE3pWkVoWpHXVb3BrYcEN4Twa55B5cA==}
@@ -4457,6 +4481,8 @@ snapshots:
 
   es-toolkit@1.53.2: {}
 
+  es6-promise@3.3.1: {}
+
   escalade@3.2.0: {}
 
   escape-html@1.0.3: {}
@@ -4731,6 +4757,10 @@ snapshots:
       setprototypeof: 1.2.0
       statuses: 2.0.2
       toidentifier: 1.0.1
+
+  http-post-message@0.3.0:
+    dependencies:
+      es6-promise: 3.3.1
 
   husky@9.1.7: {}
 
@@ -5110,6 +5140,20 @@ snapshots:
       picocolors: 1.1.1
       source-map-js: 1.2.2
 
+  powerbi-client@2.25.0:
+    dependencies:
+      http-post-message: 0.3.0
+      powerbi-models: 2.2.0
+      powerbi-router: 0.1.5
+      window-post-message-proxy: 0.3.0
+
+  powerbi-models@2.2.0: {}
+
+  powerbi-router@0.1.5:
+    dependencies:
+      es6-promise: 3.3.1
+      route-recognizer: 0.1.11
+
   prelude-ls@1.2.1: {}
 
   prettier-plugin-tailwindcss@0.8.1(prettier@3.9.10):
@@ -5280,6 +5324,8 @@ snapshots:
       '@rolldown/binding-openharmony-arm64': 1.2.14
       '@rolldown/binding-win32-arm64-msvc': 1.2.14
       '@rolldown/binding-win32-x64-msvc': 1.2.14
+
+  route-recognizer@0.1.11: {}
 
   router@2.2.0:
     dependencies:
@@ -5605,6 +5651,10 @@ snapshots:
       isexe: 2.0.0
 
   why-is-node-running@3.2.1: {}
+
+  window-post-message-proxy@0.3.0:
+    dependencies:
+      es6-promise: 3.3.1
 
   word-wrap@1.2.5: {}
 

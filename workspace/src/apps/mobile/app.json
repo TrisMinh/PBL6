@@ -17,8 +17,7 @@
       }
     },
     "plugins": [
-      "expo-secure-store",
-      "expo-status-bar"
+      "expo-secure-store"
     ],
     "extra": {
       "gatewayUrl": "http://127.0.0.1:5080"

@@ -18,5 +18,6 @@
     <EmbeddedResource Include="..\..\..\..\..\docs\database\_shared\000_integration_tables.sql" LogicalName="sql.shared" />
     <EmbeddedResource Include="..\..\..\..\..\docs\database\identity\001_initial.sql" LogicalName="sql.identity" />
     <EmbeddedResource Include="..\..\..\..\..\docs\database\identity\002_admin_lookup.sql" LogicalName="sql.identity.admin_lookup" />
+    <EmbeddedResource Include="..\..\..\..\..\docs\database\identity\003_phone_verification.sql" LogicalName="sql.identity.phone-verification" />
   </ItemGroup>
 </Project>

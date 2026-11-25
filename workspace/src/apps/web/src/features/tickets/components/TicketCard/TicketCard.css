@@ -348,6 +348,20 @@
   background: #eefaf3;
 }
 
+.ticket-card__cancellation-note {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: var(--radius-control);
+  background: var(--color-bg-subtle);
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+}
+
+.ticket-card__cancellation-note p {
+  margin: 0;
+}
+
 .ticket-card__boarding-tip {
   display: flex;
   align-items: flex-start;

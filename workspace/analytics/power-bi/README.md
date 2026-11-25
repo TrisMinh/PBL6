@@ -1,5 +1,26 @@
 # Power BI cho báo cáo doanh thu nhà xe
 
+## Nhúng tự động cho nhà xe mới
+
+Chế độ nhúng bằng ứng dụng dùng một báo cáo và một semantic model có RLS động. Portal gọi `POST /api/v1/reports/power-bi/embed`; Reporting lấy UUID nhà xe hoạt động từ JWT, kiểm tra vai trò `OPERATOR_ADMIN` hoặc `OPERATOR_FINANCE` trong nhà xe rồi cấp embed token chỉ đọc. Cả hai bảng dùng vai trò `BlueOperator` để lọc theo UUID. Nhà xe mới dùng cùng luồng sau khi đăng nhập và dữ liệu xuất hiện ngay khi nguồn DirectQuery có bản ghi.
+
+1. Chuẩn bị một workspace chuyên dụng trên Power BI Embedded hoặc Fabric capacity. Cho ứng dụng Microsoft Entra chạy Power BI API và cấp quyền cho service principal trong workspace. Giới hạn quyền quản trị workspace và quyền đọc semantic model chứa dữ liệu nhiều nhà xe.
+2. Tạo gói DirectQuery có RLS, xuất bản với tên mới bằng `Publish-OperatorPowerBI.ps1`, sau đó gắn hai nguồn PostgreSQL vào gateway. Bản chạy mặc định bằng `Setup-PBL6.ps1` dùng `127.0.0.1:55475`.
+
+   ```powershell
+   python workspace/analytics/power-bi/build_operator_dashboard.py --live --direct-query --embedded `
+     --server 127.0.0.1:55475 `
+     --output "$env:LOCALAPPDATA/BLUE/PowerBI/operator-dashboard-embedded.zip"
+   ```
+
+3. Dùng một login PostgreSQL chuyên dụng cho gateway. Cấp `CONNECT` và `USAGE ON SCHEMA bi` trong từng database. Chỉ cấp `SELECT` trên `bi.embedded_booking_activity` trong Booking và `bi.embedded_revenue_by_booking` trong Reporting. Hai view này chứa dữ liệu nhiều nhà xe. Lưu thông tin đăng nhập trong gateway và hạn chế người được dùng kết nối.
+4. Đặt `POWER_BI_EMBED_ENABLED=true` cùng `POWER_BI_TENANT_ID`, `POWER_BI_CLIENT_ID`, `POWER_BI_CLIENT_SECRET`, `POWER_BI_WORKSPACE_ID`, `POWER_BI_REPORT_ID` và `POWER_BI_DATASET_ID` cho Reporting qua môi trường triển khai. Chỉ lưu secret ở phía máy chủ. Khi chạy trực tiếp bằng .NET, dùng các khóa tương ứng trong mục `PowerBi`. Tạo lại Reporting container để đọc cấu hình.
+5. Trước khi cho người dùng truy cập, thử token nhúng thật với hai nhà xe có dữ liệu khác nhau và một nhà xe mới. Kiểm tra cả hai bảng, trang Chi tiết đơn hàng và việc từ chối tài khoản thiếu vai trò. [Cấu hình Power BI Embedded với service principal](https://learn.microsoft.com/power-bi/developer/embedded/embed-service-principal)
+
+Khi chế độ này tắt, portal dùng các liên kết nhúng đã cấu hình cho môi trường demo. Khi đã bật, lỗi cấu hình, quyền hoặc gateway được hiển thị ngay trên tab.
+
+## Báo cáo mẫu và báo cáo riêng theo nhà xe
+
 Trong portal Operator, mục **Power BI** có tệp `operator-dashboard-demo.pbix` đã nạp dữ liệu mẫu và gói nguồn `operator-dashboard.zip`. Để dùng gói nguồn, giải nén, mở `OperatorDashboard.pbip` trong Power BI Desktop và chọn **Refresh**. Trang **Vận hành** có KPI khách, đơn, vé và vé đã check-in. Trang **Tài chính** có số liệu thu, hoàn và đối soát theo ngày giao dịch và tiền tệ.
 
 Trong **Tài chính**, chọn ngày giao dịch và một loại tiền tệ. Chọn một thanh trong **Doanh thu theo tuyến · Thu ròng**, rồi bấm **Xem đơn của tuyến đã chọn**. Trang **Chi tiết đơn hàng** giữ bộ lọc và cộng các khoản thu, hoàn của từng mã đơn trong khoảng ngày đã chọn. Nút **Quay lại Tài chính** trở về trang nguồn. Dữ liệu mẫu VND của tuyến **Đà Nẵng – Hà Nội** từ 17–18/11/2026 gồm hai đơn với tổng thu ròng 399.999 ₫.
@@ -8,13 +29,13 @@ Tạo lại gói mẫu bằng `python workspace/analytics/power-bi/build_operato
 
 ```powershell
 python workspace/analytics/power-bi/build_operator_dashboard.py --live `
-  --server 127.0.0.1:55474 `
+  --server 127.0.0.1:55475 `
   --output "$env:LOCALAPPDATA/BLUE/PowerBI/operator-dashboard-live.zip"
 ```
 
 Đổi máy chủ và các tham số `--booking-db`, `--reporting-db` theo môi trường. Bản live đọc `bi.operator_booking_activity` và `bi.operator_revenue_by_booking`. ZIP chỉ chứa định nghĩa báo cáo, mô hình và địa chỉ kết nối. Power BI lưu thông tin xác thực của nguồn dữ liệu riêng. Với PostgreSQL nội bộ, cấu hình gateway và thông tin xác thực riêng của đúng nhà xe trước khi bật lịch refresh. Chỉ đổi URL nhúng sau khi đã xác nhận lần refresh đầu tiên và quyền xem ở Power BI Service.
 
-Khi chạy Docker local bằng `scripts/start-frontend.ps1` hoặc `scripts/start-sepay-local.ps1`, gateway vẫn kết nối PostgreSQL qua `127.0.0.1:55474`. Dùng cùng địa chỉ này cho hai kết nối Booking và Reporting trong Power BI Service.
+Dùng `127.0.0.1:55475` cho hai kết nối Booking và Reporting của `pbl6-operating` khi chạy `Setup-PBL6.ps1` hoặc `workspace/scripts/dev-docker.ps1`. Cả hai kết nối dùng chung container PostgreSQL và chọn database tương ứng. Cấp login chỉ đọc theo nhà xe trước khi gắn gateway cho mô hình mới.
 
 Trang `/operator/reports` và Power BI dùng cùng sổ giao dịch theo **nhà xe, ngày nghiệp vụ tại Việt Nam và tiền tệ**. API đọc `bi.revenue_daily`. Power BI đọc số liệu theo ngày giao dịch, tiền tệ và mã đơn từ `bi.operator_revenue_by_booking`. Khi chưa nhận được thông tin đơn, khoản thu hoặc hoàn vẫn xuất hiện trong nhóm **Chưa xác định tuyến**. Khi Reporting xử lý xong dữ liệu đơn, lần refresh tiếp theo sẽ gắn khoản đó với đúng tuyến và mã đơn.
 
@@ -35,7 +56,9 @@ VALUES ('pbi_operator_a', '00000000-0000-0000-0000-000000000001');
 
 Với tài khoản đã cấp từ trước, thêm quyền `SELECT` trên view mới trước khi chuyển báo cáo sang mô hình drill-through. View `bi.operator_revenue_daily` vẫn phục vụ các báo cáo tổng hợp đang dùng. Trong database `booking`, cấp thêm `CONNECT`, `USAGE ON SCHEMA bi` và `SELECT ON bi.operator_booking_activity` cho login này, rồi thêm cùng ánh xạ vào `bi.operator_reader_scope` của Booking. Khóa khách trong semantic model là mã giả danh theo nhà xe để tính khách duy nhất. Vé đã check-in là số vé ở trạng thái check-in hoặc đã sử dụng.
 
-Nếu cần nhúng trong portal, publish dự án lên Power BI Service, lấy URL từ **Embed report → Website or portal**, rồi đặt `VITE_OPERATOR_POWER_BI_EMBED_URL` khi build frontend. URL chỉ cấu hình vị trí báo cáo; quyền xem phải được cấp và kiểm tra trong Power BI. Vì cấu hình URL dùng chung cho bản triển khai frontend, khi có nhiều nhà xe hãy dùng semantic model áp dụng RLS cho các tài khoản Power BI hoặc triển khai URL riêng cho mỗi nhà xe. [Nhúng Power BI có xác thực](https://learn.microsoft.com/en-us/power-bi/service-embed-secure)
+Để nhúng trong portal, publish dự án lên Power BI Service, lấy URL từ **Embed report → Website or portal**, rồi đặt `VITE_OPERATOR_POWER_BI_EMBED_URL` khi build frontend. Với báo cáo của một nhà xe, đặt `VITE_OPERATOR_POWER_BI_ORGANIZATION_ID` thành UUID đã ánh xạ cho login PostgreSQL. Trong Docker, dùng `OPERATOR_POWER_BI_EMBED_URL` và `OPERATOR_POWER_BI_ORGANIZATION_ID`. Portal hiển thị liên kết khi phiên Operator đang ở đúng nhà xe. Quyền xem của tài khoản Microsoft vẫn do Power BI Service kiểm soát. Với một mô hình phục vụ nhiều nhà xe, cấu hình RLS cho các tài khoản Power BI. [Nhúng Power BI có xác thực](https://learn.microsoft.com/en-us/power-bi/service-embed-secure)
+
+Nếu dùng báo cáo riêng cho nhiều nhà xe trong cùng portal, đặt `VITE_OPERATOR_POWER_BI_REPORTS` (`OPERATOR_POWER_BI_REPORTS` trong Docker) thành một đối tượng JSON có khóa là UUID nhà xe và giá trị là URL nhúng tương ứng. Khi có cấu hình này, portal chọn URL theo nhà xe của phiên đăng nhập.
 
 View chỉ trả dữ liệu của login PostgreSQL đang kết nối. Cấp quyền riêng cho view này và kiểm tra quyền thừa kế trước khi phân phối. Khi hủy quyền truy cập, xóa ánh xạ login, thu hồi quyền hoặc vô hiệu hóa login. Với Power BI Service, dùng thông tin xác thực riêng của nhà xe cho từng semantic model, cấu hình gateway nếu PostgreSQL ở mạng riêng và phân quyền workspace tương ứng. File Power BI sau Import có thể chứa dữ liệu tài chính đã tải.
 
@@ -107,7 +130,7 @@ Khi nâng cấp báo cáo nhúng lên phiên bản có drill-through, tạo tên
 
 ```powershell
 python workspace/analytics/power-bi/build_operator_dashboard.py --live --direct-query `
-  --server 127.0.0.1:55474 `
+  --server 127.0.0.1:55475 `
   --output "$env:LOCALAPPDATA/BLUE/PowerBI/operator-dashboard-direct-query.zip"
 ```
 

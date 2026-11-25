@@ -3,17 +3,16 @@ import { z } from "zod";
 import { liveApiJson, liveQueryKey } from "@/shared/api/liveRequest";
 import { vietnamIso, type Trip } from "./tripWorkflow";
 
-const scheduleSchema = z.object({
-  id: z.string(),
-  busId: z.string().nullish(),
-  driverId: z.string().nullish(),
-  departureAt: z.iso.datetime({ offset: true }),
-  arrivalAt: z.iso.datetime({ offset: true }),
-  status: z.string(),
-  origin: z.string().optional(),
-  destination: z.string().optional(),
-});
-export type ScheduleTrip = z.infer<typeof scheduleSchema>;
+export interface ScheduleTrip {
+  id: string;
+  busId?: string | null;
+  driverId?: string | null;
+  departureAt: string;
+  arrivalAt: string;
+  status: string;
+  origin?: string;
+  destination?: string;
+}
 export interface ScheduleConflicts {
   buses: Map<string, ScheduleTrip[]>;
   drivers: Map<string, ScheduleTrip[]>;

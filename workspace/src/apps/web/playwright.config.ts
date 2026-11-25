@@ -4,14 +4,14 @@ export default defineConfig({
   workers: 2,
   testDir: "./tests/e2e",
   use: {
-    baseURL: "http://127.0.0.1:5173",
+    baseURL: "http://127.0.0.1:5283",
     trace: "on-first-retry",
   },
   webServer: {
     env: { VITE_API_MODE: "mock", BLUE_APP_TARGET: "all" },
-    command: `"${process.execPath}" node_modules/@react-router/dev/bin.cjs dev --host 127.0.0.1`,
-    port: 5173,
-    reuseExistingServer: true,
+    command: `"${process.execPath}" node_modules/@react-router/dev/bin.cjs dev --host 127.0.0.1 --port 5283 --strictPort`,
+    port: 5283,
+    reuseExistingServer: false,
   },
   projects: [
     {

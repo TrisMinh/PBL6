@@ -1,4 +1,7 @@
-import { BookingRepositoryError } from "@/features/booking/repositories/bookingRepositoryError";
+import {
+  BookingRepositoryError,
+  type BookingRepositoryErrorCode,
+} from "@/features/booking/repositories/bookingRepositoryError";
 import { ApiError } from "./error";
 
 export async function bookingAction<T>(action: () => Promise<T>): Promise<T> {
@@ -7,8 +10,16 @@ export async function bookingAction<T>(action: () => Promise<T>): Promise<T> {
   } catch (error) {
     if (error instanceof BookingRepositoryError) throw error;
     if (error instanceof ApiError) {
-      const code =
-        error.code === "TRIP_NOT_SELLABLE"
+      const policyCodes = [
+        "ACTIVE_SEAT_HOLD",
+        "SEAT_HOLD_COOLDOWN",
+        "SEAT_HOLD_LIMIT",
+        "PHONE_VERIFICATION_REQUIRED",
+        "PREPAID_REQUIRED",
+      ];
+      const code: BookingRepositoryErrorCode = policyCodes.includes(error.code)
+        ? (error.code as BookingRepositoryErrorCode)
+        : error.code === "TRIP_NOT_SELLABLE"
           ? "TRIP_NOT_SELLABLE"
           : error.code.includes("HOLD") ||
               error.code.includes("EXPIRED") ||
@@ -26,7 +37,13 @@ export async function bookingAction<T>(action: () => Promise<T>): Promise<T> {
                       ? "VALIDATION_ERROR"
                       : "HTTP_ERROR";
       const mapped = new BookingRepositoryError(code, error.status);
-      mapped.message = error.message;
+      const details = error.details as
+        { retryAfterSeconds?: number } | undefined;
+      mapped.message =
+        code === "SEAT_HOLD_COOLDOWN" &&
+        typeof details?.retryAfterSeconds === "number"
+          ? `Bạn có thể giữ lại ghế trên chuyến này sau khoảng ${Math.ceil(details.retryAfterSeconds / 60)} phút.`
+          : error.message;
       throw mapped;
     }
     throw error;

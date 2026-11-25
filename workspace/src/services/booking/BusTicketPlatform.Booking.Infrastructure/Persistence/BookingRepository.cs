@@ -262,9 +262,18 @@ public sealed partial class BookingRepository(BookingDatabaseOptions options, II
     {
         await using var connection = await OpenAsync(cancellationToken);
         await using var tx = await connection.BeginTransactionAsync(cancellationToken);
+        await LockCustomerInventoryAsync(connection, tx, hold.CustomerId, cancellationToken);
+        if (hold.VerifiedPhoneKey is not null)
+        {
+            await using var phoneLock = new NpgsqlCommand("SELECT pg_advisory_xact_lock(hashtextextended('booking-phone:' || @phone,0));", connection, tx);
+            phoneLock.Parameters.AddWithValue("phone", hold.VerifiedPhoneKey);
+            await phoneLock.ExecuteNonQueryAsync(cancellationToken);
+        }
+        await CheckHoldAllowanceAsync(connection, tx, hold, seatIds.Count, replacing: false, cancellationToken);
         await using (var lockSeats = new NpgsqlCommand("""
             SELECT id, price FROM trip_seats
             WHERE trip_id = @trip AND id = ANY(@ids) AND status = 'AVAILABLE'
+            ORDER BY id
             FOR UPDATE;
             """, connection, tx))
         {
@@ -288,8 +297,8 @@ public sealed partial class BookingRepository(BookingDatabaseOptions options, II
             await using (var insert = new NpgsqlCommand("""
                 INSERT INTO seat_holds (
                   id, trip_id, customer_id_external, idempotency_key, hold_token_hash, status, total_amount, currency,
-                  created_at, expires_at)
-                VALUES (@id, @trip, @customer, @idem, @hash, 'ACTIVE', @total, @currency, NOW(), NOW() + INTERVAL '10 minutes')
+                  created_at, expires_at, verified_phone_key)
+                VALUES (@id, @trip, @customer, @idem, @hash, 'ACTIVE', @total, @currency, NOW(), NOW() + INTERVAL '10 minutes', @phone)
                 RETURNING created_at, expires_at;
                 """, connection, tx))
             {
@@ -300,6 +309,7 @@ public sealed partial class BookingRepository(BookingDatabaseOptions options, II
                 insert.Parameters.AddWithValue("hash", hold.TokenHash);
                 insert.Parameters.AddWithValue("total", total);
                 insert.Parameters.AddWithValue("currency", hold.Currency);
+                insert.Parameters.AddWithValue("phone", NpgsqlTypes.NpgsqlDbType.Text, (object?)hold.VerifiedPhoneKey ?? DBNull.Value);
                 await using var created = await insert.ExecuteReaderAsync(cancellationToken);
                 await created.ReadAsync(cancellationToken);
                 var createdAt = new DateTimeOffset(DateTime.SpecifyKind(created.GetDateTime(0), DateTimeKind.Utc));
@@ -334,7 +344,9 @@ public sealed partial class BookingRepository(BookingDatabaseOptions options, II
     {
         await using var connection = await OpenAsync(cancellationToken);
         await using var tx = await connection.BeginTransactionAsync(cancellationToken);
-        await using (var guard = new NpgsqlCommand("SELECT id FROM seat_holds WHERE id=@hold AND customer_id_external=@owner AND status='ACTIVE' AND expires_at>NOW() FOR UPDATE", connection, tx))
+        await LockCustomerInventoryAsync(connection, tx, hold.CustomerId, cancellationToken);
+        await CheckHoldAllowanceAsync(connection, tx, hold, seatIds.Count, replacing: true, cancellationToken);
+        await using (var guard = new NpgsqlCommand("SELECT id FROM seat_holds WHERE id=@hold AND customer_id_external=@owner AND status='ACTIVE' AND expires_at>clock_timestamp() FOR UPDATE", connection, tx))
         {
             guard.Parameters.AddWithValue("hold",hold.Id);
             guard.Parameters.AddWithValue("owner",hold.CustomerId);
@@ -372,14 +384,73 @@ public sealed partial class BookingRepository(BookingDatabaseOptions options, II
         return hold with {TotalAmount=prices.Values.Sum(),Seats=await ListSeatsByIds(seatIds,cancellationToken)};
     }
 
-    public async Task<SeatHoldRecord?> GetHoldByTokenHashAsync(string tokenHash, CancellationToken cancellationToken)
+    private static async Task LockCustomerInventoryAsync(NpgsqlConnection connection, NpgsqlTransaction tx, Guid customer, CancellationToken ct)
+    {
+        await using var command = new NpgsqlCommand("SELECT pg_advisory_xact_lock(hashtextextended('booking-customer:' || CAST(@customer AS text), 0));", connection, tx);
+        command.Parameters.AddWithValue("customer", customer);
+        await command.ExecuteNonQueryAsync(ct);
+    }
+
+    private static async Task CheckHoldAllowanceAsync(NpgsqlConnection connection, NpgsqlTransaction tx, SeatHoldRecord hold, int requested, bool replacing, CancellationToken ct)
+    {
+        await using var command = new NpgsqlCommand("""
+            WITH cancellations AS (
+                SELECT released_at FROM seat_holds
+                WHERE customer_id_external=@customer AND trip_id=@trip AND customer_cancelled
+                  AND released_at>NOW()-INTERVAL '30 minutes'
+            )
+            SELECT
+              EXISTS (SELECT 1 FROM seat_holds WHERE customer_id_external=@customer AND trip_id=@trip AND id<>@id AND status='ACTIVE' AND expires_at>NOW()),
+              (SELECT COUNT(*) FROM booking_items i JOIN bookings b ON b.id=i.booking_id
+                JOIN trip_seats s ON s.active_booking_item_id=i.id
+                WHERE b.customer_id_external=@customer AND b.trip_id=@trip
+                  AND ((b.status='PENDING_PAYMENT' AND b.expires_at>NOW()) OR (b.status='CONFIRMED' AND b.payment_channel='PAY_LATER')))
+                + (SELECT COUNT(*) FROM seat_hold_items i JOIN seat_holds h ON h.id=i.seat_hold_id
+                    WHERE h.customer_id_external=@customer AND h.trip_id=@trip AND h.id<>@id AND h.status='ACTIVE' AND h.expires_at>NOW()),
+              CASE WHEN (SELECT COUNT(*) FROM cancellations)>=4
+                THEN COALESCE((SELECT GREATEST(0, CEIL(EXTRACT(EPOCH FROM (MAX(released_at)+INTERVAL '5 minutes'-NOW()))))::int FROM cancellations),0)
+                ELSE 0 END,
+              (SELECT COUNT(*) FROM seat_holds WHERE
+                (customer_id_external=@customer OR verified_phone_key=@phone) AND created_at>NOW()-INTERVAL '10 minutes');
+            """, connection, tx);
+        command.Parameters.AddWithValue("customer", hold.CustomerId);
+        command.Parameters.AddWithValue("trip", hold.TripId);
+        command.Parameters.AddWithValue("id", hold.Id);
+        command.Parameters.AddWithValue("phone", NpgsqlTypes.NpgsqlDbType.Text, (object?)hold.VerifiedPhoneKey ?? DBNull.Value);
+        await using var reader = await command.ExecuteReaderAsync(ct);
+        await reader.ReadAsync(ct);
+        if (!replacing && reader.GetBoolean(0))
+            throw new SeatHoldPolicyException("ACTIVE_SEAT_HOLD", "Bạn đang có lượt giữ ghế trên chuyến này. Hãy tiếp tục lượt hiện tại.", 409);
+        if (reader.GetInt64(1) + requested > 4)
+            throw new SeatHoldPolicyException("SEAT_HOLD_LIMIT", "Bạn có thể giữ tối đa 4 ghế chưa thanh toán trên mỗi chuyến.", 409);
+        if (!replacing && reader.GetInt32(2) > 0)
+            throw new SeatHoldPolicyException("SEAT_HOLD_COOLDOWN", "Bạn đã hủy 4 phiên đặt ghế trên chuyến này trong 30 phút.", 429, reader.GetInt32(2));
+        if (!replacing && reader.GetInt64(3) >= 12)
+            throw new SeatHoldPolicyException("RATE_LIMITED", "Bạn đã tạo nhiều lượt giữ ghế. Vui lòng thử lại sau.", 429);
+    }
+
+    public Task<SeatHoldRecord?> GetHoldByTokenHashAsync(string tokenHash, CancellationToken cancellationToken) =>
+        ReadHoldAsync(tokenHash, null, null, null, cancellationToken);
+
+    public Task<SeatHoldRecord?> GetOwnedHoldAsync(Guid customerId, Guid? tripId, Guid? holdId, CancellationToken cancellationToken) =>
+        ReadHoldAsync(null, customerId, tripId, holdId, cancellationToken);
+
+    private async Task<SeatHoldRecord?> ReadHoldAsync(string? tokenHash, Guid? customerId, Guid? tripIdFilter, Guid? holdIdFilter, CancellationToken cancellationToken)
     {
         await using var connection = await OpenAsync(cancellationToken);
+        await using var tx = await connection.BeginTransactionAsync(System.Data.IsolationLevel.RepeatableRead, cancellationToken);
         await using var command = new NpgsqlCommand("""
             SELECT id, trip_id, customer_id_external, idempotency_key, hold_token_hash, status, total_amount, currency, created_at, expires_at
-            FROM seat_holds WHERE hold_token_hash = @hash;
-            """, connection);
-        command.Parameters.AddWithValue("hash", tokenHash);
+            FROM seat_holds
+            WHERE (@hash IS NOT NULL AND hold_token_hash=@hash)
+               OR (customer_id_external=@customer AND (id=@hold OR
+                   (trip_id=@trip AND status='ACTIVE' AND expires_at>NOW())))
+            ORDER BY created_at DESC, id DESC LIMIT 1;
+            """, connection, tx);
+        command.Parameters.AddWithValue("hash", NpgsqlTypes.NpgsqlDbType.Text, (object?)tokenHash ?? DBNull.Value);
+        command.Parameters.AddWithValue("customer", NpgsqlTypes.NpgsqlDbType.Uuid, (object?)customerId ?? DBNull.Value);
+        command.Parameters.AddWithValue("trip", NpgsqlTypes.NpgsqlDbType.Uuid, (object?)tripIdFilter ?? DBNull.Value);
+        command.Parameters.AddWithValue("hold", NpgsqlTypes.NpgsqlDbType.Uuid, (object?)holdIdFilter ?? DBNull.Value);
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
         if (!await reader.ReadAsync(cancellationToken))
         {
@@ -397,28 +468,68 @@ public sealed partial class BookingRepository(BookingDatabaseOptions options, II
         var created = new DateTimeOffset(DateTime.SpecifyKind(reader.GetDateTime(8), DateTimeKind.Utc));
         var expires = new DateTimeOffset(DateTime.SpecifyKind(reader.GetDateTime(9), DateTimeKind.Utc));
         await reader.CloseAsync();
-        var seats = await QuerySeats("""
+        await using var items = new NpgsqlCommand("""
             SELECT s.id, s.trip_id, s.source_seat_id_external, s.seat_code, s.seat_type, s.deck, s.row_no, s.column_no, s.price, s.status, s.row_version
-            FROM trip_seats s JOIN seat_hold_items i ON i.trip_seat_id = s.id WHERE i.seat_hold_id = @trip
-            """, holdId, cancellationToken);
+            FROM trip_seats s JOIN seat_hold_items i ON i.trip_seat_id = s.id
+            WHERE i.seat_hold_id = @hold ORDER BY s.deck, s.row_no, s.column_no;
+            """, connection, tx);
+        items.Parameters.AddWithValue("hold", holdId);
+        var seats = await ReadSeats(items, cancellationToken);
+        await tx.CommitAsync(cancellationToken);
         return new SeatHoldRecord(holdId, tripId, customer, idem, hash, "", status, total, currency, created, expires, seats);
     }
 
-    public async Task ReleaseHoldAsync(Guid holdId, CancellationToken cancellationToken)
-    {
-        await using var connection = await OpenAsync(cancellationToken);
-        await using var command = new NpgsqlCommand("""
-            UPDATE seat_holds SET status = 'RELEASED', released_at = NOW() WHERE id = @id AND status = 'ACTIVE';
-            UPDATE trip_seats SET status = 'AVAILABLE', active_hold_id = NULL, updated_at = NOW() WHERE active_hold_id = @id;
-            """, connection);
-        command.Parameters.AddWithValue("id", holdId);
-        await command.ExecuteNonQueryAsync(cancellationToken);
-    }
-
-    public async Task<BookingRecord?> CreateBookingAsync(BookingRecord booking, IReadOnlyList<BookingItemRecord> items, IReadOnlyList<PassengerRecord> passengers, Guid holdId, CancellationToken cancellationToken)
+    public async Task<bool> ReleaseHoldAsync(SeatHoldRecord hold, bool cancelSession, CancellationToken cancellationToken)
     {
         await using var connection = await OpenAsync(cancellationToken);
         await using var tx = await connection.BeginTransactionAsync(cancellationToken);
+        await LockCustomerInventoryAsync(connection, tx, hold.CustomerId, cancellationToken);
+        await using var command = new NpgsqlCommand("""
+            WITH released AS (
+                UPDATE seat_holds SET status = CASE WHEN expires_at > statement_timestamp() THEN 'RELEASED' ELSE 'EXPIRED' END,
+                    released_at = statement_timestamp(),
+                    customer_cancelled = @cancel AND expires_at > statement_timestamp()
+                WHERE id = @id AND status = 'ACTIVE'
+                RETURNING id
+            ), freed AS (
+                UPDATE trip_seats SET status = 'AVAILABLE', active_hold_id = NULL, updated_at = statement_timestamp()
+                WHERE active_hold_id IN (SELECT id FROM released)
+            )
+            SELECT NOT EXISTS (SELECT 1 FROM seat_holds WHERE id = @id AND status = 'CONSUMED');
+            """, connection, tx);
+        command.Parameters.AddWithValue("id", hold.Id);
+        command.Parameters.AddWithValue("cancel", cancelSession);
+        var released = (bool)(await command.ExecuteScalarAsync(cancellationToken))!;
+        await tx.CommitAsync(cancellationToken);
+        return released;
+    }
+
+    public async Task<BookingRecord?> CreateBookingAsync(BookingRecord booking, IReadOnlyList<BookingItemRecord> items, IReadOnlyList<PassengerRecord> passengers, Guid holdId, CancellationToken cancellationToken, bool newAccount = false)
+    {
+        await using var connection = await OpenAsync(cancellationToken);
+        await using var tx = await connection.BeginTransactionAsync(cancellationToken);
+        await LockCustomerInventoryAsync(connection, tx, booking.CustomerId, cancellationToken);
+        if (booking.PaymentChannel == "PAY_LATER")
+        {
+            await using var risk = new NpgsqlCommand("""
+                SELECT (@newAccount AND (
+                    t.departure_at <= NOW() + INTERVAL '2 hours' OR
+                    (SELECT COUNT(*) FROM trip_seats s WHERE s.trip_id=t.trip_id AND s.status='AVAILABLE') < 8
+                )) OR (
+                    SELECT COUNT(*) >= 2 FROM seat_holds h LEFT JOIN bookings b ON b.seat_hold_id=h.id
+                    WHERE h.customer_id_external=@customer
+                        AND (h.status='EXPIRED' OR b.status='EXPIRED')
+                        AND (CASE WHEN b.status='EXPIRED' THEN b.expires_at
+                            WHEN h.status='EXPIRED' THEN h.expires_at ELSE h.released_at END)>NOW()-INTERVAL '30 minutes'
+                )
+                FROM trip_snapshots t WHERE t.trip_id=@trip;
+                """, connection, tx);
+            risk.Parameters.AddWithValue("newAccount", newAccount);
+            risk.Parameters.AddWithValue("customer", booking.CustomerId);
+            risk.Parameters.AddWithValue("trip", booking.TripId);
+            if (await risk.ExecuteScalarAsync(cancellationToken) is true)
+                throw new SeatHoldPolicyException("PREPAID_REQUIRED", "Lượt đặt này cần thanh toán trước. Ghế vẫn được giữ đến giờ hết hạn.", 409);
+        }
         try
         {
         if (booking.CouponCode is not null)
@@ -440,10 +551,14 @@ public sealed partial class BookingRepository(BookingDatabaseOptions options, II
             await deferred.ExecuteNonQueryAsync(cancellationToken);
         }
         await using (var consume = new NpgsqlCommand("""
-            UPDATE seat_holds SET status = 'CONSUMED', consumed_at = NOW() WHERE id = @id AND status = 'ACTIVE';
+            UPDATE seat_holds SET status = 'CONSUMED', consumed_at = NOW()
+            WHERE id = @id AND status = 'ACTIVE' AND expires_at > clock_timestamp()
+              AND ARRAY(SELECT trip_seat_id FROM seat_hold_items WHERE seat_hold_id=@id ORDER BY trip_seat_id)
+                  = ARRAY(SELECT unnest(@seats) ORDER BY 1);
             """, connection, tx))
         {
             consume.Parameters.AddWithValue("id", holdId);
+            consume.Parameters.AddWithValue("seats", items.Select(item => item.TripSeatId).ToArray());
             if (await consume.ExecuteNonQueryAsync(cancellationToken) != 1)
             {
                 await tx.RollbackAsync(cancellationToken);
@@ -754,17 +869,19 @@ public sealed partial class BookingRepository(BookingDatabaseOptions options, II
             reader.IsDBNull(10) ? null : new DateTimeOffset(DateTime.SpecifyKind(reader.GetDateTime(10), DateTimeKind.Utc)));
     }
 
-    public async Task CancelAsync(Guid bookingId, IReadOnlyList<Guid> ticketIds, long fee, long refund, CancellationToken cancellationToken)
+    public async Task CancelAsync(Guid bookingId, IReadOnlyList<Guid> ticketIds, long fee, long refund, Guid? refundRequestId, CancellationToken cancellationToken)
     {
         await using var connection = await OpenAsync(cancellationToken);
         await using var tx = await connection.BeginTransactionAsync(cancellationToken);
         var tickets = ticketIds.ToArray();
         await using (var ticketsCmd = new NpgsqlCommand("""
-            UPDATE tickets SET status = 'CANCELLED', cancelled_at = NOW()
-            WHERE status = 'ISSUED' AND (id = ANY(@tickets) OR booking_item_id = ANY(@tickets));
+            UPDATE tickets SET status = 'CANCELLED', cancelled_at = NOW(), refund_request_id = @refund_request
+            WHERE booking_id = @booking AND status = 'ISSUED' AND (id = ANY(@tickets) OR booking_item_id = ANY(@tickets));
             """, connection, tx))
         {
             ticketsCmd.Parameters.AddWithValue("tickets", tickets);
+            ticketsCmd.Parameters.AddWithValue("booking", bookingId);
+            ticketsCmd.Parameters.AddWithValue("refund_request", NpgsqlTypes.NpgsqlDbType.Uuid, (object?)refundRequestId ?? DBNull.Value);
             await ticketsCmd.ExecuteNonQueryAsync(cancellationToken);
         }
 
@@ -802,6 +919,30 @@ public sealed partial class BookingRepository(BookingDatabaseOptions options, II
         }
 
         await tx.CommitAsync(cancellationToken);
+    }
+
+    public async Task CompleteCancellationRefundAsync(Guid bookingId, Guid requestEventId, long amount, string currency, CancellationToken cancellationToken)
+    {
+        await using var connection = await OpenAsync(cancellationToken);
+        await using var command = new NpgsqlCommand("""
+            WITH remaining AS (
+              SELECT EXISTS (SELECT 1 FROM tickets WHERE booking_id = @booking
+                AND status IN ('ISSUED', 'CHECKED_IN', 'USED')) AS has_tickets
+            )
+            UPDATE bookings SET status = CASE WHEN r.has_tickets THEN 'PAID' ELSE 'REFUNDED' END,
+              cancelled_at = CASE WHEN NOT r.has_tickets THEN cancelled_at END,
+              refunded_at = CASE WHEN NOT r.has_tickets THEN NOW() END,
+              updated_at = NOW(), row_version = row_version + 1
+            FROM remaining r WHERE id = @booking AND status = 'REFUND_PENDING'
+              AND refund_amount = @amount AND currency = @currency
+              AND @request = (SELECT id FROM outbox_messages WHERE aggregate_id = @booking
+                AND message_type = 'RefundRequested' ORDER BY occurred_at DESC, id DESC LIMIT 1)
+            """, connection);
+        command.Parameters.AddWithValue("booking", bookingId);
+        command.Parameters.AddWithValue("amount", amount);
+        command.Parameters.AddWithValue("currency", currency);
+        command.Parameters.AddWithValue("request", requestEventId);
+        await command.ExecuteNonQueryAsync(cancellationToken);
     }
 
     public Task<IReadOnlyList<TicketRecord>> ListTicketsForBookingAsync(Guid bookingId, CancellationToken cancellationToken) =>
@@ -1049,7 +1190,7 @@ public sealed partial class BookingRepository(BookingDatabaseOptions options, II
         await using var command = new NpgsqlCommand("""
             SELECT t.id, t.booking_id, t.booking_item_id, b.trip_id, b.customer_id_external, t.public_code, t.qr_token_hash,
                    t.payment_channel, t.status, p.full_name, i.seat_code, i.line_total, t.issued_at, t.checked_in_at, t.row_version,
-                   b.booking_code, i.trip_seat_id, p.pickup_stop_id_external, p.dropoff_stop_id_external
+                   b.booking_code, i.trip_seat_id, p.pickup_stop_id_external, p.dropoff_stop_id_external, b.status, t.refund_request_id
             FROM tickets t
             JOIN bookings b ON b.id = t.booking_id
             JOIN booking_items i ON i.id = t.booking_item_id
@@ -1082,7 +1223,8 @@ public sealed partial class BookingRepository(BookingDatabaseOptions options, II
                 reader.IsDBNull(13) ? null : new DateTimeOffset(DateTime.SpecifyKind(reader.GetDateTime(13), DateTimeKind.Utc)),
                 reader.GetInt64(14))
             {
-                Journey = new TicketJourney(reader.GetString(15), reader.GetGuid(16), reader.GetGuid(17), reader.GetGuid(18))
+                Journey = new TicketJourney(reader.GetString(15), reader.GetGuid(16), reader.GetGuid(17), reader.GetGuid(18), reader.GetString(19)),
+                RefundRequestId = reader.IsDBNull(20) ? null : reader.GetGuid(20)
             });
         }
 

@@ -76,6 +76,8 @@ services:
       Smtp__Password: ${SMTP_PASSWORD:?SMTP_PASSWORD is required}
       Smtp__EnableSsl: "true"
       Smtp__CaptureChallenges: "false"
+      Sms__Endpoint: ${SMS_ENDPOINT:-}
+      Sms__Token: ${SMS_TOKEN:-}
 
   transport:
     <<: *api-hardening
@@ -93,6 +95,7 @@ services:
       Authentication__SigningKey: ${JWT_SIGNING_KEY:?JWT_SIGNING_KEY is required}
       Messaging__AmqpUri: amqp://platform:${RABBITMQ_PASSWORD:?RABBITMQ_PASSWORD is required}@rabbitmq:5672/bus-ticket
       ConnectionStrings__Booking: Host=postgres;Port=5432;Database=booking;Username=platform;Password=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      SeatProtection__RequireVerifiedPhone: ${SEAT_REQUIRE_VERIFIED_PHONE:-false}
       AllowedHosts: localhost;127.0.0.1;booking;${API_ALLOWED_HOSTS:?API_ALLOWED_HOSTS is required}
 
   payment:
@@ -173,6 +176,7 @@ services:
     build:
       args:
         API_MODE: live
+        CUSTOMER_WEB_ORIGIN: ${CUSTOMER_ORIGIN:?CUSTOMER_ORIGIN is required}
     ports: !override
       - 127.0.0.1:${ADMIN_HTTP_PORT:-8082}:8080
     read_only: true

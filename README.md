@@ -32,7 +32,12 @@ Máy local chạy bộ dữ liệu vận hành giả lập của 16 nhà xe. Cá
 
 ## Trạng thái
 
-Baseline tài liệu MVP đã đủ để bắt đầu Slice 0 với mọi project backend target `.NET 10 / net10.0`. Identity Service đã được scaffold trong `workspace/src/`; các service còn lại tiếp tục theo cùng dependency rule. Docker Compose vẫn cần trước khi chạy full local stack và integration test; xem [development prerequisites](./docs/implementation/05-development-prerequisites.md).
+Docker Compose khởi động ba cổng web và các dịch vụ .NET 10 dùng bộ dữ liệu vận hành local. Cổng khách hàng có luồng tìm chuyến, giữ ghế, đặt chỗ và tra cứu vé. Cổng nhà xe quản lý lịch chuyến, tài xế, xe và báo cáo. Cổng quản trị theo dõi tổ chức, đơn đặt vé, thanh toán và hoàn tiền.
+
+- Để demo Power BI nhúng bằng phiên của nhà xe, cấu hình Reporting và kiểm tra quyền truy cập dữ liệu theo tổ chức. [Hướng dẫn Power BI](./workspace/analytics/power-bi/README.md)
+- Khi demo thanh toán và xác thực điện thoại, đối chiếu cổng thanh toán, chế độ sandbox và cấu hình OTP của môi trường. [Cấu hình mẫu](./.env.example)
+- Ứng dụng React Native có lệnh `npm run build:mobile` từ `workspace`. Cần kiểm tra luồng giữ ghế và thanh toán trên thiết bị với cổng thanh toán của môi trường demo. [Workspace](./workspace/README.md)
+- Các yêu cầu về Docker và bộ công cụ phát triển nằm trong [hướng dẫn chuẩn bị môi trường](./docs/implementation/05-development-prerequisites.md).
 
 ## System Architecture
 

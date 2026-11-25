@@ -9,7 +9,7 @@ internal static class TestJwt
 {
     public const string SigningKey = "local-dev-only-change-me-32bytes-min";
 
-    public static string Mint(Guid userId, IEnumerable<string> roles, Guid? organizationId = null)
+    public static string Mint(Guid userId, IEnumerable<string> roles, Guid? organizationId = null, DateTimeOffset? createdAt = null)
     {
         var claims = new List<Claim>
         {
@@ -21,6 +21,7 @@ internal static class TestJwt
         {
             claims.Add(new Claim("org", organizationId.Value.ToString()));
         }
+        claims.Add(new Claim("account_created_at", (createdAt ?? DateTimeOffset.UtcNow.AddDays(-30)).ToString("O")));
 
         claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(SigningKey));

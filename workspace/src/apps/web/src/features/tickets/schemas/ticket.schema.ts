@@ -59,6 +59,9 @@ export const ticketDetailSchema = ticketSummarySchema
     bookingCode: ticketCodeSchema,
     transactionId: z.string().max(128),
     qrPayload: z.string().optional(),
+    paymentChannel: z.enum(["PREPAID", "PAY_LATER"]).optional(),
+    bookingStatus: z.string().nullish(),
+    refundRequestId: z.guid().nullish(),
     issuedAt: z.iso.datetime(),
     passenger: z
       .object({ fullName: contactDraftSchema.shape.fullName })

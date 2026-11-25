@@ -5,6 +5,7 @@ import {
   bookingSchema,
   backendSeatSchema,
   pageOf,
+  type BackendTrip,
 } from "@/shared/api/contracts";
 import { ApiError } from "@/shared/api/error";
 import { BookingRepositoryError } from "@/features/booking/repositories/bookingRepositoryError";
@@ -74,7 +75,13 @@ function cacheById<T>(
   };
 }
 
-function createTicketResources(signal?: AbortSignal) {
+type TicketResources = {
+  booking: (id: string) => Promise<z.infer<typeof bookingSchema>>;
+  trip: (id: string) => Promise<BackendTrip>;
+  seats: (id: string) => Promise<{ seats: z.infer<typeof backendSeatSchema>[] }>;
+};
+
+function createTicketResources(signal?: AbortSignal): TicketResources {
   return {
     booking: cacheById((id) =>
       apiJson(`/api/v1/bookings/${id}`, bookingSchema, { signal }),
@@ -92,7 +99,7 @@ function createTicketResources(signal?: AbortSignal) {
 
 async function hydrateTicket(
   ticket: BackendTicket,
-  resources: ReturnType<typeof createTicketResources>,
+  resources: TicketResources,
 ): Promise<TicketDetail> {
   const [booking, backendTrip] = await Promise.all([
     resources.booking(ticket.bookingId),
@@ -108,7 +115,10 @@ async function hydrateTicket(
     item = booking.items.find((v) => v.seatId === seat?.id);
   }
   if (!item) throw new BookingRepositoryError("INVALID_RESPONSE", 200);
-  return ticketDetail(ticket, booking.code, item, backendTrip);
+  return {
+    ...ticketDetail(ticket, booking.code, item, backendTrip),
+    bookingStatus: booking.status,
+  };
 }
 
 export function ticketDetail(
@@ -123,11 +133,15 @@ export function ticketDetail(
     ticketCode: ticket.publicCode,
     bookingId: ticket.bookingId,
     bookingCode,
+    bookingStatus: ticket.journey?.bookingStatus,
+    refundRequestId: ticket.refundRequestId,
     tripId: ticket.tripId,
     seatId: item.seatId,
     seatCode: ticket.seatCode,
     fareVnd: ticket.unitPrice ?? backendTrip.fare.amount,
     status: ticket.status === "CANCELLED" ? "cancelled" : "issued",
+    paymentChannel:
+      ticket.paymentChannel === "PREPAID" ? "PREPAID" : "PAY_LATER",
     transactionId: "",
     issuedAt: ticket.issuedAt,
     passenger: { fullName: ticket.passengerName },

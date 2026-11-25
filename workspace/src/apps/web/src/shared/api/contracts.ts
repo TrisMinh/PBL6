@@ -101,9 +101,11 @@ export const bookingSchema = z.object({
   ),
 });
 export const backendTicketSchema = z.object({
+  refundRequestId: z.guid().nullish(),
   journey: z
     .object({
       bookingCode: z.string(),
+      bookingStatus: z.string().nullish(),
       seatId: z.guid(),
       pickupStopId: z.guid(),
       dropoffStopId: z.guid(),

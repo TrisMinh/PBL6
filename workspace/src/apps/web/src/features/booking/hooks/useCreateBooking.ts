@@ -141,6 +141,11 @@ export function useCreateBooking(draft: BookingDraft): CreateBookingResult {
     },
     isPending: mutation.isPending,
     dismissError: mutation.reset,
-    error: mutation.variables?.source === owner ? mutation.error : null,
+    error:
+      mutation.variables?.source === owner ||
+      (mutation.error?.code === "PREPAID_REQUIRED" &&
+        mutation.variables?.source.sessionId === owner?.sessionId)
+        ? mutation.error
+        : null,
   };
 }

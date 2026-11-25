@@ -43,6 +43,8 @@ public static class TransportEndpoints
         op.MapPut("/buses/{busId:guid}/seats", ReplaceSeatsAsync);
         op.MapPatch("/buses/{busId:guid}/seats/{code}/permission", SetSeatPermissionAsync);
         op.MapGet("/drivers", ListDriversAsync);
+        op.MapGet("/drivers/current-trips", (HttpContext context, TransportService service) =>
+            GetDriverTripWorkAsync(context, service, mine: false));
         op.MapDelete("/drivers/{driverId:guid}", DeleteDriverAsync);
         op.MapPost("/drivers", CreateDriverAsync);
         op.MapPatch("/drivers/{driverId:guid}", UpdateDriverAsync);
@@ -80,6 +82,8 @@ public static class TransportEndpoints
         op.MapDelete("/trips/{tripId:guid}", RejectHardDeleteAsync);
 
         endpoints.MapGet("/api/v1/driver/assignments", GetAssignmentsAsync).RequireAuthorization();
+        endpoints.MapGet("/api/v1/driver/trips", (HttpContext context, TransportService service) =>
+            GetDriverTripWorkAsync(context, service, mine: true)).RequireAuthorization();
         endpoints.MapPost("/internal/trips/{tripId:guid}/inventory-ready", InventoryReadyAsync)
             .AddEndpointFilter(InvalidatePublicCacheAsync);
         return endpoints;
@@ -94,12 +98,16 @@ public static class TransportEndpoints
         return result;
     }
 
-    private static Actor? ActorOf(HttpContext context)
+    private static Actor? ActorOf(HttpContext context, bool tenantRolesOnly = false)
     {
         var userId = context.User.UserId();
         return userId is null
             ? null
-            : new Actor(userId.Value, context.User.OrganizationId(), context.User.Claims.Where(c => c.Type.EndsWith("/role", StringComparison.Ordinal) || c.Type == System.Security.Claims.ClaimTypes.Role).Select(c => c.Value).Distinct().ToArray());
+            : new Actor(userId.Value, context.User.OrganizationId(), context.User.Claims
+                .Where(c => tenantRolesOnly
+                    ? c.Type == "org_role"
+                    : c.Type.EndsWith("/role", StringComparison.Ordinal) || c.Type == System.Security.Claims.ClaimTypes.Role)
+                .Select(c => c.Value).Distinct().ToArray());
     }
 
     private static IResult NeedUser(Guid correlationId) => PlatformHttp.Error(PlatformErrors.AuthenticationRequired(), correlationId);
@@ -426,7 +434,7 @@ public static class TransportEndpoints
 
     private static async Task<IResult> TransitionTripAsync(HttpContext context, TransportService service, IIdempotencyStore store, Guid tripId, TripTransitionRequest body)
     {
-        var actor = ActorOf(context);
+        var actor = ActorOf(context, tenantRolesOnly: true);
         if (actor is null)
         {
             return NeedUser(context.CorrelationId());
@@ -458,6 +466,14 @@ public static class TransportEndpoints
 
         var items = await service.GetMyAssignmentsAsync(actor, context.RequestAborted);
         return Results.Json(items, PlatformHttp.Json);
+    }
+
+    private static async Task<IResult> GetDriverTripWorkAsync(HttpContext context, TransportService service, bool mine)
+    {
+        context.Response.Headers.CacheControl = "no-store";
+        var actor = ActorOf(context, tenantRolesOnly: true);
+        return actor is null ? NeedUser(context.CorrelationId())
+            : (await service.ListDriverTripWorkAsync(actor, mine, context.RequestAborted)).ToHttp(context.CorrelationId());
     }
 
     private static async Task<IResult> InventoryReadyAsync(HttpContext context, TransportService service, Guid tripId)

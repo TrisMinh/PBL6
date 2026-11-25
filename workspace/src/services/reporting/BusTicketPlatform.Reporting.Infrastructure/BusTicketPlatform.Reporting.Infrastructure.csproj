@@ -17,5 +17,6 @@
     <EmbeddedResource Include="..\..\..\..\..\docs\database\reporting\001_initial.sql" LogicalName="sql.reporting" />
     <EmbeddedResource Include="..\..\..\..\..\docs\database\reporting\002_revenue_analytics.sql" LogicalName="sql.revenue-analytics" />
     <EmbeddedResource Include="..\..\..\..\..\docs\database\reporting\003_revenue_by_booking.sql" LogicalName="sql.revenue-by-booking" />
+    <EmbeddedResource Include="..\..\..\..\..\docs\database\reporting\004_embedded_revenue_by_booking.sql" LogicalName="sql.embedded-revenue" />
   </ItemGroup>
 </Project>

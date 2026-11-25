@@ -15,6 +15,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddBuildingBlocks();
 builder.Services.AddIdentityInfrastructure(builder.Configuration);
+builder.Services.AddHttpClient("phone-verification", client => client.Timeout = TimeSpan.FromSeconds(8));
 builder.Services.AddPlatformOpenApi();
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
@@ -85,6 +86,7 @@ app.MapPlatformOpenApi();
 app.MapIdentityEndpoints();
 app.MapAdminUserProfiles();
 app.MapOperatorStaff();
+app.MapPhoneVerification();
 
 app.Run();
 

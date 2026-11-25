@@ -15,9 +15,7 @@ export class TripResultsPage {
   }
 
   async expectCount(count: number): Promise<void> {
-    await expect(
-      this.page.getByText(`${count} chuyến phù hợp`, { exact: true }),
-    ).toBeVisible();
+    await this.expectResultCount(count);
   }
 
   async expectResultCount(count: number): Promise<void> {

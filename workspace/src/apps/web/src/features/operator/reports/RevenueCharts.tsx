@@ -86,7 +86,7 @@ export function RevenueLineChart({
         : grouped
           ? "Theo nhóm ngày"
           : "Theo ngày";
-  const labelFor = (date: string) =>
+  const labelFor = (date: string): string =>
     unit === "year"
       ? date.slice(0, 4)
       : unit === "month"

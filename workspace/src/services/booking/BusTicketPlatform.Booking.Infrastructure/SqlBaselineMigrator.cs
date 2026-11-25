@@ -28,6 +28,10 @@ public sealed class SqlBaselineMigrator(BookingDatabaseOptions options)
         await ApplyFileAsync(connection, "sql.revenue-booking-context", "004_revenue_booking_context.sql", cancellationToken);
         await ApplyFileAsync(connection, "sql.booking-admin-lookup", "005_admin_lookup.sql", cancellationToken);
         await ApplyFileAsync(connection, "sql.booking-operator-paging", "006_operator_booking_paging.sql", cancellationToken);
+        await ApplyFileAsync(connection, "sql.embedded-booking-activity", "007_embedded_booking_activity.sql", cancellationToken);
+        await ApplyFileAsync(connection, "sql.seat-hold-protection", "008_seat_hold_protection.sql", cancellationToken);
+        await ApplyFileAsync(connection, "sql.explicit-hold-cancellation", "009_explicit_hold_cancellation.sql", cancellationToken);
+        await ApplyFileAsync(connection, "sql.ticket-refund-request", "010_ticket_refund_request.sql", cancellationToken);
     }
 
     private static async Task ApplyFileAsync(

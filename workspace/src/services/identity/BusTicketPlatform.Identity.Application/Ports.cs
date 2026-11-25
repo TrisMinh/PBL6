@@ -70,6 +70,10 @@ public interface IIdentityRepository
     Task<UserRecord?> FindByIdentifierAsync(string identifier, CancellationToken cancellationToken);
     Task InsertUserAsync(UserRecord user, CancellationToken cancellationToken);
     Task UpdateUserAsync(UserRecord user, CancellationToken cancellationToken);
+    Task<bool> InsertStaffAccountAsync(UserRecord user, MembershipRecord membership, string role, CancellationToken cancellationToken);
+    Task<bool> ReplacePasswordAsync(Guid userId, string currentHash, string newHash, CancellationToken cancellationToken);
+    Task<bool> ReissueDriverPasswordAsync(Guid organizationId, MembershipRecord membership, UserRecord user, string newHash, CancellationToken cancellationToken);
+    Task<bool> UpdateLoginStateAsync(UserRecord user, CancellationToken cancellationToken);
     Task AssignRoleAsync(Guid userId, string roleCode, Guid? organizationId, CancellationToken cancellationToken);
     Task ReplaceUserRolesAsync(Guid userId, IReadOnlyList<string> roleCodes, Guid? organizationId, CancellationToken cancellationToken);
     Task<IReadOnlyList<string>> GetRoleCodesAsync(Guid userId, CancellationToken cancellationToken);

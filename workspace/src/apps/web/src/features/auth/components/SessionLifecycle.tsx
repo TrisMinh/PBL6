@@ -1,22 +1,25 @@
-import * as Dialog from "@radix-ui/react-dialog";
 import { useEffect, useState, type ReactElement } from "react";
+import { useNavigate } from "react-router";
 import { useAccountSession } from "@/features/auth/hooks/useAccountSession";
 import { refreshAccessToken } from "@/shared/api/client";
 import { API_SESSION_EXPIRED, readApiSession } from "@/shared/api/session";
 import { ROUTES } from "@/shared/config/routes";
-import { Button } from "@/shared/ui/Button/Button";
-import "./SessionLifecycle.css";
+import { Toast } from "@/shared/ui/Toast/Toast";
 
-export function SessionLifecycle(): ReactElement {
+export function SessionLifecycle(): ReactElement | null {
   const { session } = useAccountSession();
+  const navigate = useNavigate();
   const [expired, setExpired] = useState(false);
   const token = session?.token;
 
   useEffect(() => {
-    const show = (): void => setExpired(true);
+    const show = (): void => {
+      setExpired(true);
+      void navigate(ROUTES.login, { replace: true });
+    };
     window.addEventListener(API_SESSION_EXPIRED, show);
     return () => window.removeEventListener(API_SESSION_EXPIRED, show);
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
     const stored = readApiSession();
@@ -56,27 +59,11 @@ export function SessionLifecycle(): ReactElement {
     };
   }, [token]);
 
-  return (
-    <Dialog.Root open={expired && !session} onOpenChange={setExpired}>
-      <Dialog.Portal>
-        <Dialog.Overlay className="session-expired__overlay" />
-        <Dialog.Content className="session-expired__panel">
-          <Dialog.Title>Phiên đăng nhập đã kết thúc</Dialog.Title>
-          <Dialog.Description>
-            Bạn đã được đăng xuất. Vui lòng đăng nhập lại để tiếp tục đặt vé
-            hoặc truy cập tài khoản.
-          </Dialog.Description>
-          <Button
-            onClick={() => {
-              setExpired(false);
-              if (window.location.pathname !== ROUTES.login)
-                window.location.assign(ROUTES.login);
-            }}
-          >
-            Đăng nhập lại
-          </Button>
-        </Dialog.Content>
-      </Dialog.Portal>
-    </Dialog.Root>
-  );
+  return expired && !session ? (
+    <Toast
+      tone="error"
+      message="Phiên đăng nhập đã kết thúc. Vui lòng đăng nhập lại."
+      onClose={() => setExpired(false)}
+    />
+  ) : null;
 }

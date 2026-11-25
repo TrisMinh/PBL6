@@ -37,6 +37,13 @@ public sealed class JwtTokenService(IOptions<AuthenticationOptions> options) : I
             new("sid", sessionId.ToString()),
             new("ver", user.AuthorizationVersion.ToString())
         };
+        claims.Add(new Claim("account_created_at", user.CreatedAt.ToString("O")));
+        if (user.VerifiedPhone is not null)
+        {
+            claims.Add(new Claim("phone_verified", "true"));
+            claims.Add(new Claim("phone_key", Convert.ToHexString(System.Security.Cryptography.HMACSHA256.HashData(
+                key.Key, Encoding.UTF8.GetBytes("booking-phone:" + user.VerifiedPhone)))));
+        }
         if (organizationId is not null)
         {
             claims.Add(new Claim("org", organizationId.Value.ToString()));

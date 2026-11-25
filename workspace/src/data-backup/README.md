@@ -16,7 +16,7 @@ Chạy lại để build và cập nhật dịch vụ trên volume hiện có. B
 
 Nếu Docker đang chạy project cũ `pbl6-local` trên cùng cổng, dừng project đó trong Docker Desktop rồi chạy setup. Volume của project cũ vẫn giữ nguyên.
 
-PostgreSQL, Redis và RabbitMQ dùng mạng nội bộ Docker. Các cổng web của setup mặc định chỉ mở trên localhost. Nếu cần truy cập PostgreSQL từ Power BI gateway trên Windows, dùng [cấu hình Docker dành cho Power BI](../infra/README.md#báo-cáo-operator-và-power-bi-trên-docker).
+Redis và RabbitMQ dùng mạng nội bộ Docker. Các cổng web của setup mặc định chỉ mở trên localhost. PostgreSQL của `pbl6-operating` mở tại `127.0.0.1:55475` để [Power BI gateway trên cùng máy Windows](../../analytics/power-bi/README.md) đọc dữ liệu.
 
 Để khôi phục snapshot cũ vào volume riêng, dùng `-ProjectName pbl6-legacy -RestoreData` hoặc thay `-RestoreData` bằng `-BackupPath` với đường dẫn ZIP. Các project dùng cùng cổng localhost cần chạy lần lượt. Nếu database dịch vụ đã có bảng, setup giữ dữ liệu đó và tiếp tục. Chỉ dùng ZIP tin cậy vì bước khôi phục chạy `Restore-PBL6Data.ps1` bên trong. Thêm `-EnvFile` nếu cần SePay Sandbox hoặc Power BI nhúng.
 

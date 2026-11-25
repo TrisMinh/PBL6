@@ -48,12 +48,18 @@ export function safeIntendedRedirect(
       ? input
       : fallback;
   }
+  if (
+    role === "customer" &&
+    /^\/bookings\/[A-Za-z0-9_-]{1,128}\/cancel$/.test(url.pathname)
+  )
+    return !url.search || url.search === "?view=refund" ? input : fallback;
   if (url.search) return fallback;
   const publicPath =
     [ROUTES.home, ROUTES.accountTickets, ROUTES.ticketLookup].some(
       (path) => path === input,
     ) ||
     /^\/tickets\/BLUE-[A-Z0-9-]{1,128}$/.test(input) ||
+    (role === "customer" && /^\/refunds\/[A-Za-z0-9_-]{1,128}$/.test(input)) ||
     /^\/booking\/[A-Za-z0-9_-]{1,128}\/(?:seats|passengers|review)$/.test(
       input,
     );

@@ -6,6 +6,8 @@ import { MemoryRouter, useLocation } from "react-router";
 import { afterEach, expect, it, vi } from "vitest";
 
 import { useCreateBooking } from "@/features/booking/hooks/useCreateBooking";
+import { BookingRepositoryError } from "@/features/booking/repositories/bookingRepositoryError";
+import { httpBookingRepository } from "@/features/booking/repositories/httpBookingRepository";
 import {
   createBookingDraftStore,
   useBookingDraftStore,
@@ -63,6 +65,27 @@ it.each(["newer-error", "cleared-error"])(
     expect(useBookingDraftStore.getState().draft).toBe(current);
   },
 );
+it("shows prepaid feedback when the same hold needs a new booking attempt", async () => {
+  const state = await setup();
+  vi.spyOn(httpBookingRepository, "createBooking").mockImplementationOnce(
+    async () => {
+      const { draft, setDraft } = useBookingDraftStore.getState();
+      if (!draft) throw new Error("Expected draft");
+      setDraft({ ...draft, bookingAttemptKey: "prepaid-retry" });
+      throw new BookingRepositoryError("PREPAID_REQUIRED", 409);
+    },
+  );
+
+  const { result } = renderHook(useSubject, { wrapper: state.wrapper });
+  act(() => result.current.create());
+  await waitFor(() =>
+    expect(result.current.error?.code).toBe("PREPAID_REQUIRED"),
+  );
+  expect(useBookingDraftStore.getState().draft).toMatchObject({
+    sessionId: state.id,
+    bookingAttemptKey: "prepaid-retry",
+  });
+});
 it("rejects a response arriving beyond original expiry without writing bookingId", async () => {
   const state = await setup();
   let release: () => void = () => undefined;
