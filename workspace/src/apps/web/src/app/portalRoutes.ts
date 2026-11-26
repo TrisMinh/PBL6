@@ -120,6 +120,7 @@ const allRoutes = [
         "./routes/admin/payments/detail.tsx",
       ),
       route(ROUTES.adminRefunds, "./routes/admin/refunds/index.tsx"),
+      route(ROUTES.adminRetention, "./routes/admin/retention/index.tsx"),
       route(
         `${ROUTES.adminRefunds}/:refundId`,
         "./routes/admin/refunds/detail.tsx",

@@ -15,6 +15,7 @@ export const ROUTES = {
   adminBookings: "/admin/bookings",
   adminPayments: "/admin/payments",
   adminRefunds: "/admin/refunds",
+  adminRetention: "/admin/retention",
 } as const;
 
 export const BOOKING_SEARCH_PATH = `${ROUTES.home}#booking-search`;

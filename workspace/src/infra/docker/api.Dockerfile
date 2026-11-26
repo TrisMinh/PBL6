@@ -13,6 +13,7 @@ WORKDIR /app
 RUN apt-get update \
     && apt-get install -y --no-install-recommends curl \
     && rm -rf /var/lib/apt/lists/*
+RUN install -d -m 0700 -o "$APP_UID" /var/lib/pbl6/retention
 COPY --from=build /out .
 ENV ASPNETCORE_URLS=http://+:8080
 EXPOSE 8080

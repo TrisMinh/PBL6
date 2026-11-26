@@ -27,7 +27,7 @@ public sealed partial class PaymentRepository
         await using var connection = await OpenAsync(cancellationToken);
         await using var command = new NpgsqlCommand($"""
             SELECT id FROM payments
-            WHERE {ReconciliationStatuses} AND {AutomaticReconciliationDue}
+            WHERE archived_at IS NULL AND {ReconciliationStatuses} AND {AutomaticReconciliationDue}
             ORDER BY (expires_at <= NOW()), CASE WHEN expires_at > NOW() THEN expires_at END,
                      COALESCE(sepay_checked_at, created_at), id
             LIMIT @limit
@@ -47,7 +47,7 @@ public sealed partial class PaymentRepository
             : "(sepay_checked_at IS NULL OR sepay_checked_at <= NOW() - INTERVAL '30 seconds')";
         await using var command = new NpgsqlCommand($"""
             UPDATE payments SET sepay_checked_at = NOW()
-            WHERE id = @id AND {ReconciliationStatuses} AND {due};
+            WHERE id = @id AND archived_at IS NULL AND {ReconciliationStatuses} AND {due};
             """, connection);
         command.Parameters.AddWithValue("id", paymentId);
         return await command.ExecuteNonQueryAsync(cancellationToken) == 1;
@@ -169,10 +169,10 @@ public sealed partial class PaymentRepository
     {
         await using var connection = await OpenAsync(cancellationToken);
         await using var tx = await connection.BeginTransactionAsync(cancellationToken);
-        await using (var locked = new NpgsqlCommand("SELECT id FROM payments WHERE id = @id FOR UPDATE", connection, tx))
+        await using (var locked = new NpgsqlCommand("SELECT id FROM payments WHERE id = @id AND archived_at IS NULL FOR UPDATE", connection, tx))
         {
             locked.Parameters.AddWithValue("id", payment.Id);
-            await locked.ExecuteScalarAsync(cancellationToken);
+            if (await locked.ExecuteScalarAsync(cancellationToken) is null) return false;
         }
         var applied = await QueueRefund(connection, tx, payment, reference, amount, reason, requestedBy, cancellationToken);
         await tx.CommitAsync(cancellationToken);

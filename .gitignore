@@ -18,6 +18,15 @@ coverage/
 secrets.json
 appsettings.*.local.json
 
+# Local deployment configuration, installers and archive outputs
+/oracle/
+/on-premises data gateway installer/
+/pbl6-backups/
+/retention-archives/
+/ssh-key-*.key
+*.dump
+*.csv.gz
+
 node_modules/
 dist/
 .vite/

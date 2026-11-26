@@ -42,13 +42,13 @@ public sealed partial class PaymentRepository(PaymentDatabaseOptions options) : 
     }
 
     public Task<PaymentRecord?> GetByBookingAsync(Guid bookingId, CancellationToken cancellationToken) =>
-        QueryPayment("SELECT " + PaymentCols + " FROM payments WHERE booking_id_external = @id ORDER BY created_at DESC, id DESC LIMIT 1", bookingId, cancellationToken);
+        QueryPayment("SELECT " + PaymentCols + " FROM payments WHERE booking_id_external = @id AND archived_at IS NULL ORDER BY created_at DESC, id DESC LIMIT 1", bookingId, cancellationToken);
 
     public Task<PaymentRecord?> GetAsync(Guid paymentId, CancellationToken cancellationToken) =>
-        QueryPayment("SELECT " + PaymentCols + " FROM payments WHERE id = @id", paymentId, cancellationToken);
+        QueryPayment("SELECT " + PaymentCols + " FROM payments WHERE id = @id AND archived_at IS NULL", paymentId, cancellationToken);
 
     public Task<PaymentRecord?> GetByReferenceAsync(string logicalReference, CancellationToken cancellationToken) =>
-        QueryPayment("SELECT " + PaymentCols + " FROM payments WHERE logical_reference = @ref", Guid.Empty, cancellationToken, logicalReference);
+        QueryPayment("SELECT " + PaymentCols + " FROM payments WHERE logical_reference = @ref AND archived_at IS NULL", Guid.Empty, cancellationToken, logicalReference);
 
     public async Task InsertPaymentAsync(PaymentRecord payment, CancellationToken cancellationToken)
     {
@@ -92,7 +92,7 @@ public sealed partial class PaymentRepository(PaymentDatabaseOptions options) : 
               cancelled_at = CASE WHEN @status = 'CANCELLED' THEN NOW() WHEN @status = 'SUCCEEDED' THEN NULL ELSE cancelled_at END,
               refunded_at = CASE WHEN @status = 'REFUNDED' THEN NOW() ELSE refunded_at END,
               updated_at = NOW(), row_version = row_version + 1
-            WHERE id = @id AND row_version = @version;
+            WHERE id = @id AND row_version = @version AND archived_at IS NULL;
             """, connection);
         command.Parameters.AddWithValue("id", payment.Id);
         command.Parameters.AddWithValue("version", payment.RowVersion);
@@ -137,7 +137,7 @@ public sealed partial class PaymentRepository(PaymentDatabaseOptions options) : 
     public async Task<IReadOnlyList<PaymentRecord>> ListByBookingAsync(Guid bookingId, CancellationToken cancellationToken)
     {
         await using var connection = await OpenAsync(cancellationToken);
-        await using var command = new NpgsqlCommand("SELECT " + PaymentCols + " FROM payments WHERE booking_id_external = @id ORDER BY created_at DESC, id DESC", connection);
+        await using var command = new NpgsqlCommand("SELECT " + PaymentCols + " FROM payments WHERE booking_id_external = @id AND archived_at IS NULL ORDER BY created_at DESC, id DESC", connection);
         command.Parameters.AddWithValue("id", bookingId);
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
         var items = new List<PaymentRecord>();
@@ -147,7 +147,7 @@ public sealed partial class PaymentRepository(PaymentDatabaseOptions options) : 
 
     public Task<(IReadOnlyList<PaymentRecord> Items, long Total)> SearchPaymentsAsync(Guid? orgId, int page, int size,
         CancellationToken cancellationToken, FinanceListFilter? filter = null) =>
-        SearchAsync(PaymentCols, "payments p", orgId, page, size, ReadPayment, cancellationToken,
+        SearchAsync(PaymentCols, "(SELECT * FROM payments WHERE archived_at IS NULL) p", orgId, page, size, ReadPayment, cancellationToken,
             " ORDER BY p.created_at DESC, p.id DESC", finance: filter);
 
     public Task<(IReadOnlyList<RefundListItem> Items, long Total)> SearchAdminRefundsAsync(
@@ -217,7 +217,7 @@ public sealed partial class PaymentRepository(PaymentDatabaseOptions options) : 
         await using var connection = await OpenAsync(cancellationToken);
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
 
-        await using (var paymentLock = new NpgsqlCommand("SELECT status, amount, currency, booking_id_external FROM payments WHERE id = @id FOR UPDATE;", connection, transaction))
+        await using (var paymentLock = new NpgsqlCommand("SELECT status, amount, currency, booking_id_external FROM payments WHERE id = @id AND archived_at IS NULL FOR UPDATE;", connection, transaction))
         {
             paymentLock.Parameters.AddWithValue("id", payment.Id);
             await using var reader = await paymentLock.ExecuteReaderAsync(cancellationToken);

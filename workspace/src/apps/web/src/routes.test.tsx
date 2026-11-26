@@ -101,6 +101,7 @@ describe("routeConfig", () => {
         "/admin/payments/:paymentId",
         "/admin/refunds",
         "/admin/refunds/:refundId",
+        "/admin/retention",
       ].sort(),
     );
     for (const entry of routes) {

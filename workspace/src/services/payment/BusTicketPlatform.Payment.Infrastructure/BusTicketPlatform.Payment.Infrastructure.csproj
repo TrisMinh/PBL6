@@ -24,5 +24,6 @@
     <EmbeddedResource Include="..\..\..\..\..\docs\database\payment\008_sepay_reconciliation_schedule.sql" LogicalName="sql.sepay-reconciliation-schedule" />
     <EmbeddedResource Include="..\..\..\..\..\docs\database\payment\009_finance_list_paging.sql" LogicalName="sql.finance-list-paging" />
     <EmbeddedResource Include="..\..\..\..\..\docs\database\payment\010_refund_transfer.sql" LogicalName="sql.refund-transfer" />
+    <EmbeddedResource Include="..\..\..\..\..\docs\database\payment\011_local_transaction_archive.sql" LogicalName="sql.local-transaction-archive" />
   </ItemGroup>
 </Project>

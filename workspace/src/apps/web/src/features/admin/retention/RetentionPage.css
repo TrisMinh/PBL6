@@ -1,0 +1,139 @@
+.retention-page {
+  display: grid;
+  gap: 1.25rem;
+  padding: clamp(1rem, 3vw, 2rem);
+  color: var(--admin-ink, #172b4a);
+}
+.retention-page h1,
+.retention-page h2 {
+  margin: 0 0 0.6rem;
+}
+.retention-page p {
+  margin: 0.5rem 0;
+}
+.retention-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+.retention-heading h1 {
+  font-size: clamp(1.4rem, 2vw, 1.8rem);
+  font-weight: 700;
+}
+.retention-card {
+  background: #fff;
+  border: 1px solid #dce5ef;
+  border-radius: 0.8rem;
+  padding: clamp(1rem, 2vw, 1.5rem);
+}
+.retention-card h2 {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+.retention-totals {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 0.9rem 0 0;
+}
+.retention-totals > div {
+  background: #f0f5fc;
+  border-radius: 0.5rem;
+  padding: clamp(0.65rem, 2vw, 1rem);
+}
+.retention-totals dt,
+.retention-caption {
+  color: #435774;
+}
+.retention-totals dd {
+  margin: 0.25rem 0 0;
+  font-size: clamp(1.15rem, 2.6vw, 1.8rem);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.retention-caption {
+  font-size: 0.9rem;
+}
+.retention-size-table {
+  width: 100%;
+  margin: 0.55rem 0;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+.retention-size-table :is(th, td) {
+  padding: 0.5rem 0.2rem;
+  border-bottom: 1px solid #dce5ef;
+  text-align: end;
+}
+.retention-size-table th:first-child {
+  text-align: start;
+}
+.retention-detail h3 {
+  margin-block-start: 1rem;
+  font-weight: 700;
+}
+.retention-form,
+.retention-files li {
+  display: flex;
+  align-items: end;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+}
+.retention-form label {
+  display: grid;
+  gap: 0.35rem;
+  font-weight: 600;
+}
+.retention-form {
+  min-inline-size: 0;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  border: 0;
+}
+.retention-form select {
+  min-height: 44px;
+  border: 1px solid #798da8;
+  border-radius: 0.5rem;
+  background: #fff;
+  color: inherit;
+  padding: 0.5rem 0.75rem;
+}
+.retention-form .retention-toggle {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+}
+.retention-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+.retention-grid div {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.85rem;
+  background: #f0f5fc;
+  border-radius: 0.5rem;
+}
+.retention-grid strong {
+  font-size: 1.35rem;
+}
+.retention-card details {
+  margin: 0.75rem 0;
+}
+.retention-card summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.retention-card [role="alert"] {
+  color: #a61c27;
+}
+.retention-files {
+  padding: 0;
+}
+.retention-files li {
+  align-items: center;
+}

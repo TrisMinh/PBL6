@@ -63,6 +63,13 @@ const ADMIN_NAV_ITEMS = [
     activeIcon: refundActiveIcon,
     transactionIcon: transactionRefundIcon,
   },
+  {
+    label: "Lưu trữ dữ liệu",
+    to: ROUTES.adminRetention,
+    icon: bookingIcon,
+    activeIcon: bookingActiveIcon,
+    transactionIcon: transactionBookingIcon,
+  },
 ];
 
 interface AdminNavigationProps {

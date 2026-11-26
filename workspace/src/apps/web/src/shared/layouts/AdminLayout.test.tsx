@@ -166,10 +166,10 @@ describe("AdminLayout", () => {
       name: "Đóng menu quản trị",
     });
     await waitFor(() => expect(close).toHaveFocus());
-    expect(within(dialog).getAllByRole("link")).toHaveLength(5);
+    expect(within(dialog).getAllByRole("link")).toHaveLength(6);
     await user.tab({ shift: true });
     expect(
-      within(dialog).getByRole("link", { name: "Hoàn tiền" }),
+      within(dialog).getByRole("link", { name: "Lưu trữ dữ liệu" }),
     ).toHaveFocus();
     await user.tab();
     expect(close).toHaveFocus();

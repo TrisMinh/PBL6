@@ -32,6 +32,7 @@ public sealed class SqlBaselineMigrator(PaymentDatabaseOptions options)
         await ApplyFileAsync(connection, "sql.sepay-reconciliation-schedule", "008_sepay_reconciliation_schedule.sql", cancellationToken);
         await ApplyFileAsync(connection, "sql.finance-list-paging", "009_finance_list_paging.sql", cancellationToken);
         await ApplyFileAsync(connection, "sql.refund-transfer", "010_refund_transfer.sql", cancellationToken);
+        await ApplyFileAsync(connection, "sql.local-transaction-archive", "011_local_transaction_archive.sql", cancellationToken);
     }
 
     private static async Task ApplyFileAsync(

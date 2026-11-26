@@ -1551,6 +1551,102 @@ paths:
         '404': {$ref: '#/components/responses/Error'}
         default: {$ref: '#/components/responses/Error'}
 
+  /admin/retention/status:
+    get:
+      summary: Read local archive schedule, active job, and recent runs
+      description: Available only when local retention is enabled. Requires PLATFORM_ADMIN.
+      responses:
+        "200":
+          description: Settings, active run or null, and the most recent run manifests.
+        "401":
+          description: Authentication required.
+        "403":
+          description: Platform administrator required.
+        default: {$ref: '#/components/responses/Error'}
+  /admin/retention/preview:
+    get:
+      summary: Count eligible local archive rows without changing records
+      responses:
+        "200":
+          description: Cutoff, eligible counts by policy, current database sizes, and estimated sizes after reclaiming space, in bytes.
+        "403":
+          description: Platform administrator required.
+        default: {$ref: '#/components/responses/Error'}
+  /admin/retention/settings:
+    put:
+      summary: Save the local retention policy and daily schedule
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [enabled, days, hour]
+              properties:
+                enabled: { type: boolean }
+                days: { type: integer, minimum: 30, maximum: 365 }
+                hour: { type: integer, minimum: 0, maximum: 23, description: Hour in Vietnam local time. }
+      responses:
+        "200":
+          description: Settings saved.
+        "400":
+          description: Invalid retention period or hour.
+        "403":
+          description: Platform administrator required.
+        default: {$ref: '#/components/responses/Error'}
+  /admin/retention/runs:
+    post:
+      summary: Queue one local archive run for all eligible data
+      responses:
+        "202":
+          description: Queued. Poll the status endpoint using the returned run ID.
+        "409":
+          description: Another run is already queued or in progress.
+        "403":
+          description: Platform administrator required.
+        default: {$ref: '#/components/responses/Error'}
+  /admin/retention/runs/{id}/download:
+    get:
+      summary: Download all committed CSV files and the manifest as a ZIP
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: ZIP archive containing the run manifest and its gzip-compressed CSV files.
+          content:
+            application/zip:
+              schema: { type: string, format: binary }
+        "403":
+          description: Platform administrator required.
+        "404":
+          description: Run has no committed archive files or has not finished.
+        default: {$ref: '#/components/responses/Error'}
+  /admin/retention/runs/{id}/files/{name}:
+    get:
+      summary: Download a verified CSV archive from a committed batch
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+        - in: path
+          name: name
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Gzip-compressed CSV file.
+          content:
+            application/gzip:
+              schema: { type: string, format: binary }
+        "403":
+          description: Platform administrator required.
+        "404":
+          description: Archive file not found.
+        default: {$ref: '#/components/responses/Error'}
 components:
   securitySchemes:
     bearerAuth:

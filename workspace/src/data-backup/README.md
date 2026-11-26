@@ -46,3 +46,11 @@ Dữ liệu giả lập gồm 16 nhà xe, 12.000 khách, 320 xe, 320 hồ sơ t�
 Trong Customer, mở **Vé của tôi** để xem lịch sử hoặc tìm **Đà Nẵng → Huế** trong 30 ngày sau lần nạp. Trong Operator, mở lịch chuyến, danh sách hành khách, báo cáo và đối soát của Hải Vân Lam. Trong Admin, tìm các nhà xe có mã `DEMO01` đến `DEMO16`.
 
 Script chỉ nạp vào PostgreSQL của Docker local. Bản ghi được tạo bằng định danh cố định và lệnh nạp thêm giữ dữ liệu hiện có. Nếu quá trình bị ngắt, chạy lại cùng lệnh để tiếp tục với mốc lịch cũ. Thêm `-DryRun` để chạy các phép kiểm tra và rollback từng database. Tài khoản, giấy phép, biển số, chứng từ và thông báo đều giả lập. Dữ liệu lịch sử không gửi thông báo hoặc tạo giao dịch với nhà cung cấp thanh toán. Các đơn mới tạo qua giao diện dùng cấu hình thanh toán của stack đang chạy.
+
+## Lưu trữ dữ liệu trên bản local
+
+Đăng nhập cổng Admin tại `http://localhost:5175/admin/retention`. Xem số bản ghi ứng viên, dung lượng sáu DB và lịch sử trước khi chọn **Lưu trữ ngay**. Lịch tự động mặc định tắt. Khi bật, job chạy tối đa một lần mỗi ngày theo giờ Việt Nam khi Reporting đang chạy. Nếu Reporting khởi động sau giờ đã đặt, job có thể chạy bù trong ngày đó.
+
+Mỗi lần chạy tự động xử lý mọi nhóm đã đủ điều kiện, gồm chuyến đã đóng nghiệp vụ, phân công, ghế và giữ ghế không còn tham chiếu, lượt gửi thông báo đã kết thúc, hồ sơ đơn và giao dịch đã đóng. Hồ sơ đơn gồm liên hệ và hành khách của đơn. Chỉ Admin nền tảng được tải file theo lô hoặc tải ZIP của cả lần chạy. Tài khoản và thông tin xác thực nằm ngoài hồ sơ lưu trữ. Payment giữ bản ghi tham chiếu để sổ cái, bảng kê và webhook vẫn liên kết, trong khi danh sách giao dịch hoạt động bỏ qua các giao dịch đã lưu. Nội dung thông báo, số liệu báo cáo và các sự kiện cần cho phát lại nằm ngoài phạm vi dọn.
+
+File `.csv.gz` và lịch sử nằm trong Docker volume `pbl6-operating_retention-archives`. Có thể tải file đã xác minh từ Admin. Lưu volume này riêng khi sao lưu môi trường, cùng bản PostgreSQL nếu cần khôi phục toàn bộ trạng thái nghiệp vụ. Dung lượng trước và sau trong Admin là kích thước PostgreSQL tại thời điểm đo. PostgreSQL có thể tái sử dụng chỗ trống do xóa trước khi file trên đĩa nhỏ lại. Lệnh nén lại bảng chỉ dùng trong cửa sổ bảo trì vì cần khóa bảng.

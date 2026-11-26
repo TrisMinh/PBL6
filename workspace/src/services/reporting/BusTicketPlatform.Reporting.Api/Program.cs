@@ -11,6 +11,11 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddBuildingBlocks();
 builder.Services.AddReportingInfrastructure(builder.Configuration);
+if (builder.Configuration.GetValue<bool>("Retention:Enabled"))
+{
+    builder.Services.AddSingleton<RetentionService>();
+    builder.Services.AddHostedService(services => services.GetRequiredService<RetentionService>());
+}
 builder.Services.Configure<PowerBiEmbeddingOptions>(builder.Configuration.GetSection("PowerBi"));
 builder.Services.AddHttpClient(PowerBiEmbedding.ClientName, client => client.Timeout = TimeSpan.FromSeconds(10));
 builder.Services.AddSingleton<PowerBiEmbedding>();
@@ -27,6 +32,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapPlatformHealth();
 app.MapPlatformOpenApi();
+if (builder.Configuration.GetValue<bool>("Retention:Enabled")) app.MapRetentionEndpoints();
 
 Actor? ActorOf(HttpContext context)
 {
